@@ -30,8 +30,6 @@
 
 #include "bochs.h"
 
-#define LOG_THIS /* no SMF tricks here, not needed */
-
 #ifdef __linux__
 extern "C" {
 #include <sys/ioctl.h>
@@ -81,16 +79,12 @@ HANDLE hFile = NULL;
 
 cdrom_interface::cdrom_interface(char *dev)
 {
-  setprefix("[CD  ]");
-  settype(CDLOG);
   fd = -1; // File descriptor not yet allocated
 
   if ( dev == NULL )
     path = NULL;
-  else {
+  else
     path = strdup(dev);
-    BX_INFO(("Init, file = '%s'\n",dev));
-  }
 }
 
 cdrom_interface::~cdrom_interface(void)
@@ -120,7 +114,7 @@ cdrom_interface::insert_cdrom()
     fd = open(path, O_RDONLY);
 #endif  
     if (fd < 0) {
-       BX_INFO(( "::cdrom_interface: open failed on dev '%s'.\n", path));
+       fprintf(stderr, "#::cdrom_interface: open failed on dev '%s'.\n", path);
        return(false);
     }
   
@@ -131,7 +125,7 @@ cdrom_interface::insert_cdrom()
     if (ret < 0) {
        CloseHandle(hFile);
 	   fd = -1;
-       BX_DEBUG(( "insert_cdrom: read returns error.\n" ));
+       fprintf(stderr, "#insert_cdrom: read returns error.\n");
 	   return(false);
 	}
 #else
@@ -139,7 +133,7 @@ cdrom_interface::insert_cdrom()
     if (ret < 0) {
        close(fd);
        fd = -1;
-       BX_DEBUG(( "insert_cdrom: read returns error.\n" ));
+       fprintf(stderr, "#insert_cdrom: read returns error.\n");
        return(false);
 	}
 #endif
@@ -157,7 +151,7 @@ cdrom_interface::eject_cdrom()
 #ifdef __OpenBSD__
     (void) ioctl (fd, CDIOCALLOW);
     if (ioctl (fd, CDIOCEJECT) < 0)
-	  BX_DEBUG(( "eject_cdrom: eject returns error.\n" ));
+	fprintf(stderr, "#eject_cdrom: eject returns error.\n");
 #endif
 
 #ifdef WIN32
@@ -177,7 +171,7 @@ cdrom_interface::read_toc(uint8* buf, int* length, bool msf, int start_track)
   // Read CD TOC. Returns false if start track is out of bounds.
 
   if (fd < 0) {
-    BX_PANIC(("cdrom: read_toc: file not open.\n"));
+    bx_panic("cdrom: read_toc: file not open.\n");
     }
 
 #ifdef WIN32
@@ -192,7 +186,7 @@ cdrom_interface::read_toc(uint8* buf, int* length, bool msf, int start_track)
   {
   struct cdrom_tochdr tochdr;
   if (ioctl(fd, CDROMREADTOCHDR, &tochdr))
-    BX_PANIC(("cdrom: read_toc: READTOCHDR failed.\n"));
+    bx_panic("cdrom: read_toc: READTOCHDR failed.\n");
 
   if (start_track > tochdr.cdth_trk1)
     return false;
@@ -209,7 +203,7 @@ cdrom_interface::read_toc(uint8* buf, int* length, bool msf, int start_track)
     tocentry.cdte_format = (msf) ? CDROM_MSF : CDROM_LBA;
     tocentry.cdte_track = i;
     if (ioctl(fd, CDROMREADTOCENTRY, &tocentry))
-      BX_PANIC(("cdrom: read_toc: READTOCENTRY failed.\n"));
+      bx_panic("cdrom: read_toc: READTOCENTRY failed.\n");
     buf[len++] = 0; // Reserved
     buf[len++] = (tocentry.cdte_adr << 4) | tocentry.cdte_ctrl ; // ADR, control
     buf[len++] = i; // Track number
@@ -238,7 +232,7 @@ cdrom_interface::read_toc(uint8* buf, int* length, bool msf, int start_track)
   tocentry.cdte_track = 0xaa;
 #endif
   if (ioctl(fd, CDROMREADTOCENTRY, &tocentry))
-    BX_PANIC(("cdrom: read_toc: READTOCENTRY lead-out failed.\n"));
+    bx_panic("cdrom: read_toc: READTOCENTRY lead-out failed.\n");
   buf[len++] = 0; // Reserved
   buf[len++] = (tocentry.cdte_adr << 4) | tocentry.cdte_ctrl ; // ADR, control
   buf[len++] = 0xaa; // Track number
@@ -270,7 +264,7 @@ cdrom_interface::read_toc(uint8* buf, int* length, bool msf, int start_track)
   struct ioc_read_toc_entry t;
 
   if (ioctl (fd, CDIOREADTOCHEADER, &h) < 0)
-    BX_PANIC(("cdrom: read_toc: READTOCHDR failed.\n"));
+    bx_panic("cdrom: read_toc: READTOCHDR failed.\n");
 
   if (start_track > h.ending_track)
     return false;
@@ -290,7 +284,7 @@ cdrom_interface::read_toc(uint8* buf, int* length, bool msf, int start_track)
     t.data = &tocentry;
 
     if (ioctl (fd, CDIOREADTOCENTRYS, &tocentry) < 0)
-      BX_PANIC(("cdrom: read_toc: READTOCENTRY failed.\n"));
+      bx_panic("cdrom: read_toc: READTOCENTRY failed.\n");
 
     buf[len++] = 0; // Reserved
     buf[len++] = (tocentry.addr_type << 4) | tocentry.control ; // ADR, control
@@ -319,7 +313,7 @@ cdrom_interface::read_toc(uint8* buf, int* length, bool msf, int start_track)
   t.data = &tocentry;
 
   if (ioctl (fd, CDIOREADTOCENTRYS, &tocentry) < 0)
-    BX_PANIC(("cdrom: read_toc: READTOCENTRY lead-out failed.\n"));
+    bx_panic("cdrom: read_toc: READTOCENTRY lead-out failed.\n");
 
   buf[len++] = 0; // Reserved
   buf[len++] = (tocentry.addr_type << 4) | tocentry.control ; // ADR, control
@@ -347,7 +341,7 @@ cdrom_interface::read_toc(uint8* buf, int* length, bool msf, int start_track)
   return true;
   }
 #else
-  BX_INFO(("read_toc: your OS is not supported yet.\n"));
+  fprintf(stderr, "#cdrom: read_toc: your OS is not supported yet.\n");
   return(false); // OS not supported yet, return false always.
 #endif
 }
@@ -363,11 +357,11 @@ cdrom_interface::capacity()
     struct stat buf = {0};
 
     if (fd < 0) {
-      BX_PANIC(("cdrom: capacity: file not open.\n"));
+      bx_panic("cdrom: capacity: file not open.\n");
     } 
     
     if( fstat(fd, &buf) != 0 )
-      BX_PANIC(("cdrom: capacity: stat() failed.\n"));
+      bx_panic("cdrom: capacity: stat() failed.\n");
   
     return(buf.st_size);
   }  
@@ -379,14 +373,14 @@ cdrom_interface::capacity()
   uint32 nr_sects;
 
   if (fd < 0) {
-    BX_PANIC(("cdrom: capacity: file not open.\n"));
+    bx_panic("cdrom: capacity: file not open.\n");
     }
   if (ioctl(fd, BLKGETSIZE, &nr_sects) != 0) {
-    BX_PANIC(("cdrom: ioctl(BLKGETSIZE) failed\n"));
+    bx_panic("cdrom: ioctl(BLKGETSIZE) failed\n");
     }
   nr_sects /= (CD_FRAMESIZE / 512);
 
-  BX_DEBUG(( "capacity: %u\n", nr_sects));
+  fprintf(stderr, "#cdrom: capacity: %u\n", nr_sects);
   return(nr_sects);
   }
 #elif defined(__OpenBSD__)
@@ -395,12 +389,12 @@ cdrom_interface::capacity()
   struct disklabel lp;
 
   if (fd < 0)
-    BX_PANIC(("cdrom: capacity: file not open.\n"));
+    bx_panic("cdrom: capacity: file not open.\n");
 
   if (ioctl(fd, DIOCGDINFO, &lp) < 0)
-    BX_PANIC(("cdrom: ioctl(DIOCGDINFO) failed\n"));
+    bx_panic("cdrom: ioctl(DIOCGDINFO) failed\n");
 
-  BX_DEBUG(( "capacity: %u\n", lp.d_secperunit ));
+  fprintf(stderr, "#cdrom: capacity: %u\n", lp.d_secperunit);
   return(lp.d_secperunit);
   }
 #elif defined WIN32
@@ -411,7 +405,7 @@ cdrom_interface::capacity()
  
   }
 #else
-  BX_WARN(( "capacity: your OS is not supported yet.\n" ));
+  fprintf(stderr, "#cdrom: capacity: your OS is not supported yet.\n");
   return(0);
 #endif
 }
@@ -427,12 +421,12 @@ cdrom_interface::read_block(uint8* buf, int lba)
 #ifdef WIN32
   pos = SetFilePointer(hFile, lba*BX_CD_FRAMESIZE, NULL, SEEK_SET);
   if (pos == 0xffffffff) {
-    BX_PANIC(("cdrom: read_block: lseek returned error.\n"));
+    bx_panic("cdrom: read_block: lseek returned error.\n");
     }
 #else
   pos = lseek(fd, lba*BX_CD_FRAMESIZE, SEEK_SET);
   if (pos < 0) {
-    BX_PANIC(("cdrom: read_block: lseek returned error.\n"));
+    bx_panic("cdrom: read_block: lseek returned error.\n");
     }
 #endif 
 
@@ -443,7 +437,7 @@ cdrom_interface::read_block(uint8* buf, int lba)
 #endif
   
   if (n != BX_CD_FRAMESIZE) {
-    BX_PANIC(("cdrom: read_block: read returned %d\n",
-      (int) n));
+    bx_panic("cdrom: read_block: read returned %d\n",
+      (int) n);
     }
 }
