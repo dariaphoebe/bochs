@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  errors.c                                                                 |
- |  $Id: errors.c,v 1.18.4.5 2004/05/25 18:45:43 sshwarts Exp $
+ |  $Id: errors.c,v 1.18.4.6 2004/06/01 21:05:14 sshwarts Exp $
  |                                                                           |
  |  The error handling functions for wm-FPU-emu                              |
  |                                                                           |
@@ -115,50 +115,6 @@ void FPU_exception(int exception)
         FPU_partial_status &= ~SW_C1;
   }
 }
-
-/* Real operation attempted on a NaN. */
-/* Returns < 0 if the exception is unmasked */
-int real_1op_NaN(FPU_REG *a)
-{
-  int signalling, isNaN;
-
-  isNaN = (exponent(a) == EXP_OVER) && (a->sigh & 0x80000000);
-
-  /* The default result for the case of two "equal" NaNs (signs may
-     differ) is chosen to reproduce 80486 behaviour */
-  signalling = isNaN && !(a->sigh & 0x40000000);
-
-  if (!signalling)
-    {
-      if (!isNaN)  /* pseudo-NaN, or other unsupported? */
-	{
-	  if (FPU_control_word & FPU_CW_Invalid)
-	    {
-	      /* Masked response */
-	      reg_copy(&CONST_QNaN, a);
-	    }
-	  EXCEPTION(EX_Invalid);
-	  return (!(FPU_control_word & FPU_CW_Invalid) ? FPU_Exception : 0) | TAG_Special;
-	}
-      return TAG_Special;
-    }
-
-  if (FPU_control_word & FPU_CW_Invalid)
-    {
-      /* The masked response */
-      if (!(a->sigh & 0x80000000))  /* pseudo-NaN ? */
-	{
-	  reg_copy(&CONST_QNaN, a);
-	}
-      /* ensure a Quiet NaN */
-      a->sigh |= 0x40000000;
-    }
-
-  EXCEPTION(EX_Invalid);
-
-  return (!(FPU_control_word & FPU_CW_Invalid) ? FPU_Exception : 0) | TAG_Special;
-}
-
 
 /* Real operation attempted on two operands, one a NaN. */
 /* Returns < 0 if the exception is unmasked */
@@ -436,17 +392,6 @@ asmlinkage int arith_underflow(FPU_REG *dest)
     }
 
   return tag;
-}
-
-void FPU_stack_underflow(void)
-{
- if (FPU_control_word & FPU_CW_Invalid)
-    {
-      /* The masked response */
-      FPU_copy_to_reg0(&CONST_QNaN, TAG_Special);
-    }
-
-  EXCEPTION(EX_StackUnder);
 }
 
 void FPU_stack_underflow_pop(int i)

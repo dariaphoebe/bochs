@@ -45,10 +45,10 @@ float_class_t floatx80_class(floatx80);
 floatx80 floatx80_scale(floatx80 a, floatx80 b, float_status_t &status);
 floatx80 floatx80_remainder(floatx80 a, floatx80 b, Bit64u &q, float_status_t &status);
 floatx80 floatx80_ieee754_remainder(floatx80 a, floatx80 b, Bit64u &q, float_status_t &status);
+floatx80 f2xm1(floatx80 a, float_status_t &status);
 
 /*----------------------------------------------------------------------------
-| Software IEC/IEEE extended double-precision trigonometric functions 
-| approximations.
+| Software IEC/IEEE extended double-precision trigonometric functions.
 *----------------------------------------------------------------------------*/
 
 int fsincos(floatx80 a, floatx80 *sin_a, floatx80 *cos_a, float_status_t &status);

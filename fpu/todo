@@ -8,7 +8,7 @@ TODO:
    for all operations, including float32 and float64.
 
 3. The instructions still implemented using old FPU library:
-	 FPATAN, FYL2XP1, F2XM1, FYL2X
+	 FPATAN, FYL2XP1, FYL2X
 
 4. Set SW_C1 according to PRECISION_UP or PRECISION_DOWN conditions.
 

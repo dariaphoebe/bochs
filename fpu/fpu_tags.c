@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_tags.c                                                               |
- |  $Id: fpu_tags.c,v 1.7.8.2 2004/04/17 16:43:05 sshwarts Exp $
+ |  $Id: fpu_tags.c,v 1.7.8.3 2004/06/01 21:05:14 sshwarts Exp $
  |                                                                           |
  |  Set FPU register tags.                                                   |
  |                                                                           |
@@ -69,12 +69,6 @@ int BX_CPP_AttrRegparmN(1) isNaN(FPU_REG const *ptr)
 {
   return ((exponent(ptr) == EXP_BIAS+EXP_OVER)
 	   && !((ptr->sigh == 0x80000000) && (ptr->sigl == 0)));
-}
-
-int FPU_stackoverflow(FPU_REG **st_new_ptr)
-{
-  *st_new_ptr = &st(-1);
-  return ((FPU_tag_word >> (((FPU_tos - 1) & 7)*2)) & 3) != TAG_Empty;
 }
 
 void  BX_CPP_AttrRegparmN(3) FPU_copy_to_regi(FPU_REG const *r, u_char tag, int stnr)

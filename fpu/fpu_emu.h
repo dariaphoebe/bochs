@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.23.8.5 2004/05/25 18:38:34 sshwarts Exp $
+ |  $Id: fpu_emu.h,v 1.23.8.6 2004/06/01 21:05:14 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -73,8 +73,6 @@
 #define getsign(a) (signbyte(a) & 0x80)
 #define setsign(a,b) { if (b) signbyte(a) |= 0x80; else signbyte(a) &= 0x7f; }
 #define changesign(a) { signbyte(a) ^= 0x80; }
-#define setpositive(a) { signbyte(a) &= 0x7f; }
-#define setnegative(a) { signbyte(a) |= 0x80; }
 #define signpositive(a) ( (signbyte(a) & 0x80) == 0 )
 #define signnegative(a) (signbyte(a) & 0x80)
 

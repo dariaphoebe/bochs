@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  div_Xsig.S                                                               |
- |  $Id: div_Xsig.c,v 1.3.10.2 2004/05/22 09:30:49 sshwarts Exp $
+ |  $Id: div_Xsig.c,v 1.3.10.3 2004/06/01 21:05:14 sshwarts Exp $
  |                                                                           |
  | Division subroutine for 96 bit quantities                                 |
  |                                                                           |
@@ -148,7 +148,6 @@ void div_Xsig(const Xsig *aa, const Xsig *b, Xsig *dest)
 	a.midw --;
       result.midw ++;
     }
-
 
   /* Now result.msw is done, the lsw is next... */
 

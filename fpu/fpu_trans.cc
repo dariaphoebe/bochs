@@ -36,7 +36,6 @@ extern "C"
 {
   void fpatan (FPU_REG *st0_ptr, Bit8u st0_tag);
   void fyl2xp1(FPU_REG *st0_ptr, Bit8u st0_tag);
-  void f2xm1  (FPU_REG *st0_ptr, Bit8u st0_tag);
   void fyl2x  (FPU_REG *st0_ptr, Bit8u st0_tag);
 }
 
@@ -74,6 +73,7 @@ void BX_CPU_C::FYL2XP1(bxInstruction_c *i)
 #endif
 }
 
+/* D9 F0 */
 void BX_CPU_C::F2XM1(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
@@ -81,10 +81,21 @@ void BX_CPU_C::F2XM1(bxInstruction_c *i)
 
   clear_C1();
 
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
 
-  f2xm1(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+  softfloat_status_word_t status = 
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = f2xm1(BX_READ_FPU_REG(0), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
 #else
   BX_INFO(("F2XM1: required FPU, configure --enable-fpu"));
 #endif

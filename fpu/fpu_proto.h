@@ -37,7 +37,6 @@
 /* errors.c */
 asmlinkage void FPU_exception(int n);
 asmlinkage void FPU_internal(int n);
-extern int real_1op_NaN(FPU_REG *a);
 extern int real_2op_NaN(FPU_REG const *b, u_char tagb, int deststnr,
 			FPU_REG const *defaultNaN);
 extern int arith_invalid(int deststnr);
@@ -47,7 +46,6 @@ extern void set_precision_flag_down(void);
 extern int denormal_operand(void);
 extern int arith_round_overflow(FPU_REG *dest, Bit8u sign);
 extern int arith_underflow(FPU_REG *dest);
-extern void FPU_stack_underflow(void);
 extern void FPU_stack_underflow_pop(int i);
 /* fpu_tags.c */
 extern int FPU_tagof(FPU_REG *ptr) BX_CPP_AttrRegparmN(1);
@@ -58,12 +56,9 @@ extern void FPU_settagi(int stnr, int tag) BX_CPP_AttrRegparmN(2);
 extern int FPU_Special(FPU_REG const *ptr) BX_CPP_AttrRegparmN(1);
 extern int isNaN(FPU_REG const *ptr) BX_CPP_AttrRegparmN(1);
 extern void FPU_pop(void);
-extern int FPU_stackoverflow(FPU_REG **st_new_ptr);
 extern void FPU_copy_to_regi(FPU_REG const *r, u_char tag, int stnr) BX_CPP_AttrRegparmN(3);
 extern void FPU_copy_to_reg1(FPU_REG const *r, u_char tag) BX_CPP_AttrRegparmN(2);
 extern void FPU_copy_to_reg0(FPU_REG const *r, u_char tag) BX_CPP_AttrRegparmN(2);
-/* poly_2xm1.c */
-extern int poly_2xm1(u_char sign, FPU_REG *arg, FPU_REG *result);
 /* poly_atan.c */
 extern void poly_atan(FPU_REG *st0_ptr, u_char st0_tag, FPU_REG *st1_ptr,
 		      u_char st1_tag);

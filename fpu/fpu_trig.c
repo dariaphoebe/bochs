@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.10.7 2004/05/28 11:48:19 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.10.8 2004/06/01 21:05:14 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -19,70 +19,10 @@
 /* bbd: make CONST_PI2 non-const so that you can write "&CONST_PI2" when
    calling a function.  Otherwise you get const warnings.  Surely there's
    a better way. */
-static FPU_REG const CONST_1    = MAKE_REG(POS,  0, 0x00000000, 0x80000000);
 static FPU_REG const CONST_PI   = MAKE_REG(POS,  1, 0x2168c235, 0xc90fdaa2);
 static FPU_REG const CONST_PI2  = MAKE_REG(POS,  0, 0x2168c235, 0xc90fdaa2);
 static FPU_REG const CONST_PI4  = MAKE_REG(POS, -1, 0x2168c235, 0xc90fdaa2);
 static FPU_REG const CONST_3PI4 = MAKE_REG(POS,  1, 0x990e91a8, 0x96cbe3f9);
-
-static void single_arg_error(FPU_REG *st0_ptr, u_char st0_tag)
-{
-  if (st0_tag == TAG_Empty)
-    FPU_stack_underflow();  /* Puts a QNaN in st(0) */
-  else if (st0_tag == TW_NaN)
-    real_1op_NaN(st0_ptr);       /* return with a NaN in st(0) */
-#ifdef PARANOID
-  else
-    INTERNAL(0x0112);
-#endif /* PARANOID */
-}
-
-void f2xm1(FPU_REG *st0_ptr, u_char tag)
-{
-  FPU_REG a;
-
-  clear_C1();
-
-  if (tag == TAG_Valid)
-    {
-      /* For an 80486 FPU, the result is undefined if the arg is >= 1.0 */
-      if (exponent(st0_ptr) < 0)
-	{
-	denormal_arg:
-
-	  FPU_to_exp16(st0_ptr, &a);
-
-	  /* poly_2xm1(x) requires 0 < st(0) < 1. */
-	  poly_2xm1(getsign(st0_ptr), &a, st0_ptr);
-	}
-      set_precision_flag_up();   /* 80486 appears to always do this */
-      return;
-    }
-
-  if (tag == TAG_Zero)
-    return;
-
-  if (tag == TAG_Special)
-    tag = FPU_Special(st0_ptr);
-
-  switch (tag)
-    {
-    case TW_Denormal:
-      if (denormal_operand() < 0)
-	return;
-      goto denormal_arg;
-    case TW_Infinity:
-      if (signnegative(st0_ptr))
-	{
-	  /* -infinity gives -1 (p16-10) */
-	  FPU_copy_to_reg0(&CONST_1, TAG_Valid);
-	  setnegative(st0_ptr);
-	}
-      return;
-    default:
-      single_arg_error(st0_ptr, tag);
-    }
-}
 
 /*---------------------------------------------------------------------------*/
 /* The following all require two arguments: st(0) and st(1) */
