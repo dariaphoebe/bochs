@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: param.cc,v 1.1.2.5 2003/04/04 05:42:39 bdenney Exp $
+// $Id: param.cc,v 1.1.2.6 2003/05/03 15:56:12 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 
 #ifndef PARAM_STANDALONE
@@ -866,21 +866,8 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
     }
   case BXT_PARAM_BOOL:
     {
-      // boolean get dumped as either 'true' or 'false'
-      if (node->is_shadow_param())
-        {
-          fprintf (m_ascii_fp, "%s=%s\n", node->get_name(), 
-                   ((bx_shadow_bool_c*)node)->get()?"true":"false");
-        }
-      else
-        {
-          if (strcmp(node->get_name(), "present")==0)
-            {
-              printf("%s = %d", node->get_name(), ((bx_param_bool_c*)node)->get(1));
-            }
-          fprintf (m_ascii_fp, "%s=%s\n", node->get_name(), 
-                   ((bx_param_bool_c*)node)->get(1/*ignore_handler*/)?"true":"false");
-        }
+      fprintf (m_ascii_fp, "%s=%s\n", node->get_name(), 
+	       ((bx_param_bool_c*)node)->get()?"true":"false");
       break;
     }
   case BXT_PARAM_STRING:
@@ -1595,7 +1582,7 @@ bx_checkpoint_c::load_param_bool(bx_param_c *parent_p,
 
   if (strcmp(param_str, "present")==0)
     {
-      printf("%s.%s = %s", qualified_path_str, param_str, value_str);
+      printf("%s.%s = %s\n", qualified_path_str, param_str, value_str);
     }
 
   bx_param_c *param_p = parent_p->get_by_name(param_str);
@@ -1613,10 +1600,14 @@ bx_checkpoint_c::load_param_bool(bx_param_c *parent_p,
         {
           value = 1;
         }
-      else 
+      else if (strcmp (value_str, "false") == 0) 
         {
           value = 0;
         }
+      else
+	{
+	  BX_PANIC (("boolean parameter '%s' was '%s', not true or false", param_p->get_name(), value_str));
+	}
 
       // actually set the value
       if (param_p->is_shadow_param())
@@ -1767,19 +1758,19 @@ bx_checkpoint_c::load_param_data(bx_param_c *parent_p,
                 
       // convert the hex string to a long int
       char *str_ptr;
-      Bit64u value = strtoull(value_str, &str_ptr, 0);
+      Bit64u offset = strtoull(value_str, &str_ptr, 0);
       if (*str_ptr != '\0')
         {
           BX_PANIC(("fatal error when loading checkpoint. " \
-                   "value not valid with param %s.\n", param_str));
+                   "offset not valid with param %s.\n", param_str));
         }
 
 #if CHKPT_DEBUG
       for (int i=0; i<level; i++) printf(" ");
-      printf("            %s, put   = %0xlx\n", param_str, value);
+      printf("            %s, put   = %0xlx\n", param_str, offset);
 #endif // #if CHKPT_DEBUG
 
-      // actual loading of new value
+      // load binary data
       if (param_p->is_shadow_param())
         {
           char *size_str = read_next_value();
@@ -1798,6 +1789,7 @@ bx_checkpoint_c::load_param_data(bx_param_c *parent_p,
             }
           else
             {
+	      BX_PANIC (("loading a different sized block of binary data cannot work unless the object which refers to this data knows where the newly allocated memory block is found"));
               // BJS TODO: TESTME
               free(((bx_shadow_data_c*)param_p)->get());
               new_data_p = (Bit8u*) malloc(size);
@@ -1806,16 +1798,16 @@ bx_checkpoint_c::load_param_data(bx_param_c *parent_p,
               ((bx_shadow_data_c*)param_p)->set_data_size(size);
             }
           
-          if (fseek(m_data_fp, size, SEEK_SET) < 0)
+          if (fseek(m_data_fp, offset, SEEK_SET) < 0)
             {
               BX_PANIC(("fatal error when loading checkpoint. " \
-                        "value not valid with param %s.\n", param_str));
+                        "could not seek to offset %u in param_data", offset));
             }
           
           if (fread(new_data_p, sizeof(Bit8u), size, m_data_fp) != size)
             {
               BX_PANIC(("fatal error when loading checkpoint. " \
-                        "value not valid with param %s.\n", param_str));
+                        "could not fread %u bytes in param_data", size));
             }
           
         }
