@@ -28,7 +28,7 @@
 #define LOG_THIS BX_CPU_THIS_PTR
 
 #if BX_SUPPORT_FPU
-#include "softfloat-fpu.h"
+#include "softfloatx80.h"
 #endif
 
 void BX_CPU_C::FLD_STi(bxInstruction_c *i)

@@ -1524,8 +1524,7 @@ void BX_CPU_C::FSQRT(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0))
-  {
+  if (IS_TAG_EMPTY(0)) {
      BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
@@ -1559,8 +1558,7 @@ void BX_CPU_C::FRNDINT(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0))
-  {
+  if (IS_TAG_EMPTY(0)) {
      BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }

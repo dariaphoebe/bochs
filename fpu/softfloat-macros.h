@@ -32,6 +32,9 @@ these four paragraphs for those parts of this code that are retained.
  *            Stanislav Shwartsman (gate@fidonet.org.il)
  * ==========================================================================*/ 
 
+#ifndef SOFTFLOAT_MACROS
+#define SOFTFLOAT_MACROS
+
 /*----------------------------------------------------------------------------
 | Shifts `a' right by the number of bits given in `count'.  If any nonzero
 | bits are shifted off, they are ``jammed'' into the least significant bit of
@@ -577,5 +580,7 @@ BX_CPP_INLINE int lt128(Bit64u a0, Bit64u a1, Bit64u b0, Bit64u b1)
 {
     return (a0 < b0) || ((a0 == b0) && (a1 < b1));
 }
+
+#endif	/* FLOATX80 */
 
 #endif

@@ -28,7 +28,7 @@
 #define LOG_THIS BX_CPU_THIS_PTR
 
 #if BX_SUPPORT_FPU
-#include "softfloat-fpu.h"
+#include "softfloatx80.h"
 #endif
 
 /* D9 C8 */

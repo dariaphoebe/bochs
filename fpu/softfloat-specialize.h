@@ -27,6 +27,9 @@ the work is derivative, and (2) the source code includes prominent notice with
 these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
+#ifndef SOFTFLOAT_SPECIALIZE
+#define SOFTFLOAT_SPECIALIZE
+
 /*============================================================================
  * Adapted for Bochs (x86 achitecture simulator) by
  *            Stanislav Shwartsman (gate@fidonet.org.il)
@@ -165,7 +168,7 @@ BX_CPP_INLINE float32 propagateFloat32NaN(float32 a, float_status_t &status)
 | signaling NaN, the invalid exception is raised.
 *----------------------------------------------------------------------------*/
 
-static float32 propagateFloat32NaN(float32 a, float32 b, float_status_t &status)
+BX_CPP_INLINE float32 propagateFloat32NaN(float32 a, float32 b, float_status_t &status)
 {
     int aIsNaN, aIsSignalingNaN, bIsNaN, bIsSignalingNaN;
 
@@ -316,7 +319,7 @@ BX_CPP_INLINE float64 propagateFloat64NaN(float64 a, float_status_t &status)
 | signaling NaN, the invalid exception is raised.
 *----------------------------------------------------------------------------*/
 
-static float64 propagateFloat64NaN(float64 a, float64 b, float_status_t &status)
+BX_CPP_INLINE float64 propagateFloat64NaN(float64 a, float64 b, float_status_t &status)
 {
     int aIsNaN, aIsSignalingNaN, bIsNaN, bIsSignalingNaN;
 
@@ -491,7 +494,7 @@ BX_CPP_INLINE floatx80 propagateFloatx80NaN(floatx80 a, float_status_t &status)
 | `b' is a signaling NaN, the invalid exception is raised.
 *----------------------------------------------------------------------------*/
 
-static floatx80 propagateFloatx80NaN(floatx80 a, floatx80 b, float_status_t &status)
+BX_CPP_INLINE floatx80 propagateFloatx80NaN(floatx80 a, floatx80 b, float_status_t &status)
 {
     int aIsNaN, aIsSignalingNaN, bIsNaN, bIsSignalingNaN;
 
@@ -517,5 +520,7 @@ static floatx80 propagateFloatx80NaN(floatx80 a, floatx80 b, float_status_t &sta
         return b;
     }
 }
+
+#endif	/* FLOATX80 */
 
 #endif
