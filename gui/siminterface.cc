@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94.4.14 2003/04/02 08:54:24 slechta Exp $
+// $Id: siminterface.cc,v 1.94.4.15 2003/04/06 15:57:05 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -760,8 +760,12 @@ bx_real_sim_c::restore_state (const char *checkpoint_name)
 {
   BX_INFO (("restore_state(%s)", checkpoint_name));
   bx_param_c *root = get_param (".");
+  // some params can only be changed at configure time, not runtime.
+  // Set init_done to 0 so that these values can be changed.
+  set_init_done (0);
   bx_checkpoint_c chkpt;
   chkpt.read(checkpoint_name, root);
-  chkpt.write("checkpt2", root);
+  //chkpt.write("checkpt2", root);
+  set_init_done (1);
   return true;
 }
