@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  poly_tan.c                                                               |
- |  $Id: poly_tan.c,v 1.5 2003/05/15 16:19:39 sshwarts Exp $
+ |  $Id: poly_tan.c,v 1.5.8.1 2004/03/19 17:43:31 sshwarts Exp $
  |                                                                           |
  | Compute the tan of a FPU_REG, using a polynomial approximation.           |
  |                                                                           |
@@ -150,11 +150,9 @@ void   poly_tan(FPU_REG *st0_ptr, int invert)
       exponent = - exponent;
     }
 
-
   /* Transfer the result */
   exponent += round_Xsig(&accum);
   FPU_settag0(TAG_Valid);
   significand(st0_ptr) = XSIG_LL(accum);
   setexponent16(st0_ptr, exponent + EXTENDED_Ebias);  /* Result is positive. */
-
 }

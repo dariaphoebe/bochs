@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_round.c                                                              |
- |  $Id: reg_round.c,v 1.8.8.1 2004/03/19 13:14:51 sshwarts Exp $
+ |  $Id: reg_round.c,v 1.8.8.2 2004/03/19 17:43:31 sshwarts Exp $
  |                                                                           |
  | Rounding/truncation/etc for FPU basic arithmetic functions.               |
  |                                                                           |
@@ -618,4 +618,3 @@ FPU_round_to_int(FPU_REG *r, u_char tag)
 
   return eax ? PRECISION_LOST_DOWN : 0;
 }
-

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  poly.h                                                                   |
- |  $Id: poly.h,v 1.7.6.1 2004/03/19 13:14:50 sshwarts Exp $
+ |  $Id: poly.h,v 1.7.6.2 2004/03/19 17:43:31 sshwarts Exp $
  |                                                                           |
  |  Header file for the FPU-emu poly*.c source files.                        |
  |                                                                           |
@@ -160,8 +160,7 @@ void add_two_Xsig(Xsig *dest, const Xsig *x2, s32 *exp)
 
 
 /* Negate the 12 byte Xsig */
-BX_C_INLINE
-void negate_Xsig(Xsig *x)
+BX_C_INLINE void negate_Xsig(Xsig *x)
 {
   x->lsw = ~x->lsw;
   x->midw = ~x->midw;
@@ -174,6 +173,5 @@ void negate_Xsig(Xsig *x)
 	x->msw ++;
     }
 }
-
 
 #endif /* _POLY_H */

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  errors.c                                                                 |
- |  $Id: errors.c,v 1.18.2.1 2004/03/19 13:14:50 sshwarts Exp $
+ |  $Id: errors.c,v 1.18.2.2 2004/03/19 17:43:31 sshwarts Exp $
  |                                                                           |
  |  The error handling functions for wm-FPU-emu                              |
  |                                                                           |
@@ -27,11 +27,6 @@
 #include "status_w.h"
 #include "control_w.h"
 #include "reg_constant.h"
-
-#ifdef __cplusplus
-extern "C"
-#endif
-int printk(const char * fmt, ...);
 
 static struct {
   int type;
@@ -98,11 +93,6 @@ static struct {
 	      0x172  in fpu_tags.c
 	      0x180  in reg_convert.c
 */
-
-void FPU_internal(int type)
-{
-   printk("FPU emulator: Internal error type 0x%04x\n", type);
-}
 
 void FPU_exception(int exception)
 {

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  status_w.h                                                               |
- |  $Id: status_w.h,v 1.6.8.1 2004/03/19 17:00:25 sshwarts Exp $
+ |  $Id: status_w.h,v 1.6.8.2 2004/03/19 17:43:31 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993                                                   |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -16,7 +16,6 @@
 #define SW_Backward    	(0x8000)	/* backward compatibility */
 #define SW_C3		(0x4000)	/* condition bit 3 */
 #define SW_Top		(0x3800)	/* top of stack */
-#define SW_Top_Shift 	(11)		/* shift for top of stack bits */
 #define SW_C2		(0x0400)	/* condition bit 2 */
 #define SW_C1		(0x0200)	/* condition bit 1 */
 #define SW_C0		(0x0100)	/* condition bit 0 */
@@ -40,7 +39,7 @@
 #define COMP_SNaN	0x80
 
 #define status_word() \
-  ((FPU_partial_status & ~SW_Top & 0xffff) | ((FPU_tos << SW_Top_Shift) & SW_Top))
+  ((FPU_partial_status & ~SW_Top & 0xffff) | ((FPU_tos << 11) & SW_Top))
 
 /*
  * bbd: use do {...} while (0) structure instead of using curly brackets

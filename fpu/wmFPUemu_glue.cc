@@ -93,3 +93,8 @@ extern "C" int printk(const char * fmt, ...)
   BX_INFO(("math abort: %s", fmt));
   return 0;
 }
+
+extern "C" void FPU_internal(int type)
+{
+   BX_INFO(("FPU emulator: Internal error type 0x%04x", type));
+}

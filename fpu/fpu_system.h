@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_system.h                                                             |
- |  $Id: fpu_system.h,v 1.21.6.2 2004/03/19 13:26:48 sshwarts Exp $
+ |  $Id: fpu_system.h,v 1.21.6.3 2004/03/19 17:43:31 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1994,1997                                              |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -36,9 +36,6 @@ typedef Bit8u u_char;
  * ------------------------------------------------------------ */
 
 #include <cpu/i387.h>
-
-#define VERIFY_READ     0
-#define VERIFY_WRITE    1
 
 #ifndef WORDS_BIGENDIAN
 #error "WORDS_BIGENDIAN not defined in config.h"

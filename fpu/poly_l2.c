@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  poly_l2.c                                                                |
- |  $Id: poly_l2.c,v 1.5 2003/10/05 12:26:11 sshwarts Exp $
+ |  $Id: poly_l2.c,v 1.5.8.1 2004/03/19 17:43:31 sshwarts Exp $
  |                                                                           |
  | Compute the base 2 log of a FPU_REG, using a polynomial approximation.    |
  |                                                                           |
@@ -269,5 +269,4 @@ static void log2_kernel(FPU_REG const *arg, u_char argsign, Xsig *accum_result,
   accum_result->lsw = accumulator.lsw;
   accum_result->midw = accumulator.midw;
   accum_result->msw = accumulator.msw;
-
 }

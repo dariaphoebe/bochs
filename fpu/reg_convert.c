@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_convert.c                                                            |
- |  $Id: reg_convert.c,v 1.5 2003/10/04 12:32:56 sshwarts Exp $
+ |  $Id: reg_convert.c,v 1.5.8.1 2004/03/19 17:43:31 sshwarts Exp $
  |                                                                           |
  |  Convert register representation.                                         |
  |                                                                           |
@@ -56,4 +56,3 @@ FPU_to_exp16(FPU_REG const *a, FPU_REG *x)
 
   return sign;
 }
-
