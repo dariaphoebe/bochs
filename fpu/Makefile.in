@@ -61,7 +61,7 @@ FPU_GLUE_OBJ = wmFPUemu_glue.o ferr.o fpu.o fpu_arith.o fpu_compare.o \
 # From 'C' language sources:
 C_OBJS = errors.o fpu_tags.o fpu_trig_c.o \
 	poly_atan.o poly_l2.o poly_2xm1.o \
-	reg_constant.o reg_convert.o reg_mul.o \
+	reg_convert.o reg_mul.o \
         reg_u_mul.o reg_norm.o reg_round.o \
 	wm_shrx.o div_Xsig.o polynom_Xsig.o round_Xsig.o \
 	shr_Xsig.o mul_Xsig.o
@@ -126,9 +126,6 @@ poly_l2.o: poly_l2.c reg_constant.h fpu_emu.h linkage.h fpu_system.h \
 polynom_Xsig.o: polynom_Xsig.c fpu_emu.h linkage.h fpu_system.h \
   ../config.h ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h \
   poly.h
-reg_constant.o: reg_constant.c fpu_system.h ../config.h ../cpu/i387.h \
-  ../fpu/tag_w.h ../fpu/control_w.h fpu_emu.h linkage.h fpu_proto.h \
-  status_w.h reg_constant.h control_w.h
 reg_convert.o: reg_convert.c fpu_emu.h linkage.h fpu_system.h ../config.h \
   ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h
 reg_mul.o: reg_mul.c reg_constant.h fpu_emu.h linkage.h fpu_system.h \

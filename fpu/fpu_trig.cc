@@ -32,23 +32,9 @@
 #include "softfloatx80.h"
 #endif
 
-/// !!!!!
-/*
-
-#include <iostream.h>
-
-static void print(const char *s, const floatx80 &r)
-{
-        long double *a = (long double *)(&r);
-	printf("%s: %04lx.%08lx%08lx -> ", s, (Bit32u)r.exp, (Bit32u)(r.fraction >> 32), (Bit32u)(r.fraction & 0xFFFFFFFF));
-	cout << *a << endl;
-}
-*/
-/// !!!!!
-
 #define EXP_BIAS 0x3FFF
 
-extern void trig_arg_reduction(floatx80 &a, Bit64u &q, float_status_t &status);
+extern Bit64u trig_arg_reduction(floatx80 &a, float_status_t &status);
 
 BX_CPP_INLINE int is_pseudo_denormal(floatx80 a)
 {
@@ -90,12 +76,13 @@ static float128 cos_arr[COS_ARR_SIZE] =
 
 static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
 {
+/*
     float128 x2 = float128_mul(x1, x1, status);
     float128 x4 = float128_mul(x2, x2, status);
     float128 x8 = float128_mul(x4, x4, status);
     float128 t1, t2, r1, r2;
 
-    /* negative = x2*(a_1 + x4*(a_3 + x4*a_5 + x8*a7)); */
+    // negative = x2*(a_1 + x4*(a_3 + x4*a_5 + x8*a7)); 
     t1 = float128_mul(x8, carr[7], status);
     t2 = float128_mul(x4, carr[5], status);
     r1 = float128_add(t1, t2, status);
@@ -104,7 +91,7 @@ static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
     r1 = float128_add(r1, carr[1], status);
     r1 = float128_mul(r1, x2, status);
 
-    /* positive = x4*(a_2 + x4*(a_4 + x4*a_6 + x8*a8)); */
+    // positive = x4*(a_2 + x4*(a_4 + x4*a_6 + x8*a8)); 
     t1 = float128_mul(x8, carr[8], status);
     t2 = float128_mul(x4, carr[6], status);
     r2 = float128_add(t1, t2, status);
@@ -116,10 +103,32 @@ static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
     t1 = float128_add(r1, r2, status);
     return 
        float128_add(float128_one, t1, status);
+*/
+    float128 x2 = float128_mul(x1, x1, status);
+    float128 x4 = float128_mul(x2, x2, status);
+    float128 r1, r2;
+
+    // negative = x2*(a_1 + x4*(a_3 + x4*a_5)); 
+    r1 = float128_mul(x4, carr[5], status);
+    r1 = float128_add(r1, carr[3], status);
+    r1 = float128_mul(r1, x4, status);
+    r1 = float128_add(r1, carr[1], status);
+    r1 = float128_mul(r1, x2, status);
+
+    // positive = x4*(a_2 + x4*(a_4 + x4*a_6)); 
+    r2 = float128_mul(x4, carr[6], status);
+    r2 = float128_add(r2, carr[4], status);
+    r2 = float128_mul(r2, x4, status);
+    r2 = float128_add(r2, carr[2], status);
+    r2 = float128_mul(r2, x4, status);
+
+    r1 = float128_add(r1, r2, status);
+    return 
+       float128_add(float128_one, r1, status);
 }
 
 /* 0 <= x <= pi/4 */
-static float128 poly_sin(float128 x, float_status_t &status)
+BX_CPP_INLINE float128 poly_sin(float128 x, float_status_t &status)
 {
     float128 t = poly_sincos(x, sin_arr, status);
     t = float128_mul(t, x, status);
@@ -127,7 +136,7 @@ static float128 poly_sin(float128 x, float_status_t &status)
 }
 
 /* 0 <= x <= pi/4 */
-static float128 poly_cos(float128 x, float_status_t &status)
+BX_CPP_INLINE float128 poly_cos(float128 x, float_status_t &status)
 {
     return poly_sincos(x, cos_arr, status);
 }
@@ -183,11 +192,10 @@ void BX_CPU_C::FSIN(bxInstruction_c *i)
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  Bit64u quotient;
   floatx80 y = BX_READ_FPU_REG(0);
 
   /* reduce trigonometric function argument */
-  trig_arg_reduction(y, quotient, status);
+  Bit64u quotient = trig_arg_reduction(y, status);
   if (quotient == -1)
   {
       FPU_PARTIAL_STATUS |= FPU_SW_C2;
@@ -245,11 +253,10 @@ void BX_CPU_C::FCOS(bxInstruction_c *i)
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  Bit64u quotient;
   floatx80 y = BX_READ_FPU_REG(0);
 
   /* reduce trigonometric function argument */
-  trig_arg_reduction(y, quotient, status);
+  Bit64u quotient = trig_arg_reduction(y, status);
   if (quotient == -1)
   {
       FPU_PARTIAL_STATUS |= FPU_SW_C2;
@@ -312,11 +319,10 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  Bit64u quotient;
   floatx80 y = BX_READ_FPU_REG(0);
 
   /* reduce trigonometric function argument */
-  trig_arg_reduction(y, quotient, status);
+  Bit64u quotient = trig_arg_reduction(y, status);
   if (quotient == -1)
   {
       FPU_PARTIAL_STATUS |= FPU_SW_C2;
@@ -392,11 +398,10 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  Bit64u quotient;
   floatx80 y = BX_READ_FPU_REG(0);
 
   /* reduce trigonometric function argument */
-  trig_arg_reduction(y, quotient, status);
+  Bit64u quotient = trig_arg_reduction(y, status);
   if (quotient == -1)
   {
       FPU_PARTIAL_STATUS |= FPU_SW_C2;

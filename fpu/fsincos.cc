@@ -18,6 +18,9 @@ the work is derivative, and (2) the source code includes prominent notice with
 these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
+// Pentium CPU uses only 68-bit precision M_PI approximation
+#define BETTER_THAN_PENTIUM
+
 /*============================================================================
  * Written for Bochs (x86 achitecture simulator) by
  *            Stanislav Shwartsman (gate at fidonet.org.il)
@@ -28,8 +31,13 @@ these four paragraphs for those parts of this code that are retained.
 #include "softfloat-macros.h"
 
 /* 128-bit PI/2 fraction */
+#ifdef BETTER_THAN_PENTIUM
 static const Bit64u Hi = BX_CONST64(0xC90FDAA22168C234);
 static const Bit64u Lo = BX_CONST64(0xC4C6628B80DC1CD1);
+#else
+static const Bit64u Hi = BX_CONST64(0xC90FDAA22168C234);
+static const Bit64u Lo = BX_CONST64(0xC000000000000000);
+#endif
 
 /* reduce trigonometric function argument using 128-bit precision 
    M_PI approximation */
@@ -50,12 +58,11 @@ static Bit64u argument_reduction_kernel(Bit64u aSig0, int Exp, Bit64u *zSig0, Bi
     return q;
 }
 
-void trig_arg_reduction(floatx80 &a, Bit64u &q, float_status_t &status)
+Bit64u trig_arg_reduction(floatx80 &a, float_status_t &status)
 {
-    Bit64u aSig0, aSig1, term0, term1;
+    Bit64u aSig0, aSig1, term0, term1, q;
     Bit32s aExp, expDiff;
     int Sign; 
-    q = 0;
 
     // handle unsupported extended double-precision floating encodings
     if (floatx80_is_unsupported(a)) 
@@ -70,17 +77,17 @@ void trig_arg_reduction(floatx80 &a, Bit64u &q, float_status_t &status)
     if (aExp == 0x7FFF) {
         if ((Bit64u) (aSig0<<1)) {
             a = propagateFloatx80NaN(a, status);
-            return;
+            return 0;
         }
 
     invalid:
         float_raise(status, float_flag_invalid);
         a = floatx80_default_nan;
-        return;
+        return 0;
     }
     if (aExp == 0) {
         if ((Bit64u) (aSig0<<1) == 0) 
-            return;
+            return 0;
 
         float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(aSig0, &aExp, &aSig0);
@@ -90,16 +97,17 @@ void trig_arg_reduction(floatx80 &a, Bit64u &q, float_status_t &status)
 
     if (expDiff >= 63) 
     {
-        q = (Bit64u) -1;
-        return;
+        return (Bit64u) -1;
     }
+
+    float_raise(status, float_flag_inexact);
 
     if (expDiff < 0) {
         if (expDiff < -1)
         {
            if (a.fraction & BX_CONST64(0x8000000000000000))
                a = packFloatx80(Sign, aExp, aSig0);
-           return;
+           return 0;
         }
         shift128Right(aSig0, 0, 1, &aSig0, &aSig1);
         expDiff = 0;
@@ -129,4 +137,5 @@ void trig_arg_reduction(floatx80 &a, Bit64u &q, float_status_t &status)
     }
 
     a = normalizeRoundAndPackFloatx80(80, Sign, 0x3FFF, aSig0, aSig1, status);
+    return q;
 }
