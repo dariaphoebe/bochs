@@ -147,7 +147,8 @@ struct i387_structure_t : public i387_t
 {
     i387_structure_t() {}
 
-    void	init();	// initalize fpu stuff
+    void	init();		// used by FINIT/FNINIT instructions
+    void	reset();	// called on CPU reset
 
 public:
     int    	get_tos() const { return tos; }
@@ -228,8 +229,6 @@ BX_CPP_INLINE floatx80 i387_structure_t::FPU_read_reg(int regnr)
   result.exp = reg.exp;
   result.fraction = (((Bit64u)(reg.sigh)) << 32) | ((Bit64u)(reg.sigl));
 
-//printf("load x80 register: %08lx.%08lx%08lx\n", (Bit32u)result.exp, (Bit32u)(result.fraction >> 32), (Bit32u)(result.fraction & 0xFFFFFFFF));
-
   return result;
 }
 
@@ -240,8 +239,6 @@ BX_CPP_INLINE void i387_structure_t::FPU_save_reg (floatx80 reg, int regnr)
   result.exp  = reg.exp;
   result.sigl = reg.fraction & 0xFFFFFFFF;
   result.sigh = reg.fraction >> 32;
-
-//printf("save FPU register: %08lx.%08lx%08lx\n", (Bit32u)result.exp, result.sigh, result.sigl);
 
   memcpy(&st_space[regnr], &result, sizeof(FPU_REG));
   FPU_settag(FPU_tagof(&result), regnr);
@@ -254,8 +251,6 @@ BX_CPP_INLINE void i387_structure_t::FPU_save_reg (floatx80 reg, int tag, int re
   result.exp  = reg.exp;
   result.sigl = reg.fraction & 0xFFFFFFFF;
   result.sigh = reg.fraction >> 32;
-
-//printf("save FPU register: %08lx.%08lx%08lx\n", (Bit32u)result.exp, result.sigh, result.sigl);
 
   memcpy(&st_space[regnr], &result, sizeof(FPU_REG));
   FPU_settag(tag, regnr);
@@ -274,7 +269,22 @@ BX_CPP_INLINE void i387_structure_t::init()
   fdp = 0;
 }
 
-extern const floatx80 Const_QNaN;
+BX_CPP_INLINE void i387_structure_t::reset()
+{
+  cwd = 0x0040;
+  swd = 0;
+  tos = 0;
+  twd = 0x5555;
+  foo = 0;
+  fip = 0;
+  fcs = 0;
+  fds = 0;
+  fdp = 0;
+
+  for(int i=0;i<8;i++)
+     memset(st_space, 0, sizeof(FPU_REG)*10);
+}
+
 extern const floatx80 Const_Z;
 extern const floatx80 Const_1;
 extern const floatx80 Const_L2T;
@@ -284,7 +294,6 @@ extern const floatx80 Const_PI2;
 extern const floatx80 Const_PI4;
 extern const floatx80 Const_LG2;
 extern const floatx80 Const_LN2;
-extern const floatx80 Const_INF;
 
 #endif
 

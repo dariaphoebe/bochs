@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  poly.h                                                                   |
- |  $Id: poly.h,v 1.7.8.1 2004/04/09 12:29:50 sshwarts Exp $
+ |  $Id: poly.h,v 1.7.8.2 2004/04/10 22:22:34 sshwarts Exp $
  |                                                                           |
  |  Header file for the FPU-emu poly*.c source files.                        |
  |                                                                           |
@@ -39,8 +39,6 @@ typedef struct {
 #pragma options align=reset
 #endif
 
-asmlinkage void mul64(u64 const *a, u64 const *b,
-		      u64 *result);
 asmlinkage void polynomial_Xsig(Xsig *, const u64 *x,
 				const u64 terms[], const int n);
 

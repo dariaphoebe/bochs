@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  mul_Xsig.S                                                               |
- |  $Id: mul_Xsig.c,v 1.2 2001/10/06 03:53:46 bdenney Exp $
+ |  $Id: mul_Xsig.c,v 1.2.34.1 2004/04/10 22:22:34 sshwarts Exp $
  |                                                                           |
  | Multiply a 12 byte fixed point number by another fixed point number.      |
  |                                                                           |
@@ -43,9 +43,7 @@ void mul32_Xsig(Xsig *x, const u32 ba)
     y.msw ++;
 
   *x = y;
-
 }
-
 
 void mul64_Xsig(Xsig *x, const u64 *b)
 {
@@ -67,9 +65,7 @@ void mul64_Xsig(Xsig *x, const u64 *b)
       if ( x->midw == 0 )
 	x->msw ++;
     }
-
 }
-
 
 void mul_Xsig_Xsig(Xsig *x, const Xsig *b)
 {
@@ -93,4 +89,3 @@ void mul_Xsig_Xsig(Xsig *x, const Xsig *b)
 	x->msw ++;
     }
 }
-

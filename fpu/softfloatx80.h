@@ -81,7 +81,6 @@ BX_CPP_INLINE floatx80& floatx80_chs(floatx80 &reg)
 | Commonly used extended double-precision floating-point constants.
 *----------------------------------------------------------------------------*/
 
-extern const floatx80 Const_QNaN;
 extern const floatx80 Const_Z;
 extern const floatx80 Const_1;
 extern const floatx80 Const_L2T;
@@ -91,6 +90,5 @@ extern const floatx80 Const_PI2;
 extern const floatx80 Const_PI4;
 extern const floatx80 Const_LG2;
 extern const floatx80 Const_LN2;
-extern const floatx80 Const_INF;
 
 #endif
