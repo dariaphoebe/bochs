@@ -100,7 +100,7 @@ state_file::state_file (const char *name, const char *options)
 {
   UNUSED(name);
   UNUSED(options);
-  SAFE_GET_GENLOG()->info("state_file::state_file()\n");
+  BX_INFO(( "state_file::state_file()\n" ));
 }
 
 state_file::state_file (FILE *f)

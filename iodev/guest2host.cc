@@ -37,11 +37,13 @@ bx_g2h_c::bx_g2h_c(void)
     s.callback[i].f = NULL;
     s.callback[i].used = 0;
     }
+  BX_DEBUG(("Init."));
 }
 
 bx_g2h_c::~bx_g2h_c(void)
 {
   // nothing for now
+  BX_DEBUG(("Exit.\n"));
 }
 
   void

@@ -47,7 +47,7 @@ bx_pci_c::bx_pci_c(void)
 
 bx_pci_c::~bx_pci_c(void)
 {
-	this->info("pci signing off\n");
+	BX_INFO(("pci signing off\n"));
 }
 
 
@@ -378,16 +378,16 @@ bx_pci_c::print_i440fx_state()
   int  i;
 #endif /* DUMP_FULL_I440FX */
 
-  this->info( "i440fxConfAddr:0x%x\n", BX_PCI_THIS s.i440fx.confAddr );
-  this->info( "i440fxConfData:0x%x\n", BX_PCI_THIS s.i440fx.confData );
+  BX_INFO(( "i440fxConfAddr:0x%x\n", BX_PCI_THIS s.i440fx.confAddr ));
+  BX_INFO(( "i440fxConfData:0x%x\n", BX_PCI_THIS s.i440fx.confData ));
 
 #ifdef DUMP_FULL_I440FX
   for (i=0; i<256; i++) {
-    info( "i440fxArray%02x:0x%x\n", i, BX_PCI_THIS s.i440fx.array[i] );
+    BX_INFO(( "i440fxArray%02x:0x%x\n", i, BX_PCI_THIS s.i440fx.array[i] ));
     }
 #else /* DUMP_FULL_I440FX */
-  this->info( "i440fxArray58:0x%x\n", BX_PCI_THIS s.i440fx.array[0x58] );
-  this->info( "i440fxArray5c:0x%x\n", BX_PCI_THIS s.i440fx.array[0x5c] );
+  BX_INFO(( "i440fxArray58:0x%x\n", BX_PCI_THIS s.i440fx.array[0x58] ));
+  BX_INFO(( "i440fxArray5c:0x%x\n", BX_PCI_THIS s.i440fx.array[0x5c] ));
 #endif /* DUMP_FULL_I440FX */
 }
 

@@ -46,11 +46,13 @@ bx_cmos_c::bx_cmos_c(void)
 {
 	setprefix("[CMOS]");
 	settype(CMOSLOG);
+	BX_INFO(("Init."));
 }
 
 bx_cmos_c::~bx_cmos_c(void)
 {
   // nothing for now
+	BX_INFO(("Exit.\n"));
 }
 
 
@@ -103,8 +105,8 @@ bx_cmos_c::init(bx_devices_c *d)
   else if (bx_options.cmos.time0 != 0)
           BX_CMOS_THIS s.timeval = bx_options.cmos.time0;
 
-  BX_CMOS_THIS info("Setting initial clock to: %s",
-    ctime(&(BX_CMOS_THIS s.timeval)));
+  BX_INFO(("Setting initial clock to: %s",
+    ctime(&(BX_CMOS_THIS s.timeval)) ));
 
   update_clock();
 
@@ -120,25 +122,24 @@ bx_cmos_c::init(bx_devices_c *d)
 #endif
              );
     if (fd < 0) {
-      perror("trying to open cmos image file.\n");
-      BX_CMOS_THIS panic("trying to open cmos image file '%s'\n",
-        bx_options.cmos.path);
+      BX_PANIC(("trying to open cmos image file '%s'\n",
+        bx_options.cmos.path));
       }
     ret = fstat(fd, &stat_buf);
     if (ret) {
-      BX_CMOS_THIS panic("CMOS: could not fstat() image file.\n");
+      BX_PANIC(("CMOS: could not fstat() image file.\n"));
       }
     if (stat_buf.st_size != BX_NUM_CMOS_REGS) {
-      BX_CMOS_THIS panic("CMOS: image file not same size as BX_NUM_CMOS_REGS.\n");
+      BX_PANIC(("CMOS: image file not same size as BX_NUM_CMOS_REGS.\n"));
       }
 
     ret = ::read(fd, (bx_ptr_t) BX_CMOS_THIS s.reg, BX_NUM_CMOS_REGS);
     if (ret != BX_NUM_CMOS_REGS) {
-      BX_CMOS_THIS panic("CMOS: error reading cmos file.\n");
+      BX_PANIC(("CMOS: error reading cmos file.\n"));
       }
     close(fd);
-    BX_CMOS_THIS info("successfuly read from image file '%s'.\n",
-      bx_options.cmos.path);
+    BX_INFO(("successfuly read from image file '%s'.\n",
+      bx_options.cmos.path));
     }
   else {
     // CMOS values generated
@@ -220,19 +221,19 @@ bx_cmos_c::read(Bit32u address, unsigned io_len)
   Bit8u ret8;
 
   if (io_len > 1)
-    BX_CMOS_THIS panic("cmos: io read from address %08x len=%u\n",
-             (unsigned) address, (unsigned) io_len);
+    BX_PANIC(("cmos: io read from address %08x len=%u\n",
+             (unsigned) address, (unsigned) io_len));
 
   if (bx_dbg.cmos)
-    BX_CMOS_THIS info("CMOS read of CMOS register 0x%x\n",
-      (unsigned) BX_CMOS_THIS s.cmos_mem_address);
+    BX_INFO(("CMOS read of CMOS register 0x%x\n",
+      (unsigned) BX_CMOS_THIS s.cmos_mem_address));
 
 
   switch (address) {
     case 0x0071:
       if (BX_CMOS_THIS s.cmos_mem_address >= BX_NUM_CMOS_REGS) {
-        BX_CMOS_THIS panic("unsupported cmos io read, register(0x%02x)!\n",
-            (unsigned) BX_CMOS_THIS s.cmos_mem_address);
+        BX_PANIC(("unsupported cmos io read, register(0x%02x)!\n",
+            (unsigned) BX_CMOS_THIS s.cmos_mem_address));
         }
 
       ret8 = BX_CMOS_THIS s.reg[BX_CMOS_THIS s.cmos_mem_address];
@@ -243,8 +244,8 @@ bx_cmos_c::read(Bit32u address, unsigned io_len)
       break;
 
     default:
-      BX_CMOS_THIS panic("unsupported cmos read, address=%0x%x!\n",
-        (unsigned) address);
+      BX_PANIC(("unsupported cmos read, address=%0x%x!\n",
+        (unsigned) address));
       return(0);
       break;
     }
@@ -271,12 +272,12 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
 #endif  // !BX_USE_CMOS_SMF
 
   if (io_len > 1)
-    BX_CMOS_THIS panic("cmos: io write to address %08x len=%u\n",
-             (unsigned) address, (unsigned) io_len);
+    BX_PANIC(("cmos: io write to address %08x len=%u\n",
+             (unsigned) address, (unsigned) io_len));
 
   if (bx_dbg.cmos)
-    BX_CMOS_THIS info("CMOS write to address: 0x%x = 0x%x\n",
-      (unsigned) address, (unsigned) value);
+    BX_INFO(("CMOS write to address: 0x%x = 0x%x\n",
+      (unsigned) address, (unsigned) value));
 
 
   switch (address) {
@@ -290,8 +291,8 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
 
     case 0x0071:
       if (BX_CMOS_THIS s.cmos_mem_address >= BX_NUM_CMOS_REGS) {
-        BX_CMOS_THIS panic("unsupported cmos io write, register(0x%02x)=%02x!\n",
-            (unsigned) BX_CMOS_THIS s.cmos_mem_address, (unsigned) value);
+        BX_PANIC(("unsupported cmos io write, register(0x%02x)=%02x!\n",
+            (unsigned) BX_CMOS_THIS s.cmos_mem_address, (unsigned) value));
         return;
         }
       switch (BX_CMOS_THIS s.cmos_mem_address) {
@@ -305,7 +306,7 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
         case 0x07: // day of the month
         case 0x08: // month
         case 0x09: // year
-          //BX_CMOS_THIS info("write reg %02xh: value = %02xh\n",
+          //BX_INFO(("write reg %02xh: value = %02xh\n",
           //    (unsigned) BX_CMOS_THIS s.cmos_mem_address, (unsigned) value);
           BX_CMOS_THIS s.reg[BX_CMOS_THIS s.cmos_mem_address] = value;
           return;
@@ -346,7 +347,7 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
           unsigned dcc;
           dcc = (value >> 4) & 0x07;
           if (dcc != 0x02) {
-            BX_CMOS_THIS panic("cmos: CRA: divider chain control 0x%x\n", dcc);
+            BX_PANIC(("cmos: CRA: divider chain control 0x%x\n", dcc));
             }
           BX_CMOS_THIS s.reg[0x0a] = value & 0x7f;
           BX_CMOS_THIS CRA_change();
@@ -381,9 +382,9 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
 
           // can not handle binary or 12-hour mode yet.
           if (value & 0x04)
-            BX_CMOS_THIS panic("cmos: write status reg B, binary format enabled.\n");
+            BX_PANIC(("cmos: write status reg B, binary format enabled.\n"));
           if ( !(value & 0x02) )
-            BX_CMOS_THIS panic("cmos: write status reg B, 12 hour mode enabled.\n");
+            BX_PANIC(("cmos: write status reg B, 12 hour mode enabled.\n"));
 
           value &= 0xf7; // bit3 always 0
           // Note: setting bit 7 clears bit 4
@@ -415,56 +416,56 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
 
         case 0x0c: // Control Register C
         case 0x0d: // Control Register D
-          BX_CMOS_THIS panic("cmos: write to control register 0x%x (read-only)\n",
-                   BX_CMOS_THIS s.cmos_mem_address);
+          BX_PANIC(("cmos: write to control register 0x%x (read-only)\n",
+                   BX_CMOS_THIS s.cmos_mem_address));
           break;
 
         case 0x0e: // diagnostic status
-          BX_CMOS_THIS info("write register 0Eh: %02x\n", (unsigned) value);
+          BX_INFO(("write register 0Eh: %02x\n", (unsigned) value));;
           break;
 
 	case 0x0f: // shutdown status
           switch (value) {
             case 0x00: /* proceed with normal POST (soft reset) */
               if (bx_dbg.reset)
-                BX_CMOS_THIS info("Reg 0F set to 0: shutdown action = normal POST\n");
+                BX_INFO(("Reg 0F set to 0: shutdown action = normal POST\n"));;
               break;
             case 0x02: /* shutdown after memory test */
               if (bx_dbg.reset)
-                BX_CMOS_THIS info("Reg 0Fh: request to change shutdown action"
-                             " to shutdown after memory test\n");
+                BX_INFO(("Reg 0Fh: request to change shutdown action"
+                             " to shutdown after memory test\n"));
               break;
             case 0x03:
-              BX_CMOS_THIS info("Reg 0Fh(03) : Shutdown after memory test !\n");
+              BX_INFO(("Reg 0Fh(03) : Shutdown after memory test !\n"));;
               break;
             case 0x04: /* jump to disk bootstrap routine */
-              BX_CMOS_THIS info("Reg 0Fh: request to change shutdown action "
-                             "to jump to disk bootstrap routine.\n");
+              BX_INFO(("Reg 0Fh: request to change shutdown action "
+                             "to jump to disk bootstrap routine.\n"));
               break;
             case 0x06:
-              BX_CMOS_THIS info("Reg 0Fh(06) : Shutdown after memory test !\n");
+              BX_INFO(("Reg 0Fh(06) : Shutdown after memory test !\n"));;
               break;
             case 0x09: /* return to BIOS extended memory block move
                        (interrupt 15h, func 87h was in progress) */
               if (bx_dbg.reset)
-                BX_CMOS_THIS info("Reg 0Fh: request to change shutdown action "
-                             "to return to BIOS extended memory block move.\n");
+                BX_INFO(("Reg 0Fh: request to change shutdown action "
+                             "to return to BIOS extended memory block move.\n"));
               break;
             case 0x0a: /* jump to DWORD pointer at 40:67 */
               if (bx_dbg.reset)
-                BX_CMOS_THIS info("Reg 0Fh: request to change shutdown action"
-                             " to jump to DWORD at 40:67\n");
+                BX_INFO(("Reg 0Fh: request to change shutdown action"
+                             " to jump to DWORD at 40:67\n"));
               break;
             default:
-              BX_CMOS_THIS panic("unsupported cmos io write to reg F, case %x!\n",
-                (unsigned) value);
+              BX_PANIC(("unsupported cmos io write to reg F, case %x!\n",
+                (unsigned) value));
               break;
             }
           break;
 
         default:
-          BX_CMOS_THIS info("write reg %02xh: value = %02xh\n",
-            (unsigned) BX_CMOS_THIS s.cmos_mem_address, (unsigned) value);
+          BX_INFO(("write reg %02xh: value = %02xh\n",
+            (unsigned) BX_CMOS_THIS s.cmos_mem_address, (unsigned) value));
           break;
         }
 

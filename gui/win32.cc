@@ -222,16 +222,16 @@ void terminateEmul(int reason) {
 
   switch (reason) {
   case EXIT_GUI_SHUTDOWN:
-    bx_panic("Window closed, exiting!\n");
+    BX_PANIC(("Window closed, exiting!\n"));
     break;
   case EXIT_GMH_FAILURE:
-    bx_panic("GetModuleHandle failure!\n");
+    BX_PANIC(("GetModuleHandle failure!\n"));
     break;
   case EXIT_FONT_BITMAP_ERROR:
-    bx_panic("Font bitmap creation failure!\n");
+    BX_PANIC(("Font bitmap creation failure!\n"));
     break;
   case EXIT_HEADER_BITMAP_ERROR:
-    bx_panic("Header bitmap creation failure!\n");
+    BX_PANIC(("Header bitmap creation failure!\n"));
     break;
   case EXIT_NORMAL:
     break;

@@ -81,11 +81,13 @@ bx_hard_drive_c::bx_hard_drive_c(void)
 #endif
 
 #endif
+	BX_DEBUG(("Init.\n"));
 }
 
 bx_hard_drive_c::~bx_hard_drive_c(void)
 {
   // nothing for now
+	BX_DEBUG(("Exit.\n"));
 }
 
 
@@ -2356,7 +2358,6 @@ int default_image_t::open (const char* pathname)
       struct stat stat_buf;
       int ret = fstat(fd, &stat_buf);
       if (ret) {
-	    perror("fstat'ing hard drive image file");
 	    BX_PANIC(("fstat() returns error!\n"));
       }
 
@@ -2426,11 +2427,10 @@ int concat_image_t::open (const char* pathname0)
     struct stat stat_buf;
     int ret = fstat(fd_table[i], &stat_buf);
     if (ret) {
-	  perror("fstat'ing hard drive image file");
 	  BX_PANIC(("fstat() returns error!\n"));
     }
     if ((stat_buf.st_size % 512) != 0) {
-      BX_PANIC( ("[HDD] size of disk image must be multiple of 512 bytes"));
+      BX_PANIC(("size of disk image must be multiple of 512 bytes"));
     }
     length_table[i] = stat_buf.st_size;
     start_offset_table[i] = start_offset;

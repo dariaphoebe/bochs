@@ -158,7 +158,7 @@ bx_gui_c::floppyB_handler(void)
   void
 bx_gui_c::reset_handler(void)
 {
-  fprintf(stderr, "# RESET callback (unimplemented).\n");
+  BX_INFO(( "# RESET callback (unimplemented).\n" ));
 }
 
   void
@@ -170,7 +170,7 @@ bx_gui_c::power_handler(void)
   void
 bx_gui_c::snapshot_handler(void)
 {
-  fprintf(stderr, "# SNAPSHOT callback (unimplemented).\n");
+  BX_INFO(( "# SNAPSHOT callback (unimplemented).\n" ));
 }
 
   void

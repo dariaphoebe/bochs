@@ -87,8 +87,10 @@ cdrom_interface::cdrom_interface(char *dev)
 
   if ( dev == NULL )
     path = NULL;
-  else
+  else {
     path = strdup(dev);
+    BX_INFO(("Init, file = '%s'\n",dev));
+  }
 }
 
 cdrom_interface::~cdrom_interface(void)

@@ -23,7 +23,7 @@
 
 
 #include "bochs.h"
-#define LOG_THIS genlog->
+#define LOG_THIS this->
 
 #ifdef WIN32
 #ifndef __MINGW32__
@@ -45,7 +45,7 @@ const Bit64u bx_pc_system_c::COUNTER_INTERVAL = 100000;
   // constructor
 bx_pc_system_c::bx_pc_system_c(void)
 {
-  this->setprefix("[SYS ]");
+  LOG_THIS setprefix("[SYS ]");
 
   num_timers = 0;
   // set ticks period and remaining to max Bit32u value
@@ -79,7 +79,7 @@ bx_pc_system_c::init_ips(Bit32u ips)
 {
   // parameter 'ips' is the processor speed in Instructions-Per-Second
   m_ips = double(ips) / 1000000.0L;
-  this->info("ips = %u\n", (unsigned) ips);
+  BX_INFO(("ips = %u\n", (unsigned) ips));
 }
 
   void
@@ -209,10 +209,9 @@ bx_pc_system_c::set_enable_a20(Bit8u value)
 
   BX_DBG_A20_REPORT(value);
 
-  if (bx_dbg.a20)
-    this->info("A20: set() = %u\n", (unsigned) enable_a20);
+  BX_DEBUG(("A20: set() = %u\n", (unsigned) enable_a20));
 #else
-  this->info("set_enable_a20: ignoring: SUPPORT_A20 = 0\n");
+  BX_DEBUG(("set_enable_a20: ignoring: SUPPORT_A20 = 0\n"));
 #endif  // #if BX_SUPPORT_A20
 
 #endif
@@ -223,12 +222,12 @@ bx_pc_system_c::get_enable_a20(void)
 {
 #if BX_SUPPORT_A20
   if (bx_dbg.a20)
-    this->info("A20: get() = %u\n", (unsigned) enable_a20);
+    BX_INFO(("A20: get() = %u\n", (unsigned) enable_a20));
 
   if (enable_a20) return(1);
   else return(0);
 #else
-  this->info("get_enable_a20: ignoring: SUPPORT_A20 = 0\n");
+  BX_INFO(("get_enable_a20: ignoring: SUPPORT_A20 = 0\n"));
   return(1);
 #endif  // #if BX_SUPPORT_A20
 }
@@ -256,7 +255,7 @@ bx_pc_system_c::exit(void)
 {
   if (bx_devices.hard_drive)
     bx_devices.hard_drive->close_harddrive();
-  this->info("Last time is %d\n", bx_cmos.s.timeval);
+  BX_INFO(("Last time is %d\n", bx_cmos.s.timeval));
   bx_gui.exit();
 }
 
@@ -331,9 +330,9 @@ bx_pc_system_c::expire_ticks(void)
 #if BX_TIMER_DEBUG
       if (timer[i].remaining <= ticks_delta) {
 for (unsigned j=0; j<num_timers; j++) {
-  this->info("^^^timer[%u]\n", j);
-  this->info("^^^remaining = %u, period = %u\n",
-    timer[j].remaining, timer[j].period);
+  BX_INFO(("^^^timer[%u]\n", j));
+  BX_INFO(("^^^remaining = %u, period = %u\n",
+    timer[j].remaining, timer[j].period));
   }
         BX_PANIC(("expire_ticks: i=%u, remain(%u) <= delta(%u)\n",
           i, timer[i].remaining, (unsigned) ticks_delta));

@@ -319,10 +319,24 @@ public:
   ((io==NULL)? (io=new iofunc_t("/dev/stderr")) : io)
 #define SAFE_GET_GENLOG() \
   ((genlog==NULL)? (genlog=new logfunc_t(SAFE_GET_IOFUNC())) : genlog)
+
+#ifndef NO_LOGGING
+
 #define BX_INFO(x)  (LOG_THIS info) x
 #define BX_DEBUG(x) (LOG_THIS ldebug) x
 #define BX_ERROR(x) (LOG_THIS error) x
 #define BX_PANIC(x) (LOG_THIS panic) x
+
+#else
+
+#define EMPTY do { } while(0)
+
+#define BX_INFO(x)  EMPTY
+#define BX_DEBUG(x) EMPTY
+#define BX_ERROR(x) EMPTY
+#define BX_PANIC(x) (LOG_THIS panic) x
+
+#endif
 
 extern iofunc_t *io;
 extern logfunc_t *genlog;
@@ -385,7 +399,6 @@ typedef struct {
   } bx_debug_t;
 
 void bx_signal_handler (int signum);
-void bx_panic(char *fmt, ...);
 void bx_atexit(void);
 extern bx_debug_t bx_dbg;
 
@@ -425,11 +438,6 @@ extern bx_gui_c   bx_gui;
 
 
 /* --- EXTERNS --- */
-
-extern FILE *bx_logfd;
-
-
-
 
 #if ( BX_PROVIDE_DEVICE_MODELS==1 )
 extern bx_devices_c   bx_devices;

@@ -317,7 +317,7 @@ BX_CPU_C::enable_paging(void)
 {
   TLB_flush();
   if (bx_dbg.paging) BX_INFO(("enable_paging():\n"));
-//fprintf(stderr, "#(%u)enable_paging():-------------------------\n", BX_SIM_ID);
+//BX_DEBUG(( "enable_paging():-------------------------\n" ));
 }
 
   void

@@ -85,12 +85,14 @@ bx_devices_c::bx_devices_c(void)
     }
 
   timer_handle = BX_NULL_TIMER_HANDLE;
+  BX_DEBUG(("Init."));
 }
 
 
 bx_devices_c::~bx_devices_c(void)
 {
   // nothing needed for now
+  BX_DEBUG(("Exit.\n"));
 }
 
 
@@ -199,6 +201,7 @@ bx_devices_c::init(void)
 
   timer_handle = bx_pc_system.register_timer( this, timer_handler,
     (unsigned) TIMER_DELTA, 1, 1);
+  BX_DEBUG(("::init()."));
 }
 
 

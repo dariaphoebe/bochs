@@ -38,7 +38,6 @@ BX_CPU_C::BX_CPU_C(void)
   snprintf(cpu, 8, "[CPU%d]",BX_SIM_ID);
 
   BX_CPU_THIS_PTR setprefix(cpu);
-  BX_INFO(( "(%u)BX_CPU_C::BX_CPU_C(void) called\n", BX_SIM_ID));
 
   /* hack for the following fields.  Its easier to decode mod-rm bytes if
      you can assume there's always a base & index register used.  For
@@ -168,13 +167,14 @@ BX_CPU_C::BX_CPU_C(void)
 #endif
 
   BX_INSTR_INIT();
+  BX_INFO(( "Init.\n"));
 }
 
 
 BX_CPU_C::~BX_CPU_C(void)
 {
-  BX_INFO(("(%u)BX_CPU_C::~BX_CPU_C(void) called\n", BX_SIM_ID));
   BX_INSTR_SHUTDOWN();
+  BX_INFO(( "Exit.\n"));
 }
 
 

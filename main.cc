@@ -123,9 +123,9 @@ iofunctions::init_log(char *fn)
 		newfd = fopen(fn, "w");
 		if(newfd != NULL) {
 			newfn = strdup(fn);
-			out( IOLOG, LOGLEV_INFO, "[IO  ]", "opened log file '%s'.\n", fn );
+			out( IOLOG, LOGLEV_DEBUG, "[IO  ]", "Opened log file '%s'.\n", fn );
 		} else {
-			out( IOLOG, LOGLEV_INFO, "[IO  ]", "log file '%s' not there?\n", fn);
+			out( IOLOG, LOGLEV_ERROR, "[IO  ]", "Log file '%s' not there?\n", fn);
 			newfd = NULL;
 			logfn = "(none)";
 		}
@@ -176,8 +176,12 @@ iofunctions::out(int f, int l, char *prefix, char *fmt, ...)
 	assert (magic==MAGIC_LOGNUM);
 	assert (this != NULL);
 	assert (logfd != NULL);
+
+	if(l == LOGLEV_DEBUG) {
+		return fopen("/dev/null","w");
+	}
 	if( showtick ) {
-		fprintf(logfd, "%010lld ", bx_pc_system.time_ticks());
+		fprintf(logfd, "%011lld ", bx_pc_system.time_ticks());
 	}
 	if(prefix != NULL) {
 		fprintf(logfd, "%s ", prefix);
@@ -225,14 +229,14 @@ iofunctions::iofunctions(FILE *fs)
 {
 	init();
 	init_log(fs);
-	out( IOLOG, LOGLEV_INFO, "[IO  ]", "Output log initialized: '%s'.\n", logfn);
+	out( IOLOG, LOGLEV_DEBUG, "[IO  ]", "Output log initialized: '%s'.\n", logfn);
 }
 
 iofunctions::iofunctions(char *fn)
 {
 	init();
 	init_log(fn);
-	out( IOLOG, LOGLEV_INFO, "[IO  ]", "Output log initialized: '%s'.\n", logfn);
+	out( IOLOG, LOGLEV_DEBUG, "[IO  ]", "Output log initialized: '%s'.\n", logfn);
 }
 
 iofunctions::iofunctions(int fd)
@@ -381,8 +385,8 @@ main(int argc, char *argv[])
   // test for NULL and create the object if necessary, then return it.
   // Ensure that io and genlog get created, by making one reference to
   // each macro right here.  All other code can call them directly.
-  SAFE_GET_IOFUNC();
-  SAFE_GET_GENLOG();
+//  SAFE_GET_IOFUNC();
+ // SAFE_GET_GENLOG();
 
 #if BX_DEBUGGER
   // If using the debugger, it will take control and call
