@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.137.2.7 2003/05/08 16:57:41 sshwarts Exp $
+// $Id: cpu.h,v 1.137.2.8 2003/05/10 16:41:51 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -469,8 +469,18 @@ typedef struct {
     return 3 & (BX_CPU_THIS_PTR eflags.val32 >> 12);                         \
     }
 
-#define EFlagsOSZAPCMask 0x000008d5
-#define EFlagsOSZAPMask  0x000008d4
+#define EFlagsCFMask     0x00000001
+#define EFlagsPFMask     0x00000004
+#define EFlagsAFMask     0x00000010
+#define EFlagsZFMask     0x00000040
+#define EFlagsSFMask     0x00000080
+#define EFlagsOFMask     0x00000800
+
+#define EFlagsOSZAPCMask \
+    (EFlagsCFMask | EFlagsPFMask | EFlagsAFMask | EFlagsZFMask | EFlagsSFMask | EFlagsOFMask)
+
+#define EFlagsOSZAPMask  \
+    (EFlagsPFMask | EFlagsAFMask | EFlagsZFMask | EFlagsSFMask | EFlagsOFMask)
 
   } bx_flags_reg_t;
 
@@ -3184,7 +3194,6 @@ BX_CPU_C::set_PF_base(Bit8u val) {
     /* ??? could also mark other bits undefined here */ \
     }
 
-
 IMPLEMENT_EFLAGS_ACCESSORS()
 IMPLEMENT_EFLAG_ACCESSOR   (DF, 10)
 IMPLEMENT_EFLAG_ACCESSOR   (ID, 21)
@@ -3203,16 +3212,12 @@ IMPLEMENT_EFLAG_ACCESSOR   (TF,  8)
 
 
 
-
 #define BX_REPE_PREFIX  10
 #define BX_REPNE_PREFIX 11
-
-
 
 #define BX_TASK_FROM_JUMP         10
 #define BX_TASK_FROM_CALL_OR_INT  11
 #define BX_TASK_FROM_IRET         12
-
 
 //
 // For decoding...
@@ -3274,21 +3279,21 @@ typedef enum _show_flags {
 #define RMAddr(i)  (BX_CPU_THIS_PTR address_xlation.rm_addr)
 
 
-#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
-
-#define setEFlagsOSZAPC(flags32) { \
-  BX_CPU_THIS_PTR eflags.val32 = \
+#define setEFlagsOSZAPC(flags32) {                       \
+  BX_CPU_THIS_PTR eflags.val32 =                         \
     (BX_CPU_THIS_PTR eflags.val32 & ~EFlagsOSZAPCMask) | \
-    (flags32 & EFlagsOSZAPCMask); \
-  BX_CPU_THIS_PTR lf_flags_status = 0; \
+    (flags32 & EFlagsOSZAPCMask);                        \
+  BX_CPU_THIS_PTR lf_flags_status = 0;                   \
   }
 
-#define setEFlagsOSZAP(flags32) { \
-  BX_CPU_THIS_PTR eflags.val32 = \
-    (BX_CPU_THIS_PTR eflags.val32 & ~EFlagsOSZAPMask) | \
-    (flags32 & EFlagsOSZAPMask); \
-  BX_CPU_THIS_PTR lf_flags_status &= 0x00000f; \
+#define setEFlagsOSZAP(flags32) {                        \
+  BX_CPU_THIS_PTR eflags.val32 =                         \
+    (BX_CPU_THIS_PTR eflags.val32 & ~EFlagsOSZAPMask) |  \
+    (flags32 & EFlagsOSZAPMask);                         \
+  BX_CPU_THIS_PTR lf_flags_status &= 0x00000f;           \
   }
+
+#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
 
 // This section defines some convience inline functions which do the
 // dirty work of asm() statements for arithmetic instructions on x86 hosts. 

@@ -1254,7 +1254,6 @@ int float32_eq(float32 a, float32 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -1281,7 +1280,6 @@ int float32_le(float32 a, float32 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -1310,7 +1308,6 @@ int float32_lt(float32 a, float32 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -1340,7 +1337,6 @@ int float32_eq_signaling(float32 a, float32 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -1371,7 +1367,6 @@ int float32_le_quiet(float32 a, float32 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -1405,7 +1400,6 @@ int float32_lt_quiet(float32 a, float32 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -1432,6 +1426,81 @@ int float32_unordered(float32 a, float32 b, float_status_t &status)
         return 1;
     }
     return 0;
+}
+
+/*----------------------------------------------------------------------------
+| Compare  between  two  single  precision  floating  point  numbers. Returns
+| 'float_relation_equal'  if the operands are equal, 'float_relation_less' if
+| the    value    'a'   is   less   than   the   corresponding   value   `b',
+| 'float_relation_greater' if the value 'a' is greater than the corresponding
+| value `b', or 'float_relation_unordered' otherwise. 
+*----------------------------------------------------------------------------*/
+
+int float32_compare(float32 a, float32 b, float_status_t &status)
+{
+    Bit16s aExp = extractFloat32Exp(a);
+    Bit16s bExp = extractFloat32Exp(b);
+    Bit32u aSig = extractFloat32Frac(a);
+    Bit32u bSig = extractFloat32Frac(b);
+
+    if (((aExp == 0xFF) && aSig) || ((bExp == 0xFF) && bSig)) {
+        float_raise(status, float_flag_invalid);
+        return float_relation_unordered;
+    }
+
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    if ((a == b) || ((Bit32u) ((a | b)<<1) == 0)) return float_relation_equal;
+
+    flag aSign = extractFloat32Sign(a);
+    flag bSign = extractFloat32Sign(b);
+    if (aSign != bSign) {
+        return (aSign) ? float_relation_less : float_relation_greater;
+    }
+    if (aSign ^ (a < b)) return float_relation_less;
+    else float_relation_greater;
+}
+
+/*----------------------------------------------------------------------------
+| Compare  between  two  double  precision  floating  point  numbers. Returns
+| 'float_relation_equal'  if the operands are equal, 'float_relation_less' if
+| the    value    'a'   is   less   than   the   corresponding   value   `b',
+| 'float_relation_greater' if the value 'a' is greater than the corresponding
+| value `b', or 'float_relation_unordered' otherwise. Quiet NaNs do not cause 
+| an exception.
+*----------------------------------------------------------------------------*/
+
+int float32_compare_quiet(float32 a, float32 b, float_status_t &status)
+{
+    Bit16s aExp = extractFloat32Exp(a);
+    Bit16s bExp = extractFloat32Exp(b);
+    Bit32u aSig = extractFloat32Frac(a);
+    Bit32u bSig = extractFloat32Frac(b);
+
+    if (((aExp == 0xFF) && aSig) || ((bExp == 0xFF) && bSig))
+    {
+        if (float32_is_signaling_nan(a) || float32_is_signaling_nan(b))
+        {
+            float_raise(status, float_flag_invalid);
+        }
+        return float_relation_unordered;
+    }
+
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    if ((a == b) || ((Bit32u) ((a | b)<<1) == 0)) return float_relation_equal;
+
+    flag aSign = extractFloat32Sign(a);
+    flag bSign = extractFloat32Sign(b);
+    if (aSign != bSign) {
+        return (aSign) ? float_relation_less : float_relation_greater;
+    }
+    if (aSign ^ (a < b)) return float_relation_less;
+    else float_relation_greater;
 }
 
 /*----------------------------------------------------------------------------
@@ -2158,7 +2227,6 @@ int float64_eq(float64 a, float64 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -2185,7 +2253,6 @@ int float64_le(float64 a, float64 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -2214,7 +2281,6 @@ int float64_lt(float64 a, float64 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -2244,7 +2310,6 @@ int float64_eq_signaling(float64 a, float64 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -2275,7 +2340,6 @@ int float64_le_quiet(float64 a, float64 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -2309,7 +2373,6 @@ int float64_lt_quiet(float64 a, float64 b, float_status_t &status)
         return 0;
     }
 
-    /* check for subnormal operands */
     if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
         float_raise(status, float_flag_denormal);
     }
@@ -2337,4 +2400,79 @@ int float64_unordered(float64 a, float64 b, float_status_t &status)
         return 1;
     }
     return 0;
+}
+
+/*----------------------------------------------------------------------------
+| Compare  between  two  double  precision  floating  point  numbers. Returns
+| 'float_relation_equal'  if the operands are equal, 'float_relation_less' if
+| the    value    'a'   is   less   than   the   corresponding   value   `b',
+| 'float_relation_greater' if the value 'a' is greater than the corresponding
+| value `b', or 'float_relation_unordered' otherwise. 
+*----------------------------------------------------------------------------*/
+
+int float64_compare(float64 a, float64 b, float_status_t &status)
+{
+    Bit16s aExp = extractFloat64Exp(a);
+    Bit16s bExp = extractFloat64Exp(b);
+    Bit64u aSig = extractFloat64Frac(a);
+    Bit64u bSig = extractFloat64Frac(b);
+
+    if (((aExp == 0x7FF) && aSig) || ((bExp == 0x7FF) && bSig)) {
+        float_raise(status, float_flag_invalid);
+        return float_relation_unordered;
+    }
+
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    if ((a == b) || ((Bit64u) ((a | b)<<1) == 0)) return float_relation_equal;
+
+    flag aSign = extractFloat64Sign(a);
+    flag bSign = extractFloat64Sign(b);
+    if (aSign != bSign) {
+        return (aSign) ? float_relation_less : float_relation_greater;
+    }
+    if (aSign ^ (a < b)) return float_relation_less;
+    else float_relation_greater;
+}
+
+/*----------------------------------------------------------------------------
+| Compare  between  two  double  precision  floating  point  numbers. Returns
+| 'float_relation_equal'  if the operands are equal, 'float_relation_less' if
+| the    value    'a'   is   less   than   the   corresponding   value   `b',
+| 'float_relation_greater' if the value 'a' is greater than the corresponding
+| value `b', or 'float_relation_unordered' otherwise. Quiet NaNs do not cause 
+| an exception.
+*----------------------------------------------------------------------------*/
+
+int float64_compare_quiet(float64 a, float64 b, float_status_t &status)
+{
+    Bit16s aExp = extractFloat64Exp(a);
+    Bit16s bExp = extractFloat64Exp(b);
+    Bit64u aSig = extractFloat64Frac(a);
+    Bit64u bSig = extractFloat64Frac(b);
+
+    if (((aExp == 0x7FF) && aSig) || ((bExp == 0x7FF) && bSig))
+    {
+        if (float64_is_signaling_nan(a) || float64_is_signaling_nan(b))
+        {
+            float_raise(status, float_flag_invalid);
+        }
+        return float_relation_unordered;
+    }
+
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    if ((a == b) || ((Bit64u) ((a | b)<<1) == 0)) return float_relation_equal;
+
+    flag aSign = extractFloat64Sign(a);
+    flag bSign = extractFloat64Sign(b);
+    if (aSign != bSign) {
+        return (aSign) ? float_relation_less : float_relation_greater;
+    }
+    if (aSign ^ (a < b)) return float_relation_less;
+    else float_relation_greater;
 }

@@ -84,19 +84,19 @@ typedef union bx_xmm_reg_t {
 
 /* store XMM register */
 #define BX_WRITE_XMM_REG(index, reg) \
-    { BX_CPU_THIS_PTR xmm[index] = reg; }
+    { BX_CPU_THIS_PTR xmm[index] = (reg); }
 
 /* store only high 64 bit of the register, rest of the register unchanged */
 #define BX_WRITE_XMM_REG_HI_QWORD(index, reg64) \
-    { (BX_CPU_THIS_PTR xmm[index]).xmm64u(1) = reg64; }
+    { (BX_CPU_THIS_PTR xmm[index]).xmm64u(1) = (reg64); }
 
 /* store only low 64 bit of the register, rest of the register unchanged */
 #define BX_WRITE_XMM_REG_LO_QWORD(index, reg64) \
-    { (BX_CPU_THIS_PTR xmm[index]).xmm64u(0) = reg64; }
+    { (BX_CPU_THIS_PTR xmm[index]).xmm64u(0) = (reg64); }
 
 /* store only low 32 bit of the register, rest of the register unchanged */
 #define BX_WRITE_XMM_REG_LO_DWORD(index, reg32) \
-    { (BX_CPU_THIS_PTR xmm[index]).xmm32u(0) = reg32; }
+    { (BX_CPU_THIS_PTR xmm[index]).xmm32u(0) = (reg32); }
  
 
 /* MXCSR REGISTER */

@@ -89,6 +89,17 @@ enum float_exception_flag_t {
 };
 
 /*----------------------------------------------------------------------------
+| Software IEC/IEEE floating-point ordering relations
+*----------------------------------------------------------------------------*/
+
+enum {
+    float_relation_less      = -1,
+    float_relation_equal     =  0,
+    float_relation_greater   =  1,
+    float_relation_unordered =  2,
+};
+
+/*----------------------------------------------------------------------------
 | Software IEC/IEEE floating-point status structure.
 *----------------------------------------------------------------------------*/
 struct float_status_t 
@@ -141,16 +152,19 @@ float32 float32_div(float32, float32, float_status_t &status);
 float32 float32_rem(float32, float32, float_status_t &status);
 float32 float32_sqrt(float32, float_status_t &status);
 
-typedef int (*float32_compare)(float32, float32, float_status_t &status);
+typedef int (*float32_compare_method)(float32, float32, float_status_t &status);
 int float32_eq(float32, float32, float_status_t &status);
 int float32_le(float32, float32, float_status_t &status);
 int float32_lt(float32, float32, float_status_t &status);
 int float32_eq_signaling(float32, float32, float_status_t &status);
 int float32_le_quiet(float32, float32, float_status_t &status);
 int float32_lt_quiet(float32, float32, float_status_t &status);
-int float32_unordered(float32 a, float32 b, float_status_t &status);
+int float32_unordered(float32, float32, float_status_t &status);
+int float32_compare(float32, float32, float_status_t &status);
+int float32_compare_quiet(float32, float32, float_status_t &status);
 
 int float32_is_signaling_nan(float32);
+int float32_is_zero(float32);
 
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE double-precision conversion routines.
@@ -172,13 +186,16 @@ float64 float64_div(float64, float64, float_status_t &status);
 float64 float64_rem(float64, float64, float_status_t &status);
 float64 float64_sqrt(float64, float_status_t &status);
 
-typedef int (*float64_compare)(float64, float64, float_status_t &status);
+typedef int (*float64_compare_method)(float64, float64, float_status_t &status);
 int float64_eq(float64, float64, float_status_t &status);
 int float64_le(float64, float64, float_status_t &status);
 int float64_lt(float64, float64, float_status_t &status);
 int float64_eq_signaling(float64, float64, float_status_t &status);
 int float64_le_quiet(float64, float64, float_status_t &status);
 int float64_lt_quiet(float64, float64, float_status_t &status);
-int float64_unordered(float64 a, float64 b, float_status_t &status);
+int float64_unordered(float64, float64, float_status_t &status);
+int float64_compare(float64, float64, float_status_t &status);
+int float64_compare_quiet(float64, float64, float_status_t &status);
 
 int float64_is_signaling_nan(float64);
+int float64_is_zero(float64);

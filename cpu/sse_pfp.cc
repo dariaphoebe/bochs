@@ -53,7 +53,7 @@ static void MXCSR_to_softfloat_status_word(softfloat_status_word_t &status, bx_m
 }
 
 /* Comparison predicate for CMPSS/CMPPS instructions */
-static float32_compare compare32[4] = {
+static float32_compare_method compare32[4] = {
   float32_eq, 
   float32_lt, 
   float32_le, 
@@ -61,7 +61,7 @@ static float32_compare compare32[4] = {
 };
 
 /* Comparison predicate for CMPSD/CMPPD instructions */
-static float64_compare compare64[4] = {
+static float64_compare_method compare64[4] = {
   float64_eq, 
   float64_lt, 
   float64_le, 
@@ -998,50 +998,206 @@ void BX_CPU_C::CVTDQ2PD_VpdWq(bxInstruction_c *i)
 #endif
 }
 
-void BX_CPU_C::COMISS_VpsWps(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 1
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("COMISS_VpsWps: SSE instruction still not implemented"));
-#else
-  BX_INFO(("COMISS_VpsWps: required SSE, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::COMISD_VpdWpd(bxInstruction_c *i)   
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("COMISD_VpdWpd: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("COMISD_VpdWpd: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
+/* 
+ * Opcode: 0F 2E
+ * Compare two single precision FP numbers and set EFLAGS accordintly.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::UCOMISS_VssWss(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("UCOMISS_VssWss: SSE instruction still not implemented"));
+  Float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->nnn()), op2;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  int rc = float32_compare_quiet(op1, op2, status_word);
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+
+  switch(rc) {
+     case float_relation_unordered:
+         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
+         break;
+
+     case float_relation_greater:
+         setEFlagsOSZAPC(0);
+         break;
+
+     case float_relation_less:
+         setEFlagsOSZAPC(EFlagsCFMask);
+         break;
+
+     case float_relation_equal:
+         setEFlagsOSZAPC(EFlagsZFMask);
+         break;
+  }
+
 #else
   BX_INFO(("UCOMISS_VssWss: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* 
+ * Opcode: 66 0F 2E
+ * Compare two double precision FP numbers and set EFLAGS accordintly.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::UCOMISD_VsdWsd(bxInstruction_c *i)            	
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("UCOMISD_VsdWsd: SSE2 instruction still not implemented"));
+  Float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->nnn()), op2;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  int rc = float64_compare_quiet(op1, op2, status_word);
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+
+  switch(rc) {
+     case float_relation_unordered:
+         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
+         break;
+
+     case float_relation_greater:
+         setEFlagsOSZAPC(0);
+         break;
+
+     case float_relation_less:
+         setEFlagsOSZAPC(EFlagsCFMask);
+         break;
+
+     case float_relation_equal:
+         setEFlagsOSZAPC(EFlagsZFMask);
+         break;
+  }
+
 #else
   BX_INFO(("UCOMISD_VsdWsd: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: 0F 2F
+ * Compare two single precision FP numbers and set EFLAGS accordintly.
+ * Possible floating point exceptions: #I, #D
+ */
+void BX_CPU_C::COMISS_VpsWps(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 1
+  BX_CPU_THIS_PTR prepareSSE();
+
+  Float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->nnn()), op2;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  int rc = float32_compare(op1, op2, status_word);
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+
+  switch(rc) {
+     case float_relation_unordered:
+         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
+         break;
+
+     case float_relation_greater:
+         setEFlagsOSZAPC(0);
+         break;
+
+     case float_relation_less:
+         setEFlagsOSZAPC(EFlagsCFMask);
+         break;
+
+     case float_relation_equal:
+         setEFlagsOSZAPC(EFlagsZFMask);
+         break;
+  }
+
+#else
+  BX_INFO(("COMISS_VpsWps: required SSE, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: 66 0F 2F
+ * Compare two double precision FP numbers and set EFLAGS accordintly.
+ * Possible floating point exceptions: #I, #D
+ */
+void BX_CPU_C::COMISD_VpdWpd(bxInstruction_c *i)   
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+
+  Float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->nnn()), op2;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  int rc = float64_compare(op1, op2, status_word);
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+
+  switch(rc) {
+     case float_relation_unordered:
+         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
+         break;
+
+     case float_relation_greater:
+         setEFlagsOSZAPC(0);
+         break;
+
+     case float_relation_less:
+         setEFlagsOSZAPC(EFlagsCFMask);
+         break;
+
+     case float_relation_equal:
+         setEFlagsOSZAPC(EFlagsZFMask);
+         break;
+  }
+
+#else
+  BX_INFO(("COMISD_VpdWpd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
@@ -1678,48 +1834,156 @@ void BX_CPU_C::SUBSS_VssWss(bxInstruction_c *i)
 #endif
 }
 
+/* 
+ * Opcode: 0F 5D
+ * Calculate the minimum single precision FP between XMM2/MEM to XMM1.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::MINPS_VpsWps(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("MINPS_VpsWps: SSE instruction still not implemented"));
+  BxPackedXmmRegister op1 = BX_READ_XMM_REG(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  int rc;
+
+  rc = float32_compare(op1.xmm32u(0), op2.xmm32u(0), status_word);
+  result.xmm32u(0) = 
+      (rc == float_relation_less) ? op1.xmm32u(0) : op2.xmm32u(0);
+  rc = float32_compare(op1.xmm32u(1), op2.xmm32u(1), status_word);
+  result.xmm32u(1) = 
+      (rc == float_relation_less) ? op1.xmm32u(1) : op2.xmm32u(1);
+  rc = float32_compare(op1.xmm32u(2), op2.xmm32u(2), status_word);
+  result.xmm32u(2) = 
+      (rc == float_relation_less) ? op1.xmm32u(2) : op2.xmm32u(2);
+  rc = float32_compare(op1.xmm32u(3), op2.xmm32u(3), status_word);
+  result.xmm32u(3) = 
+      (rc == float_relation_less) ? op1.xmm32u(3) : op2.xmm32u(3);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
+
 #else
   BX_INFO(("MINPS_VpsWps: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* 
+ * Opcode: 66 0F 5D
+ * Calculate the minimum double precision FP between XMM2/MEM to XMM1.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::MINPD_VpdWpd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("MINPD_VpdWpd: SSE2 instruction still not implemented"));
+  BxPackedXmmRegister op1 = BX_READ_XMM_REG(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  int rc;
+
+  rc = float64_compare(op1.xmm64u(0), op2.xmm64u(0), status_word);
+  result.xmm64u(0) = 
+      (rc == float_relation_less) ? op1.xmm64u(0) : op2.xmm64u(0);
+  rc = float64_compare(op1.xmm64u(1), op2.xmm64u(1), status_word);
+  result.xmm64u(1) = 
+      (rc == float_relation_less) ? op1.xmm64u(1) : op2.xmm64u(1);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
+
 #else
   BX_INFO(("MINPD_VpdWpd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* 
+ * Opcode: F2 0F 5D
+ * Calculate the minimum scalar double precision FP between XMM2/MEM to XMM1.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::MINSD_VsdWsd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("MINSD_VsdWsd: SSE2 instruction still not implemented"));
+  Float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->nnn()), op2;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  int rc = float64_compare(op1, op2, status_word);
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), 
+         (rc == float_relation_less) ? op1 : op2);
+
 #else
   BX_INFO(("MINSD_VsdWsd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* 
+ * Opcode: F3 0F 5D
+ * Calculate the minimum scalar single precision FP between XMM2/MEM to XMM1.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::MINSS_VssWss(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("MINSS_VssWss: SSE instruction still not implemented"));
+  Float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->nnn()), op2;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  int rc = float32_compare(op1, op2, status_word);
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG_LO_DWORD(i->nnn(), 
+         (rc == float_relation_less) ? op1 : op2);
+
 #else
   BX_INFO(("MINSS_VssWss: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -1872,48 +2136,156 @@ void BX_CPU_C::DIVSS_VssWss(bxInstruction_c *i)
 #endif
 }
 
+/* 
+ * Opcode: 0F 5F
+ * Calculate the maximum single precision FP between XMM2/MEM to XMM1.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::MAXPS_VpsWps(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("MAXPS_VpsWps: SSE instruction still not implemented"));
+  BxPackedXmmRegister op1 = BX_READ_XMM_REG(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  int rc;
+
+  rc = float32_compare(op1.xmm32u(0), op2.xmm32u(0), status_word);
+  result.xmm32u(0) = 
+      (rc == float_relation_greater) ? op1.xmm32u(0) : op2.xmm32u(0);
+  rc = float32_compare(op1.xmm32u(1), op2.xmm32u(1), status_word);
+  result.xmm32u(1) = 
+      (rc == float_relation_greater) ? op1.xmm32u(1) : op2.xmm32u(1);
+  rc = float32_compare(op1.xmm32u(2), op2.xmm32u(2), status_word);
+  result.xmm32u(2) = 
+      (rc == float_relation_greater) ? op1.xmm32u(2) : op2.xmm32u(2);
+  rc = float32_compare(op1.xmm32u(3), op2.xmm32u(3), status_word);
+  result.xmm32u(3) = 
+      (rc == float_relation_greater) ? op1.xmm32u(3) : op2.xmm32u(3);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
+
 #else
   BX_INFO(("MAXPS_VpsWps: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* 
+ * Opcode: 66 0F 5F
+ * Calculate the maximum double precision FP between XMM2/MEM to XMM1.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::MAXPD_VpdWpd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("MAXPD_VpdWpd: SSE2 instruction still not implemented"));
+  BxPackedXmmRegister op1 = BX_READ_XMM_REG(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  int rc;
+
+  rc = float64_compare(op1.xmm64u(0), op2.xmm64u(0), status_word);
+  result.xmm64u(0) = 
+      (rc == float_relation_greater) ? op1.xmm64u(0) : op2.xmm64u(0);
+  rc = float64_compare(op1.xmm64u(1), op2.xmm64u(1), status_word);
+  result.xmm64u(1) = 
+      (rc == float_relation_greater) ? op1.xmm64u(1) : op2.xmm64u(1);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
+
 #else
   BX_INFO(("MAXPD_VpdWpd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* 
+ * Opcode: F2 0F 5F
+ * Calculate the maximum scalar double precision FP between XMM2/MEM to XMM1.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::MAXSD_VsdWsd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("MAXSD_VsdWsd: SSE2 instruction still not implemented"));
+  Float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->nnn()), op2;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  int rc = float64_compare(op1, op2, status_word);
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), 
+         (rc == float_relation_greater) ? op1 : op2);
+
 #else
   BX_INFO(("MAXSD_VsdWsd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* 
+ * Opcode: F3 0F 5F
+ * Calculate the maxumim scalar single precision FP between XMM2/MEM to XMM1.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::MAXSS_VssWss(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("MAXSS_VssWss: SSE instruction still not implemented"));
+  Float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->nnn()), op2;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  int rc = float32_compare(op1, op2, status_word);
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG_LO_DWORD(i->nnn(), 
+         (rc == float_relation_greater) ? op1 : op2);
+
 #else
   BX_INFO(("MAXSS_VssWss: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
