@@ -159,6 +159,8 @@ struct i387_structure_t : public i387_t
 public:
     int    	get_tos() const { return tos; }
 
+    int 	is_IA_masked() const { return (cwd & FPU_CW_Invalid); }
+
     Bit16u 	get_control_word() const { return cwd & 0xFFFF; }
     Bit16u 	get_tag_word() const { return twd & 0xFFFF; }
     Bit16u 	get_status_word() const { return (swd & ~FPU_SW_Top & 0xFFFF) | ((tos << 11) & FPU_SW_Top); }

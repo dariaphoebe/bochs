@@ -66,10 +66,10 @@ int BX_CPU_C::FPU_exception(int exception)
 void BX_CPU_C::FPU_stack_overflow(void)
 {
   /* The masked response */
-  if (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+  if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
   {
       BX_CPU_THIS_PTR the_i387.FPU_push();
-      BX_CPU_THIS_PTR the_i387.FPU_save_regi(Const_QNaN, FPU_Tag_Special, 0);
+      BX_WRITE_FPU_REGISTER_AND_TAG(Const_QNaN, FPU_Tag_Special, 0);
   }
   BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Overflow);
 }
@@ -77,9 +77,9 @@ void BX_CPU_C::FPU_stack_overflow(void)
 void BX_CPU_C::FPU_stack_underflow(int stnr, int pop_stack)
 {
   /* The masked response */
-  if (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+  if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
   {
-      BX_CPU_THIS_PTR the_i387.FPU_save_regi(Const_QNaN, FPU_Tag_Special, stnr);
+      BX_WRITE_FPU_REGISTER_AND_TAG(Const_QNaN, FPU_Tag_Special, stnr);
       if (pop_stack) 
           BX_CPU_THIS_PTR the_i387.FPU_pop();
   }
@@ -187,8 +187,28 @@ void BX_CPU_C::FADD_SINGLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float32 load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_add(BX_READ_FPU_REG(0), 
+	      float32_to_floatx80(load_reg, status), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FADD_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -198,8 +218,28 @@ void BX_CPU_C::FADD_DOUBLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float64 load_reg;
+  read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_add(BX_READ_FPU_REG(0), 
+	      float64_to_floatx80(load_reg, status), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FADD_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -209,8 +249,28 @@ void BX_CPU_C::FIADD_WORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit16s load_reg;
+  read_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_add(BX_READ_FPU_REG(0), 
+	      int32_to_floatx80((Bit32s)(load_reg)), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FIADD_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -220,8 +280,28 @@ void BX_CPU_C::FIADD_DWORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit32s load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), (Bit32u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_add(BX_READ_FPU_REG(0), 
+	      int32_to_floatx80(load_reg), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FIADD_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -292,8 +372,28 @@ void BX_CPU_C::FMUL_SINGLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float32 load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_mul(BX_READ_FPU_REG(0), 
+	      float32_to_floatx80(load_reg, status), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FMUL_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -303,8 +403,28 @@ void BX_CPU_C::FMUL_DOUBLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float64 load_reg;
+  read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_mul(BX_READ_FPU_REG(0), 
+	      float64_to_floatx80(load_reg, status), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FMUL_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -314,8 +434,28 @@ void BX_CPU_C::FIMUL_WORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit16s load_reg;
+  read_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_mul(BX_READ_FPU_REG(0), 
+	      int32_to_floatx80((Bit32s)(load_reg)), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FIMUL_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -325,8 +465,28 @@ void BX_CPU_C::FIMUL_DWORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit32s load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), (Bit32u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_mul(BX_READ_FPU_REG(0), 
+	      int32_to_floatx80(load_reg), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FIMUL_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -458,8 +618,28 @@ void BX_CPU_C::FSUB_SINGLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float32 load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_sub(BX_READ_FPU_REG(0), 
+	      float32_to_floatx80(load_reg, status), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FSUB_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -469,8 +649,28 @@ void BX_CPU_C::FSUBR_SINGLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float32 load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_sub(float32_to_floatx80(load_reg, status), 
+	      BX_READ_FPU_REG(0), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FSUBR_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -480,8 +680,28 @@ void BX_CPU_C::FSUB_DOUBLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float64 load_reg;
+  read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_sub(BX_READ_FPU_REG(0), 
+	      float64_to_floatx80(load_reg, status), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FSUB_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -491,8 +711,28 @@ void BX_CPU_C::FSUBR_DOUBLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float64 load_reg;
+  read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_sub(float64_to_floatx80(load_reg, status), 
+	      BX_READ_FPU_REG(0), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FSUBR_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -502,8 +742,28 @@ void BX_CPU_C::FISUB_WORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit16s load_reg;
+  read_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_sub(BX_READ_FPU_REG(0), 
+	      int32_to_floatx80((Bit32s)(load_reg)), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FISUB_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -513,8 +773,28 @@ void BX_CPU_C::FISUBR_WORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit16s load_reg;
+  read_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_sub(int32_to_floatx80((Bit32s)(load_reg)),
+              BX_READ_FPU_REG(0), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FISUBR_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -524,8 +804,28 @@ void BX_CPU_C::FISUB_DWORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit32s load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), (Bit32u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_sub(BX_READ_FPU_REG(0), 
+	      int32_to_floatx80(load_reg), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FISUB_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -535,8 +835,28 @@ void BX_CPU_C::FISUBR_DWORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit32s load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), (Bit32u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_sub(int32_to_floatx80(load_reg),
+	      BX_READ_FPU_REG(0), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FISUBR_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -668,8 +988,28 @@ void BX_CPU_C::FDIV_SINGLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float32 load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_div(BX_READ_FPU_REG(0), 
+	      float32_to_floatx80(load_reg, status), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FDIV_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -679,8 +1019,28 @@ void BX_CPU_C::FDIVR_SINGLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float32 load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_div(float32_to_floatx80(load_reg, status), 
+	      BX_READ_FPU_REG(0), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FDIVR_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -690,8 +1050,28 @@ void BX_CPU_C::FDIV_DOUBLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float64 load_reg;
+  read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_div(BX_READ_FPU_REG(0), 
+	      float64_to_floatx80(load_reg, status), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FDIV_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -701,8 +1081,28 @@ void BX_CPU_C::FDIVR_DOUBLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  float64 load_reg;
+  read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_div(float64_to_floatx80(load_reg, status), 
+	      BX_READ_FPU_REG(0), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FDIVR_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -712,8 +1112,28 @@ void BX_CPU_C::FIDIV_WORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit16s load_reg;
+  read_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_div(BX_READ_FPU_REG(0), 
+	      int32_to_floatx80((Bit32s)(load_reg)), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FIDIV_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -723,8 +1143,28 @@ void BX_CPU_C::FIDIVR_WORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit16s load_reg;
+  read_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_div(int32_to_floatx80((Bit32s)(load_reg)),
+              BX_READ_FPU_REG(0), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FIDIVR_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -734,8 +1174,28 @@ void BX_CPU_C::FIDIV_DWORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit32s load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), (Bit32u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_div(BX_READ_FPU_REG(0), 
+	      int32_to_floatx80(load_reg), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FIDIV_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -745,42 +1205,29 @@ void BX_CPU_C::FIDIVR_DWORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  Bit32s load_reg;
+  read_virtual_dword(i->seg(), RMAddr(i), (Bit32u*)(&load_reg));
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_div(int32_to_floatx80(load_reg),
+	      BX_READ_FPU_REG(0), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FIDIVR_DWORD_INTEGER: required FPU, configure --enable-fpu"));
-#endif
-}
-
-void BX_CPU_C::FXTRACT(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  fpu_execute(i);
-//#else
-  BX_INFO(("FXTRACT: required FPU, configure --enable-fpu"));
-#endif
-}
-
-void BX_CPU_C::FPREM1(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  fpu_execute(i);
-//#else
-  BX_INFO(("FPREM1: required FPU, configure --enable-fpu"));
-#endif
-}
-
-void BX_CPU_C::FPREM(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  fpu_execute(i);
-//#else
-  BX_INFO(("FPREM: required FPU, configure --enable-fpu"));
 #endif
 }
 
@@ -836,16 +1283,5 @@ void BX_CPU_C::FRNDINT(bxInstruction_c *i)
   BX_WRITE_FPU_REG(result, 0);
 #else
   BX_INFO(("FRNDINT: required FPU, configure --enable-fpu"));
-#endif
-}
-
-void BX_CPU_C::FSCALE(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  fpu_execute(i);
-//#else
-  BX_INFO(("FSCALE: required FPU, configure --enable-fpu"));
 #endif
 }

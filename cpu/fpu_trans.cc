@@ -114,3 +114,47 @@ void BX_CPU_C::FYL2X(bxInstruction_c *i)
   BX_INFO(("FYL2X: required FPU, configure --enable-fpu"));
 #endif
 }
+
+void BX_CPU_C::FSCALE(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  fpu_execute(i);
+//#else
+  BX_INFO(("FSCALE: required FPU, configure --enable-fpu"));
+#endif
+}
+
+void BX_CPU_C::FXTRACT(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  fpu_execute(i);
+//#else
+  BX_INFO(("FXTRACT: required FPU, configure --enable-fpu"));
+#endif
+}
+
+void BX_CPU_C::FPREM1(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  fpu_execute(i);
+//#else
+  BX_INFO(("FPREM1: required FPU, configure --enable-fpu"));
+#endif
+}
+
+void BX_CPU_C::FPREM(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  fpu_execute(i);
+//#else
+  BX_INFO(("FPREM: required FPU, configure --enable-fpu"));
+#endif
+}

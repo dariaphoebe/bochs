@@ -272,7 +272,7 @@ void BX_CPU_C::FST_SINGLE_REAL(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
      {
         save_reg = float32_default_nan;	/* The masked response */
      }
@@ -310,7 +310,7 @@ void BX_CPU_C::FST_DOUBLE_REAL(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
      {
         save_reg = float64_default_nan;	/* The masked response */
      }
@@ -347,7 +347,7 @@ void BX_CPU_C::FSTP_EXTENDED_REAL(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
      {
         save_reg = Const_QNaN;	/* The masked response */
      }
@@ -380,7 +380,7 @@ void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
      {
         save_reg = 0x8000; /* The masked response */
      }
@@ -396,7 +396,7 @@ void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
    
      if ((val32 > (Bit32s) BX_MAX_BIT16S) || (val32 < (Bit32s) BX_MIN_BIT16S))
      {
-         if (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+         if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
          {
             save_reg = 0x8000; /* The masked response */
          }
@@ -413,7 +413,7 @@ void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
   if (pop_stack)
      BX_CPU_THIS_PTR the_i387.FPU_pop();
 #else
-  BX_INFO(("FIST_WORD_INTEGER: required FPU, configure --enable-fpu"));
+  BX_INFO(("FIST(P)_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
 
@@ -430,7 +430,7 @@ void BX_CPU_C::FIST_DWORD_INTEGER(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
      {
         save_reg = 0x80000000; /* The masked response */
      }
@@ -453,7 +453,7 @@ void BX_CPU_C::FIST_DWORD_INTEGER(bxInstruction_c *i)
   if (pop_stack)
      BX_CPU_THIS_PTR the_i387.FPU_pop();
 #else
-  BX_INFO(("FIST_DWORD_INTEGER: required FPU, configure --enable-fpu"));
+  BX_INFO(("FIST(P)_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
 
@@ -468,7 +468,7 @@ void BX_CPU_C::FISTP_QWORD_INTEGER(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
      {
         save_reg = BX_CONST64(0x8000000000000000); /* The masked response */
      }

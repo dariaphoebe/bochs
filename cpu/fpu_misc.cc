@@ -58,7 +58,7 @@ void BX_CPU_C::FXCH_STi(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
   {
-      if(BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+      if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
 	  /* Masked response */
           if (st0_tag == FPU_Tag_Empty)
