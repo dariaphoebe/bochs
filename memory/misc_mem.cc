@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: misc_mem.cc,v 1.36.2.1 2003/03/29 19:57:20 slechta Exp $
+// $Id: misc_mem.cc,v 1.36.2.2 2003/03/30 04:15:19 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -120,7 +120,7 @@ BX_MEM_C::~BX_MEM_C(void)
   void
 BX_MEM_C::init_memory(int memsize)
 {
-	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.36.2.1 2003/03/29 19:57:20 slechta Exp $"));
+	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.36.2.2 2003/03/30 04:15:19 bdenney Exp $"));
   // you can pass 0 if memory has been allocated already through
   // the constructor, or the desired size of memory if it hasn't
   BX_INFO(("%.2fMB", (float)(BX_MEM_THIS megabytes) ));
@@ -167,8 +167,7 @@ BX_MEM_C::register_state(bx_param_c *list_p)
 {
   BXRS_START(BX_MEM_C, this, "", list_p, 10);
   {
-    BXRS_DARRAY(actual_vector, BXRS_THIS->len);
-    BXRS_DARRAY(vector, BXRS_THIS->len);
+    BXRS_DARRAY(vector, BX_MEM_THIS len);
     BXRS_NUM_H(size_t, len, mem_vector_restore);
     BXRS_ENUM_D(size_t, megabytes, "(len in Megabytes)");
 #if BX_PCI_SUPPORT
