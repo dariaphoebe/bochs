@@ -96,7 +96,7 @@ void BX_CPU_C::FCHS(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty)
   {
-      FPU_stack_underflow(0);
+      BX_CPU_THIS_PTR FPU_stack_underflow(0);
       return;
   }
 
@@ -119,7 +119,7 @@ void BX_CPU_C::FABS(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty)
   {
-      FPU_stack_underflow(0);
+      BX_CPU_THIS_PTR FPU_stack_underflow(0);
       return;
   }
 

@@ -68,7 +68,7 @@ void BX_CPU_C::FPU_stack_overflow(void)
   /* The masked response */
   if (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
   {
-      FPU_TOS--;
+      BX_CPU_THIS_PTR the_i387.FPU_push();
       BX_CPU_THIS_PTR the_i387.FPU_save_regi(Const_QNaN, FPU_Tag_Special, 0);
   }
   BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Overflow);
@@ -130,7 +130,7 @@ void BX_CPU_C::FADD_ST0_STj(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -160,7 +160,7 @@ void BX_CPU_C::FADD_STi_ST0(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(i->rm(), pop_stack);
+     BX_CPU_THIS_PTR FPU_stack_underflow(i->rm(), pop_stack);
      return;
   }
 
@@ -235,7 +235,7 @@ void BX_CPU_C::FMUL_ST0_STj(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -265,7 +265,7 @@ void BX_CPU_C::FMUL_STi_ST0(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(i->rm(), pop_stack);
+     BX_CPU_THIS_PTR FPU_stack_underflow(i->rm(), pop_stack);
      return;
   }
 
@@ -340,7 +340,7 @@ void BX_CPU_C::FSUB_ST0_STj(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -368,7 +368,7 @@ void BX_CPU_C::FSUBR_ST0_STj(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -398,7 +398,7 @@ void BX_CPU_C::FSUB_STi_ST0(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(i->rm(), pop_stack);
+     BX_CPU_THIS_PTR FPU_stack_underflow(i->rm(), pop_stack);
      return;
   }
 
@@ -431,7 +431,7 @@ void BX_CPU_C::FSUBR_STi_ST0(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(i->rm(), pop_stack);
+     BX_CPU_THIS_PTR FPU_stack_underflow(i->rm(), pop_stack);
      return;
   }
 
@@ -550,7 +550,7 @@ void BX_CPU_C::FDIV_ST0_STj(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -578,7 +578,7 @@ void BX_CPU_C::FDIVR_ST0_STj(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -608,7 +608,7 @@ void BX_CPU_C::FDIV_STi_ST0(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(i->rm(), pop_stack);
+     BX_CPU_THIS_PTR FPU_stack_underflow(i->rm(), pop_stack);
      return;
   }
 
@@ -641,7 +641,7 @@ void BX_CPU_C::FDIVR_STi_ST0(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
-     FPU_stack_underflow(i->rm(), pop_stack);
+     BX_CPU_THIS_PTR FPU_stack_underflow(i->rm(), pop_stack);
      return;
   }
 
@@ -793,7 +793,7 @@ void BX_CPU_C::FSQRT(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0))
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -821,7 +821,7 @@ void BX_CPU_C::FRNDINT(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0))
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 

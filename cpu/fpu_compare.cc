@@ -232,7 +232,7 @@ void BX_CPU_C::FCMOVB_ST0_STj(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -258,7 +258,7 @@ void BX_CPU_C::FCMOVE_ST0_STj(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -284,7 +284,7 @@ void BX_CPU_C::FCMOVBE_ST0_STj(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -310,7 +310,7 @@ void BX_CPU_C::FCMOVU_ST0_STj(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -336,7 +336,7 @@ void BX_CPU_C::FCMOVNB_ST0_STj(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -362,7 +362,7 @@ void BX_CPU_C::FCMOVNE_ST0_STj(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -388,7 +388,7 @@ void BX_CPU_C::FCMOVNBE_ST0_STj(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 
@@ -414,7 +414,7 @@ void BX_CPU_C::FCMOVNU_ST0_STj(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
   {
-     FPU_stack_underflow(0);
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
      return;
   }
 

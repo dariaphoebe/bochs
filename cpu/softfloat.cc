@@ -2817,6 +2817,7 @@ floatx80 float32_to_floatx80(float32 a, float_status_t &status)
     }
     if (aExp == 0) {
         if (aSig == 0) return packFloatx80(aSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat32Subnormal(aSig, &aExp, &aSig);
     }
     aSig |= 0x00800000;
@@ -2842,6 +2843,7 @@ floatx80 float64_to_floatx80(float64 a, float_status_t &status)
     }
     if (aExp == 0) {
         if (aSig == 0) return packFloatx80(aSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat64Subnormal(aSig, &aExp, &aSig);
     }
     return
@@ -3340,10 +3342,12 @@ floatx80 floatx80_mul(floatx80 a, floatx80 b, float_status_t &status)
     }
     if (aExp == 0) {
         if (aSig == 0) return packFloatx80(zSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(aSig, &aExp, &aSig);
     }
     if (bExp == 0) {
         if (bSig == 0) return packFloatx80(zSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(bSig, &bExp, &bSig);
     }
     zExp = aExp + bExp - 0x3FFE;
@@ -3403,10 +3407,12 @@ floatx80 floatx80_div(floatx80 a, floatx80 b, float_status_t &status)
             float_raise(status, float_flag_divbyzero);
             return packFloatx80(zSign, 0x7FFF, BX_CONST64(0x8000000000000000));
         }
+        float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(bSig, &bExp, &bSig);
     }
     if (aExp == 0) {
         if (aSig == 0) return packFloatx80(zSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(aSig, &aExp, &aSig);
     }
     zExp = aExp - bExp + 0x3FFE;
@@ -3478,6 +3484,7 @@ floatx80 floatx80_rem(floatx80 a, floatx80 b, float_status_t &status)
             z.exp = floatx80_default_nan_exp;
             return z;
         }
+        float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(bSig, &bExp, &bSig);
     }
     if (aExp == 0) {
@@ -3566,6 +3573,7 @@ floatx80 floatx80_sqrt(floatx80 a, float_status_t &status)
     }
     if (aExp == 0) {
         if (aSig0 == 0) return packFloatx80(0, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(aSig0, &aExp, &aSig0);
     }
     zExp = ((aExp - 0x3FFF)>>1) + 0x3FFF;
@@ -3612,10 +3620,10 @@ floatx80 floatx80_sqrt(floatx80 a, float_status_t &status)
 
 int floatx80_eq(floatx80 a, floatx80 b, float_status_t &status)
 {
-    if (((extractFloatx80Exp(a) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(a)<<1))
-         || ((extractFloatx80Exp(b) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(b)<<1))) 
+    float_class_t aClass = floatx80_class(a);
+    float_class_t bClass = floatx80_class(b);
+
+    if (aClass == float_NaN || bClass == float_NaN) 
     {
         if (floatx80_is_signaling_nan(a)
              || floatx80_is_signaling_nan(b)) 
@@ -3623,6 +3631,11 @@ int floatx80_eq(floatx80 a, floatx80 b, float_status_t &status)
             float_raise(status, float_flag_invalid);
         }
         return 0;
+    }
+
+    if (aClass == float_denormal || bClass == float_denormal) 
+    {
+        float_raise(status, float_flag_denormal);
     }
 
     return (a.fraction == b.fraction) && ((a.exp == b.exp)
@@ -3639,14 +3652,20 @@ int floatx80_eq(floatx80 a, floatx80 b, float_status_t &status)
 
 int floatx80_le(floatx80 a, floatx80 b, float_status_t &status)
 {
-    if (((extractFloatx80Exp(a) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(a)<<1))
-         || ((extractFloatx80Exp(b) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(b)<<1))) 
+    float_class_t aClass = floatx80_class(a);
+    float_class_t bClass = floatx80_class(b);
+
+    if (aClass == float_NaN || bClass == float_NaN) 
     {
         float_raise(status, float_flag_invalid);
         return 0;
     }
+
+    if (aClass == float_denormal || bClass == float_denormal) 
+    {
+        float_raise(status, float_flag_denormal);
+    }
+
     flag aSign = extractFloatx80Sign(a);
     flag bSign = extractFloatx80Sign(b);
     if (aSign != bSign) {
@@ -3667,14 +3686,20 @@ int floatx80_le(floatx80 a, floatx80 b, float_status_t &status)
 
 int floatx80_lt(floatx80 a, floatx80 b, float_status_t &status)
 {
-    if (((extractFloatx80Exp(a) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(a)<<1))
-         || ((extractFloatx80Exp(b) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(b)<<1))) 
+    float_class_t aClass = floatx80_class(a);
+    float_class_t bClass = floatx80_class(b);
+
+    if (aClass == float_NaN || bClass == float_NaN) 
     {
         float_raise(status, float_flag_invalid);
         return 0;
     }
+
+    if (aClass == float_denormal || bClass == float_denormal) 
+    {
+        float_raise(status, float_flag_denormal);
+    }
+
     flag aSign = extractFloatx80Sign(a);
     flag bSign = extractFloatx80Sign(b);
     if (aSign != bSign) {
@@ -3695,14 +3720,20 @@ int floatx80_lt(floatx80 a, floatx80 b, float_status_t &status)
 
 int floatx80_eq_signaling(floatx80 a, floatx80 b, float_status_t &status)
 {
-    if (((extractFloatx80Exp(a) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(a)<<1))
-         || ((extractFloatx80Exp(b) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(b)<<1)))
+    float_class_t aClass = floatx80_class(a);
+    float_class_t bClass = floatx80_class(b);
+
+    if (aClass == float_NaN || bClass == float_NaN) 
     {
         float_raise(status, float_flag_invalid);
         return 0;
     }
+
+    if (aClass == float_denormal || bClass == float_denormal) 
+    {
+        float_raise(status, float_flag_denormal);
+    }
+
     return (a.fraction == b.fraction) && ((a.exp == b.exp)
              || ((a.fraction == 0)
                   && ((Bit16u) ((a.exp | b.exp)<<1) == 0)));
@@ -3717,18 +3748,24 @@ int floatx80_eq_signaling(floatx80 a, floatx80 b, float_status_t &status)
 
 int floatx80_le_quiet(floatx80 a, floatx80 b, float_status_t &status)
 {
-    if (((extractFloatx80Exp(a) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(a)<<1))
-         || ((extractFloatx80Exp(b) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(b)<<1)))
+    float_class_t aClass = floatx80_class(a);
+    float_class_t bClass = floatx80_class(b);
+
+    if (aClass == float_NaN || bClass == float_NaN) 
     {
         if (floatx80_is_signaling_nan(a)
              || floatx80_is_signaling_nan(b)) 
-	{
+        {
             float_raise(status, float_flag_invalid);
         }
         return 0;
     }
+
+    if (aClass == float_denormal || bClass == float_denormal) 
+    {
+        float_raise(status, float_flag_denormal);
+    }
+
     flag aSign = extractFloatx80Sign(a);
     flag bSign = extractFloatx80Sign(b);
     if (aSign != bSign) {
@@ -3748,18 +3785,24 @@ int floatx80_le_quiet(floatx80 a, floatx80 b, float_status_t &status)
 
 int floatx80_lt_quiet(floatx80 a, floatx80 b, float_status_t &status)
 {
-    if (((extractFloatx80Exp(a) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(a)<<1))
-         || ((extractFloatx80Exp(b) == 0x7FFF)
-              && (Bit64u) (extractFloatx80Frac(b)<<1)))
+    float_class_t aClass = floatx80_class(a);
+    float_class_t bClass = floatx80_class(b);
+
+    if (aClass == float_NaN || bClass == float_NaN) 
     {
         if (floatx80_is_signaling_nan(a)
              || floatx80_is_signaling_nan(b)) 
-	{
+        {
             float_raise(status, float_flag_invalid);
         }
         return 0;
     }
+
+    if (aClass == float_denormal || bClass == float_denormal) 
+    {
+        float_raise(status, float_flag_denormal);
+    }
+
     flag aSign = extractFloatx80Sign(a);
     flag bSign = extractFloatx80Sign(b);
     if (aSign != bSign) {

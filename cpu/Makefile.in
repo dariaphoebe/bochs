@@ -68,7 +68,7 @@ OBJS = \
         fpu_compare.o \
         fpu_const.o \
         fpu_misc.o \
-        fpu_memory.o \
+        fpu_load_store.o \
         fpu_arith.o \
         fpu_trans.o \
 	sse.o \
@@ -590,7 +590,7 @@ fpu_trans.o: fpu_trans.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h ../bx_debu
   ../iodev/serial.h ../iodev/unmapped.h ../iodev/eth.h ../iodev/ne2k.h \
   ../iodev/guest2host.h ../iodev/slowdown_timer.h ../iodev/extfpuirq.h \
   ../instrument/stubs/instrument.h
-fpu_memory.o: fpu_memory.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h ../bx_debug/debug.h \
+fpu_load_store.o: fpu_load_store.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h ../bx_debug/debug.h \
   ../bxversion.h ../gui/siminterface.h ../state_file.h ../cpu/cpu.h \
   ../cpu/lazy_flags.h ../cpu/i387.h ../cpu/xmm.h ../memory/memory.h \
   ../pc_system.h ../plugin.h ../extplugin.h ../gui/gui.h \
