@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: misc_mem.cc,v 1.36.2.5 2003/04/06 13:07:23 bdenney Exp $
+// $Id: misc_mem.cc,v 1.36.2.6 2003/04/06 13:37:32 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -120,7 +120,7 @@ BX_MEM_C::~BX_MEM_C(void)
   void
 BX_MEM_C::init_memory(int memsize)
 {
-	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.36.2.5 2003/04/06 13:07:23 bdenney Exp $"));
+	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.36.2.6 2003/04/06 13:37:32 bdenney Exp $"));
   // you can pass 0 if memory has been allocated already through
   // the constructor, or the desired size of memory if it hasn't
   BX_INFO(("%.2fMB", (float)(BX_MEM_THIS megabytes) ));
@@ -150,9 +150,6 @@ Bit64s mem_vector_restore(bx_param_c *param_p, int set, Bit64s val)
       bx_param_c *vector_param_p = param_p->get_parent()->
         get_by_name("vector");
       BX_ASSERT((vector_param_p != NULL));
-      bx_param_c *actual_vector_param_p = param_p->get_parent()->
-        get_by_name("alloc_vector");
-      BX_ASSERT((actual_vector_param_p != NULL));
       
       
 
