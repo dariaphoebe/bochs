@@ -585,7 +585,7 @@ void BX_CPU_C::PSHUFW_PqQqIb(bxInstruction_c *i)
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
 #else  
-  BX_INFO(("PSHUFW_PqQqIb: required SSE, use --enable-sse option"));
+  BX_INFO(("PSHUFW_PqQqIb: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -790,7 +790,7 @@ void BX_CPU_C::PINSRW_PqEdIb(bxInstruction_c *i)
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), op1);
 #else
-  BX_INFO(("PINSRW_PqEdIb: required SSE, use --enable-sse option"));
+  BX_INFO(("PINSRW_PqEdIb: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -807,7 +807,7 @@ void BX_CPU_C::PEXTRW_PqEdIb(bxInstruction_c *i)
 
   BX_WRITE_32BIT_REG(i->nnn(), result);
 #else
-  BX_INFO(("PEXTRW_PqEdIb: required SSE, use --enable-sse option"));
+  BX_INFO(("PEXTRW_PqEdIb: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -998,7 +998,7 @@ void BX_CPU_C::PMOVMSKB_GdPRq(bxInstruction_c *i)
   BX_WRITE_32BIT_REG(i->nnn(), result);
   
 #else
-  BX_INFO(("PMOVMSKB_GdPRq: required SSE, use --enable-sse option"));
+  BX_INFO(("PMOVMSKB_GdPRq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -1100,7 +1100,7 @@ void BX_CPU_C::PMINUB_PqQq(bxInstruction_c *i)
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), op1);
 #else  
-  BX_INFO(("PMINUB_PqQq: required SSE, use --enable-sse option"));
+  BX_INFO(("PMINUB_PqQq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -1225,7 +1225,7 @@ void BX_CPU_C::PMAXUB_PqQq(bxInstruction_c *i)
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), op1);
 #else  
-  BX_INFO(("PMAXUB_PqQq: required SSE, use --enable-sse option"));
+  BX_INFO(("PMAXUB_PqQq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -1286,7 +1286,7 @@ void BX_CPU_C::PAVGB_PqQq(bxInstruction_c *i)
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
 #else  
-  BX_INFO(("PAVGB_PqQq: required SSE, use --enable-sse option"));
+  BX_INFO(("PAVGB_PqQq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -1413,7 +1413,7 @@ void BX_CPU_C::PAVGW_PqQq(bxInstruction_c *i)
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
 #else  
-  BX_INFO(("PAVGW_PqQq: required SSE, use --enable-sse option"));
+  BX_INFO(("PAVGW_PqQq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -1448,7 +1448,7 @@ void BX_CPU_C::PMULHUW_PqQq(bxInstruction_c *i)
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
 #else
-  BX_INFO(("PMULHUW_PqQq: required SSE, use --enable-sse option"));
+  BX_INFO(("PMULHUW_PqQq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -1503,7 +1503,7 @@ void BX_CPU_C::MOVNTQ_MqPq(bxInstruction_c *i)
   write_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &reg);
 
 #else
-  BX_INFO(("MOVNTQ_MqPq: required SSE, use --enable-sse option"));
+  BX_INFO(("MOVNTQ_MqPq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -1597,7 +1597,7 @@ void BX_CPU_C::PMINSW_PqQq(bxInstruction_c *i)
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), op1);
 #else  
-  BX_INFO(("PMINSW_PqQq: required SSE, use --enable-sse option"));
+  BX_INFO(("PMINSW_PqQq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -1718,7 +1718,7 @@ void BX_CPU_C::PMAXSW_PqQq(bxInstruction_c *i)
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), op1);
 #else  
-  BX_INFO(("PMAXSW_PqQq: required SSE, use --enable-sse option"));
+  BX_INFO(("PMAXSW_PqQq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -1950,7 +1950,7 @@ void BX_CPU_C::PSADBW_PqQq(bxInstruction_c *i)
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
 #else  
-  BX_INFO(("PSADBW_PqQq: required SSE, use --enable-sse option"));
+  BX_INFO(("PSADBW_PqQq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
@@ -1996,7 +1996,7 @@ void BX_CPU_C::MASKMOVQ_PqPRq(bxInstruction_c *i)
       write_virtual_byte(BX_SEG_REG_DS, edi+7, &MMXUB7(op));
 
 #else
-  BX_INFO(("MASKMOVQ_PqPRq: required SSE, use --enable-sse option"));
+  BX_INFO(("MASKMOVQ_PqPRq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));
   UndefinedOpcode(i);
 #endif
 }
