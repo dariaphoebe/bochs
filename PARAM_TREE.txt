@@ -1,4 +1,4 @@
-$Id: PARAM_TREE.txt,v 1.1.2.1 2003/03/20 05:10:21 bdenney Exp $
+$Id: PARAM_TREE.txt,v 1.1.2.2 2003/03/20 06:58:56 bdenney Exp $
 
 I'm trying to organize the parameters into a tree structure instead of
 a huge flat list.  Once the parameter code is improved, I hope to use
@@ -63,7 +63,7 @@ memory
   ram
     size              BXP_MEM_SIZE,
   rom                 
-    address           BXP_ROM_ADDRESS,
+    addr              BXP_ROM_ADDRESS,
     path              BXP_ROM_PATH,
   vgarom
     path              BXP_VGA_ROM_PATH,
