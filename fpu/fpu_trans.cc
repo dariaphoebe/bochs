@@ -32,10 +32,6 @@
 #include "softfloat-specialize.h"
 #endif
 
-extern "C" {
-  void fpatan (FPU_REG *st0_ptr, Bit8u st0_tag);
-}
-
 /* D9 F0 */
 void BX_CPU_C::F2XM1(bxInstruction_c *i)
 {
@@ -154,16 +150,25 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
 void BX_CPU_C::FPATAN(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  extern void FPU_initalize_i387(struct i387_t *the_i387);
 
   clear_C1();
 
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(1))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0, 1);
+     return;
+  }
 
-  fpatan(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+  softfloat_status_word_t status = 
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word() | FPU_PR_80_BITS);
+
+  floatx80 result = fpatan(BX_READ_FPU_REG(0), BX_READ_FPU_REG(1), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_CPU_THIS_PTR the_i387.FPU_pop();
+  BX_WRITE_FPU_REG(result, 0);
 #else
   BX_INFO(("FPATAN: required FPU, configure --enable-fpu"));
 #endif

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_tags.c                                                               |
- |  $Id: fpu_tags.c,v 1.7.8.3 2004/06/01 21:05:14 sshwarts Exp $
+ |  $Id: fpu_tags.c,v 1.7.8.4 2004/06/09 19:38:31 sshwarts Exp $
  |                                                                           |
  |  Set FPU register tags.                                                   |
  |                                                                           |
@@ -11,83 +11,21 @@
  |                                                                           |
  +---------------------------------------------------------------------------*/
 
-#include "fpu_emu.h"
-#include "fpu_system.h"
+/* Get data sizes from config.h generated from simulator's
+ * configure script
+ */
+#include "config.h"
 
-void FPU_pop(void)
-{
-  FPU_tag_word |= 3 << ((FPU_tos & 7)*2);
-  FPU_tos++;
-}
+/* -----------------------------------------------------------
+ * Slimmed down version used to compile against a CPU simulator
+ * rather than a kernel (ported by Kevin Lawton)
+ * ------------------------------------------------------------ */
 
-BX_CPP_INLINE int FPU_gettag(int regnr)
-{
-  return (FPU_tag_word >> ((regnr & 7)*2)) & 3;
-}
+#include <cpu/i387.h>
 
-int FPU_gettag0(void)
-{
-  return FPU_gettag(FPU_tos);
-}
+#include "tag_w.h"
 
-int BX_CPP_AttrRegparmN(1) FPU_gettagi(int stnr)
-{
-  return FPU_gettag(FPU_tos+stnr);
-}
-
-BX_CPP_INLINE void FPU_settag(int regnr, int tag)
-{
-  regnr &= 7;
-  FPU_tag_word &= ~(3 << (regnr*2));
-  FPU_tag_word |= (tag & 3) << (regnr*2);
-}
-
-void BX_CPP_AttrRegparmN(1) FPU_settag0(int tag)
-{
-  FPU_settag(FPU_tos, tag);
-}
-
-void BX_CPP_AttrRegparmN(2) FPU_settagi(int stnr, int tag)
-{
-  FPU_settag(stnr+FPU_tos, tag);
-}
-
-int BX_CPP_AttrRegparmN(1) FPU_Special(FPU_REG const *ptr)
-{
-  int exp = exponent(ptr);
-
-  if ( exp == EXP_BIAS+EXP_UNDER )
-    return TW_Denormal;
-  else if ( exp != EXP_BIAS+EXP_OVER )
-    return TW_NaN;
-  else if ( (ptr->sigh == 0x80000000) && (ptr->sigl == 0) )
-    return TW_Infinity;
-  return TW_NaN;
-}
-
-int BX_CPP_AttrRegparmN(1) isNaN(FPU_REG const *ptr)
-{
-  return ((exponent(ptr) == EXP_BIAS+EXP_OVER)
-	   && !((ptr->sigh == 0x80000000) && (ptr->sigl == 0)));
-}
-
-void  BX_CPP_AttrRegparmN(3) FPU_copy_to_regi(FPU_REG const *r, u_char tag, int stnr)
-{
-  reg_copy(r, &st(stnr));
-  FPU_settagi(stnr, tag);
-}
-
-void  BX_CPP_AttrRegparmN(2) FPU_copy_to_reg1(FPU_REG const *r, u_char tag)
-{
-  reg_copy(r, &st(1));
-  FPU_settagi(1, tag);
-}
-
-void  BX_CPP_AttrRegparmN(2) FPU_copy_to_reg0(FPU_REG const *r, u_char tag)
-{
-  reg_copy(r, &st(0));
-  FPU_settagi(0, tag);
-}
+#define exponent16(x)  ((x)->exp)
 
 int BX_CPP_AttrRegparmN(1) FPU_tagof(FPU_REG *reg)
 {
@@ -96,16 +34,16 @@ int BX_CPP_AttrRegparmN(1) FPU_tagof(FPU_REG *reg)
     {
       if (!(reg->sigh | reg->sigl))
 	{
-	  return TAG_Zero;
+	  return FPU_Tag_Zero;
 	}
       /* The number is a de-normal or pseudodenormal. */
-      return TAG_Special;
+      return FPU_Tag_Special;
     }
 
   if (exp == 0x7fff)
     {
       /* Is an Infinity, a NaN, or an unsupported data type. */
-      return TAG_Special;
+      return FPU_Tag_Special;
     }
 
   if (!(reg->sigh & 0x80000000))
@@ -113,8 +51,8 @@ int BX_CPP_AttrRegparmN(1) FPU_tagof(FPU_REG *reg)
       /* Unsupported data type. */
       /* Valid numbers have the ms bit set to 1. */
       /* Unnormal. */
-      return TAG_Special;
+      return FPU_Tag_Special;
     }
 
-  return TAG_Valid;
+  return FPU_Tag_Valid;
 }

@@ -28,14 +28,18 @@ these four paragraphs for those parts of this code that are retained.
 #include "softfloatx80.h"
 #include "softfloat-round-pack.h"
 
-#define FPATAN_ARR_SIZE 9
+#define FPATAN_ARR_SIZE 11
 
 static const float128 float128_one = 
 	packFloat128(BX_CONST64(0x3fff000000000000), BX_CONST64(0x0000000000000000));
 static const float128 float128_sqrt3 =
 	packFloat128(BX_CONST64(0x3fffbb67ae8584ca), BX_CONST64(0xa73b25742d7078b8));
+static const floatx80 floatx80_pi  = 
+	packFloatx80(0, 0x4000, BX_CONST64(0xc90fdaa22168c235));
 static const floatx80 floatx80_pi2 = 
 	packFloatx80(0, 0x3fff, BX_CONST64(0xc90fdaa22168c235));
+static const floatx80 floatx80_pi4 = 
+	packFloatx80(0, 0x3ffe, BX_CONST64(0xc90fdaa22168c235));
 static const floatx80 floatx80_pi6 =
 	packFloatx80(0, 0x3ffe, BX_CONST64(0x860a91c16b9b2c23));
 
@@ -49,7 +53,9 @@ static float128 atan_arr[FPATAN_ARR_SIZE] =
     packFloat128(BX_CONST64(0xbffb745d1745d174), BX_CONST64(0x5d1745d1745d1746)), /* 11 */
     packFloat128(BX_CONST64(0x3ffb3b13b13b13b1), BX_CONST64(0x3b13b13b13b13b14)), /* 13 */
     packFloat128(BX_CONST64(0xbffb111111111111), BX_CONST64(0x1111111111111111)), /* 15 */
-    packFloat128(BX_CONST64(0x3ffae1e1e1e1e1e1), BX_CONST64(0xe1e1e1e1e1e1e1e2))  /* 17 */
+    packFloat128(BX_CONST64(0x3ffae1e1e1e1e1e1), BX_CONST64(0xe1e1e1e1e1e1e1e2)), /* 17 */
+    packFloat128(BX_CONST64(0x3ffaaf286bca1af2), BX_CONST64(0x86bca1af286bca1b)), /* 19 */
+    packFloat128(BX_CONST64(0x3ffa861861861861), BX_CONST64(0x8618618618618618))  /* 21 */
 };
 
 static float128 poly_atan(float128 x1, float_status_t &status)
@@ -58,8 +64,10 @@ static float128 poly_atan(float128 x1, float_status_t &status)
     float128 x4 = float128_mul(x2, x2, status);
     float128 r1, r2;
 
-    // r1 = x2*(a_1 + x4*(a_3 + x4*(a_5+x4*a_7)));
-    r1 = float128_mul(x4, atan_arr[7], status);
+    // r1 = x2*(a_1 + x4*(a_3 + x4*(a_5+x4*(a_7+x4*a_9))));
+    r1 = float128_mul(x4, atan_arr[9], status);
+    r1 = float128_add(r1, atan_arr[7], status);
+    r1 = float128_mul(r1, x4, status);
     r1 = float128_add(r1, atan_arr[5], status);
     r1 = float128_mul(r1, x4, status);
     r1 = float128_add(r1, atan_arr[3], status);
@@ -67,8 +75,10 @@ static float128 poly_atan(float128 x1, float_status_t &status)
     r1 = float128_add(r1, atan_arr[1], status);
     r1 = float128_mul(r1, x2, status);
 
-    // r2 = x4*(a_2 + x4*(a_4 + x4*(a_6+x4*a_8)));
-    r2 = float128_mul(x4, atan_arr[8], status);
+    // r2 = x4*(a_2 + x4*(a_4 + x4*(a_6+x4*(a_8+x4*a_10))));
+    r2 = float128_mul(x4, atan_arr[10], status);
+    r2 = float128_add(r2, atan_arr[8], status);
+    r2 = float128_mul(r2, x4, status);
     r2 = float128_add(r2, atan_arr[6], status);
     r2 = float128_mul(r2, x4, status);
     r2 = float128_add(r2, atan_arr[4], status);
@@ -129,7 +139,7 @@ floatx80 fpatan(floatx80 a, floatx80 b, float_status_t &status)
             return propagateFloatx80NaN(a, b, status);
 
 return_PI_or_ZERO:
-        if (aSig && (aExp == 0)) 
+        if (bSig && (bExp == 0)) 
             float_raise(status, float_flag_denormal);
 
         if (aSign) {   /* return PI */
@@ -168,7 +178,7 @@ return_PI_or_ZERO:
     float128 a128 = normalizeRoundAndPackFloat128(0, aExp-0x10, aSig, 0, status);
     float128 b128 = normalizeRoundAndPackFloat128(0, bExp-0x10, bSig, 0, status);
     float128 x;
-    int swap = 0, add_pi6 = 0;
+    int swap = 0, add_pi6 = 0, add_pi4 = 0;
 
     if (aExp > bExp || (aExp == bExp && aSig > bSig))
     {
@@ -180,25 +190,51 @@ return_PI_or_ZERO:
     }
 
     Bit32s xExp = extractFloat128Exp(x);
-    floatx80 result = packFloatx80(0, 0, 0);
+    floatx80 result;
 
-    if (xExp <= 0x3FBB) goto approximation_completed;
+    if (xExp <= 0x3FBB) {
+        result = float128_to_floatx80(x, status);
+        goto approximation_completed;
+    }
 
-    /* argument correction */
-    if (xExp >= 0x3FFD) {
-        float128 t1 = float128_mul(x, float128_sqrt3, status);
-        float128 t2 = float128_add(x, float128_sqrt3, status);
-        x = float128_sub(t1, float128_one, status);
+    if (x.hi >= BX_CONST64(0x3ffe800000000000))	// 3/4 < x < 1
+    {
+        /* 
+        arctan(x) = arctan((x-1)/(x+1)) + pi/4
+        */
+        float128 t1 = float128_sub(x, float128_one, status);
+        float128 t2 = float128_add(x, float128_one, status);
         x = float128_div(t1, t2, status);
-    	add_pi6 = 1;
+        add_pi4 = 1;
+    }
+    else
+    {
+        /* argument correction */
+        if (xExp >= 0x3FFD)                     // 1/4 < x < 3/4 
+        {			                
+            /* 
+            arctan(x) = arctan((x*sqrt(3)-1)/(x+sqrt(3))) + pi/6
+            */
+            float128 t1 = float128_mul(x, float128_sqrt3, status);
+            float128 t2 = float128_add(x, float128_sqrt3, status);
+            x = float128_sub(t1, float128_one, status);
+            x = float128_div(x, t2, status);
+            add_pi6 = 1;
+        }
     }
 
     x = poly_atan(x, status);
     result = float128_to_floatx80(x, status);
     if (add_pi6) result = floatx80_add(result, floatx80_pi6, status);
+    if (add_pi4) result = floatx80_add(result, floatx80_pi4, status);
 
 approximation_completed:
     if (swap) result = floatx80_sub(floatx80_pi2, result, status);
     if (zSign) floatx80_chs(result);
+    int rSign = extractFloatx80Sign(result);
+    if (!bSign && rSign)
+        return floatx80_add(result, floatx80_pi, status);
+    if (bSign && !rSign)
+        return floatx80_sub(result, floatx80_pi, status);
     return result;
 }

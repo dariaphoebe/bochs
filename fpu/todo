@@ -7,13 +7,10 @@ TODO:
 2. Unmasked underflow/overflow should correct the result by magic number
    for all operations, including float32 and float64.
 
-3. The instructions still implemented using old FPU library:
-	 FPATAN, FYL2XP1, FYL2X
+3. Set SW_C1 according to PRECISION_UP or PRECISION_DOWN conditions.
 
-4. Set SW_C1 according to PRECISION_UP or PRECISION_DOWN conditions.
+4. Drop out FPU_REG data type and use floatx80 only.
 
-5. Drop out FPU_REG data type and use floatx80 only.
-
-6. Elliminate floa128 use, Intel uses only 67-bit precision calculations
+5. Elliminate floa128 use, Intel uses only 67-bit precision calculations
    when float128 has at least 112-bit. Replacement of float128 with for
    example 96-bit precision number could speed up calculations.

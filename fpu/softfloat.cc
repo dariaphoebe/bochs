@@ -2495,7 +2495,7 @@ static floatx80 subFloatx80Sigs(floatx80 a, floatx80 b, int zSign, float_status_
         if (aSig) float_raise(status, float_flag_denormal);
         ++expDiff;
     }
-    shift128RightJamming(aSig, 0, - expDiff, &aSig, &zSig1);
+    shift128RightJamming(aSig, 0, -expDiff, &aSig, &zSig1);
  bBigger:
     sub128(bSig, 0, aSig, zSig1, &zSig0, &zSig1);
     zExp = bExp;

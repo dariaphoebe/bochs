@@ -1,55 +1,60 @@
-/*---------------------------------------------------------------------------+
- |  status_w.h                                                               |
- |  $Id: status_w.h,v 1.6.10.1 2004/04/09 12:29:50 sshwarts Exp $
- |                                                                           |
- | Copyright (C) 1992,1993                                                   |
- |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
- |                       Australia.  E-mail   billm@vaxc.cc.monash.edu.au    |
- |                                                                           |
- +---------------------------------------------------------------------------*/
+/////////////////////////////////////////////////////////////////////////
+//
+//   Copyright (c) 2004 Stanislav Shwartsman
+//          Written by Stanislav Shwartsman <gate at fidonet.org.il>
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+//
 
 #ifndef _STATUS_H_
 #define _STATUS_H_
 
-#define SW_Backward    	(0x8000)	/* backward compatibility */
-#define SW_C3		(0x4000)	/* condition bit 3 */
-#define SW_Top		(0x3800)	/* top of stack */
-#define SW_C2		(0x0400)	/* condition bit 2 */
-#define SW_C1		(0x0200)	/* condition bit 1 */
-#define SW_C0		(0x0100)	/* condition bit 0 */
-#define SW_Summary     	(0x0080)	/* exception summary */
-#define SW_Stack_Fault	(0x0040)	/* stack fault */
-#define SW_Precision   	(0x0020)	/* loss of precision */
-#define SW_Underflow   	(0x0010)	/* underflow */
-#define SW_Overflow    	(0x0008)	/* overflow */
-#define SW_Zero_Div    	(0x0004)	/* divide by zero */
-#define SW_Denorm_Op   	(0x0002)	/* denormalized operand */
-#define SW_Invalid     	(0x0001)	/* invalid operation */
+/* Status Word */
+#define FPU_SW_Backward		(0x8000)  /* backward compatibility */
+#define FPU_SW_C3	 	(0x4000)  /* condition bit 3 */
+#define FPU_SW_Top		(0x3800)  /* top of stack */
+#define FPU_SW_C2		(0x0400)  /* condition bit 2 */
+#define FPU_SW_C1		(0x0200)  /* condition bit 1 */
+#define FPU_SW_C0		(0x0100)  /* condition bit 0 */
+#define FPU_SW_Summary   	(0x0080)  /* exception summary */
+#define FPU_SW_Stack_Fault	(0x0040)  /* stack fault */
+#define FPU_SW_Precision   	(0x0020)  /* loss of precision */
+#define FPU_SW_Underflow   	(0x0010)  /* underflow */
+#define FPU_SW_Overflow    	(0x0008)  /* overflow */
+#define FPU_SW_Zero_Div    	(0x0004)  /* divide by zero */
+#define FPU_SW_Denormal_Op   	(0x0002)  /* denormalized operand */
+#define FPU_SW_Invalid    	(0x0001)  /* invalid operation */
 
-#define SW_Exc_Mask     (0x27f)  /* Status word exception bit mask */
+#define FPU_SW_CC (FPU_SW_C0|FPU_SW_C1|FPU_SW_C2|FPU_SW_C3)
 
-/*
- * bbd: use do {...} while (0) structure instead of using curly brackets
- * inside parens, which most compilers do not like.
- */
-#define setcc(cc) do { \
-  FPU_partial_status &= ~(SW_C0|SW_C1|SW_C2|SW_C3); \
-  FPU_partial_status |= (cc) & (SW_C0|SW_C1|SW_C2|SW_C3); } while(0)
+#define FPU_SW_Exceptions_Mask  (0x027f)  /* status word exceptions bit mask */
 
-#define clear_C1()  { FPU_partial_status &= ~SW_C1; }
+/* Exception flags: */
+#define FPU_EX_Precision	(0x0020)  /* loss of precision */
+#define FPU_EX_Underflow	(0x0010)  /* underflow */
+#define FPU_EX_Overflow		(0x0008)  /* overflow */
+#define FPU_EX_Zero_Div		(0x0004)  /* divide by zero */
+#define FPU_EX_Denormal		(0x0002)  /* denormalized operand */
+#define FPU_EX_Invalid		(0x0001)  /* invalid operation */
 
 /* Special exceptions: */
-#define EX_StackOver	(0x0041|SW_C1)	/* stack overflow */
-#define EX_StackUnder	(0x0041)	/* stack underflow */
-/* Exception flags: */
-#define EX_Precision	(0x0020)	/* loss of precision */
-#define EX_Underflow	(0x0010)	/* underflow */
-#define EX_Overflow	(0x0008)	/* overflow */
-#define EX_ZeroDiv	(0x0004)	/* divide by zero */
-#define EX_Denormal	(0x0002)	/* denormalized operand */
-#define EX_Invalid	(0x0001)	/* invalid operation */
+#define FPU_EX_Stack_Overflow	(0x0041|FPU_SW_C1) 	/* stack overflow */
+#define FPU_EX_Stack_Underflow	(0x0041)		/* stack underflow */
 
-#define PRECISION_LOST_UP    (EX_Precision | SW_C1)
-#define PRECISION_LOST_DOWN  (EX_Precision)
+/* precision control */
+#define FPU_EX_Precision_Lost_Up 	(EX_Precision | SW_C1)
+#define FPU_EX_Precision_Lost_Dn        (EX_Precision)
 
-#endif /* _STATUS_H_ */
+#endif
