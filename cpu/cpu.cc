@@ -1,4 +1,4 @@
-//  Copyright (C) 2001  MandrakeSoft S.A.
+//  Copyright (C) 2000  MandrakeSoft S.A.
 //
 //    MandrakeSoft S.A.
 //    43, rue d'Aboukir
@@ -56,8 +56,8 @@ const Boolean bx_parity_lookup[256] = {
 #endif
 
 
-BX_CPU_C    *BX_CPU[BX_SMP_PROCESSORS];
-BX_MEM_C    *BX_MEM[BX_ADDRESS_SPACES];
+BX_CPU_C    BX_CPU[BX_SMP_PROCESSORS];
+BX_MEM_C    BX_MEM[BX_ADDRESS_SPACES];
 
 
 
@@ -69,26 +69,9 @@ BX_MEM_C    *BX_MEM[BX_ADDRESS_SPACES];
 extern void REGISTER_IADDR(Bit32u addr);
 #endif
 
-#if BX_DEBUGGER==0
-
-// The CHECK_MAX_INSTRUCTIONS macro is equivalent to the ICOUNT
-// guard in the debugger.  For SMP, I needed the same functionality
-// as ICOUNT but didn't want to have to enable every debugger feature.
-// So the macro is defined ONLY when the debugger is off.
-// 
-// If maximum instructions have been executed, return.  A count less
-// than zero means run forever.
-#define CHECK_MAX_INSTRUCTIONS(count) \
-  if (count >= 0) {                   \
-    count--; if (count == 0) return;  \
-  }
-#else
-#define CHECK_MAX_INSTRUCTIONS(count)  /* not needed in debugger*/
-#endif
-
 #if BX_DYNAMIC_TRANSLATION == 0
   void
-BX_CPU_C::cpu_loop(Bit32s max_instr_count)
+BX_CPU_C::cpu_loop(void)
 {
   unsigned ret;
   BxInstruction_t i;
@@ -247,25 +230,21 @@ repeat_not_done:
 #ifdef REGISTER_IADDR
       REGISTER_IADDR(BX_CPU_THIS_PTR eip + BX_CPU_THIS_PTR sregs[BX_SREG_CS].cache.u.segment.base);
 #endif
-      //BX_TICK1();
-
+      BX_TICK1();
 #if BX_DEBUGGER == 0
       if (BX_CPU_THIS_PTR async_event) {
+#endif
         invalidate_prefetch_q();
         goto debugger_check;
-      }
-      goto repeat_loop;
-#else  /* if BX_DEBUGGER == 1 */
-      invalidate_prefetch_q();
-      goto debugger_check;
+#if BX_DEBUGGER == 0
+        }
 #endif
-
+      goto repeat_loop;
 
 repeat_done:
       BX_CPU_THIS_PTR eip += i.ilen;
       }
     else {
-      // non repeating instruction
       BX_CPU_THIS_PTR eip += i.ilen;
       BxExecutePtr_t func = i.execute;
       (this->*func) (&i);
@@ -276,11 +255,9 @@ repeat_done:
 #ifdef REGISTER_IADDR
     REGISTER_IADDR(BX_CPU_THIS_PTR eip + BX_CPU_THIS_PTR sregs[BX_SREG_CS].cache.u.segment.base);
 #endif
-    //BX_TICK1();
+    BX_TICK1();
 
 debugger_check:
-
-    CHECK_MAX_INSTRUCTIONS(max_instr_count);
 
 #if BX_DEBUGGER
     // BW vm mode switch support is in dbg_is_begin_instr_bpoint
@@ -392,20 +369,16 @@ handle_async_event:
 
   if (BX_CPU_THIS_PTR debug_trap & 0x80000000) {
     // I made up the bitmask above to mean HALT state.
-    if (BX_CPU_THIS_PTR INTR && BX_CPU_THIS_PTR eflags.if_) {
-      // interrupt ends the HALT condition
-      BX_CPU_THIS_PTR debug_trap = 0; // clear traps for after resume
-      BX_CPU_THIS_PTR inhibit_mask = 0; // clear inhibits for after resume
-      //bx_printf ("halt condition has been cleared in %s\n", name);
-    } else {
-      // HALT condition remains, return so other CPUs have a chance
-#if BX_DEBUGGER
-      BX_CPU_THIS_PTR stop_reason = STOP_CPU_HALTED;
-#endif
-      return;
+    BX_CPU_THIS_PTR debug_trap = 0; // clear traps for after resume
+    BX_CPU_THIS_PTR inhibit_mask = 0; // clear inhibits for after resume
+    // Need to fix this for cosimulation.
+    while (1) {
+      if (BX_INTR && BX_CPU_THIS_PTR eflags.if_) {
+        break;
+        }
+      BX_TICK1();
+      }
     }
-  }
-
 
   // Priority 1: Hardware Reset and Machine Checks
   //   RESET
@@ -449,19 +422,11 @@ handle_async_event:
     // an opportunity to check interrupts on the next instruction
     // boundary.
     }
-  else if (BX_CPU_THIS_PTR INTR && BX_CPU_THIS_PTR eflags.if_ && BX_DBG_ASYNC_INTR) {
+  else if (BX_INTR && BX_CPU_THIS_PTR eflags.if_ && BX_DBG_ASYNC_INTR) {
     Bit8u vector;
 
     // NOTE: similar code in ::take_irq()
-#if BX_APIC_SUPPORT
-    if (BX_CPU_THIS_PTR int_from_local_apic)
-      vector = local_apic.acknowledge_int ();
-    else
-      vector = BX_IAC(); // may set INTR with next interrupt
-#else
-    // if no local APIC, always acknowledge the PIC.
     vector = BX_IAC(); // may set INTR with next interrupt
-#endif
     //if (bx_dbg.interrupts) bx_printf("decode: interrupt %u\n",
     //                                   (unsigned) vector);
     BX_CPU_THIS_PTR errorno = 0;
@@ -507,7 +472,7 @@ handle_async_event:
     BX_CPU_THIS_PTR debug_trap |= 0x00004000; // BS flag in DR6
     }
 
-  if ( !(BX_CPU_THIS_PTR INTR ||
+  if ( !(BX_INTR ||
          BX_CPU_THIS_PTR debug_trap ||
          BX_HRQ ||
          BX_CPU_THIS_PTR eflags.tf) )
@@ -616,14 +581,14 @@ extern unsigned int dbg_show_mask;
 BX_CPU_C::dbg_is_begin_instr_bpoint(Bit32u cs, Bit32u eip, Bit32u laddr,
                                     Bit32u is_32)
 {
-  guard_found.cs  = cs;
-  guard_found.eip = eip;
-  guard_found.laddr = laddr;
-  guard_found.is_32bit_code = is_32;
+  bx_guard_found[BX_SIM_ID].cs  = cs;
+  bx_guard_found[BX_SIM_ID].eip = eip;
+  bx_guard_found[BX_SIM_ID].laddr = laddr;
+  bx_guard_found[BX_SIM_ID].is_32bit_code = is_32;
 
   // BW mode switch breakpoint
   // instruction which generate exceptions never reach the end of the
-  // loop due to a long jump. Thats why we check at start of instr.
+  // loop due to a long jump. Thats why we check at start fo instr.
   // Downside is that we show the instruction about to be executed
   // (not the one generating the mode switch).
   if (BX_CPU_THIS_PTR mode_break && 
@@ -644,12 +609,12 @@ BX_CPU_C::dbg_is_begin_instr_bpoint(Bit32u cs, Bit32u eip, Bit32u laddr,
   if (bx_guard.guard_for & BX_DBG_GUARD_IADDR_ALL) {
 #if BX_DBG_SUPPORT_VIR_BPOINT
     if (bx_guard.guard_for & BX_DBG_GUARD_IADDR_VIR) {
-      if (guard_found.icount!=0) {
+      if (bx_guard_found[BX_SIM_ID].icount!=0) {
         for (unsigned i=0; i<bx_guard.iaddr.num_virtual; i++) {
           if ( (bx_guard.iaddr.vir[i].cs  == cs) &&
                (bx_guard.iaddr.vir[i].eip == eip) ) {
-            guard_found.guard_found = BX_DBG_GUARD_IADDR_VIR;
-            guard_found.iaddr_index = i;
+            bx_guard_found[BX_SIM_ID].guard_found = BX_DBG_GUARD_IADDR_VIR;
+            bx_guard_found[BX_SIM_ID].iaddr_index = i;
             return(1); // on a breakpoint
             }
           }
@@ -658,11 +623,11 @@ BX_CPU_C::dbg_is_begin_instr_bpoint(Bit32u cs, Bit32u eip, Bit32u laddr,
 #endif
 #if BX_DBG_SUPPORT_LIN_BPOINT
     if (bx_guard.guard_for & BX_DBG_GUARD_IADDR_LIN) {
-      if (guard_found.icount!=0) {
+      if (bx_guard_found[BX_SIM_ID].icount!=0) {
         for (unsigned i=0; i<bx_guard.iaddr.num_linear; i++) {
-          if ( bx_guard.iaddr.lin[i].addr == guard_found.laddr ) {
-            guard_found.guard_found = BX_DBG_GUARD_IADDR_LIN;
-            guard_found.iaddr_index = i;
+          if ( bx_guard.iaddr.lin[i].addr == bx_guard_found[BX_SIM_ID].laddr ) {
+            bx_guard_found[BX_SIM_ID].guard_found = BX_DBG_GUARD_IADDR_LIN;
+            bx_guard_found[BX_SIM_ID].iaddr_index = i;
             return(1); // on a breakpoint
             }
           }
@@ -673,13 +638,13 @@ BX_CPU_C::dbg_is_begin_instr_bpoint(Bit32u cs, Bit32u eip, Bit32u laddr,
     if (bx_guard.guard_for & BX_DBG_GUARD_IADDR_PHY) {
       Bit32u phy;
       Boolean valid;
-      dbg_xlate_linear2phy(guard_found.laddr,
+      dbg_xlate_linear2phy(bx_guard_found[BX_SIM_ID].laddr,
                               &phy, &valid);
-      if ( (guard_found.icount!=0) && valid ) {
+      if ( (bx_guard_found[BX_SIM_ID].icount!=0) && valid ) {
         for (unsigned i=0; i<bx_guard.iaddr.num_physical; i++) {
           if ( bx_guard.iaddr.phy[i].addr == phy ) {
-            guard_found.guard_found = BX_DBG_GUARD_IADDR_PHY;
-            guard_found.iaddr_index = i;
+            bx_guard_found[BX_SIM_ID].guard_found = BX_DBG_GUARD_IADDR_PHY;
+            bx_guard_found[BX_SIM_ID].iaddr_index = i;
             return(1); // on a breakpoint
             }
           }
@@ -695,16 +660,16 @@ BX_CPU_C::dbg_is_begin_instr_bpoint(Bit32u cs, Bit32u eip, Bit32u laddr,
 BX_CPU_C::dbg_is_end_instr_bpoint(Bit32u cs, Bit32u eip, Bit32u laddr,
                                   Bit32u is_32)
 {
-  guard_found.icount++;
+  bx_guard_found[BX_SIM_ID].icount++;
 
   // see if debugger requesting icount guard
   if (bx_guard.guard_for & BX_DBG_GUARD_ICOUNT) {
-    if (guard_found.icount >= bx_guard.icount) {
-      guard_found.cs  = cs;
-      guard_found.eip = eip;
-      guard_found.laddr = laddr;
-      guard_found.is_32bit_code = is_32;
-      guard_found.guard_found = BX_DBG_GUARD_ICOUNT;
+    if (bx_guard_found[BX_SIM_ID].icount >= bx_guard.icount) {
+      bx_guard_found[BX_SIM_ID].cs  = cs;
+      bx_guard_found[BX_SIM_ID].eip = eip;
+      bx_guard_found[BX_SIM_ID].laddr = laddr;
+      bx_guard_found[BX_SIM_ID].is_32bit_code = is_32;
+      bx_guard_found[BX_SIM_ID].guard_found = BX_DBG_GUARD_ICOUNT;
       return(1);
       }
     }
@@ -712,7 +677,7 @@ BX_CPU_C::dbg_is_end_instr_bpoint(Bit32u cs, Bit32u eip, Bit32u laddr,
   // convenient point to see if user typed Ctrl-C
   if (bx_guard.interrupt_requested &&
       (bx_guard.guard_for & BX_DBG_GUARD_CTRL_C)) {
-    guard_found.guard_found = BX_DBG_GUARD_CTRL_C;
+    bx_guard_found[BX_SIM_ID].guard_found = BX_DBG_GUARD_CTRL_C;
     return(1);
     }
 
@@ -738,7 +703,7 @@ BX_CPU_C::dbg_take_irq(void)
 
   // NOTE: similar code in ::cpu_loop()
 
-  if ( BX_CPU_THIS_PTR INTR && BX_CPU_THIS_PTR eflags.if_ ) {
+  if ( BX_INTR && BX_CPU_THIS_PTR eflags.if_ ) {
     if ( setjmp(BX_CPU_THIS_PTR jmp_buf_env) == 0 ) {
       // normal return from setjmp setup
       vector = BX_IAC(); // may set INTR with next interrupt
