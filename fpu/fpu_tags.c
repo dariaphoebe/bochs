@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_tags.c                                                               |
- |  $Id: fpu_tags.c,v 1.7.8.1 2004/04/09 12:29:49 sshwarts Exp $
+ |  $Id: fpu_tags.c,v 1.7.8.2 2004/04/17 16:43:05 sshwarts Exp $
  |                                                                           |
  |  Set FPU register tags.                                                   |
  |                                                                           |
@@ -20,6 +20,11 @@ void FPU_pop(void)
   FPU_tos++;
 }
 
+BX_CPP_INLINE int FPU_gettag(int regnr)
+{
+  return (FPU_tag_word >> ((regnr & 7)*2)) & 3;
+}
+
 int FPU_gettag0(void)
 {
   return FPU_gettag(FPU_tos);
@@ -30,9 +35,11 @@ int BX_CPP_AttrRegparmN(1) FPU_gettagi(int stnr)
   return FPU_gettag(FPU_tos+stnr);
 }
 
-int BX_CPP_AttrRegparmN(1) FPU_gettag(int regnr)
+BX_CPP_INLINE void FPU_settag(int regnr, int tag)
 {
-  return (FPU_tag_word >> ((regnr & 7)*2)) & 3;
+  regnr &= 7;
+  FPU_tag_word &= ~(3 << (regnr*2));
+  FPU_tag_word |= (tag & 3) << (regnr*2);
 }
 
 void BX_CPP_AttrRegparmN(1) FPU_settag0(int tag)
@@ -43,13 +50,6 @@ void BX_CPP_AttrRegparmN(1) FPU_settag0(int tag)
 void BX_CPP_AttrRegparmN(2) FPU_settagi(int stnr, int tag)
 {
   FPU_settag(stnr+FPU_tos, tag);
-}
-
-void BX_CPP_AttrRegparmN(2) FPU_settag(int regnr, int tag)
-{
-  regnr &= 7;
-  FPU_tag_word &= ~(3 << (regnr*2));
-  FPU_tag_word |= (tag & 3) << (regnr*2);
 }
 
 int BX_CPP_AttrRegparmN(1) FPU_Special(FPU_REG const *ptr)

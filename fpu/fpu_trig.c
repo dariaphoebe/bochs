@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.10.3 2004/04/11 13:34:09 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.10.4 2004/04/17 16:43:05 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -19,10 +19,6 @@
 
 static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n);
 
-/* Extra bits to take pi/2 to more than 128 bits precision. */
-static FPU_REG const CONST_PI2extra = MAKE_REG(NEG, -66,
-					 0xfc8f8cbb, 0xece675d1);
-
 /* bbd: make CONST_PI2 non-const so that you can write "&CONST_PI2" when
    calling a function.  Otherwise you get const warnings.  Surely there's
    a better way. */
@@ -30,8 +26,6 @@ static FPU_REG CONST_PI2  = MAKE_REG(POS, 0, 0x2168c235, 0xc90fdaa2);
 static FPU_REG const CONST_PI4  = MAKE_REG(POS, -1, 0x2168c235, 0xc90fdaa2);
 static FPU_REG const CONST_PI   = MAKE_REG(POS,  1, 0x2168c235, 0xc90fdaa2);
 
-
-//#define BETTER_THAN_486
 
 #define FSIN   0
 #define FCOS   4
@@ -89,86 +83,7 @@ static int trig_arg(FPU_REG *st0_ptr, int flags)
   if (((flags & FCOS) && !(q & 1)) || (!(flags & FCOS) && (q & 1)))
     {
       st0_tag = FPU_sub(REV|LOADED|TAG_Valid, &CONST_PI2, FULL_PRECISION);
-
-#ifdef BETTER_THAN_486
-      /* So far, the results are exact but based upon a 64 bit
-	 precision approximation to pi/2. The technique used
-	 now is equivalent to using an approximation to pi/2 which
-	 is accurate to about 128 bits. */
-      if ((exponent(st0_ptr) <= exponent(&CONST_PI2extra) + 64) || (q > 1))
-	{
-	  /* This code gives the effect of having pi/2 to better than
-	     128 bits precision. */
-
-	  significand(&tmp) = q + 1;
-	  setexponent16(&tmp, 63);
-          FPU_normalize_nuo(&tmp,
-                            EXTENDED_Ebias);  /* No underflow or overflow
-                                                 is possible */
-	  tmptag =
-	    FPU_u_mul(&CONST_PI2extra, &tmp, &tmp, FULL_PRECISION, SIGN_POS,
-		      exponent(&CONST_PI2extra) + exponent(&tmp));
-	  setsign(&tmp, getsign(&CONST_PI2extra));
-	  st0_tag = FPU_add(&tmp, tmptag, 0, FULL_PRECISION);
-          if (signnegative(st0_ptr) && !(flags & FPTAN))
-	    {
-	      /* CONST_PI2extra is negative, so the result of the addition
-		 can be negative. This means that the argument is actually
-		 in a different quadrant. The correction is always < pi/2,
-		 so it can't overflow into yet another quadrant. */
-              /* The function is even, so we need just adjust the sign
-                 and q. */
-	      setpositive(st0_ptr);
-	      q++;
-	    }
-	}
-#endif /* BETTER_THAN_486 */
     }
-#ifdef BETTER_THAN_486
-  else
-    {
-      /* So far, the results are exact but based upon a 64 bit
-	 precision approximation to pi/2. The technique used
-	 now is equivalent to using an approximation to pi/2 which
-	 is accurate to about 128 bits. */
-      if (((q > 0)
-           && (exponent(st0_ptr) <= exponent(&CONST_PI2extra) + 64))
-	   || (q > 1))
-	{
-	  /* This code gives the effect of having p/2 to better than
-	     128 bits precision. */
-
-	  significand(&tmp) = q;
-	  setexponent16(&tmp, 63);
-          FPU_normalize_nuo(&tmp,
-                            EXTENDED_Ebias);  /* No underflow or overflow
-                                                 is possible.
-                                                 This must return TAG_Valid */
-	  tmptag = FPU_u_mul(&CONST_PI2extra, &tmp, &tmp, FULL_PRECISION,
-			     SIGN_POS,
-			     exponent(&CONST_PI2extra) + exponent(&tmp));
-	  setsign(&tmp, getsign(&CONST_PI2extra));
-	  st0_tag = FPU_sub(LOADED|(tmptag & 0x0f), &tmp,
-			    FULL_PRECISION);
-	  if ((exponent(st0_ptr) == exponent(&CONST_PI2)) &&
-	      ((st0_ptr->sigh > CONST_PI2.sigh)
-	       || ((st0_ptr->sigh == CONST_PI2.sigh)
-		   && (st0_ptr->sigl > CONST_PI2.sigl))))
-	    {
-	      /* CONST_PI2extra is negative, so the result of the
-		 subtraction can be larger than pi/2. This means
-		 that the argument is actually in a different quadrant.
-		 The correction is always < pi/2, so it can't overflow
-		 into yet another quadrant. 
-	         bbd: arg2 used to typecast to (int), corrupting 64-bit ptrs
-	       */
-	      st0_tag = FPU_sub(REV|LOADED|TAG_Valid, &CONST_PI2,
-				FULL_PRECISION);
-	      q++;
-	    }
-	}
-    }
-#endif /* BETTER_THAN_486 */
 
   FPU_settag0(st0_tag);
   FPU_control_word = old_cw;
@@ -852,9 +767,7 @@ void fpatan(FPU_REG *st0_ptr, u_char st0_tag)
     valid_atan:
 
       poly_atan(st0_ptr, st0_tag, st1_ptr, st1_tag);
-
       FPU_pop();
-
       return;
     }
 

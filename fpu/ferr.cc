@@ -39,7 +39,7 @@ void BX_CPU_C::FPU_stack_overflow(void)
       BX_CPU_THIS_PTR the_i387.FPU_push();
       BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_default_nan, FPU_Tag_Special, 0);
   }
-  BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Overflow);
+  FPU_exception(FPU_EX_Stack_Overflow);
 }
 
 void BX_CPU_C::FPU_stack_underflow(int stnr, int pop_stack)
@@ -51,7 +51,7 @@ void BX_CPU_C::FPU_stack_underflow(int stnr, int pop_stack)
      if (pop_stack) 
           BX_CPU_THIS_PTR the_i387.FPU_pop();
   }
-  BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
+  FPU_exception(FPU_EX_Stack_Underflow);
 }
 
 /* Returns 1 if unmasked exception occured */
