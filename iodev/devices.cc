@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.52.2.7 2003/03/28 02:10:45 slechta Exp $
+// $Id: devices.cc,v 1.52.2.8 2003/03/28 09:26:02 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -93,7 +93,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.7 2003/03/28 02:10:45 slechta Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.8 2003/03/28 09:26:02 slechta Exp $"));
   mem = newmem;
 
   /* no read / write handlers defined */
@@ -146,6 +146,12 @@ bx_devices_c::init(BX_MEM_C *newmem)
     PLUG_load_plugin(parallel, PLUGTYPE_OPTIONAL);
   PLUG_load_plugin(extfpuirq, PLUGTYPE_OPTIONAL);
 
+#warning implement state registration of g2h
+
+#if USE_RAW_SERIAL
+#warning implement state registration of RAW serial
+#endif // USE_RAW_SERIAL
+
   // Start with registering the default (unmapped) handler
   pluginUnmapped->init ();
 
@@ -176,9 +182,10 @@ bx_devices_c::init(BX_MEM_C *newmem)
 
   // CMOS RAM & RTC
   pluginCmosDevice->init ();
-
+ 
   /*--- 8237 DMA ---*/
   pluginDmaDevice->init();
+  
 
   //--- FLOPPY ---
   pluginFloppyDevice->init();
@@ -201,21 +208,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
   /*--- 8254 PIT ---*/
   pit = & bx_pit;
   pit->init();
-  pit->register_state ("pit8254", "8254 PIT", SIM->get_param ("pit"));
   
-  // BJS FIXME: slechta added for his debugging
-  BX_REGISTER_LIST(parent_p, "root", "slechta's fancy root", (bx_list_c*)0, 15);
-  pit->register_state ("pit", "8254 PIT", parent_p);
-  bx_checkpoint_c chkpt;
-  chkpt.write("march24", parent_p);
-  chkpt.read("march24", parent_p);
-  chkpt.write("march24_2", parent_p);
-
-  chkpt.write("all_state", SIM->get_param("."));
-  chkpt.read("all_state", SIM->get_param("."));
-  chkpt.write("all_state_2", SIM->get_param("."));
-  
-
   bx_virt_timer.init();
 
 #if BX_USE_SLOWDOWN_TIMER
@@ -280,6 +273,77 @@ bx_devices_c::init(BX_MEM_C *newmem)
 
   /* now perform checksum of CMOS memory */
   DEV_cmos_checksum();
+
+
+  // register all existing devices
+  bx_list_c *pic_list_p = 
+    new bx_list_c (SIM->get_param("."), "pic", "pic", 30);
+  pluginPicDevice->register_state(pic_list_p);
+
+  pit->register_state (SIM->get_param ("pit"));
+
+  pluginBiosDevice->register_state(SIM->get_param("memory.optional_rom"));
+
+  pluginCmosDevice->register_state(SIM->get_param("cmos"));
+
+  bx_list_c *dma_list_p = new bx_list_c (SIM->get_param("."), "dma", "dma",10);
+  pluginDmaDevice->register_state(dma_list_p);                                   
+
+  pluginFloppyDevice->register_state(SIM->get_param("floppy"));;
+
+  bx_list_c *unmapped_list_p = 
+    new bx_list_c (SIM->get_param("."), "unmapped", "unmapped",10);
+  pluginUnmapped->register_state(unmapped_list_p);
+
+  pluginHardDrive->register_state(SIM->get_param("ata"));
+
+  pluginKeyboard->register_state(SIM->get_param("keyboard"));
+
+  if (is_serial_enabled ())
+    pluginSerialDevice->register_state(SIM->get_param("serial"));
+
+  if (is_parallel_enabled ()) 
+    pluginParallelDevice->register_state(SIM->get_param("parallel"));
+
+#if BX_SUPPORT_SB16
+    PLUG_load_plugin(sb16, PLUGTYPE_OPTIONAL);
+    pluginSB16Device->register_state(SIM->get_param("sb16"));;
+#endif
+#if BX_SUPPORT_APIC
+    bx_list_c *ioapic_list_p = 
+      new bx_list_c (SIM->get_param("."), "ioapic", "ioapic", 30);
+    ioapic->register_state(ioapic_list_p);
+#endif
+
+# if BX_PCI_SUPPORT
+  if (bx_options.Oi440FXSupport->get ()) {
+    pluginPciBridge->register_state(SIM->get_param("pci"));
+    bx_list_c *pci2isa_list_p = 
+      new bx_list_c (SIM->get_param("."), "pci2isa", "pic2isa", 30);
+    pluginPci2IsaBridge->register_state(pci2isa_list_p);
+#   if BX_PCI_VGA_SUPPORT
+    bx_list_c *pcivga_list_p = 
+      new bx_list_c (SIM->get_param("."), "pcivga", "picvga", 30);
+    pluginPciVgaAdapter->register_state(pcivga_list_p);
+#   endif
+#   if BX_PCI_USB_SUPPORT
+    bx_list_c *pciusb_list_p = 
+      new bx_list_c (SIM->get_param("."), "pciusb", "picusb", 30);
+    pluginPciUSBAdapter->register_state(pciusb_list_p);
+#   endif
+  }
+# endif
+
+#if BX_NE2K_SUPPORT
+  if (bx_options.ne2k.Opresent->get ()) {
+    pluginNE2kDevice->register_state(SIM->get_param("ne2k"));
+  }
+#endif
+
+  bx_checkpoint_c chkpt;
+  chkpt.write("all_state", SIM->get_param("."));
+  chkpt.read("all_state", SIM->get_param("."));
+  chkpt.write("all_state_2", SIM->get_param("."));
 }
 
 

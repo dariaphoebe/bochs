@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.9 2003/03/28 02:10:45 slechta Exp $
+// $Id: siminterface.h,v 1.99.4.10 2003/03/28 09:26:00 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -1273,7 +1273,7 @@ void print_tree (bx_param_c *node, int level = 0);
 // a current "_bxrs_cur_list_p" which a pointer to the bx_param_c list object
 // that represents the object pointed to by "this", and a "_def_size" which is 
 // the default size of the enclosing list params.
-#define BXRS_START(_type, _this, _name, _desc, _parent_p, _def_size)          \
+#define BXRS_START(_type, _this, _desc, _parent_p, _def_size)                 \
 {                           /* one may look at some of this code and wonder */\
   void *_bxrs_this = _this; /* what is going on.  the seemingling pointless */\
 /*void *_old_this = NULL+1;    operations were added to stop compiler       */\
@@ -1484,11 +1484,14 @@ void print_tree (bx_param_c *node, int level = 0);
   BXRS_OBJ_D(_type, _var, "")
 
 #define BXRS_OBJ_D(_type, _var, _desc)                                        \
+{                                                                             \
   _bxrs_this_t* _bxrs_obj = (_bxrs_this_t*)_bxrs_this;                        \
   BXRS_STRUCT_START_D(_type, _var, _desc);                                    \
   ((_type*)&(( _bxrs_obj )->_var))->                                          \
-    register_state(#_var, _desc, _bxrs_cur_list_p);                           \
-  BXRS_STRUCT_END;
+    register_state(/*#_var, _desc,*/ _bxrs_cur_list_p);                       \
+  UNUSED(_bxrs_this);                                                         \
+  BXRS_STRUCT_END;                                                            \
+}
 
 /*---------------------------------------------------------------------------*/
 // register an object variable in the current bxrs scope by calling that 
@@ -1501,12 +1504,53 @@ void print_tree (bx_param_c *node, int level = 0);
 
 
 /*---------------------------------------------------------------------------*/
-#define BXRS_UNION_START {
+// register an array of object variables in the current bxrs scope by calling
+// that object's register_state() function.
+#define BXRS_ARRAY_OBJ(_type, _var, _size)                                    \
+  BXRS_ARRAY_OBJ_D(_type, _var, _size, "")                                    \
 
-#define BXRS_UNION_START_D BXRS_UNION_START
+#define BXRS_ARRAY_OBJ_D(_type, _var, _size, _desc)                           \
+{                                                                             \
+  _bxrs_this_t* _bxrs_obj = (_bxrs_this_t*)_bxrs_this;                        \
+  BXRS_ARRAY_START_D(_type, _var, _size, _desc);                              \
+  ((_type*)&(( _bxrs_obj )->_var))->                                          \
+    register_state(/*#_var, _desc,*/ _bxrs_cur_list_p);                       \
+  UNUSED(_bxrs_this);                                                         \
+  BXRS_ARRAY_END;                                                             \
+}
+/*---------------------------------------------------------------------------*/
+//#define BXRS_UNION_START(_unionvar)            
+//  BXRS_UNION_START(_unionvar, "")              
+//                                               
+//#define BXRS_UNION_START_D(_unionvar, _desc)   
+//  BXRS_STRUCT_START_D(u_t , _unionvar, _desc); 
+//                                               
+//#define BXRS_UNION_END                         
+//  BXRS_STRUCT_END;
   
+#define BXRS_UNION_START {
+#define BXRS_UNION_START_D {
 #define BXRS_UNION_END }
-  
+/*---------------------------------------------------------------------------*/
+// for registering dynamically created arrays and their size variable
+// NOTE: size variable must be in current bxrs scope
+#define BXRS_DARRAY_NUM(_type, _var, _sizevar)                                \
+  BXRS_DARRAY_NUM_D(_type, _var, _sizetype, _sizevar, "")
+
+#define BXRS_DARRAY_NUM_D(_type, _var, _sizetype, _sizevar, _desc)
+// BJS TODO: implement BXRS_DARRAY_NUM_D
+
+/*---------------------------------------------------------------------------*/
+// for registering pointer variables that are relative to another pointer
+#define BXRS_RELPTR(_type, _var, _sizetype, _basevar)                         \
+  BXRS_RELTPR_D(_type, _var, _sizetype, _basevar, "")
+
+#define BXRS_RELPTR_D(_type, _var, _sizetype, _basevar, _desc)
+// BJS TODO: implement BXRS_RELNUM_D
+
+/*---------------------------------------------------------------------------*/
+#define BXRS_UNUSED                                                           \
+  UNUSED(_bxrs_this);
 
 /*---------------------------------------------------------------------------*/
 // maximum size of a line in checkpoint ascii file

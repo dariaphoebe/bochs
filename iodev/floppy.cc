@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: floppy.cc,v 1.61 2003/02/06 23:16:56 cbothamy Exp $
+// $Id: floppy.cc,v 1.61.4.1 2003/03/28 09:26:03 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -101,7 +101,7 @@ bx_floppy_ctrl_c::init(void)
 {
   Bit8u i;
 
-  BX_DEBUG(("Init $Id: floppy.cc,v 1.61 2003/02/06 23:16:56 cbothamy Exp $"));
+  BX_DEBUG(("Init $Id: floppy.cc,v 1.61.4.1 2003/03/28 09:26:03 slechta Exp $"));
   DEV_dma_register_8bit_channel(2, dma_read, dma_write, "Floppy Drive");
   DEV_register_irq(6, "Floppy Drive");
   for (unsigned addr=0x03F2; addr<=0x03F7; addr++) {
@@ -271,6 +271,84 @@ bx_floppy_ctrl_c::init(void)
     (unsigned) bx_options.Ofloppy_command_delay->get ()));
 }
 
+void
+floppy_t::register_state(bx_param_c *list_p)
+{
+  BXRS_START(floppy_t, this, "a floppy_t struct", list_p, 200);
+  {
+    // BJS TODO: int fd;         /* file descriptor of floppy image file */
+    BXRS_NUM_D(unsigned, sectors_per_track, "number of sectors/track");
+    BXRS_NUM_D(unsigned, sectors          , "number of formatted sectors on diskette");
+    BXRS_NUM_D(unsigned, tracks           , "number of tracks");
+    BXRS_NUM_D(unsigned, heads            , "number of heads");
+    BXRS_NUM  (unsigned, type           );
+    BXRS_NUM  (unsigned, write_protected);
+  }
+  BXRS_END;
+}
+
+void
+bx_floppy_ctrl_c::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_floppy_ctrl_c, this, "floppy drives", list_p, 1000);
+  BXRS_STRUCT_START_D(struct s_t, s, "state information");
+  {
+    BXRS_NUM   (Bit8u  ,data_rate);
+
+    BXRS_ARRAY_NUM_D(Bit8u, command, 10, "largest command size ???");
+    BXRS_NUM   (Bit8u  , command_index);
+    BXRS_NUM   (Bit8u  , command_size);
+    BXRS_BOOL  (bx_bool, command_complete);
+    BXRS_NUM   (Bit8u  , pending_command);
+
+    BXRS_BOOL  (bx_bool, multi_track);
+    BXRS_BOOL  (bx_bool, pending_irq);
+    BXRS_NUM   (Bit8u  , reset_sensei);
+    BXRS_NUM   (Bit8u  , format_count);
+    BXRS_NUM   (Bit8u  , format_fillbyte);
+    
+    BXRS_ARRAY_NUM(Bit8u, result, 10);
+    BXRS_NUM   (Bit8u  , result_index);
+    BXRS_NUM   (Bit8u  , result_size);
+    
+    BXRS_NUM_D (Bit8u  , DOR, "Digital Ouput Register");
+    BXRS_NUM_D (Bit8u  , TDR, "Tape Drive Register");
+    BXRS_ARRAY_NUM_D (Bit8u  , cylinder, 4, "really only using 2 drives");
+    BXRS_ARRAY_NUM_D (Bit8u  , head, 4, "really only using 2 drives");
+    BXRS_ARRAY_NUM_D (Bit8u  , sector, 4, "really only using 2 drives");
+
+    /* MAIN STATUS REGISTER
+     * b7: MRQ: main request 1=data register ready     0=data register not ready
+     * b6: DIO: data input/output:
+     *     1=controller->CPU (ready for data read)
+     *     0=CPU->controller (ready for data write)
+     * b5: NDMA: non-DMA mode: 1=controller not in DMA modes
+     *                         0=controller in DMA mode
+     * b4: BUSY: instruction(device busy) 1=active 0=not active
+     * b3-0: ACTD, ACTC, ACTB, ACTA:
+     *       drive D,C,B,A in positioning mode 1=active 0=not active
+     */
+    BXRS_NUM   (Bit8u,   main_status_reg);
+    BXRS_NUM   (Bit8u,   status_reg0);
+    BXRS_NUM   (Bit8u,   status_reg1);
+    BXRS_NUM   (Bit8u,   status_reg2);
+    BXRS_NUM   (Bit8u,   status_reg3);
+
+    // drive field allows up to 4 drives, even though probably only 2 will
+    // ever be used.
+
+    BXRS_ARRAY_OBJ (floppy_t, media, 4);
+    BXRS_NUM         (unsigned, num_supported_floppies);
+    BXRS_ARRAY_NUM   (Bit8u   , floppy_buffer, (512+2));
+    BXRS_NUM         (unsigned, floppy_buffer_index);
+    BXRS_NUM         (int     , floppy_timer_index);
+    BXRS_ARRAY_BOOL  (bx_bool , media_present, 2);
+    BXRS_ARRAY_NUM   (Bit8u   , device_type, 4);
+    BXRS_ARRAY_NUM_D (Bit8u   , DIR, 4, "Digital Input Register");
+  }
+  BXRS_STRUCT_END;
+  BXRS_END;
+}
 
 
   void

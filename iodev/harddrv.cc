@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.97.2.4 2003/03/28 02:10:45 slechta Exp $
+// $Id: harddrv.cc,v 1.97.2.5 2003/03/28 09:26:03 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -176,7 +176,7 @@ bx_hard_drive_c::init(void)
   Bit8u channel;
   char  string[5];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.4 2003/03/28 02:10:45 slechta Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.5 2003/03/28 09:26:03 slechta Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
@@ -505,13 +505,13 @@ bx_hard_drive_c::init(void)
 
   // FIXME:
   //#warning slechta debug.  remove at some point
-  //BX_REGISTER_LIST(parent_p, "root2", "slechta's fancy root2", (bx_list_c*)0,5);
-  //this->register_state ("hrddrv", "the hard drive", parent_p);
-  //print_tree(parent_p,0);
+  //BX_REGISTER_LIST(list_p, "root2", "slechta's fancy root2", (bx_list_c*)0,5);
+  //this->register_state ("hrddrv", "the hard drive", list_p);
+  //print_tree(list_p,0);
 
   //BBD code
-  //bx_param_c *parent_p = SIM->get_param (".");
-  //this->register_state ("ata", "the hard drive", parent_p);
+  //bx_param_c *list_p = SIM->get_param (".");
+  //this->register_state ("ata", "the hard drive", list_p);
 }
 
   void
@@ -3417,9 +3417,9 @@ read_32bit(const uint8* buf)
 
 
 void 
-controller_t::register_state(char* name, char *desc, bx_param_c *parent_p)
+controller_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(controller_t, this, name, desc, parent_p, 20);
+  BXRS_START(controller_t, this, desc, list_p, 20);
   {
     BXRS_STRUCT_START(struct status_t, status);
     {
@@ -3441,7 +3441,7 @@ controller_t::register_state(char* name, char *desc, bx_param_c *parent_p)
     BXRS_UNION_START;
     {
       BXRS_NUM(Bit8u, sector_count);
-      // TODO: register controller_t::interrupt_reason_t 
+      // BJS TODO: register controller_t::interrupt_reason_t 
       //      BXRS_STRUCT_START(struct interrupt_reason_t, interrupt_reason);
       //      {
       //#ifdef BX_LITTLE_ENDIAN
@@ -3489,9 +3489,9 @@ controller_t::register_state(char* name, char *desc, bx_param_c *parent_p)
 }
 
 
-void sense_info_t::register_state(char* name, char *desc, bx_param_c *parent_p)
+void sense_info_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(struct sense_info_t, this, name, desc, parent_p, 8);
+  BXRS_START(struct sense_info_t, this, desc, list_p, 8);
   {
     BXRS_ENUM(sense_t, sense_key);
     BXRS_STRUCT_START(struct information_t, information);
@@ -3520,9 +3520,9 @@ void sense_info_t::register_state(char* name, char *desc, bx_param_c *parent_p)
 }
 
 void
-error_recovery_t::register_state(char* name, char *desc, bx_param_c *parent_p)
+error_recovery_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(struct error_recovery_t, this, name, desc, parent_p, 1);
+  BXRS_START(struct error_recovery_t, this, desc, list_p, 1);
   {
     BXRS_ARRAY_NUM(unsigned char, data, 8);
   }
@@ -3531,34 +3531,33 @@ error_recovery_t::register_state(char* name, char *desc, bx_param_c *parent_p)
 
 
 void 
-cdrom_t::register_state(char* name, char *desc, bx_param_c *parent_p)
+cdrom_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(cdrom_t, this, name, desc, parent_p, 10);
+  BXRS_START(cdrom_t, this, desc, list_p, 10);
   {
     BXRS_BOOL(bx_bool, ready);
     BXRS_BOOL(bx_bool, locked);
-    //FIXME: BXRS_OBJP call disabled by BBD
 #ifdef LOWLEVEL_CDROM
+    // BJS TODO: LOWLEVEL_CDROM
     //if (cd) BXRS_OBJP(LOWLEVEL_CDROM, cd);
 #endif
     BXRS_NUM (uint32, capacity);
     BXRS_NUM (int, next_lba);
     BXRS_NUM (int, remaining_blocks);
-    // TODO: BXRS_STRUCT_START(struct currentStruct, current); 
-    //{
-    //  //FIXME: BXRS_OBJ call disabled by BBD
-    //  //BXRS_OBJ(error_recovery_t, error_recovery);
-    //} 
-    //BXRS_STRUCT_END;
+    BXRS_STRUCT_START(struct currentStruct, current); 
+    {
+        BXRS_OBJ(error_recovery_t, error_recovery);
+    } 
+    BXRS_STRUCT_END;
   }
   BXRS_END;
   
 }
 
 void 
-atapi_t::register_state(char* name, char *desc, bx_param_c *parent_p)
+atapi_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(atapi_t, this, name, desc, parent_p, 3);
+  BXRS_START(atapi_t, this, desc, list_p, 3);
   {
   BXRS_NUM(uint8, command);
   BXRS_NUM(int, drq_bytes);
@@ -3569,15 +3568,15 @@ atapi_t::register_state(char* name, char *desc, bx_param_c *parent_p)
 
 
 void 
-bx_hard_drive_c::register_state(char* name, char *desc, bx_param_c *parent_p)
+bx_hard_drive_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_hard_drive_c, this, name, desc, parent_p, 20);
+  BXRS_START(bx_hard_drive_c, this, desc, list_p, 20);
   BXRS_ARRAY_START(struct channel_t, channels, BX_MAX_ATA_CHANNEL);
   {
     BXRS_ARRAY_START(struct channel_t::drive_t, drives, 2); 
     {
-      // TODO: device_image_t* hard_drive;
-      // TODO: implement device_image_t* hard_drive registration
+      // BJS TODO: device_image_t* hard_drive;
+      // BJS TODO: implement device_image_t* hard_drive registration
       BXRS_ENUM(device_type_t, device_type);
       // 512 byte buffer for ID drive command
       // These words are stored in native word endian format, as
@@ -3585,11 +3584,10 @@ bx_hard_drive_c::register_state(char* name, char *desc, bx_param_c *parent_p)
       // there's no need to keep them in x86 endian format.
       BXRS_ARRAY_NUM(Bit16u, id_drive, 256);
 
-      //FIXME: four BXRS_OBJ calls disabled by BBD
-      //BXRS_OBJ(controller_t, controller);
-      //BXRS_OBJ(cdrom_t, cdrom);
-      //BXRS_OBJ(sense_info_t, sense);
-      //BXRS_OBJ(atapi_t, atapi);
+      BXRS_OBJ(controller_t, controller);
+      BXRS_OBJ(cdrom_t, cdrom);
+      BXRS_OBJ(sense_info_t, sense);
+      BXRS_OBJ(atapi_t, atapi);
 
       BXRS_ARRAY_NUM(Bit8u, model_no, 41);
     } 

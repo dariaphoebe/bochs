@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.cc,v 1.3 2003/02/06 19:09:24 vruppert Exp $
+// $Id: pciusb.cc,v 1.3.4.1 2003/03/28 09:26:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -106,6 +106,99 @@ bx_pciusb_c::init(void)
   }
 
   BX_INFO(("usb1 at 0x%04x-0x%04x irq %d", base_ioaddr, base_ioaddr+0x13, irq));
+}
+
+void
+bx_usb_t::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_usb_t, this, "", list_p, 30);
+  {
+    BXRS_NUM(Bit16u, base_ioaddr);
+    BXRS_NUM(Bit8u , irq);
+    BXRS_NUM(int   , timer_index);
+
+    BXRS_STRUCT_STRUCT_D(struct usb_command_t, usb_command, 
+                         "Bit reps of registers above");
+    {
+      BXRS_BOOL_D(bx_bool, max_packet_size, "(bit 7) 0 = 32 bytes, 1 = 64 bytes");
+      BXRS_BOOL_D(bx_bool, configured,      "(bit 6)");
+      BXRS_BOOL_D(bx_bool, debug,           "(bit 5)");
+      BXRS_BOOL_D(bx_bool, resume,          "(bit 4)");
+      BXRS_BOOL_D(bx_bool, suspend,         "(bit 3)");
+      BXRS_BOOL_D(bx_bool, reset,           "(bit 2)");
+      BXRS_BOOL_D(bx_bool, host_reset,      "(bit 1)");
+      BXRS_BOOL_D(bx_bool, schedule,        "(bit 0) 0 = Stop, 1 = Run");
+    }
+
+    BXRS_STRUCT_STRUCT_D(struct usb_status_t, usb_status, "Status Register");
+    {
+      BXRS_BOOL_D(bx_bool, host_halted,     "(bit 5)");
+      BXRS_BOOL_D(bx_bool, host_error,      "(bit 4)");
+      BXRS_BOOL_D(bx_bool, pci_error,       "(bit 3)");
+      BXRS_BOOL_D(bx_bool, resume,          "(bit 2)");
+      BXRS_BOOL_D(bx_bool, error_interrupt, "(bit 1)");
+      BXRS_BOOL_D(bx_bool, interrupt,       "(bit 0)");
+    }
+
+    BXRS_STRUCT_STRUCT_D(struct usb_enable_t, usb_enable,
+                         "Interrupt Enable Register"); 
+    {
+      BXRS_BOOL_D(bx_bool, short_packet, "(bit 3)");
+      BXRS_BOOL_D(bx_bool, on_complete,  "(bit 2)");
+      BXRS_BOOL_D(bx_bool, resume,       "(bit 1)");
+      BXRS_BOOL_D(bx_bool, timeout_crc,  "(bit 0)");
+    }
+
+    BXRS_STRUCT_STRUCT_D(struct usb_frame_num_t, usb_frame_num, 
+                         "Frame Number Register");
+    {
+      BXRS_NUM(Bit16u, frame_num);
+    }
+
+    BXRS_STRUCT_STRUCT_D(struct usb_frame_base_t, usb_frame_base, 
+                         "Frame List Base Address Register");
+    {
+      BXRS_NUM(Bit32u, frame_base);
+    }
+
+    BXRS_STRUCT_STRUCT_D(struct usb_sof_t, usb_sof, 
+                         "Start of Frame Modify Register");
+    {
+      BXRS_NUM(Bit8u, sof_timing);
+    }
+
+    BXRS_ARRAY_START_D(struct  usb_port_t, usb_port, USB_NUM_PORTS, 
+                       "Port Register (0-1)");
+    {
+      BXRS_BOOL(bx_bool, suspend);
+      BXRS_BOOL(bx_bool, reset);
+      BXRS_BOOL(bx_bool, low_speed);
+      BXRS_BOOL(bx_bool, resume);
+      BXRS_BOOL(bx_bool, line_dplus);
+      BXRS_BOOL(bx_bool, line_dminus);
+      BXRS_BOOL(bx_bool, able_changed);
+      BXRS_BOOL(bx_bool, enabled);
+      BXRS_BOOL(bx_bool, connect_changed);
+      BXRS_BOOL(bx_bool, status);
+    }
+    BXRS_ARRAY_END;
+
+    BXRS_ARRAY_NUM(Bit8u, pci_conf, 256);
+
+  }
+  BXRS_END;
+}
+
+
+void
+bx_pciusb_c::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_pciusb_c, this, "", list_p, 30);
+  {
+    BXRS_ARRAY_OBJ(bx_usb_t, hub, BX_USB_MAXDEV);
+    BXRS_NUM(Bit8u, global_reset);
+  }
+  BXRS_END;
 }
 
   void

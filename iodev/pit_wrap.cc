@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// $Id: pit_wrap.cc,v 1.48.2.6 2003/03/28 02:10:45 slechta Exp $
+// $Id: pit_wrap.cc,v 1.48.2.7 2003/03/28 09:26:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -249,9 +249,9 @@ bx_pit_c::init( void )
 
 
 void 
-bx_pit_c::register_state(char *name, char *desc, bx_param_c *parent_p)
+bx_pit_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_pit_c, this, name, desc, parent_p, 25);
+  BXRS_START(bx_pit_c, this, desc, list_p, 25);
   BXRS_STRUCT_START(struct s_type, s)
   {
     BXRS_OBJ      (pit_82C54, timer       );

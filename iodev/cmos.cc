@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cmos.cc,v 1.36.4.1 2003/03/25 08:45:16 slechta Exp $
+// $Id: cmos.cc,v 1.36.4.2 2003/03/28 09:26:01 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -109,7 +109,7 @@ bx_cmos_c::~bx_cmos_c(void)
   void
 bx_cmos_c::init(void)
 {
-  BX_DEBUG(("Init $Id: cmos.cc,v 1.36.4.1 2003/03/25 08:45:16 slechta Exp $"));
+  BX_DEBUG(("Init $Id: cmos.cc,v 1.36.4.2 2003/03/28 09:26:01 slechta Exp $"));
   // CMOS RAM & RTC
 
   DEV_register_ioread_handler(this, read_handler, 0x0070, "CMOS RAM", 7);
@@ -201,9 +201,9 @@ bx_cmos_c::init(void)
     }
 }
 
-void bx_cmos_c::register_state(char *name, char *desc, bx_list_c *parent_p)
+void bx_cmos_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_cmos_c, this, name, desc, parent_p, 10);
+  BXRS_START(bx_cmos_c, this, "cmos", list_p, 10);
   {
     BXRS_STRUCT_START(struct s_t, s); 
     {
@@ -211,8 +211,7 @@ void bx_cmos_c::register_state(char *name, char *desc, bx_list_c *parent_p)
       BXRS_NUM       (Bit32u , periodic_interval_usec);
       BXRS_NUM       (int    , one_second_timer_index);
       BXRS_NUM       (int    , uip_timer_index);
-#warning FIXME: time_t is a 'long int' so why doesnt it match bx_shadow_num_c contructor?
-      //BXRS_NUM       (time_t , timeval);
+      BXRS_ENUM       (time_t , timeval);
       BXRS_NUM       (Bit8u  , cmos_mem_address);
       BXRS_BOOL      (bx_bool, timeval_change);
       BXRS_ARRAY_NUM (Bit8u  , reg, BX_NUM_CMOS_REGS);

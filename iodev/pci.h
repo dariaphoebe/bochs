@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.h,v 1.14 2003/01/23 19:31:27 vruppert Exp $
+// $Id: pci.h,v 1.14.4.1 2003/03/28 09:26:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -45,7 +45,8 @@ typedef struct {
   Bit32u confAddr;
   Bit32u confData;
   Bit8u  pci_conf[256];
-  } bx_def440fx_t;
+  void register_state(bx_param_c *list_p);
+} bx_def440fx_t;
 
 
 
@@ -55,6 +56,7 @@ public:
   bx_pci_c(void);
   ~bx_pci_c(void);
   virtual void   init(void);
+  virtual void   register_state(bx_param_c *list_p);
   virtual void   reset(unsigned type);
   virtual bx_bool register_pci_handlers(void *this_ptr,
                                         bx_pci_read_handler_t f1,
@@ -66,14 +68,14 @@ public:
 
 private:
   Bit8u pci_handler_id[0x100];  // 256 devices/functions
-  struct {
+  struct pci_handler_t {
     bx_pci_read_handler_t  read;
     bx_pci_write_handler_t write;
     void             *this_ptr;
     } pci_handler[BX_MAX_PCI_DEVICES];
   unsigned num_pci_handles;
 
-  struct {
+  struct s_t {
     bx_def440fx_t i440fx;
     } s;
 

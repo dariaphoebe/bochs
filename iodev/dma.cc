@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.cc,v 1.28.2.1 2003/03/25 08:45:20 slechta Exp $
+// $Id: dma.cc,v 1.28.2.2 2003/03/28 09:26:02 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -134,7 +134,7 @@ bx_dma_c::get_TC(void)
 bx_dma_c::init(void)
 {
   unsigned c, i, j;
-  BX_DEBUG(("Init $Id: dma.cc,v 1.28.2.1 2003/03/25 08:45:20 slechta Exp $"));
+  BX_DEBUG(("Init $Id: dma.cc,v 1.28.2.2 2003/03/28 09:26:02 slechta Exp $"));
 
   /* 8237 DMA controller */
 
@@ -185,9 +185,9 @@ bx_dma_c::init(void)
 }
 
 void
-bx_dma_c::register_state(char *name, char* desc, bx_list_c *parent_p)
+bx_dma_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_dma_c, this, name, desc, parent_p, 10);
+  BXRS_START(bx_dma_c, this, desc, list_p, 10);
   {
     BXRS_ARRAY_START_D(struct s_t, s, 2, "state information DMA-1 / DMA-2");
     {
@@ -226,7 +226,7 @@ bx_dma_c::register_state(char *name, char* desc, bx_list_c *parent_p)
     
     //BXRS_ARRAY_START_D(struct h_t, h, 4, "DMA read and write handlers");
     //{
-#warning do we have to register function pointers in DMA.s.h[]?
+    // BJS TODO: #warning do we have to register function pointers in DMA.s.h[]?
       //void (* dmaRead8)(Bit8u *data_byte);
       //void (* dmaWrite8)(Bit8u *data_byte);
       //void (* dmaRead16)(Bit16u *data_word);

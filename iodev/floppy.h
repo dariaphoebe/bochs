@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: floppy.h,v 1.16 2002/11/30 09:39:29 vruppert Exp $
+// $Id: floppy.h,v 1.16.6.1 2003/03/28 09:26:03 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -45,6 +45,7 @@ typedef struct {
   unsigned heads;      /* number of heads */
   unsigned type;
   unsigned write_protected;
+  void register_state(bx_param_c *list_p);
   } floppy_t;
 
 class bx_floppy_ctrl_c : public bx_floppy_stub_c {
@@ -53,13 +54,14 @@ public:
   bx_floppy_ctrl_c(void);
   ~bx_floppy_ctrl_c(void);
   virtual void   init(void);
+  virtual void   register_state(bx_param_c *list_p);
   virtual void   reset(unsigned type);
   virtual unsigned set_media_status(unsigned drive, unsigned status);
   virtual unsigned get_media_status(unsigned drive);
 
 private:
 
-  struct {
+  struct s_t {
     Bit8u   data_rate;
 
     Bit8u   command[10]; /* largest command size ??? */

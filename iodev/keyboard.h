@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: keyboard.h,v 1.21 2003/03/02 23:59:11 cbothamy Exp $
+// $Id: keyboard.h,v 1.21.2.1 2003/03/28 09:26:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -52,6 +52,7 @@ public:
   ~bx_keyb_c(void);
   // implement bx_devmodel_c interface
   virtual void     init(void);
+  virtual void     register_state(bx_param_c* list_p);
   virtual void     reset(unsigned type);
   // override stubs from bx_keyb_stub_c
   virtual void     gen_scancode(Bit32u   scancode);
@@ -80,8 +81,8 @@ private:
   Bit32u   read(Bit32u   address, unsigned io_len);
 #endif
 
-  struct {
-    struct {
+  struct s_t {
+    struct kbd_controller_t {
       /* status bits matching the status port*/
       bx_bool pare; // Bit7, 1= parity error from keyboard/mouse - ignored.
       bx_bool tim;  // Bit6, 1= timeout from keyboard - ignored.
@@ -164,7 +165,7 @@ private:
       Bit16s delayed_dy;
       } mouse;
 
-    struct {
+    struct kbd_internal_buffer_t {
       int     num_elements;
       Bit8u   buffer[BX_KBD_ELEMENTS];
       int     head;
@@ -176,7 +177,7 @@ private:
       bx_bool scanning_enabled;
       } kbd_internal_buffer;
 
-    struct {
+    struct mouse_internal_buffer_t {
       int     num_elements;
       Bit8u   buffer[BX_MOUSE_BUFF_SIZE];
       int     head;

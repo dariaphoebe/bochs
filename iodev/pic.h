@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pic.h,v 1.10 2002/10/25 11:44:40 bdenney Exp $
+// $Id: pic.h,v 1.10.6.1 2003/03/28 09:26:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -38,7 +38,7 @@
 typedef struct {
   Bit8u single_PIC;        /* 0=cascaded PIC, 1=master only */
   Bit8u interrupt_offset;  /* programmable interrupt vector offset */
-  union {
+  union u_t {
     Bit8u   slave_connect_mask; /* for master, a bit for each interrupt line
                                    0=not connect to a slave, 1=connected */
     Bit8u   slave_id;           /* for slave, id number of slave PIC */
@@ -55,7 +55,7 @@ typedef struct {
   Bit8u lowest_priority;   /* current lowest priority irq */
   bx_bool INT;             /* INT request pin of PIC */
   bx_bool IRQ_line[8];     /* IRQ pins of PIC */
-  struct {
+  struct init_t {
     bx_bool    in_init;
     bx_bool    requires_4;
     int        byte_expected;
@@ -63,7 +63,10 @@ typedef struct {
   bx_bool special_mask;
   bx_bool polled;            /* Set when poll command is issued. */
   bx_bool rotate_on_autoeoi; /* Set when should rotate in auto-eoi mode. */
-  } bx_pic_t;
+  
+  void   register_state(bx_param_c *list_p);
+  
+} bx_pic_t;
 
 
 class bx_pic_c : public bx_pic_stub_c {
@@ -72,13 +75,14 @@ public:
   bx_pic_c(void);
   ~bx_pic_c(void);
   virtual void   init(void);
+  virtual void   register_state(bx_param_c *list_p);
   virtual void   reset(unsigned type);
   virtual void   lower_irq(unsigned irq_no);
   virtual void   raise_irq(unsigned irq_no);
   virtual Bit8u  IAC(void);
 
 private:
-  struct {
+  struct s_t {
     bx_pic_t master_pic;
     bx_pic_t slave_pic;
     } s;

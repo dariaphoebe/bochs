@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.h,v 1.5 2002/10/25 11:44:40 bdenney Exp $
+// $Id: ioapic.h,v 1.5.6.1 2003/03/28 09:26:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 extern class bx_ioapic_c bx_ioapic;
@@ -27,6 +27,7 @@ public:
   // these fields except by calling parse_value.
   Bit8u dest, masked, trig_mode, remote_irr, polarity, delivery_status, dest_mode, delivery_mode, vector;
   void sprintf_self (char *buf);
+  void register_state(bx_param_c *list_p);
 };
 
 class bx_ioapic_c : public bx_generic_apic_c {
@@ -42,6 +43,7 @@ public:
   bx_ioapic_c ();
   ~bx_ioapic_c ();
   virtual void init ();
+  vurtual void register_state(bx_param_c *list_p);
   virtual void reset (unsigned type);
   virtual void read_aligned(Bit32u address, Bit32u *data, unsigned len);
   virtual void write(Bit32u address, Bit32u *value, unsigned len);

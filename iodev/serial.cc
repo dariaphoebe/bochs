@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: serial.cc,v 1.32 2002/10/25 11:44:41 bdenney Exp $
+// $Id: serial.cc,v 1.32.6.1 2003/03/28 09:26:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -261,6 +261,14 @@ bx_serial_c::init(void)
   BX_INFO(( "com1 at 0x3f8/8 irq 4" ));
 
 }
+
+void
+bx_serial_c::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_serial_c, this, "serial port devices", list_p, 1);
+  BXRS_ARRAY_OBJ(bx_serial_t, s, BX_SERIAL_MAXDEV); 
+  BXRS_END;
+}  
 
   void
 bx_serial_c::reset(unsigned type)
@@ -828,8 +836,135 @@ bx_serial_c::rx_timer(void)
   }
 #endif
 #endif
+    bx_pc_system.activate_timer(BX_SER_THIS s[0].rx_timer_index,
+                                (int) (1000000.0 / bdrate),
+                                0); /* not continuous */
+    }
+#if 0
+    } }}
+#endif
 
-  bx_pc_system.activate_timer(BX_SER_THIS s[0].rx_timer_index,
-			      (int) (1000000.0 / bdrate),
-			      0); /* not continuous */
-}
+void
+bx_serial_t::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_serial_t, this, "", list_p, 30);
+  {
+    /*
+     * UART internal state
+     */
+    BXRS_BOOL(bx_bool, rx_empty);
+    BXRS_BOOL(bx_bool, tx_empty);
+    BXRS_BOOL(bx_bool, ls_interrupt);
+    BXRS_BOOL(bx_bool, ms_interrupt);
+    BXRS_BOOL(bx_bool, rx_interrupt);
+    BXRS_BOOL(bx_bool, tx_interrupt);
+    BXRS_BOOL(bx_bool, ls_ipending);
+    BXRS_BOOL(bx_bool, ms_ipending);
+    BXRS_BOOL(bx_bool, rx_ipending);
+    BXRS_BOOL(bx_bool, tx_ipending);
+
+    BXRS_NUM(int,  baudrate);
+    BXRS_NUM(int,  tx_timer_index);
+  
+    BXRS_NUM(int,  rx_pollstate);
+    BXRS_NUM(int,  rx_timer_index);
+  
+    BXRS_NUM(int,  rx_cb_start);
+    BXRS_NUM(int,  rx_cb_end);
+    BXRS_ARRAY_NUM(unsigned char, rx_cbuf, RX_CB_SIZE);
+  
+    /*
+     * Register definitions
+     */
+    BXRS_NUM_D(Bit8u, rxbuffer, "receiver buffer register (r/o)");
+    BXRS_NUM_D(Bit8u, txbuffer, "transmit holding register (w/o)");
+
+    BXRS_STRUCT_START_D(struct int_enable_t, int_enable, "Interrupt Enable Register");
+    {
+      BXRS_BOOL_D(bx_bool, rxdata_enable , "1=enable receive data interrupts");
+      BXRS_BOOL_D(bx_bool, txhold_enable , "1=enable tx. holding reg. empty ints");
+      BXRS_BOOL_D(bx_bool, rxlstat_enable, "1=enable rx line status interrupts");
+      BXRS_BOOL_D(bx_bool, modstat_enable, "1=enable modem status interrupts");
+    }
+    BXRS_STRUCT_END;
+  
+    BXRS_STRUCT_START_D(struct int_ident_t, 
+                        int_ident, "Interrupt Identification Register (r/o)");
+    {
+      BXRS_BOOL_D(bx_bool, ipending,     "0=interrupt pending");
+      BXRS_NUM_D (Bit8u  , int_ID,       "3-bit interrupt ID");
+      BXRS_NUM_D (Bit8u  , fifo_enabled, "2-bit, set to b11 when FCR0 enabled");
+    } 
+    BXRS_STRUCT_END;
+  
+    BXRS_STRUCT_START_D(struct fifo_cntl_t, fifo_cntl, 
+                        "FIFO Control Register (w/o)");
+    {
+      BXRS_BOOL_D(bx_bool, enable,   "1=enable tx and rx FIFOs");
+      BXRS_BOOL_D(bx_bool, rxreset,  "1=clear rx fifo. self-clearing");
+      BXRS_BOOL_D(bx_bool, txreset,  "1=clear tx fifo. self-clearing");
+      BXRS_BOOL_D(bx_bool, dmamode,  "1=DMA mode 1 (unused on PC ?)");
+      BXRS_NUM_D (Bit8u  , rxtrigger,"2-bit code for rx fifo trigger level");
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_STRUCT_START_D(struct line_cntl_t, line_cntl, 
+                        "Line Control Register (r/w)");
+    {
+      BXRS_NUM_D (Bit8u  , wordlen_sel,    "2-bit code for char length");
+      BXRS_BOOL_D(bx_bool, stopbits,       "select stop bit len");
+      BXRS_BOOL_D(bx_bool, parity_enable,  "...");
+      BXRS_BOOL_D(bx_bool, evenparity_sel, "...");
+      BXRS_BOOL_D(bx_bool, stick_parity,   "...");
+      BXRS_BOOL_D(bx_bool, break_cntl,     "1=send break signal");
+      BXRS_BOOL_D(bx_bool, dlab,           "divisor latch access bit");
+    }
+    BXRS_STRUCT_END;  
+
+    BXRS_STRUCT_START_D(struct modem_cntl_t, modem_cntl, 
+                        "MODEM Control Register (r/w)");
+    {
+      BXRS_BOOL_D(bx_bool, dtr,            "DTR output value");
+      BXRS_BOOL_D(bx_bool, rts,            "RTS output value");
+      BXRS_BOOL_D(bx_bool, out1,           "OUTPUT1 value");
+      BXRS_BOOL_D(bx_bool, out2,           "OUTPUT2 value");
+      BXRS_BOOL_D(bx_bool, local_loopback, "1=loopback mode");
+    }
+    BXRS_STRUCT_END;  
+  
+    BXRS_STRUCT_START_D(struct line_status_t, line_status, 
+                        "Line Status Register (r/w)");
+    {
+      BXRS_BOOL_D(bx_bool, rxdata_ready,  "1=receiver data ready");
+      BXRS_BOOL_D(bx_bool, overrun_error, "1=receive overrun detected");
+      BXRS_BOOL_D(bx_bool, parity_error,  "1=rx char has a bad parity bit");
+      BXRS_BOOL_D(bx_bool, framing_error, "1=no stop bit detected for rx char");
+      BXRS_BOOL_D(bx_bool, break_int,     "1=break signal detected");
+      BXRS_BOOL_D(bx_bool, txhold_empty,  "1=tx hold register (or fifo) is empty");
+      BXRS_BOOL_D(bx_bool, txtransm_empty,"1=shift reg and hold reg empty");
+      BXRS_BOOL_D(bx_bool, fifo_error,    "1=at least 1 err condition in fifo");
+    }
+    BXRS_STRUCT_END;  
+  
+    BXRS_STRUCT_START_D(struct modem_status_t, modem_status, 
+                        "Modem Status Register (r/w)");
+    {
+      BXRS_BOOL_D(bx_bool, delta_cts,   "1=CTS changed since last read");
+      BXRS_BOOL_D(bx_bool, delta_dsr,   "1=DSR changed since last read");
+      BXRS_BOOL_D(bx_bool, ri_trailedge,"1=RI moved from low->high");
+      BXRS_BOOL_D(bx_bool, delta_dcd,   "1=CD changed since last read");
+      BXRS_BOOL_D(bx_bool, cts,         "CTS input value");
+      BXRS_BOOL_D(bx_bool, dsr,         "DSR input value");
+      BXRS_BOOL_D(bx_bool, ri,          "RI input value");
+      BXRS_BOOL_D(bx_bool, dcd,         "DCD input value");
+    }
+    BXRS_STRUCT_END;  
+
+    BXRS_NUM_D (Bit8u, scratch,     "Scratch Register (r/w)");
+    BXRS_NUM_D (Bit8u, divisor_lsb, "Divisor latch, least-sig. byte");
+    BXRS_NUM_D (Bit8u, divisor_msb, "Divisor latch, most-sig. byte");
+  } 
+  BXRS_END;
+}  
+
+ 

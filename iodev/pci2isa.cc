@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.cc,v 1.9 2003/01/23 19:31:27 vruppert Exp $
+// $Id: pci2isa.cc,v 1.9.4.1 2003/03/28 09:26:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -136,7 +136,20 @@ bx_pci2isa_c::reset(unsigned type)
   BX_P2I_THIS s.elcr2 = 0x00;
 }
 
-
+void
+bx_pci2isa_c::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_pci2isa_c, this, "", list_p, 5);
+  {
+    BXRS_STRUCT(struct s_t, s);
+    {
+      BXRS_ARRAY_NUM(Bit8u, pci_conf, 256);
+      BXRS_NUM(Bit8u, elcr1);
+      BXRS_NUM(Bit8u, elcr2); 
+    }
+  }
+  BXRS_END;
+}
 
   // static IO port read callback handler
   // redirects to non-static class handler to avoid virtual functions

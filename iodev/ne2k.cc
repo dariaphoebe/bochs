@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.cc,v 1.48 2003/03/02 23:59:11 cbothamy Exp $
+// $Id: ne2k.cc,v 1.48.2.1 2003/03/28 09:26:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -1262,7 +1262,7 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
 void
 bx_ne2k_c::init(void)
 {
-  BX_DEBUG(("Init $Id: ne2k.cc,v 1.48 2003/03/02 23:59:11 cbothamy Exp $"));
+  BX_DEBUG(("Init $Id: ne2k.cc,v 1.48.2.1 2003/03/28 09:26:07 slechta Exp $"));
 
 
   // Bring the register state into power-up state
@@ -1336,6 +1336,19 @@ bx_ne2k_c::init(void)
       BX_PANIC(("could not locate null module"));
   }
 }
+
+void
+bx_ne2k_c::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_ne2k_c, this, "", list_p, 35);
+  {
+    BXRS_OBJ(bx_ne2k_t, s);
+    // BJS TODO: implement eth_pktmover_c *ethdev
+    // eth_pktmover_c *ethdev;
+  }
+  BXRS_END;
+}
+
 
 #if BX_DEBUGGER
 
@@ -1593,4 +1606,137 @@ bx_ne2k_c::print_info (FILE *fp, int page, int reg, int brief)
 
 #endif
 
+void
+bx_ne2k_t::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_ne2k_t, this, "ne2k register state", list_p, 20);
+  {
+    
+    BXRS_STRUCT_START_D(struct CR_t, CR, "Command Register - 00h read/write");
+    {
+      BXRS_BOOL_D(bx_bool, stop,     "STP - Software Reset command");
+      BXRS_BOOL_D(bx_bool, start,    "START - start the NIC");
+      BXRS_BOOL_D(bx_bool, tx_packet,"TXP - initiate packet transmission");
+      BXRS_NUM_D (Bit8u  , rdma_cmd, "RD0,RD1,RD2 - Remote DMA command");
+      BXRS_NUM_D (Bit8u  , pgsel,    "PS0,PS1 - Page select");
+    }
+    BXRS_STRUCT_END;
+      
+    BXRS_STRUCT_START_D(struct ISR_t, ISR, "Interrupt Status Register - 07h read/write");
+    {
+      BXRS_BOOL_D(bx_bool, pkt_rx,   "PRX - packet received with no errors");
+      BXRS_BOOL_D(bx_bool, pkt_tx,   "PTX - packet transmitted with no errors");
+      BXRS_BOOL_D(bx_bool, rx_err,   "RXE - packet received with 1 or more errors");
+      BXRS_BOOL_D(bx_bool, tx_err,   "TXE - packet tx'd       \"  \" \"    \"    \"");
+      BXRS_BOOL_D(bx_bool, overwrite,"OVW - rx buffer resources exhausted");
+      BXRS_BOOL_D(bx_bool, cnt_oflow,"CNT - network tally counter MSB's set");
+      BXRS_BOOL_D(bx_bool, rdma_done,"RDC - remote DMA complete");
+      BXRS_BOOL_D(bx_bool, reset,    "RST - reset status");
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_STRUCT_START_D(struct IMR_t, IMR, "Interrupt Mask Register - 0fh write");
+    {
+      BXRS_BOOL_D(bx_bool, rx_inte,   "PRXE - packet rx interrupt enable");
+      BXRS_BOOL_D(bx_bool, tx_inte,   "PTXE - packet tx interrput enable");
+      BXRS_BOOL_D(bx_bool, rxerr_inte,"RXEE - rx error interrupt enable");
+      BXRS_BOOL_D(bx_bool, txerr_inte,"TXEE - tx error interrupt enable");
+      BXRS_BOOL_D(bx_bool, overw_inte,"OVWE - overwrite warn int enable");
+      BXRS_BOOL_D(bx_bool, cofl_inte, "CNTE - counter o'flow int enable");
+      BXRS_BOOL_D(bx_bool, rdma_inte, "RDCE - remote DMA complete int enable");
+      BXRS_BOOL_D(bx_bool, reserved,  " D7 - reserved");
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_STRUCT_START_D(struct DCR_t, DCR, "Data Configuration Register - 0eh write");
+    {
+      BXRS_BOOL_D(bx_bool, wdsize,   "WTS - 8/16-bit select");
+      BXRS_BOOL_D(bx_bool, endian,   "BOS - byte-order select");
+      BXRS_BOOL_D(bx_bool, longaddr, "LAS - long-address select");
+      BXRS_BOOL_D(bx_bool, loop,     "LS  - loopback select");
+      BXRS_BOOL_D(bx_bool, auto_rx,  "AR  - auto-remove rx packets with remote DMA");
+      BXRS_NUM_D (Bit8u  , fifo_size, "FT0,FT1 - fifo threshold");
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_STRUCT_START_D(struct TCR_t, TCR, "Transmit Configuration Register - 0dh write");
+    {
+      BXRS_BOOL_D(bx_bool, crc_disable,"CRC - inhibit tx CRC");
+      BXRS_NUM_D (Bit8u  , loop_cntl,  "LB0,LB1 - loopback control");
+      BXRS_BOOL_D(bx_bool, ext_stoptx, "ATD - allow tx disable by external mcast");
+      BXRS_BOOL_D(bx_bool, coll_prio,  "OFST - backoff algorithm select");
+      BXRS_NUM_D (Bit8u  , reserved,   " D5,D6,D7 - reserved");
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_STRUCT_START_D(struct TSR_t,  TSR, "Transmit Status Register - 04h read");
+    {
+      BXRS_BOOL_D(bx_bool, tx_ok,	    "PTX - tx complete without error");
+      BXRS_BOOL_D(bx_bool, reserved,  " D1 - reserved");
+      BXRS_BOOL_D(bx_bool, collided,  "COL - tx collided >= 1 times");
+      BXRS_BOOL_D(bx_bool, aborted,   "ABT - aborted due to excessive collisions");
+      BXRS_BOOL_D(bx_bool, no_carrier,"CRS - carrier-sense lost");
+      BXRS_BOOL_D(bx_bool, fifo_ur,   "FU  - FIFO underrun");
+      BXRS_BOOL_D(bx_bool, cd_hbeat,  "CDH - no tx cd-heartbeat from transceiver");
+      BXRS_BOOL_D(bx_bool, ow_coll,   "OWC - out-of-window collision");
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_STRUCT_START_D(struct RCR_t, RCR, "Receive Configuration Register - 0ch write");
+    {
+      BXRS_BOOL_D(bx_bool, errors_ok,"SEP - accept pkts with rx errors");
+      BXRS_BOOL_D(bx_bool, runts_ok, "AR  - accept < 64-byte runts");
+      BXRS_BOOL_D(bx_bool, broadcast,"AB  - accept eth broadcast address");
+      BXRS_BOOL_D(bx_bool, multicast,"AM  - check mcast hash array");
+      BXRS_BOOL_D(bx_bool, promisc,  "PRO - accept all packets");
+      BXRS_BOOL_D(bx_bool, monitor,  "MON - check pkts, but don't rx");
+      BXRS_NUM_D (Bit8u  , reserved, " D6,D7 - reserved");
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_STRUCT_START_D(struct RSR_t, RSR, "Receive Status Register - 0ch read");
+    {
+      BXRS_BOOL_D(bx_bool, rx_ok,      "PRX - rx complete without error");
+      BXRS_BOOL_D(bx_bool, bad_crc,    "CRC - Bad CRC detected");
+      BXRS_BOOL_D(bx_bool, bad_falign, "FAE - frame alignment error");
+      BXRS_BOOL_D(bx_bool, fifo_or,    "FO  - FIFO overrun");
+      BXRS_BOOL_D(bx_bool, rx_missed,  "MPA - missed packet error");
+      BXRS_BOOL_D(bx_bool, rx_mbit,    "PHY - unicast or mcast/bcast address match");
+      BXRS_BOOL_D(bx_bool, rx_disabled,"DIS - set when in monitor mode");
+      BXRS_BOOL_D(bx_bool, deferred,   "DFR - collision active");
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_NUM_D(Bit16u , local_dma,    "01,02h read , current local DMA addr");
+    BXRS_NUM_D(Bit8u  , page_start,   "01h write , page start register");
+    BXRS_NUM_D(Bit8u  , page_stop,    "02h write , page stop register");
+    BXRS_NUM_D(Bit8u  , bound_ptr,    "03h read/write , boundary pointer");
+    BXRS_NUM_D(Bit8u  , tx_page_start,"04h write , transmit page start register");
+    BXRS_NUM_D(Bit8u  , num_coll,     "05h read  , number-of-collisions register");
+    BXRS_NUM_D(Bit16u , tx_bytes,     "05,06h write , transmit byte-count register");
+    BXRS_NUM_D(Bit8u  , fifo,         "06h read  , FIFO");
+    BXRS_NUM_D(Bit16u , remote_dma,   "08,09h read , current remote DMA addr");
+    BXRS_NUM_D(Bit16u , remote_start, "08,09h write , remote start address register");
+    BXRS_NUM_D(Bit16u , remote_bytes, "0a,0bh write , remote byte-count register");
+    BXRS_NUM_D(Bit8u  , tallycnt_0,   "0dh read  , tally counter 0 (frame align errors)");
+    BXRS_NUM_D(Bit8u  , tallycnt_1,   "0eh read  , tally counter 1 (CRC errors)");
+    BXRS_NUM_D(Bit8u  , tallycnt_2,   "0fh read  , tally counter 2 (missed pkt errors)");
+    BXRS_ARRAY_NUM_D(Bit8u,  physaddr, 6,  "01-06h read/write , MAC address");
+    BXRS_NUM_D(Bit8u  , curr_page,    "07h read/write , current page register");
+    BXRS_ARRAY_NUM_D(Bit8u,  mchash, 8,    "08-0fh read/write , multicast hash array");
+    BXRS_NUM_D(Bit8u  , rempkt_ptr,   "03h read/write , remote next-packet pointer");
+    BXRS_NUM_D(Bit8u  , localpkt_ptr, "05h read/write , local next-packet pointer");
+    BXRS_NUM_D(Bit16u , address_cnt,  "06,07h read/write , address counter");
+
+
+    BXRS_ARRAY_NUM_D(Bit8u, macaddr, 32, "ASIC ROM'd MAC address, even bytes");
+    BXRS_ARRAY_NUM_D(Bit8u, mem, BX_NE2K_MEMSIZ,  "on-chip packet memory");
+
+    BXRS_NUM(Bit32u, base_address);
+    BXRS_NUM(int   , base_irq);
+    BXRS_NUM(int   , tx_timer_index);
+    BXRS_NUM(int   , tx_timer_active);
+  }
+  BXRS_END;
+}
 #endif /* if BX_NE2K_SUPPORT */

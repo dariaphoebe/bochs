@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.cc,v 1.28 2003/01/23 19:31:26 vruppert Exp $
+// $Id: pci.cc,v 1.28.4.1 2003/03/28 09:26:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -106,6 +106,47 @@ bx_pci_c::init(void)
   BX_PCI_THIS s.i440fx.pci_conf[0x03] = 0x12;
   BX_PCI_THIS s.i440fx.pci_conf[0x0b] = 0x06;
 }
+
+void
+bx_def440fx_t::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_def440fx_t, this, "", list_p, 10);
+  {
+      BXRS_NUM(Bit32u, confAddr);
+      BXRS_NUM(Bit32u, confData);
+      BXRS_ARRAY_NUM(Bit8u, pci_conf, 256);
+  }
+  BXRS_END;
+}
+
+
+void
+bx_pci_c::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_pci_c, this, "", list_p, 10);
+  {
+    BXRS_ARRAY_NUM_D(Bit8u, pci_handler_id,0x100, "256 devices/functions");
+    BXRS_ARRAY_START(struct pci_handler_t, pci_handler, BX_MAX_PCI_DEVICES);
+    {
+      BXRS_UNUSED;
+      // BJS TODO: what do we do with these?
+      // bx_pci_read_handler_t  read;
+      // bx_pci_write_handler_t write;
+      // void             *this_ptr;
+    }
+    BXRS_ARRAY_END;
+
+    BXRS_NUM(unsigned, num_pci_handles);
+    
+    BXRS_STRUCT_START(struct s_t, s);
+    {
+      BXRS_OBJ(bx_def440fx_t, i440fx);
+    }
+    BXRS_STRUCT_END;
+  }
+  BXRS_END;
+}
+
 
   void
 bx_pci_c::reset(unsigned type)

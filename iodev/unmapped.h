@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: unmapped.h,v 1.10 2002/10/24 21:07:52 bdenney Exp $
+// $Id: unmapped.h,v 1.10.6.1 2003/03/28 09:26:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -44,6 +44,7 @@ public:
 
   virtual void init(void);
   virtual void reset (unsigned type);
+  virtual void register_state(bx_param_c *list_p);
 
 private:
 
@@ -55,7 +56,7 @@ private:
 #endif
 
 
-  struct {
+  struct s_t {
     Bit8u port80;
     Bit8u port8e;
     Bit8u shutdown;

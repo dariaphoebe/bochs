@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.h,v 1.3 2003/01/27 21:11:55 vruppert Exp $
+// $Id: pcivga.h,v 1.3.4.1 2003/03/28 09:26:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003  Mike Nordell
@@ -31,11 +31,12 @@ public:
   bx_pcivga_c(void);
   ~bx_pcivga_c(void);
   virtual void   init(void);
+  virtual void   register_state(bx_param_c *list_p);
   virtual void   reset(unsigned type);
 
 private:
 
-  struct {
+  struct s_t {
     Bit8u pci_conf[256];
   } s;
 

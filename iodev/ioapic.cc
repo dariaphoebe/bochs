@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.cc,v 1.11 2002/11/19 05:47:45 bdenney Exp $
+// $Id: ioapic.cc,v 1.11.6.1 2003/03/28 09:26:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 #include <stdio.h>
@@ -53,6 +53,38 @@ bx_ioapic_c::init ()
     ioredtbl[i].set_odd_word  (0x00000000);
   }
   irr = 0;
+}
+
+void
+bx_ioapic_c::register_state(bx_param_c *list_p) 
+{
+  BXRS_START(bx_ioapic_c, this, "", list_p, 5);
+  {
+    BXRS_NUM(Bit32u, ioregsel);
+    BXRS_NUM(Bit32u, irr);
+    BXRS_ARRAY_OBJ_D(bx_io_redirect_entry_t, ioredtbl, BX_IOAPIC_NUM_PINS, 
+                     "table of redirections");
+  }
+  BXRS_END;
+}
+
+void
+bx_io_redirect_entry_t::register_state(bx_param_c *list_p) 
+{
+  BXRS_START(bx_io_redirect_entry_t, this, "", list_p, 5);
+  {
+    BXRS_NUM(Bit64u, value);  
+    BXRS_NUM(Bit8u, dest);
+    BXRS_NUM(Bit8u, masked);
+    BXRS_NUM(Bit8u, trig_mode);
+    BXRS_NUM(Bit8u, remote_irr);
+    BXRS_NUM(Bit8u, polarity);
+    BXRS_NUM(Bit8u, delivery_status);
+    BXRS_NUM(Bit8u, dest_mode);
+    BXRS_NUM(Bit8u, delivery_mode);
+    BXRS_NUM(Bit8u, vector);
+  }
+  BXRS_END;
 }
 
 void 

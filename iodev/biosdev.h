@@ -1,5 +1,5 @@
 
-// $Id: biosdev.h,v 1.3.6.1 2003/03/25 08:45:14 slechta Exp $
+// $Id: biosdev.h,v 1.3.6.2 2003/03/28 09:26:01 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -43,7 +43,7 @@ public:
   ~bx_biosdev_c(void);
 
   virtual void init(void);
-  virtual void register_state(char *name, char *desc, bx_list_c *parent_p);
+  virtual void register_state(bx_param_c *list_p);
   virtual void reset (unsigned type);
 
 private:

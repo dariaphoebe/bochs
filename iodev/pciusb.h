@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.h,v 1.1 2003/01/28 16:58:10 vruppert Exp $
+// $Id: pciusb.h,v 1.1.4.1 2003/03/28 09:26:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -162,7 +162,7 @@ typedef struct {
   } usb_port[USB_NUM_PORTS];
 
   Bit8u pci_conf[256];
-
+  void register_state(bx_param_c *list_p);
 } bx_usb_t;
 
 
@@ -172,6 +172,7 @@ public:
   bx_pciusb_c(void);
   ~bx_pciusb_c(void);
   virtual void   init(void);
+  virtual void   register_state(bx_param_c *list_p);
   virtual void   reset(unsigned type);
 
 private:

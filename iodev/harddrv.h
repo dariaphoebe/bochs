@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.19.2.2 2003/03/27 02:04:42 bdenney Exp $
+// $Id: harddrv.h,v 1.19.2.3 2003/03/28 09:26:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -217,7 +217,7 @@ typedef struct {
   } control;
   Bit8u    reset_in_progress;
   Bit8u    features;
-  void register_state(char* name, char *desc, bx_param_c *parent_p);
+  void register_state(bx_param_c *list_p);
 } controller_t;
 
 
@@ -235,13 +235,13 @@ struct sense_info_t {
   Bit8u fruc;
   Bit8u asc;
   Bit8u ascq;
-  void register_state(char* name, char *desc, bx_param_c *parent_p);
+  void register_state(bx_param_c *list_p);
 };
 
 struct error_recovery_t {
   unsigned char data[8];
   error_recovery_t ();
-  void register_state(char* name, char *desc, bx_param_c *parent_p);  
+  void register_state(bx_param_c *list_p);  
 };
 
 uint16 read_16bit(const uint8* buf) BX_CPP_AttrRegparmN(1);
@@ -266,7 +266,7 @@ struct cdrom_t
   struct currentStruct {
     error_recovery_t error_recovery;
   } current;
-  void register_state(char* name, char *desc, bx_param_c *parent_p);
+  void register_state(bx_param_c *list_p);
 };
 
 struct atapi_t
@@ -274,7 +274,7 @@ struct atapi_t
   uint8 command;
   int drq_bytes;
   int total_bytes_remaining;
-  void register_state(char* name, char *desc, bx_param_c *parent_p);
+  void register_state(bx_param_c *list_p);
 };
 
 #if BX_USE_HD_SMF
@@ -296,7 +296,7 @@ public:
   virtual ~bx_hard_drive_c(void);
   virtual void   close_harddrive(void);
   virtual void   init();
-  virtual void   register_state(char* name, char *desc, bx_param_c *parent_p);
+  virtual void   register_state(bx_param_c *list_p);
   virtual void   reset(unsigned type);
   virtual Bit32u   get_device_handle(Bit8u channel, Bit8u device);
   virtual Bit32u   get_first_cd_handle(void);
@@ -334,7 +334,6 @@ private:
   BX_HD_SMF void init_mode_sense_single(Bit8u channel, const void* src, int size);
   BX_HD_SMF void atapi_cmd_nop(Bit8u channel) BX_CPP_AttrRegparmN(1);
 
-  // FIXME:
   // For each ATA channel we should have one controller struct
   // and an array of two drive structs
   struct channel_t {

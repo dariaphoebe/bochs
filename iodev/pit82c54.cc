@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.cc,v 1.21.2.5 2003/03/28 02:10:45 slechta Exp $
+// $Id: pit82c54.cc,v 1.21.2.6 2003/03/28 09:26:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -182,10 +182,9 @@ pit_82C54::decrement (counter_type & thisctr) {
 
 
 void
-pit_82C54::register_state(char *name, char *desc, bx_param_c *parent_p)
+pit_82C54::register_state(bx_param_c *list_p)
 {
-
-  BXRS_START(pit_82C54, this, name, desc, parent_p, 50);
+  BXRS_START(pit_82C54, this, desc, list_p, 50);
   BXRS_ARRAY_START(struct counter_type, counter, 3)
   {
     //Chip IOs;

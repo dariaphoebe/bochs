@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: keyboard.cc,v 1.75.2.1 2003/03/20 05:17:22 bdenney Exp $
+// $Id: keyboard.cc,v 1.75.2.2 2003/03/28 09:26:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -125,7 +125,7 @@ bx_keyb_c::resetinternals(bx_bool powerup)
   void
 bx_keyb_c::init(void)
 {
-  BX_DEBUG(("Init $Id: keyboard.cc,v 1.75.2.1 2003/03/20 05:17:22 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: keyboard.cc,v 1.75.2.2 2003/03/28 09:26:07 slechta Exp $"));
   Bit32u   i;
 
   DEV_register_irq(1, "8042 Keyboard controller");
@@ -245,6 +245,119 @@ bx_keyb_c::init(void)
   }
 #endif
 }
+
+void
+bx_keyb_c::register_state(bx_param_c* list_p)
+{
+  BXRS_START(bx_keyb_c, this, "keyboard", list_p, 30);
+  {
+    BXRS_STRUCT_START_D(struct s_t, s, "State information for saving/loading");
+    {
+      BXRS_STRUCT_START(struct s_t::kbd_controller_t, kbd_controller);
+      {
+        /* status bits matching the status port*/
+        BXRS_BOOL_D(bx_bool, pare, "Bit7, 1= parity error from keyboard/mouse - ignored.");
+        BXRS_BOOL_D(bx_bool, tim,  "Bit6, 1= timeout from keyboard - ignored.");
+        BXRS_BOOL_D(bx_bool, auxb, "Bit5, 1= mouse data waiting for CPU to read.");
+        BXRS_BOOL_D(bx_bool, keyl, "Bit4, 1= keyswitch in lock position - ignored.");
+        BXRS_BOOL_D(bx_bool, c_d,  "Bit3, 1=command to port 64h, 0=data to port 60h");
+        BXRS_BOOL_D(bx_bool, sysf, "Bit2,");
+        BXRS_BOOL_D(bx_bool, inpb, "Bit1,");
+        BXRS_BOOL_D(bx_bool, outb, "Bit0, 1= keyboard data or mouse data ready for CPU");
+        
+        /* internal to our version of the keyboard controller */
+        BXRS_BOOL(bx_bool,  kbd_clock_enabled);
+        BXRS_BOOL(bx_bool,  aux_clock_enabled);
+        BXRS_BOOL(bx_bool,  allow_irq1);
+        BXRS_BOOL(bx_bool,  allow_irq12);
+        BXRS_NUM (Bit8u  ,  kbd_output_buffer);
+        BXRS_NUM (Bit8u  ,  aux_output_buffer);
+        BXRS_NUM (Bit8u  ,  last_comm);
+        BXRS_NUM (Bit8u  ,  expecting_port60h);
+        BXRS_NUM (Bit8u  ,  expecting_mouse_parameter);
+        BXRS_NUM (Bit8u  ,  last_mouse_command);
+        BXRS_NUM (Bit32u ,  timer_pending);
+        BXRS_BOOL(bx_bool,  irq1_requested);
+        BXRS_BOOL(bx_bool,  irq12_requested);
+        BXRS_BOOL(bx_bool,  scancodes_translate);
+        BXRS_BOOL(bx_bool,  expecting_scancodes_set);
+        BXRS_NUM (Bit8u  ,  current_scancodes_set);
+      }
+      BXRS_STRUCT_END;
+
+      BXRS_STRUCT_START(struct s_t::mouseStruct, mouse);
+      {
+        BXRS_NUM   (Bit8u  , sample_rate);
+        BXRS_NUM_D (Bit8u  , resolution_cpmm, "esolution in counts per mm");
+        BXRS_NUM   (Bit8u  , scaling);
+        BXRS_NUM   (Bit8u  , mode);
+        BXRS_NUM_D (Bit8u  , saved_mode, "the mode prior to entering wrap mode");
+        BXRS_NUM   (bx_bool, enable);
+        
+        BXRS_NUM   (Bit8u  , button_status);
+        BXRS_NUM   (Bit16s , delayed_dx);
+        BXRS_NUM   (Bit16s , delayed_dy);
+      }
+      BXRS_STRUCT_END;
+
+      BXRS_STRUCT_START(struct s_t::kbd_internal_buffer_t, kbd_internal_buffer);
+      {
+        BXRS_NUM      (int    , num_elements);
+        BXRS_ARRAY_NUM(Bit8u  , buffer, BX_KBD_ELEMENTS);
+        BXRS_NUM      (int    , head);
+        BXRS_BOOL     (bx_bool, expecting_typematic);
+        BXRS_BOOL     (bx_bool, expecting_led_write);
+        BXRS_NUM      (Bit8u  , delay);
+        BXRS_NUM      (Bit8u  , repeat_rate);
+        BXRS_NUM      (Bit8u  , led_status);
+        BXRS_BOOL     (bx_bool, scanning_enabled);
+      }
+      BXRS_STRUCT_END;
+
+      BXRS_STRUCT_START(struct s_t::mouse_internal_buffer_t, mouse_internal_buffer);
+      {
+        BXRS_NUM      (int  , num_elements);
+        BXRS_ARRAY_NUM(Bit8u, buffer, BX_MOUSE_BUFF_SIZE);
+        BXRS_NUM      (int  , head);
+      }
+      BXRS_STRUCT_END;
+
+      BXRS_ARRAY_NUM(Bit8u   , controller_Q, BX_KBD_CONTROLLER_QSIZE);
+      BXRS_NUM      (unsigned, controller_Qsize);
+      BXRS_NUM_D    (unsigned, controller_Qsource, "0=keyboard, 1=mouse");
+    }
+    BXRS_STRUCT_END;
+    
+    // The paste buffer does NOT exist in the hardware.  It is a bochs
+    // construction that allows the user to "paste" arbitrary length sequences of
+    // keystrokes into the emulated machine.  Since the hardware buffer is only
+    // 16 bytes, a very small amount of data can be added to the hardware buffer
+    // at a time.  The paste buffer keeps track of the bytes that have not yet
+    // been pasted.
+    //
+    // Lifetime of a paste buffer: The paste data comes from the system
+    // clipboard, which must be accessed using platform independent code in the
+    // gui.  Because every gui has its own way of managing the clipboard memory
+    // (in X windows, you're supposed to call Xfree for example), in the platform
+    // specific code we make a copy of the clipboard buffer with 
+    // "new Bit8u[length]".  Then the pointer is passed into
+    // bx_keyb_c::paste_bytes, along with the length.  The gui code never touches
+    // the pastebuf again, and does not free it.  The keyboard code is
+    // responsible for deallocating the paste buffer using delete [] buf.  The
+    // paste buffer is binary data, and it is probably NOT null terminated.  
+    //
+    // Summary: A paste buffer is allocated (new) in the platform-specific gui
+    // code, passed to the keyboard model, and is freed (delete[]) when it is no
+    // longer needed.
+    BXRS_DARRAY_NUM_D(Bit8u, pastebuf, Bit32u, pastebuf_len, 
+                      "ptr to bytes to be pasted, or NULL if none in progress");
+    BXRS_NUM_D (Bit32u ,pastebuf_ptr, "ptr to next byte to be added to hw buffer");
+    BXRS_NUM_D (Bit32u , pastedelay, "count before paste");
+    BXRS_BOOL_D(bx_bool, stop_paste, "stop the current paste operation on hardware reset");
+  }
+  BXRS_END;
+}
+
 
   void
 bx_keyb_c::reset(unsigned type)

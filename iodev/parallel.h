@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parallel.h,v 1.11 2002/10/25 11:44:40 bdenney Exp $
+// $Id: parallel.h,v 1.11.6.1 2003/03/28 09:26:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -35,14 +35,14 @@
 
 typedef struct {
   Bit8u data;
-  struct {
+  struct STATUS_t {
     bx_bool error;
     bx_bool slct;
     bx_bool pe;
     bx_bool ack;
     bx_bool busy;
   } STATUS;
-  struct {
+  struct CONTROL_t {
     bx_bool strobe;
     bx_bool autofeed;
     bx_bool init;
@@ -52,6 +52,7 @@ typedef struct {
   } CONTROL;
   FILE *output;
   bx_bool initmode;
+  void register_state(bx_param_c *list_p);
 } bx_par_t;
 
 
@@ -62,6 +63,7 @@ public:
   bx_parallel_c(void);
   ~bx_parallel_c(void);
   virtual void   init(void);
+  virtual void   register_state(bx_param_c *list_p);
   virtual void   reset(unsigned type);
 
 private:

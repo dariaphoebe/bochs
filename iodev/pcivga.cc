@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.cc,v 1.2 2003/01/23 19:31:28 vruppert Exp $
+// $Id: pcivga.cc,v 1.2.4.1 2003/03/28 09:26:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003 Mike Nordell
@@ -100,6 +100,20 @@ bx_pcivga_c::init(void)
   for (unsigned i = 0; i < sizeof(init_vals) / sizeof(*init_vals); ++i) {
     BX_PCIVGA_THIS s.pci_conf[init_vals[i].addr] = init_vals[i].val;
   }
+}
+
+void
+bx_pcivga_c::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_pcivga_c, this, "", list_p, 1);
+  {
+    BXRS_STRUCT(struct s_t, s);
+    {
+      BXRS_ARRAY_NUM(Bit8u, pci_conf, 256);
+    }
+    BXRS_STRUCT_END;
+  }
+  BXRS_END;
 }
 
   void

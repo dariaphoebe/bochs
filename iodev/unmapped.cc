@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: unmapped.cc,v 1.20 2002/12/27 10:20:53 vruppert Exp $
+// $Id: unmapped.cc,v 1.20.4.1 2003/03/28 09:26:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -71,6 +71,22 @@ bx_unmapped_c::init(void)
 {
   DEV_register_default_ioread_handler(this, read_handler, "Unmapped", 7);
   DEV_register_default_iowrite_handler(this, write_handler, "Unmapped", 7);
+}
+
+void
+bx_unmapped_c::register_state(bx_param_c *list_p)
+{
+  BXRS_START(bx_unmapped_c, this, "unmapped device", list_p, 3);
+  {
+    BXRS_STRUCT_START_D(struct s_t, s, "state information");
+    {
+      BXRS_NUM(Bit8u, port80);
+      BXRS_NUM(Bit8u, port8e);
+      BXRS_NUM(Bit8u, shutdown);
+    }
+    BXRS_STRUCT_END;
+  }
+  BXRS_END;
 }
 
   void

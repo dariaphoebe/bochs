@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.h,v 1.14.2.1 2003/03/25 08:45:21 slechta Exp $
+// $Id: dma.h,v 1.14.2.2 2003/03/28 09:26:03 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -46,7 +46,7 @@ public:
   ~bx_dma_c(void);
 
   virtual void     init(void);
-  virtual void     register_state(char *name, char* desc, bx_list_c *parent_p);
+  virtual void     register_state(bx_param_c *list_p);
   virtual void     reset(unsigned type);
   virtual void     raise_HLDA(void);
   virtual void     set_DRQ(unsigned channel, bx_bool val);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.h,v 1.4 2002/11/09 20:51:40 vruppert Exp $
+// $Id: pci2isa.h,v 1.4.6.1 2003/03/28 09:26:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -40,11 +40,12 @@ public:
   bx_pci2isa_c(void);
   ~bx_pci2isa_c(void);
   virtual void   init(void);
+  virtual void   register_state(bx_param_c *list_p);
   virtual void   reset(unsigned type);
 
 private:
 
-  struct {
+  struct s_t {
     Bit8u pci_conf[256];
     Bit8u elcr1;
     Bit8u elcr2; 
