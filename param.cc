@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: param.cc,v 1.1.2.1 2003/03/30 07:53:53 bdenney Exp $
+// $Id: param.cc,v 1.1.2.2 2003/04/04 03:18:02 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 
 #ifndef PARAM_STANDALONE
@@ -93,8 +93,8 @@ bx_param_c *bx_param_c::get_by_name (const char *name)
   if (is_type (BXT_LIST)) {
     return ((bx_list_c *)this)->get_by_name (name);
   }
-  char ppath[BX_PATHNAME_LEN];
-  get_param_path (ppath, BX_PATHNAME_LEN);
+  char ppath[BX_PARAM_PATH_MAX];
+  get_param_path (ppath, BX_PARAM_PATH_MAX);
   BX_PANIC (("get_by_name called on non-list param %s", ppath));
   return NULL;
 }
@@ -202,8 +202,8 @@ bx_param_num_c::set (Bit64s newval, bx_bool ignore_handler)
     val.number = newval;
   }
   if ((val.number < min || val.number > max) && max != BX_MAX_BIT64U) {
-    char ppath[BX_PATHNAME_LEN];
-    get_param_path (ppath, BX_PATHNAME_LEN);
+    char ppath[BX_PARAM_PATH_MAX];
+    get_param_path (ppath, BX_PARAM_PATH_MAX);
     BX_PANIC (("numerical parameter '%s' was set to %lld, which is out of range %lld to %lld", ppath, val.number, min, max));
   }
   if (dependent_list != NULL) update_dependents (dependent_list);
@@ -397,8 +397,8 @@ bx_shadow_num_c::set (Bit64s newval, bx_bool ignore_handler)
 {
   Bit64u tmp = 0;
   if ((newval < min || newval > max) && max != BX_MAX_BIT64U) {
-    char ppath[BX_PATHNAME_LEN];
-    get_param_path (ppath, BX_PATHNAME_LEN);
+    char ppath[BX_PARAM_PATH_MAX];
+    get_param_path (ppath, BX_PARAM_PATH_MAX);
     BX_PANIC (("numerical parameter %s was set to %lld, which is out of range %lld to %lld", ppath, newval, min, max));
   }
   switch (varsize) {
@@ -700,23 +700,21 @@ bx_list_c::init ()
       1);
 }
 
-bx_list_c *
-bx_list_c::clone ()
-{
-  bx_list_c *newlist = new bx_list_c (NULL, name, description, maxsize);
-  for (int i=0; i<get_size (); i++)
-    newlist->add (get(i));
-  newlist->set_options (get_options ());
-  return newlist;
-}
-
 void
 bx_list_c::add (bx_param_c *param)
 {
   if (this->size >= this->maxsize) {
-    char ppath[BX_PATHNAME_LEN];
-    get_param_path (ppath, BX_PATHNAME_LEN);
+    char ppath[BX_PARAM_PATH_MAX];
+    get_param_path (ppath, BX_PARAM_PATH_MAX);
     BX_PANIC (("add param '%s' to bx_list_c '%s': list capacity exceeded", param->get_name (), ppath));
+    return;
+  }
+  bx_bool allow_dups = ALLOW_DUPS & options->get ();
+  if (!allow_dups && get_by_name (param->get_name()) != NULL) {
+    char ppath[BX_PARAM_PATH_MAX];
+    get_param_path (ppath, BX_PARAM_PATH_MAX);
+    BX_PANIC (("add param '%s' to bx_list_c '%s': a child with that name already exists", param->get_name (), ppath));
+    return;
   }
   list[size] = param;
   size++;
@@ -780,7 +778,7 @@ void param_print_tree (bx_param_c *node, int level)
           // do not descend into the object.
           bx_bool is_link = (list != list->get(i)->get_parent ());
           if (is_link) {
-            char ppath[BX_PATHNAME_LEN];
+            char ppath[BX_PARAM_PATH_MAX];
             list->get(i)->get_param_path (ppath, sizeof(ppath));
             for (int indent=0; indent<level+1; indent++) printf ("  ");
             printf ("%s --> link to %s\n", list->get(i)->get_name (), ppath);
@@ -908,7 +906,7 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
         // do not descend into the object.
         bx_bool is_link = (list != list->get(i)->get_parent ());
         if (is_link) {
-          char ppath[BX_PATHNAME_LEN];
+          char ppath[BX_PARAM_PATH_MAX];
           list->get(i)->get_param_path (ppath, sizeof(ppath));
           for (int indent=0; indent<level+1; indent++) fprintf (m_ascii_fp, " ");
           fprintf (m_ascii_fp, "%s=<link>\"%s\"\n", list->get(i)->get_name (), ppath);
@@ -1811,7 +1809,7 @@ static
 bx_param_c *param_get2 (const char *full_ppath, const char *rest_of_ppath, bx_param_c *base)
 {
   const char *from = rest_of_ppath;
-  char component[BX_PATHNAME_LEN];
+  char component[BX_PARAM_PATH_MAX];
   char *to = component;
   // copy the first piece of ppath into component, stopping at first separator
   // or at the end of the string
@@ -1828,7 +1826,7 @@ bx_param_c *param_get2 (const char *full_ppath, const char *rest_of_ppath, bx_pa
   if (base->get_type() != BXT_LIST) {
     BX_PANIC (("param_get2: base was not a list!"));
   }
-  BX_INFO (("searching for component '%s' in list '%s'", component, base->get_name()));
+  BX_DEBUG (("searching for component '%s' in list '%s'", component, base->get_name()));
 
   // find the component in the list.
   bx_list_c *list = (bx_list_c *)base;
