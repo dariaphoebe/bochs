@@ -85,7 +85,6 @@
 #define BX_32BIT_REG_EDI 7
 
 
-#ifdef BX_IN_CPU_METHOD
 // access to 8 bit general registers
 #define AL (BX_CPU_THIS_PTR gen_reg[0].word.byte.rl)
 #define CL (BX_CPU_THIS_PTR gen_reg[1].word.byte.rl)
@@ -123,7 +122,6 @@
 
 // access to 32 bit instruction pointer
 #define EIP BX_CPU_THIS_PTR eip
-#endif //ifdef BX_IN_CPU_METHOD
 
 #define BX_READ_8BIT_REG(index)  (((index) < 4) ? \
   (BX_CPU_THIS_PTR gen_reg[index].word.byte.rl) : \
@@ -370,7 +368,6 @@ typedef struct {
   } bx_segment_reg_t;
 
 typedef void * (*BxVoidFPtr_t)(void);
-class BX_CPU_C;
 
 typedef struct BxInstruction_tag {
   // prefix stuff here...
@@ -398,11 +395,11 @@ typedef struct BxInstruction_tag {
   unsigned ilen; // instruction length
   unsigned os_32, as_32; // OperandSize/AddressSize is 32bit
   unsigned flags_in, flags_out; // flags needed, flags modified
-  void (BX_CPU_C::*ResolveModrm)(BxInstruction_tag *);
+  void (*ResolveModrm)(BxInstruction_tag *);
 #if BX_DYNAMIC_TRANSLATION
   BxVoidFPtr_t DTResolveModrm;
 #endif
-  void (BX_CPU_C::*execute)(BxInstruction_tag *);
+  void (*execute)(BxInstruction_tag *);
 #if BX_DYNAMIC_TRANSLATION
   unsigned DTAttr;
   Bit8u *   (*DTFPtr)(Bit8u *, BxInstruction_tag *);
@@ -410,9 +407,7 @@ typedef struct BxInstruction_tag {
 #endif
   } BxInstruction_t;
 
-typedef void (BX_CPU_C::*BxExecutePtr_t)(BxInstruction_t *);
-
-
+typedef void (*BxExecutePtr_t)(BxInstruction_t *);
 #if BX_DYNAMIC_TRANSLATION
 typedef Bit8u * (*BxDTASResolveModrm_t)(Bit8u *, BxInstruction_t *,
   unsigned, unsigned);
@@ -488,116 +483,16 @@ typedef struct {
   } bx_gen_reg_t;
 #endif
 
+#include "apic.h"
 
-typedef enum {
-  APIC_TYPE_IOAPIC,
-  APIC_TYPE_LOCAL_APIC
-} bx_apic_type_t;
-
-class bx_generic_apic_c {
-protected:
-  Bit32u base_addr;
-  Bit8u id;
-#define APIC_UNKNOWN_ID 0xff
-#define APIC_VERSION_ID 0x00170011  // same version as 82093 IOAPIC
-public:
-  bx_generic_apic_c ();
-  ~bx_generic_apic_c ();
-  virtual void init ();
-  virtual void hwreset () { }
-  Bit32u get_base (void) { return base_addr; }
-  void set_base (Bit32u newbase);
-  void set_id (Bit8u newid);
-  Bit8u get_id () { return id; }
-  virtual char *get_name();
-  Boolean is_selected (Bit32u addr, Bit32u len);
-  void read (Bit32u addr, void *data, unsigned len);
-  virtual void read_aligned(Bit32u address, Bit32u *data, unsigned len);
-  virtual void write(Bit32u address, Bit32u *value, unsigned len);
-  virtual void startup_msg (Bit32u vector);
-  // on local APIC, trigger means deliver to the CPU.
-  // on I/O APIC, trigger means direct to another APIC according to table.
-  virtual void trigger_irq (unsigned num, unsigned from);
-  virtual void untrigger_irq (unsigned num, unsigned from);
-  virtual Bit32u get_delivery_bitmask (Bit8u dest, Bit8u dest_mode);
-  Boolean deliver (Bit8u destination, Bit8u dest_mode, Bit8u delivery_mode, Bit8u vector, Bit8u polarity, Bit8u trig_mode);
-  virtual Boolean match_logical_addr (Bit8u address);
-  virtual bx_apic_type_t get_type ();
-};
-
-class bx_local_apic_c : public bx_generic_apic_c {
-#define BX_LOCAL_APIC_MAX_INTS 256
-  // TMR=trigger mode register.  Cleared for edge-triggered interrupts
-  // and set for level-triggered interrupts.  If set, local APIC must send
-  // EOI message to all other APICs.  EOI's are not implemented.
-  Bit8u tmr[BX_LOCAL_APIC_MAX_INTS];
-  // IRR=interrupt request register.  When an interrupt is triggered by
-  // the I/O APIC or another processor, it sets a bit in irr.  The bit is
-  // cleared when the interrupt is acknowledged by the processor.
-  Bit8u irr[BX_LOCAL_APIC_MAX_INTS];
-  // ISR=in-service register.  When an IRR bit is cleared, the corresponding
-  // bit in ISR is set.  The ISR bit is cleared when 
-  Bit8u isr[BX_LOCAL_APIC_MAX_INTS];
-  Bit32u arb_id, arb_priority, task_priority, log_dest, dest_format, spurious_vec;
-  Bit32u lvt_timer, lvt_thermal, lvt_perf, lvt_lint0, lvt_lint1, lvt_err;
-  Bit32u timer_initial, timer_current, timer_divide;
-  Bit32u apic_base_msr;
-  Bit32u icr_high, icr_low;
-  Bit32u err_status;
-#define APIC_ERR_ILLEGAL_ADDR    0x80
-#define APIC_ERR_RX_ILLEGAL_VEC  0x40
-#define APIC_ERR_TX_ILLEGAL_VEC  0x20
-#define APIC_ERR_RX_ACCEPT_ERR   0x08
-#define APIC_ERR_TX_ACCEPT_ERR   0x04
-#define APIC_ERR_RX_CHECKSUM     0x02
-#define APIC_ERR_TX_CHECKSUM     0x01
-public:
-  bx_local_apic_c(BX_CPU_C *mycpu);
-  ~bx_local_apic_c(void);
-  BX_CPU_C *cpu;
-  virtual void hwreset ();
-  virtual void init ();
-  static BX_CPU_C *get_cpu (Bit8u id);
-  void set_id (Bit8u newid);   // redefine to set cpu->name
-  virtual char *get_name();
-  virtual void write (Bit32u addr, Bit32u *data, unsigned len);
-  virtual void read_aligned(Bit32u address, Bit32u *data, unsigned len);
-  virtual void startup_msg (Bit32u vector);
-  // on local APIC, trigger means raise the CPU's INTR line.  For now
-  // I also have to raise pc_system.INTR but that should be replaced
-  // with the cpu-specific INTR signals.
-  virtual void trigger_irq (unsigned num, unsigned from);
-  virtual void untrigger_irq (unsigned num, unsigned from);
-  Bit8u acknowledge_int ();  // only the local CPU should call this
-  int highest_priority_int (Bit8u *array);
-  void service_local_apic ();
-  void print_status ();
-  virtual Boolean match_logical_addr (Bit8u address);
-  virtual Boolean is_local_apic () { return true; }
-  virtual bx_apic_type_t get_type () { return APIC_TYPE_LOCAL_APIC; }
-  virtual Bit32u get_delivery_bitmask (Bit8u dest, Bit8u dest_mode);
-  Bit8u get_ppr ();
-  Bit8u get_apr ();
-  };
-
-#define APIC_MAX_ID 16
-extern bx_generic_apic_c *apic_index[APIC_MAX_ID];
 
 
 #if BX_USE_SMF == 0
-// normal member functions. In methods of the class BX_CPU_C, you can use
-// the this pointer.  Outside the class, you need to use "BX_CPU." again.
-// To distinguish, check BX_IN_CPU_METHOD, which is defined to be 1 at
-// the top of every file in the cpu subdir.
-#ifdef BX_IN_CPU_METHOD
-#  define BX_CPU_THIS_PTR  this->     /* for cpu/*.cc */
-#else
-#  define BX_CPU_THIS_PTR  BX_CPU[0]->    /* for all others */
-#endif
+   // normal member functions, use this pointer
+#  define BX_CPU_THIS_PTR  this->
 #  define BX_SMF
 #  define BX_CPU_C_PREFIX  BX_CPU_C::
 #else
-#error BX_USE_SMF==1 will not work for a while
    // static member functions, use direct access
 #  define BX_CPU_THIS_PTR  BX_CPU.
 #  define BX_SMF           static
@@ -606,13 +501,9 @@ extern bx_generic_apic_c *apic_index[APIC_MAX_ID];
 
 typedef void (*BxDTShim_t)(void);
 
-class BX_MEM_C;
-
 class BX_CPU_C {
 
 public: // for now...
-
-  char name[64];
 
   // General register set
   // eax: accumulator
@@ -705,9 +596,6 @@ public: // for now...
   Bit32u    cr4;
 #endif
 
-  // pointer to the address space that this processor uses.
-  BX_MEM_C *mem;
-
   Boolean EXT; /* 1 if processing external interrupt or exception
                 * or if not related to current instruction,
                 * 0 if current CS:IP caused exception */
@@ -715,7 +603,7 @@ public: // for now...
 
   Bit32u   debug_trap; // holds DR6 value to be set as well
   volatile Boolean async_event;
-  volatile Boolean INTR;
+
 
   // for accessing registers by index number
   Bit16u *_16bit_base_reg[8];
@@ -760,7 +648,6 @@ public: // for now...
   Boolean debug_vm;		/* BW contains current mode*/
   Bit8u show_eip;		/* BW record eip at special instr f.ex eip */
   Bit8u show_flag;		/* BW shows instr class executed */
-  bx_guard_found_t guard_found;
 #endif
 
   // for paging
@@ -787,7 +674,7 @@ public: // for now...
   BX_SMF Boolean get_CF(void);
 
   // constructors & destructors...
-  BX_CPU_C(BX_MEM_C *addrspace);
+  BX_CPU_C(void);
   ~BX_CPU_C(void);
 
   // prototypes for CPU instructions...
@@ -1322,7 +1209,7 @@ public: // for now...
   BX_SMF void     atexit(void);
 
   // now for some ancillary functions...
-  BX_SMF void cpu_loop(Bit32s max_instr_count);
+  BX_SMF void cpu_loop(void);
   BX_SMF void decode_exgx16(unsigned need_fetch);
   BX_SMF void decode_exgx32(unsigned need_fetch);
 
@@ -1459,9 +1346,6 @@ public: // for now...
   BX_SMF inline Bit16u get_CX(void);
   BX_SMF inline Bit16u get_DX(void);
 
-  // error handling
-  BX_SMF void BxError(BxInstruction_t *);
-
 #if BX_CPU_LEVEL >= 2
   BX_SMF inline Boolean real_mode(void);
 #endif
@@ -1469,9 +1353,8 @@ public: // for now...
   BX_SMF inline Boolean protected_mode(void);
   BX_SMF inline Boolean v8086_mode(void);
 #endif
-#if BX_APIC_SUPPORT
-  bx_local_apic_c local_apic;
-  Boolean int_from_local_apic;
+#if BX_CPU_LEVEL >= 6
+  bx_apic_c local_apic;
 #endif
   };
 
@@ -1484,9 +1367,9 @@ public: // for now...
 #endif
 
 
-extern BX_CPU_C       *BX_CPU[BX_SMP_PROCESSORS];
+extern BX_CPU_C       BX_CPU;
 
-#ifdef BX_IN_CPU_METHOD
+
 BX_SMF inline void BX_CPU_C_PREFIX set_AX(Bit16u ax) { AX = ax; };
 BX_SMF inline void BX_CPU_C_PREFIX set_BX(Bit16u bx) { BX = bx; };
 BX_SMF inline void BX_CPU_C_PREFIX set_CX(Bit16u cx) { CX = cx; };
@@ -1513,7 +1396,6 @@ BX_SMF inline Bit16u BX_CPU_C_PREFIX get_AX(void) { return(AX); };
 BX_SMF inline Bit16u BX_CPU_C_PREFIX get_BX(void) { return(BX); };
 BX_SMF inline Bit16u BX_CPU_C_PREFIX get_CX(void) { return(CX); };
 BX_SMF inline Bit16u BX_CPU_C_PREFIX get_DX(void) { return(DX); };
-#endif //ifdef BX_IN_CPU_METHOD
 
 
 #if BX_CPU_LEVEL >= 2
