@@ -134,21 +134,21 @@ void BX_CPU_C::PMULHRW_PqQq(bxInstruction_c *i)
 {
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
+  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
-  /* op1 is a register or memory reference */
+  /* op2 is a register or memory reference */
   if (i->modC0()) {
-    op1 = BX_READ_MMX_REG(i->rm());
+    op2 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
   }
 
-  Bit32s product1 = Bit32s(MMXSW0(op2)) * Bit32s(MMXSW0(op1)) + 0x8000;
-  Bit32s product2 = Bit32s(MMXSW1(op2)) * Bit32s(MMXSW1(op1)) + 0x8000;
-  Bit32s product3 = Bit32s(MMXSW2(op2)) * Bit32s(MMXSW2(op1)) + 0x8000;
-  Bit32s product4 = Bit32s(MMXSW3(op2)) * Bit32s(MMXSW3(op1)) + 0x8000;
+  Bit32s product1 = Bit32s(MMXSW0(op1)) * Bit32s(MMXSW0(op2)) + 0x8000;
+  Bit32s product2 = Bit32s(MMXSW1(op1)) * Bit32s(MMXSW1(op2)) + 0x8000;
+  Bit32s product3 = Bit32s(MMXSW2(op1)) * Bit32s(MMXSW2(op2)) + 0x8000;
+  Bit32s product4 = Bit32s(MMXSW3(op1)) * Bit32s(MMXSW3(op2)) + 0x8000;
 
   MMXUW0(result) = Bit16u(product1 >> 16);
   MMXUW1(result) = Bit16u(product2 >> 16);
