@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.5 2003/03/21 20:49:00 slechta Exp $
+// $Id: siminterface.h,v 1.99.4.6 2003/03/24 01:21:18 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -796,6 +796,7 @@ public:
   bx_param_c *get_parent () { return (bx_param_c *) parent; }
   bx_bool child_of (bx_param_c *test_ancestor);
   void get_param_path (char *path_out, int maxlen);
+  bx_param_c *get_by_name (const char *name);
   void set_parent (bx_param_c *newparent);
   void set_format (const char *format) {text_format = format;}
   const char *get_format () {return text_format;}
@@ -826,7 +827,7 @@ class BOCHSAPI bx_param_num_c : public bx_param_c {
   // bx_param_bool_c will enable those parameters when this bool is true, and
   // disable them when this bool is false.
   bx_list_c *dependent_list;
-  void update_dependents ();
+  void update_dependents (bx_list_c *list);
 protected:
   Bit64s min, max, initial_val;
   union _uval_ {
@@ -1419,11 +1420,6 @@ void print_tree (bx_param_c *node, int level = 0);
 
 #define BXRS_UNION_END }
 
-
-////////////////////////////////////////////////////////////////////
-// base class simulator interface, contains just virtual functions.
-// I'm not longer sure that having a base class is going to be of any
-// use... -Bryce
 
 #include <setjmp.h>
 
