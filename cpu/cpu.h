@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.160.2.4 2004/02/28 09:23:25 sshwarts Exp $
+// $Id: cpu.h,v 1.160.2.5 2004/03/03 21:20:49 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1888,7 +1888,6 @@ union {
   BX_SMF void FST_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FST_DOUBLE_REAL(bxInstruction_c *);
   BX_SMF void FSTP_EXTENDED_REAL(bxInstruction_c *);
-
   BX_SMF void FIST_WORD_INTEGER(bxInstruction_c *);
   BX_SMF void FIST_DWORD_INTEGER(bxInstruction_c *);
   BX_SMF void FISTP_QWORD_INTEGER(bxInstruction_c *);
@@ -1910,7 +1909,6 @@ union {
   // add
   BX_SMF void FADD_ST0_STj(bxInstruction_c *);
   BX_SMF void FADD_STi_ST0(bxInstruction_c *);
-
   BX_SMF void FADD_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FADD_DOUBLE_REAL(bxInstruction_c *);
   BX_SMF void FIADD_WORD_INTEGER(bxInstruction_c *);
@@ -1919,9 +1917,9 @@ union {
   // mul
   BX_SMF void FMUL_ST0_STj(bxInstruction_c *);
   BX_SMF void FMUL_STi_ST0(bxInstruction_c *);
-
   BX_SMF void FMUL_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FMUL_DOUBLE_REAL(bxInstruction_c *);
+
   BX_SMF void FIMUL_WORD_INTEGER (bxInstruction_c *);
   BX_SMF void FIMUL_DWORD_INTEGER(bxInstruction_c *);
 
@@ -1930,11 +1928,11 @@ union {
   BX_SMF void FSUBR_ST0_STj(bxInstruction_c *);
   BX_SMF void FSUB_STi_ST0(bxInstruction_c *);
   BX_SMF void FSUBR_STi_ST0(bxInstruction_c *);
-
   BX_SMF void FSUB_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FSUBR_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FSUB_DOUBLE_REAL(bxInstruction_c *);
   BX_SMF void FSUBR_DOUBLE_REAL(bxInstruction_c *);
+
   BX_SMF void FISUB_WORD_INTEGER(bxInstruction_c *);
   BX_SMF void FISUBR_WORD_INTEGER(bxInstruction_c *);
   BX_SMF void FISUB_DWORD_INTEGER(bxInstruction_c *);
@@ -1945,11 +1943,11 @@ union {
   BX_SMF void FDIVR_ST0_STj(bxInstruction_c *);
   BX_SMF void FDIV_STi_ST0(bxInstruction_c *);
   BX_SMF void FDIVR_STi_ST0(bxInstruction_c *);
-
   BX_SMF void FDIV_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FDIVR_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FDIV_DOUBLE_REAL(bxInstruction_c *);
   BX_SMF void FDIVR_DOUBLE_REAL(bxInstruction_c *);
+
   BX_SMF void FIDIV_WORD_INTEGER(bxInstruction_c *);
   BX_SMF void FIDIVR_WORD_INTEGER(bxInstruction_c *);
   BX_SMF void FIDIV_DWORD_INTEGER(bxInstruction_c *);
@@ -1957,22 +1955,13 @@ union {
 
   // compare
   BX_SMF void FCOM_STi(bxInstruction_c *);
-  BX_SMF void FCOMP_STi(bxInstruction_c *);
-  BX_SMF void FCOMI_ST0_STj(bxInstruction_c *);
-  BX_SMF void FCOMIP_ST0_STj(bxInstruction_c *);
-  BX_SMF void FUCOMI_ST0_STj(bxInstruction_c *);
-  BX_SMF void FUCOMIP_ST0_STj(bxInstruction_c *);
   BX_SMF void FUCOM_STi(bxInstruction_c *);
-  BX_SMF void FUCOMP_STi(bxInstruction_c *);
-
+  BX_SMF void FCOMI_ST0_STj(bxInstruction_c *);
+  BX_SMF void FUCOMI_ST0_STj(bxInstruction_c *);
   BX_SMF void FCOM_SINGLE_REAL(bxInstruction_c *);
-  BX_SMF void FCOMP_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FCOM_DOUBLE_REAL(bxInstruction_c *);
-  BX_SMF void FCOMP_DOUBLE_REAL(bxInstruction_c *);
   BX_SMF void FICOM_WORD_INTEGER(bxInstruction_c *);
-  BX_SMF void FICOMP_WORD_INTEGER(bxInstruction_c *);
   BX_SMF void FICOM_DWORD_INTEGER(bxInstruction_c *);
-  BX_SMF void FICOMP_DWORD_INTEGER(bxInstruction_c *);
 
   BX_SMF void FCOMPP(bxInstruction_c *);  
   BX_SMF void FUCOMPP(bxInstruction_c *);

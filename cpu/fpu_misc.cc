@@ -58,6 +58,8 @@ void BX_CPU_C::FXCH_STi(bxInstruction_c *i)
 
   if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
   {
+      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
+
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
 	  /* Masked response */
@@ -72,11 +74,7 @@ void BX_CPU_C::FXCH_STi(bxInstruction_c *i)
               sti_tag = FPU_Tag_Special;
           }
       }
-      else
-      {
-          BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
-          return;
-      }
+      else return;
   }
 
   BX_WRITE_FPU_REGISTER_AND_TAG(st0_reg, st0_tag, i->rm());
@@ -140,15 +138,7 @@ void BX_CPU_C::FDECSTP(bxInstruction_c *i)
 
   clear_C1();
 
-  if (BX_CPU_THIS_PTR the_i387.tos == 0)
-  {
-    BX_CPU_THIS_PTR the_i387.tos = 7;
-  }
-  else
-  {
-    BX_CPU_THIS_PTR the_i387.tos --;
-  }
-
+  BX_CPU_THIS_PTR the_i387.tos = (BX_CPU_THIS_PTR the_i387.tos-1) & 7;
 #else
   BX_INFO(("FDECSTP: required FPU, configure --enable-fpu"));
 #endif
@@ -162,8 +152,7 @@ void BX_CPU_C::FINCSTP(bxInstruction_c *i)
 
   clear_C1();
 
-  BX_CPU_THIS_PTR the_i387.tos++;
-  BX_CPU_THIS_PTR the_i387.tos &= 0x07;
+  BX_CPU_THIS_PTR the_i387.tos = (BX_CPU_THIS_PTR the_i387.tos+1) & 7;
 #else
   BX_INFO(("FINCSTP: required FPU, configure --enable-fpu"));
 #endif

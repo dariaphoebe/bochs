@@ -29,8 +29,6 @@
 
 #if BX_SUPPORT_FPU
 #include "softfloat-specialize.h"
-
-extern softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word);
 #endif
 
 void BX_CPU_C::FLD_STi(bxInstruction_c *i)

@@ -234,7 +234,7 @@ void BX_CPU_C::FPLEGACY(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i, !CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
 
-  // FPU performs no specific operation and no internak x87 states
+  // FPU performs no specific operation and no internal x87 states
   // are affected
 #else
   BX_INFO(("legacy FPU opcodes: required FPU, configure --enable-fpu"));
