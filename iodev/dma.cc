@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.cc,v 1.22 2002/08/28 19:39:00 vruppert Exp $
+// $Id: dma.cc,v 1.17.6.1 2002/09/12 03:38:52 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -120,7 +120,7 @@ bx_dma_c::get_TC(void)
 bx_dma_c::init(bx_devices_c *d)
 {
   unsigned c, i, j;
-  BX_DEBUG(("Init $Id: dma.cc,v 1.22 2002/08/28 19:39:00 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: dma.cc,v 1.17.6.1 2002/09/12 03:38:52 bdenney Exp $"));
 
   BX_DMA_THIS devices = d;
 

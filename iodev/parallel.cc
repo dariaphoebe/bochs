@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parallel.cc,v 1.20 2002/08/27 19:54:46 bdenney Exp $
+// $Id: parallel.cc,v 1.17.6.1 2002/09/12 03:38:56 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -58,7 +58,7 @@ bx_parallel_c::~bx_parallel_c(void)
   void
 bx_parallel_c::init(bx_devices_c *d)
 {
-  BX_DEBUG(("Init $Id: parallel.cc,v 1.20 2002/08/27 19:54:46 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: parallel.cc,v 1.17.6.1 2002/09/12 03:38:56 bdenney Exp $"));
   BX_PAR_THIS devices = d;
 
   if (bx_options.par[0].Oenabled->get ()) {

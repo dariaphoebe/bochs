@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: floppy.cc,v 1.49 2002/08/27 19:54:46 bdenney Exp $
+// $Id: floppy.cc,v 1.36.4.1 2002/09/12 03:38:53 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -89,7 +89,7 @@ bx_floppy_ctrl_c::init(bx_devices_c *d, bx_cmos_c *cmos)
 {
   Bit8u i;
 
-  BX_DEBUG(("Init $Id: floppy.cc,v 1.49 2002/08/27 19:54:46 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: floppy.cc,v 1.36.4.1 2002/09/12 03:38:53 bdenney Exp $"));
   BX_FD_THIS devices = d;
 
   BX_REGISTER_DMA8_CHANNEL(2, bx_floppy.dma_read, bx_floppy.dma_write, "Floppy Drive");

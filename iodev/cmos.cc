@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cmos.cc,v 1.19 2002/08/31 21:31:11 cbothamy Exp $
+// $Id: cmos.cc,v 1.16.6.1 2002/09/12 03:38:51 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -62,7 +62,7 @@ bx_cmos_c::~bx_cmos_c(void)
 bx_cmos_c::init(bx_devices_c *d)
 {
 	unsigned i;
-	BX_DEBUG(("Init $Id: cmos.cc,v 1.19 2002/08/31 21:31:11 cbothamy Exp $"));
+	BX_DEBUG(("Init $Id: cmos.cc,v 1.16.6.1 2002/09/12 03:38:51 bdenney Exp $"));
 
 	// CMOS RAM & RTC
 

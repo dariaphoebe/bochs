@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.30 2002/09/09 16:56:55 kevinlawton Exp $
+// $Id: devices.cc,v 1.22.4.1 2002/09/12 03:38:51 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -84,7 +84,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.30 2002/09/09 16:56:55 kevinlawton Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.22.4.1 2002/09/12 03:38:51 bdenney Exp $"));
   mem = newmem;
 
   /* no read / write handlers defined */

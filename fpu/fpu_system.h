@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_system.h                                                             |
- |  $Id: fpu_system.h,v 1.4 2002/09/09 16:11:25 bdenney Exp $
+ |  $Id: fpu_system.h,v 1.3.10.1 2002/09/12 03:38:37 bdenney Exp $
  |                                                                           |
  | Copyright (C) 1992,1994,1997                                              |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
