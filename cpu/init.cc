@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.46.4.2 2003/03/30 05:42:18 bdenney Exp $
+// $Id: init.cc,v 1.46.4.3 2003/04/04 03:24:39 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -51,7 +51,7 @@ BX_CPU_C::BX_CPU_C(): bx_cpuid(0)
 
 void BX_CPU_C::init(BX_MEM_C *addrspace)
 {
-  BX_DEBUG(( "Init $Id: init.cc,v 1.46.4.2 2003/03/30 05:42:18 bdenney Exp $"));
+  BX_DEBUG(( "Init $Id: init.cc,v 1.46.4.3 2003/04/04 03:24:39 bdenney Exp $"));
   // BX_CPU_C constructor
   BX_CPU_THIS_PTR set_INTR (0);
 #if BX_SUPPORT_APIC
@@ -210,7 +210,8 @@ void BX_CPU_C::init(BX_MEM_C *addrspace)
   mem = addrspace;
   sprintf (name, "CPU %p", this);
 
-#if BX_WITH_WX
+#warning FIXME: this cpu param code is probably obsolete, but it is left here in case it is useful for reference.  Remove when it has been replaced with Brians BXRS_ style registration.
+#if 0 && BX_WITH_WX
   bx_param_c *param_root = SIM->get_param(".");
   bx_list_c *cpu_root = new bx_list_c (param_root, "cpu", "");
   char name[16], descr[16];
