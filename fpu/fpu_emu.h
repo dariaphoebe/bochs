@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.23.6.4 2004/03/26 21:36:09 sshwarts Exp $
+ |  $Id: fpu_emu.h,v 1.23.6.5 2004/03/27 20:09:52 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -66,9 +66,6 @@
 
 #define fpu_register(x)  ( *((FPU_REG *)(FPU_register_base + sizeof(FPU_REG) * (x & 7) )))
 #define	st(x)      ( *((FPU_REG *)(FPU_register_base + sizeof(FPU_REG) * ((FPU_tos+x) & 7) )))
-
-#define	NOT_EMPTY(i)	(!FPU_empty_i(i))
-#define	NOT_EMPTY_ST0	(st0_tag ^ TAG_Empty)
 
 /* FPU_push() does not affect the tags */
 #define FPU_push()	{ FPU_tos--; }

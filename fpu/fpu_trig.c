@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.8.5 2004/03/27 09:35:35 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.8.6 2004/03/27 20:09:53 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -19,6 +19,11 @@
 #include "reg_constant.h"	
 
 static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n);
+
+/* Extra bits to take pi/2 to more than 128 bits precision. */
+static FPU_REG const CONST_PI2extra = MAKE_REG(NEG, -66,
+					 0xfc8f8cbb, 0xece675d1);
+
 
 #define BETTER_THAN_486
 

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_constant.c                                                           |
- |  $Id: reg_constant.c,v 1.7.2.3 2004/03/19 17:00:25 sshwarts Exp $
+ |  $Id: reg_constant.c,v 1.7.2.4 2004/03/27 20:09:53 sshwarts Exp $
  |                                                                           |
  | All of the constant FPU_REGs                                              |
  |                                                                           |
@@ -24,10 +24,6 @@ FPU_REG const CONST_PI   = MAKE_REG(POS, 1, 0x2168c235, 0xc90fdaa2);
    a better way. */
 FPU_REG CONST_PI2  = MAKE_REG(POS, 0, 0x2168c235, 0xc90fdaa2);
 FPU_REG const CONST_PI4  = MAKE_REG(POS, -1, 0x2168c235, 0xc90fdaa2);
-
-/* Extra bits to take pi/2 to more than 128 bits precision. */
-FPU_REG const CONST_PI2extra = MAKE_REG(NEG, -66,
-					 0xfc8f8cbb, 0xece675d1);
 
 /* Only the sign (and tag) is used in internal zeroes */
 FPU_REG const CONST_Z    = MAKE_REG(POS, EXP_UNDER, 0x0, 0x0);

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  errors.c                                                                 |
- |  $Id: errors.c,v 1.18.2.4 2004/03/26 21:36:09 sshwarts Exp $
+ |  $Id: errors.c,v 1.18.2.5 2004/03/27 20:09:52 sshwarts Exp $
  |                                                                           |
  |  The error handling functions for wm-FPU-emu                              |
  |                                                                           |
@@ -341,37 +341,6 @@ asmlinkage int denormal_operand(void)
 }
 
 
-asmlinkage int arith_overflow(FPU_REG *dest)
-{
-  int tag = TAG_Valid;
-
-  if (FPU_control_word & FPU_CW_Overflow)
-    {
-      /* The masked response */
-      reg_copy(&CONST_INF, dest);
-      tag = TAG_Special;
-    }
-  else
-    {
-      /* Subtract the magic number from the exponent */
-      addexponent(dest, (-3 * (1 << 13)));
-    }
-
-  EXCEPTION(EX_Overflow);
-  if (FPU_control_word & FPU_CW_Overflow)
-    {
-      /* The overflow exception is masked. */
-      /* By definition, precision is lost.
-	 The roundup bit (C1) is also set because we have
-	 "rounded" upwards to Infinity. */
-      EXCEPTION(EX_Precision | SW_C1);
-      return tag;
-    }
-
-  return tag;
-}
-
-
 asmlinkage int arith_round_overflow(FPU_REG *dest, u8 sign)
 {
   int tag = TAG_Valid;
@@ -503,18 +472,6 @@ void FPU_stack_underflow(void)
     {
       /* The masked response */
       FPU_copy_to_reg0(&CONST_QNaN, TAG_Special);
-    }
-
-  EXCEPTION(EX_StackUnder);
-}
-
-
-void FPU_stack_underflow_i(int i)
-{
- if (FPU_control_word & FPU_CW_Invalid)
-    {
-      /* The masked response */
-      FPU_copy_to_regi(&CONST_QNaN, TAG_Special, i);
     }
 
   EXCEPTION(EX_StackUnder);
