@@ -1,4 +1,4 @@
-# Copyright (C) 2001  MandrakeSoft S.A.
+# Copyright (C) 2000  MandrakeSoft S.A.
 #
 #   MandrakeSoft S.A.
 #   43, rue d'Aboukir
@@ -40,7 +40,6 @@ RANLIB = @RANLIB@
 VIDEO_OBJS_VGA = vga.o
 VIDEO_OBJS_HGA = hga.o
 VIDEO_OBJS = @VIDEO_OBJS@
-IOAPIC_OBJS = @IOAPIC_OBJS@
 
 BX_INCDIRS = @DASH@I.. -I../@INSTRUMENT_DIR@
 LOCAL_CXXFLAGS = $(MCH_CFLAGS)
@@ -69,7 +68,7 @@ BX_HW_IODEV_OBJS = \
   @CDROM_OBJS@ \
   @SB16_OBJS@ \
   $(MCH_OBJS) \
-  $(IOAPIC_OBJS)
+  ioapic.o
 
 
 BX_IODEV_OBJS = $(BX_HW_IODEV_OBJS)
