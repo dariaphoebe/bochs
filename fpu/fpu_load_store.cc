@@ -275,7 +275,6 @@ void BX_CPU_C::FST_STi(bxInstruction_c *i)
   int pop_stack = i->nnn() & 1;
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
-
   if (st0_tag == FPU_Tag_Empty)
   {
      BX_CPU_THIS_PTR FPU_stack_underflow(i->rm(), pop_stack);
@@ -285,7 +284,6 @@ void BX_CPU_C::FST_STi(bxInstruction_c *i)
   floatx80 st0_reg = BX_READ_FPU_REG(0);
 
   BX_WRITE_FPU_REGISTER_AND_TAG(st0_reg, st0_tag, i->rm());
-
   if (pop_stack)
      BX_CPU_THIS_PTR the_i387.FPU_pop();
 #else
@@ -311,13 +309,25 @@ void BX_CPU_C::FST_SINGLE_REAL(bxInstruction_c *i)
   }
   else
   {
-     softfloat_status_word_t status = 
-        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+     floatx80 a = BX_READ_FPU_REG(0);
+     
+     if (floatx80_is_unsupported(a))
+     {
+         BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
 
-     save_reg = floatx80_to_float32(BX_READ_FPU_REG(0), status);
+         if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
+            return;
+     }
+     else
+     {
+         softfloat_status_word_t status = 
+            FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-        return;
+         save_reg = floatx80_to_float32(a, status);
+
+         if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+            return;
+     }
   }
 
   write_virtual_dword(i->seg(), RMAddr(i), &save_reg);
@@ -347,13 +357,25 @@ void BX_CPU_C::FST_DOUBLE_REAL(bxInstruction_c *i)
   }
   else
   {
-     softfloat_status_word_t status = 
-        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+     floatx80 a = BX_READ_FPU_REG(0);
+     
+     if (floatx80_is_unsupported(a))
+     {
+         BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
 
-     save_reg = floatx80_to_float64(BX_READ_FPU_REG(0), status);
+         if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
+            return;
+     }
+     else
+     {
+         softfloat_status_word_t status = 
+            FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-        return;
+         save_reg = floatx80_to_float64(a, status);
+
+         if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+            return;
+     }
   }
 
   write_virtual_qword(i->seg(), RMAddr(i), &save_reg);
@@ -413,13 +435,25 @@ void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
   }
   else
   {
-     softfloat_status_word_t status = 
-        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+     floatx80 a = BX_READ_FPU_REG(0);
+     
+     if (floatx80_is_unsupported(a))
+     {
+         BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
 
-     save_reg = floatx80_to_int16(BX_READ_FPU_REG(0), status);
+         if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
+            return;
+     }
+     else
+     {
+         softfloat_status_word_t status = 
+            FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-        return;
+         save_reg = floatx80_to_int16(a, status);
+
+         if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+            return;
+     }
   }
 
   write_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&save_reg));
@@ -451,13 +485,25 @@ void BX_CPU_C::FIST_DWORD_INTEGER(bxInstruction_c *i)
   }
   else
   {
-     softfloat_status_word_t status = 
-        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+     floatx80 a = BX_READ_FPU_REG(0);
+     
+     if (floatx80_is_unsupported(a))
+     {
+         BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
 
-     save_reg = floatx80_to_int32(BX_READ_FPU_REG(0), status);
+         if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
+            return;
+     }
+     else
+     {
+         softfloat_status_word_t status = 
+            FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-        return;
+         save_reg = floatx80_to_int32(a, status);
+
+         if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+            return;
+     }
   }
 
   write_virtual_dword(i->seg(), RMAddr(i), (Bit32u*)(&save_reg));
@@ -487,13 +533,25 @@ void BX_CPU_C::FISTP_QWORD_INTEGER(bxInstruction_c *i)
   }
   else
   {
-     softfloat_status_word_t status = 
-        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+     floatx80 a = BX_READ_FPU_REG(0);
+     
+     if (floatx80_is_unsupported(a))
+     {
+         BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
 
-     save_reg = floatx80_to_int64(BX_READ_FPU_REG(0), status);
+         if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
+            return;
+     }
+     else
+     {
+         softfloat_status_word_t status = 
+            FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-        return;
+         save_reg = floatx80_to_int64(a, status);
+
+         if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+            return;
+     }
   }
 
   write_virtual_qword(i->seg(), RMAddr(i), (Bit64u*)(&save_reg));
@@ -508,7 +566,12 @@ void BX_CPU_C::FBSTP_PACKED_BCD(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  Bit16u save_reg_hi = 0xFFFF; /* The masked response */
+  /* 
+   * The packed BCD integer indefinite encoding (FFFFC000000000000000H) 
+   * is stored in response to a masked floating-point invalid-operation 
+   * exception.
+   */
+  Bit16u save_reg_hi = 0xFFFF;
   Bit64u save_reg_lo = BX_CONST64(0xC000000000000000);
 
   clear_C1();
@@ -522,45 +585,51 @@ void BX_CPU_C::FBSTP_PACKED_BCD(bxInstruction_c *i)
   }
   else
   {
-     softfloat_status_word_t status = 
-        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+     floatx80 a = BX_READ_FPU_REG(0);
 
-     Bit64s save_val = floatx80_to_int64(BX_READ_FPU_REG(0), status);
-
-     int sign = (save_val < 0);
-     if (sign) 
-        save_val = -save_val;
- 
-     if (save_val > BX_CONST64(999999999999999999))
+     if (floatx80_is_unsupported(a))
      {
-        float_raise(status, float_flag_invalid);
+        BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
+
+        if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
+           return;
      }
-     
-     /* 
-      * The packed BCD integer indefinite encoding (FFFFC000000000000000H) 
-      * is stored in response to a masked floating-point invalid-operation 
-      * exception.
-      */
-
-     if (! (status.float_exception_flags & float_flag_invalid))
+     else
      {
-        save_reg_hi = (sign) ? 0x8000 : 0;
-        save_reg_lo = 0;
+        softfloat_status_word_t status = 
+           FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-        for (int i=0; i<16; i++)
+        Bit64s save_val = floatx80_to_int64(a, status);
+
+        int sign = (save_val < 0);
+        if (sign) 
+           save_val = -save_val;
+ 
+        if (save_val > BX_CONST64(999999999999999999))
         {
-            save_reg_lo += ((Bit64u)(save_val % 10)) << (4*i);
-            save_val /= 10;
+           float_raise(status, float_flag_invalid);
+        }
+     
+        if (! (status.float_exception_flags & float_flag_invalid))
+        {
+           save_reg_hi = (sign) ? 0x8000 : 0;
+           save_reg_lo = 0;
+
+           for (int i=0; i<16; i++)
+           {
+              save_reg_lo += ((Bit64u)(save_val % 10)) << (4*i);
+              save_val /= 10;
+           }
+
+           save_reg_hi += (save_val % 10);
+           save_val /= 10;
+           save_reg_hi += (save_val % 10) << 4;
         }
 
-        save_reg_hi += (save_val % 10);
-        save_val /= 10;
-        save_reg_hi += (save_val % 10) << 4;
+        /* check for fpu arithmetic exceptions */
+        if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+           return;
      }
-
-     /* check for fpu arithmetic exceptions */
-     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-        return;
   }
 
   // write packed bcd to memory
@@ -592,13 +661,25 @@ void BX_CPU_C::FISTTP16(bxInstruction_c *i)
   }
   else
   {
-     softfloat_status_word_t status = 
-        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+     floatx80 a = BX_READ_FPU_REG(0);
+     
+     if (floatx80_is_unsupported(a))
+     {
+         BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
 
-     save_reg = floatx80_to_int16_round_to_zero(BX_READ_FPU_REG(0), status);
+         if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
+            return;
+     }
+     else
+     {
+         softfloat_status_word_t status = 
+            FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-        return;
+         save_reg = floatx80_to_int16_round_to_zero(a, status);
+
+         if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+            return;
+     }
   }
 
   write_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&save_reg));
@@ -628,13 +709,25 @@ void BX_CPU_C::FISTTP32(bxInstruction_c *i)
   }
   else
   {
-     softfloat_status_word_t status = 
-        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+     floatx80 a = BX_READ_FPU_REG(0);
+     
+     if (floatx80_is_unsupported(a))
+     {
+         BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
 
-     save_reg = floatx80_to_int32_round_to_zero(BX_READ_FPU_REG(0), status);
+         if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
+            return;
+     }
+     else
+     {
+         softfloat_status_word_t status = 
+            FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-        return;
+         save_reg = floatx80_to_int32_round_to_zero(a, status);
+
+         if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+            return;
+     }
   }
 
   write_virtual_dword(i->seg(), RMAddr(i), (Bit32u*)(&save_reg));
@@ -664,13 +757,25 @@ void BX_CPU_C::FISTTP64(bxInstruction_c *i)
   }
   else
   {
-     softfloat_status_word_t status = 
-        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+     floatx80 a = BX_READ_FPU_REG(0);
+     
+     if (floatx80_is_unsupported(a))
+     {
+         BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
 
-     save_reg = floatx80_to_int64_round_to_zero(BX_READ_FPU_REG(0), status);
+         if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
+            return;
+     }
+     else
+     {
+         softfloat_status_word_t status = 
+            FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-        return;
+         save_reg = floatx80_to_int64_round_to_zero(a, status);
+
+         if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+            return;
+     }
   }
 
   write_virtual_qword(i->seg(), RMAddr(i), (Bit64u*)(&save_reg));

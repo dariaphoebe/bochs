@@ -437,7 +437,7 @@ BX_CPP_INLINE int floatx80_is_signaling_nan(floatx80 a)
 
 BX_CPP_INLINE int floatx80_is_unsupported(floatx80 a)
 {
-    return ((a.exp != 0) && !(a.fraction & BX_CONST64(0x8000000000000000)));
+    return ((a.exp & 0x7FFF) && !(a.fraction & BX_CONST64(0x8000000000000000)));
 }
 
 /*----------------------------------------------------------------------------
