@@ -1,4 +1,4 @@
-//  Copyright (C) 2001  MandrakeSoft S.A.
+//  Copyright (C) 2000  MandrakeSoft S.A.
 //
 //    MandrakeSoft S.A.
 //    43, rue d'Aboukir
@@ -24,7 +24,6 @@
 // if including from C parser, need basic types etc
 #ifndef __cplusplus
 #include "config.h"
-#include "osdep.h"
 #endif
 
 #if BX_USE_LOADER
@@ -88,8 +87,8 @@ void bx_dbg_print_string_command(Bit32u addr);
 void bx_dbg_show_command(char*); /* BW */
 void enter_playback_entry();
 void bx_dbg_print_stack_command(int nwords);
-void bx_dbg_watch(int read, Bit32u address);
-void bx_dbg_unwatch(int read, Bit32u address);
+void bx_dbg_watch(Boolean read, Bit32u address);
+void bx_dbg_unwatch(Boolean read, Bit32u address);
 void bx_dbg_continue_command(void);
 void bx_dbg_stepN_command(bx_dbg_icount_t count);
 void bx_dbg_set_command(char *p1, char *p2, char *p3);
@@ -102,6 +101,8 @@ void bx_dbg_quit_command(void);
 void bx_dbg_info_program_command(void);
 void bx_dbg_info_registers_command(void);
 void bx_dbg_info_dirty_command(void);
+void bx_dbg_info_control_regs_command(void);
+void bx_dbg_info_linux_command(void);
 void bx_dbg_examine_command(char *command, char *format, Boolean format_passed,
                     Bit32u addr, Boolean addr_passed, int simulator);
 void bx_dbg_setpmem_command(Bit32u addr, unsigned len, Bit32u val);
@@ -119,6 +120,7 @@ void bx_dbg_maths_command(char *command, int data1, int data2);
 void bx_dbg_maths_expression_command(char *expr);
 void bx_dbg_v2l_command(unsigned seg_no, Bit32u offset);
 extern Boolean watchpoint_continue;
+void bx_dbg_linux_syscall ();
 
 #ifdef __cplusplus
 }
@@ -369,6 +371,7 @@ typedef struct {
                    Bit32u addr1, Bit32u addr2, Bit32u *crc);
   } bx_dbg_callback_t;
 
+extern bx_dbg_callback_t bx_dbg_callback[BX_NUM_SIMULATORS];
 
 void BX_SIM1_INIT(bx_dbg_callback_t *, int argc, char *argv[]);
 #ifdef BX_SIM2_INIT
