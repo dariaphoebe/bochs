@@ -283,9 +283,7 @@ static int countLeadingZeros32(Bit32u a)
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
-    Bit8s shiftCount;
-
-    shiftCount = 0;
+    int shiftCount = 0;
     if (a < 0x10000) {
         shiftCount += 16;
         a <<= 16;
@@ -303,11 +301,9 @@ static int countLeadingZeros32(Bit32u a)
 | `a'.  If `a' is zero, 64 is returned.
 *----------------------------------------------------------------------------*/
 
-static int countLeadingZeros64(Bit64u a)
+BX_CPP_INLINE int countLeadingZeros64(Bit64u a)
 {
-    Bit8s shiftCount;
-
-    shiftCount = 0;
+    int shiftCount = 0;
     if (a < ((Bit64u) 1)<<32) {
         shiftCount += 32;
     }
@@ -388,75 +384,6 @@ BX_CPP_INLINE void
         }
         z0 = 0;
     }
-    *z1Ptr = z1;
-    *z0Ptr = z0;
-}
-
-/*----------------------------------------------------------------------------
-| Shifts the 192-bit value formed by concatenating `a0', `a1', and `a2' right
-| by 64 _plus_ the number of bits given in `count'.  The shifted result is
-| at most 128 nonzero bits; these are broken into two 64-bit pieces which are
-| stored at the locations pointed to by `z0Ptr' and `z1Ptr'.  The bits shifted
-| off form a third 64-bit result as follows:  The _last_ bit shifted off is
-| the most-significant bit of the extra result, and the other 63 bits of the
-| extra result are all zero if and only if _all_but_the_last_ bits shifted off
-| were all zero.  This extra result is stored in the location pointed to by
-| `z2Ptr'.  The value of `count' can be arbitrarily large.
-|     (This routine makes more sense if `a0', `a1', and `a2' are considered
-| to form a fixed-point value with binary point between `a1' and `a2'.  This
-| fixed-point value is shifted right by the number of bits given in `count',
-| and the integer part of the result is returned at the locations pointed to
-| by `z0Ptr' and `z1Ptr'.  The fractional part of the result may be slightly
-| corrupted as described above, and is returned at the location pointed to by
-| `z2Ptr'.)
-*----------------------------------------------------------------------------*/
-
-BX_CPP_INLINE void
- shift128ExtraRightJamming(
-     Bit64u a0,
-     Bit64u a1,
-     Bit64u a2,
-     Bit16s count,
-     Bit64u *z0Ptr,
-     Bit64u *z1Ptr,
-     Bit64u *z2Ptr
-)
-{
-    Bit64u z0, z1, z2;
-    Bit8s negCount = (-count) & 63;
-
-    if (count == 0) {
-        z2 = a2;
-        z1 = a1;
-        z0 = a0;
-    }
-    else {
-        if (count < 64) {
-            z2 = a1<<negCount;
-            z1 = (a0<<negCount) | (a1>>count);
-            z0 = a0>>count;
-        }
-        else {
-            if (count == 64) {
-                z2 = a1;
-                z1 = a0;
-            }
-            else {
-                a2 |= a1;
-                if (count < 128) {
-                    z2 = a0<<negCount;
-                    z1 = a0>>(count & 63);
-                }
-                else {
-                    z2 = (count == 128) ? a0 : (a0 != 0);
-                    z1 = 0;
-                }
-            }
-            z0 = 0;
-        }
-        z2 |= (a2 != 0);
-    }
-    *z2Ptr = z2;
     *z1Ptr = z1;
     *z0Ptr = z0;
 }

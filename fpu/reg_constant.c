@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_constant.c                                                           |
- |  $Id: reg_constant.c,v 1.7.4.1 2004/04/09 12:29:50 sshwarts Exp $
+ |  $Id: reg_constant.c,v 1.7.4.2 2004/04/11 13:34:09 sshwarts Exp $
  |                                                                           |
  | All of the constant FPU_REGs                                              |
  |                                                                           |
@@ -18,12 +18,6 @@
 #include "control_w.h"
 
 FPU_REG const CONST_1    = MAKE_REG(POS, 0, 0x00000000, 0x80000000);
-FPU_REG const CONST_PI   = MAKE_REG(POS, 1, 0x2168c235, 0xc90fdaa2);
-/* bbd: make CONST_PI2 non-const so that you can write "&CONST_PI2" when
-   calling a function.  Otherwise you get const warnings.  Surely there's
-   a better way. */
-FPU_REG CONST_PI2  = MAKE_REG(POS, 0, 0x2168c235, 0xc90fdaa2);
-FPU_REG const CONST_PI4  = MAKE_REG(POS, -1, 0x2168c235, 0xc90fdaa2);
 
 /* Only the sign (and tag) is used in internal zeroes */
 FPU_REG const CONST_Z    = MAKE_REG(POS, EXP_UNDER, 0x0, 0x0);

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.10.2 2004/04/10 22:22:34 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.10.3 2004/04/11 13:34:09 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -22,6 +22,13 @@ static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n);
 /* Extra bits to take pi/2 to more than 128 bits precision. */
 static FPU_REG const CONST_PI2extra = MAKE_REG(NEG, -66,
 					 0xfc8f8cbb, 0xece675d1);
+
+/* bbd: make CONST_PI2 non-const so that you can write "&CONST_PI2" when
+   calling a function.  Otherwise you get const warnings.  Surely there's
+   a better way. */
+static FPU_REG CONST_PI2  = MAKE_REG(POS, 0, 0x2168c235, 0xc90fdaa2);
+static FPU_REG const CONST_PI4  = MAKE_REG(POS, -1, 0x2168c235, 0xc90fdaa2);
+static FPU_REG const CONST_PI   = MAKE_REG(POS,  1, 0x2168c235, 0xc90fdaa2);
 
 
 //#define BETTER_THAN_486
