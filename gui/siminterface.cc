@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94.4.4 2003/03/21 20:49:00 slechta Exp $
+// $Id: siminterface.cc,v 1.94.4.5 2003/03/24 01:20:53 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -882,15 +882,28 @@ bx_param_c::bx_param_c (bx_param_c *parent, char *name, char *description)
 
 void bx_param_c::get_param_path (char *path_out, int maxlen)
 {
-  if (get_parent() == NULL) {
-    // set output string to my name
-    strncpy (path_out, name, maxlen);
-    return;
+  if (get_parent() == NULL || get_parent() == root_param) {
+    // Start with an empty string.
+    // Never print the name of the root param.
+    path_out[0] = 0;
+  } else {
+    // build path of the parent, add a period, add path of this node
+    get_parent()->get_param_path (path_out, maxlen);
+    strncat (path_out, ".", maxlen);
   }
-  // build path of the parent, add a period, add path of this node
-  get_parent()->get_param_path (path_out, maxlen);
-  strncat (path_out, ".", maxlen);
   strncat (path_out, name, maxlen);
+}
+
+
+bx_param_c *bx_param_c::get_by_name (const char *name)
+{
+  if (is_type (BXT_LIST)) {
+    return ((bx_list_c *)this)->get_by_name (name);
+  }
+  char pname[BX_PATHNAME_LEN];
+  get_param_path (pname, BX_PATHNAME_LEN);
+  BX_PANIC (("get_by_name called on non-list param %s", pname));
+  return NULL;
 }
 
 bx_bool bx_param_c::child_of (bx_param_c *test_ancestor)
@@ -966,7 +979,7 @@ bx_param_num_c::set_handler (param_event_handler handler)
 
 void bx_param_num_c::set_dependent_list (bx_list_c *l) {
   dependent_list = l; 
-  update_dependents ();
+  update_dependents (dependent_list);
 }
 
 Bit64s 
@@ -986,15 +999,18 @@ bx_param_num_c::set (Bit64s newval)
 {
   if (handler) {
     // the handler can override the new value and/or perform some side effect
+    // BBD: we should really send the oldval and newval to the handler,
+    // so that it can change it back if necessary.  Maybe it should be
+    // changed to   val.number = (*handler)(this, 1, val.number, newval);
     val.number = newval;
     (*handler)(this, 1, newval);
   } else {
-    // just set the value.  This code does not check max/min.
+    // just set the value
     val.number = newval;
   }
   if ((val.number < min || val.number > max) && max != BX_MAX_BIT64U)
     BX_PANIC (("numerical parameter '%s' was set to %lld, which is out of range %lld to %lld", get_name (), val.number, min, max));
-  if (dependent_list != NULL) update_dependents ();
+  if (dependent_list != NULL) update_dependents (dependent_list);
 }
 
 void bx_param_num_c::set_range (Bit64u min, Bit64u max)
@@ -1007,14 +1023,20 @@ void bx_param_num_c::set_initial_val (Bit64s initial_val) {
   this->val.number = this->initial_val = initial_val;
 }
 
-void bx_param_num_c::update_dependents ()
+void bx_param_num_c::update_dependents (bx_list_c *list)
 {
-  if (dependent_list) {
+  if (list) {
     int en = val.number && enabled;
-    for (int i=0; i<dependent_list->get_size (); i++) {
-      bx_param_c *param = dependent_list->get (i);
+    for (int i=0; i<list->get_size (); i++) {
+      bx_param_c *param = list->get (i);
       if (param != this)
 	param->set_enabled (en);
+      // descend into lists
+      if (param->is_type (BXT_LIST)) {
+	BX_INFO (("update_dependents descending into list '%s'", param->get_name()));
+	update_dependents ((bx_list_c *)param);
+	BX_INFO (("update_dependents returned from descent into list '%s'", param->get_name()));
+      }
     }
   }
 }
@@ -1023,7 +1045,7 @@ void
 bx_param_num_c::set_enabled (int en)
 {
   bx_param_c::set_enabled (en);
-  update_dependents ();
+  update_dependents (dependent_list);
 }
 
 // Signed 64 bit
@@ -1461,7 +1483,7 @@ bx_list_c::init ()
   this->title = new bx_param_string_c (NULL,
       "title of list",
       "",
-      get_name (), 80);
+      get_description (), 80);
   this->options = new bx_param_num_c (NULL,
       "list_option", "", 0, BX_MAX_BIT64S,
       0);
@@ -1550,7 +1572,9 @@ void print_tree (bx_param_c *node, int level)
           }
         }
         else {
-          printf("        .. suppressed ..\n");
+	  for (i=0; i<level; i++)
+	    printf ("  ");
+          printf(".. %d items suppressed ..\n", list->get_size ());
         }
 	break;
       }
