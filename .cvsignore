@@ -7,3 +7,4 @@ config.log
 config.status
 install-x11-fonts
 bochsout.txt
+config.cache
