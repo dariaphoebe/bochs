@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.19.4.1 2003/03/26 01:51:36 cbothamy Exp $
+// $Id: harddrv.h,v 1.19.4.2 2003/04/10 17:50:38 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -56,11 +56,11 @@
  } standard_header_t;
 
 #define REDOLOG_TYPE "Redolog"
-#define REDOLOG_TYPE_UNDOABLE "Undoable"
-#define REDOLOG_TYPE_VOLATILE "Volatile"
-#define REDOLOG_TYPE_GROWABLE "Growable"
-#define REDOLOG_TYPE_Z_UNDOABLE "z-Undoable"
-#define REDOLOG_TYPE_Z_VOLATILE "z-Volatile"
+#define REDOLOG_SUBTYPE_UNDOABLE "Undoable"
+#define REDOLOG_SUBTYPE_VOLATILE "Volatile"
+#define REDOLOG_SUBTYPE_GROWABLE "Growable"
+// #define REDOLOG_SUBTYPE_Z_UNDOABLE "z-Undoable"
+// #define REDOLOG_SUBTYPE_Z_VOLATILE "z-Volatile"
 
 #define REDOLOG_PAGE_NOT_ALLOCATED (0xffffffff)
 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.97.4.1 2003/03/26 01:51:36 cbothamy Exp $
+// $Id: harddrv.cc,v 1.97.4.2 2003/04/10 17:50:34 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -157,7 +157,7 @@ bx_hard_drive_c::init(void)
   Bit8u channel;
   char  string[5];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.4.1 2003/03/26 01:51:36 cbothamy Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.4.2 2003/04/10 17:50:34 cbothamy Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
@@ -4052,7 +4052,7 @@ redolog_t::make_header (const char* type, Bit64u size)
 
         // Set standard header values
         strcpy((char*)header.standard.magic, STANDARD_HEADER_MAGIC);
-        strcpy((char*)header.standard.subtype, REDOLOG_TYPE);
+        strcpy((char*)header.standard.type, REDOLOG_TYPE);
         strcpy((char*)header.standard.subtype, type);
         header.standard.version = htod32(STANDARD_HEADER_VERSION);
         header.standard.header = htod32(STANDARD_HEADER_SIZE);
@@ -4404,7 +4404,7 @@ growable_image_t::growable_image_t(Bit64u _size)
 
 int growable_image_t::open (const char* pathname)
 {
-        return redolog->open(pathname,REDOLOG_TYPE_GROWABLE,size);
+        return redolog->open(pathname,REDOLOG_SUBTYPE_GROWABLE,size);
 }
 
 void growable_image_t::close ()
@@ -4448,9 +4448,9 @@ int undoable_image_t::open (const char* pathname)
 
         redolog_name = (char*)malloc(strlen(pathname) + strlen(REDOLOG_EXTENSION) + 1);
         sprintf (redolog_name, "%s%s", pathname, REDOLOG_EXTENSION);
-        if (redolog->open(redolog_name,REDOLOG_TYPE_UNDOABLE,size) < 0)
+        if (redolog->open(redolog_name,REDOLOG_SUBTYPE_UNDOABLE,size) < 0)
         {
-                if (redolog->create(redolog_name, REDOLOG_TYPE_UNDOABLE, size) < 0)
+                if (redolog->create(redolog_name, REDOLOG_SUBTYPE_UNDOABLE, size) < 0)
                 {
                         BX_PANIC(("Can't open or create redolog %s",redolog_name));
                         return -1;
@@ -4525,7 +4525,7 @@ int volatile_image_t::open (const char* pathname)
                 BX_PANIC(("Can't create volatile redolog"));
                 return -1;
         }
-        if (redolog->create(filedes, REDOLOG_TYPE_VOLATILE, size) < 0)
+        if (redolog->create(filedes, REDOLOG_SUBTYPE_VOLATILE, size) < 0)
         {
                 BX_PANIC(("Can't create volatile redolog"));
                 return -1;
@@ -4648,9 +4648,9 @@ int z_undoable_image_t::open (const char* pathname)
 
         redolog_name = (char*)malloc(strlen(pathname) + strlen(REDOLOG_EXTENSION) + 1);
         sprintf (redolog_name, "%s%s", pathname, REDOLOG_EXTENSION);
-        if (redolog->open(redolog_name,REDOLOG_TYPE_UNDOABLE,size) < 0)
+        if (redolog->open(redolog_name,REDOLOG_SUBTYPE_UNDOABLE,size) < 0)
         {
-                if (redolog->create(redolog_name, REDOLOG_TYPE_UNDOABLE, size) < 0)
+                if (redolog->create(redolog_name, REDOLOG_SUBTYPE_UNDOABLE, size) < 0)
                 {
                         BX_PANIC(("Can't open or create redolog %s",redolog_name));
                         return -1;
@@ -4725,7 +4725,7 @@ int z_volatile_image_t::open (const char* pathname)
                 BX_PANIC(("Can't create volatile redolog"));
                 return -1;
         }
-        if (redolog->create(filedes, REDOLOG_TYPE_VOLATILE, size) < 0)
+        if (redolog->create(filedes, REDOLOG_SUBTYPE_VOLATILE, size) < 0)
         {
                 BX_PANIC(("Can't create volatile redolog"));
                 return -1;
