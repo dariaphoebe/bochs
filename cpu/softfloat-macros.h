@@ -27,6 +27,11 @@ the work is derivative, and (2) the source code includes prominent notice with
 these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
+/*============================================================================
+ * Adapted for Bochs (x86 achitecture simulator) by
+ *            Stanislav Shwartsman (gate@fidonet.org.il)
+ * ==========================================================================*/ 
+
 /*----------------------------------------------------------------------------
 | Shifts `a' right by the number of bits given in `count'.  If any nonzero
 | bits are shifted off, they are ``jammed'' into the least significant bit of
