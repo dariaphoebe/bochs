@@ -27,19 +27,8 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-
 #if BX_SUPPORT_FPU
-BX_CPP_INLINE floatx80& floatx80_abs(floatx80 &reg)
-{
-    reg.exp &= 0x7FFF;
-    return reg;   
-}
-
-BX_CPP_INLINE floatx80& floatx80_chs(floatx80 &reg)
-{
-    reg.exp ^= 0x8000;
-    return reg;   
-}
+#include "softfloat-fpu.h"
 #endif
 
 /* D9 C8 */

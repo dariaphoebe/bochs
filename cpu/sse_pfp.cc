@@ -2467,7 +2467,6 @@ void BX_CPU_C::HADDPD_VpdWpd(bxInstruction_c *i)
 
   softfloat_status_word_t status_word;
   mxcsr_to_softfloat_status_word(status_word, MXCSR);
-  int rc;
 
   if (MXCSR.get_DAZ()) 
   {
@@ -2515,7 +2514,6 @@ void BX_CPU_C::HADDPS_VpsWps(bxInstruction_c *i)
 
   softfloat_status_word_t status_word;
   mxcsr_to_softfloat_status_word(status_word, MXCSR);
-  int rc;
 
   if (MXCSR.get_DAZ()) {
 	op1.xmm32u(0) = handleDAZ(op1.xmm32u(0));
@@ -2570,7 +2568,6 @@ void BX_CPU_C::HSUBPD_VpdWpd(bxInstruction_c *i)
 
   softfloat_status_word_t status_word;
   mxcsr_to_softfloat_status_word(status_word, MXCSR);
-  int rc;
 
   if (MXCSR.get_DAZ()) 
   {
@@ -2618,7 +2615,6 @@ void BX_CPU_C::HSUBPS_VpsWps(bxInstruction_c *i)
 
   softfloat_status_word_t status_word;
   mxcsr_to_softfloat_status_word(status_word, MXCSR);
-  int rc;
 
   if (MXCSR.get_DAZ()) {
 	op1.xmm32u(0) = handleDAZ(op1.xmm32u(0));

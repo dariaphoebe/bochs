@@ -28,7 +28,7 @@
 #define LOG_THIS BX_CPU_THIS_PTR
 
 #if BX_SUPPORT_FPU
-#include "softfloat-specialize.h"
+#include "softfloat-fpu.h"
 #endif
 
 void BX_CPU_C::FLD_STi(bxInstruction_c *i)
@@ -365,7 +365,7 @@ void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  Bit16s save_reg;
+  Bit16s save_reg = int16_indefinite;
 
   int pop_stack = (i->b1() & 0x10) >> 1;
 
@@ -375,11 +375,7 @@ void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-     {
-        save_reg = 0x8000; /* The masked response */
-     }
-     else
+     if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
         return;
   }
   else
@@ -387,18 +383,7 @@ void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
      softfloat_status_word_t status = 
         FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-     Bit32s val32 = floatx80_to_int32(BX_READ_FPU_REG(0), status);
-   
-     if ((val32 > (Bit32s) BX_MAX_BIT16S) || (val32 < (Bit32s) BX_MIN_BIT16S))
-     {
-         float_raise(status, float_flag_invalid);
-
-         if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-         {
-            save_reg = 0x8000; /* The masked response */
-         }
-     }
-     else save_reg = (Bit16s) val32;
+     save_reg = floatx80_to_int16(BX_READ_FPU_REG(0), status);
 
      if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
         return;
@@ -501,7 +486,8 @@ void BX_CPU_C::FISTTP16(bxInstruction_c *i)
 {
 #if BX_SUPPORT_PNI
   BX_CPU_THIS_PTR prepareFPU(i);
-  Bit16s save_reg;
+
+  Bit16s save_reg = int16_indefinite; /* The masked response */
 
   clear_C1();
 
@@ -509,11 +495,7 @@ void BX_CPU_C::FISTTP16(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-     {
-        save_reg = 0x8000; /* The masked response */
-     }
-     else
+     if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
         return;
   }
   else
@@ -521,18 +503,7 @@ void BX_CPU_C::FISTTP16(bxInstruction_c *i)
      softfloat_status_word_t status = 
         FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-     Bit32s val32 = floatx80_to_int32_round_to_zero(BX_READ_FPU_REG(0), status);
-   
-     if ((val32 > (Bit32s) BX_MAX_BIT16S) || (val32 < (Bit32s) BX_MIN_BIT16S))
-     {
-         float_raise(status, float_flag_invalid);
-
-         if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-         {
-            save_reg = 0x8000; /* The masked response */
-         }
-     }
-     else save_reg = (Bit16s) val32;
+     save_reg = floatx80_to_int16_round_to_zero(BX_READ_FPU_REG(0), status);
 
      if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
         return;
