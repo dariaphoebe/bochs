@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.7 2003/03/24 02:21:24 bdenney Exp $
+// $Id: siminterface.h,v 1.99.4.8 2003/03/25 08:45:10 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -1188,26 +1188,30 @@ typedef struct {
 
 void print_tree (bx_param_c *node, int level = 0);
 
-// NOTE:  The following set of BX_REGISTER macros are for use in registering system state for the
-// purposes of debugging visibility and save/restore functions.  The goal of the macros is to
-// completely eliminate the need to explicity set up the tree of bx_param_c's that represent the
-// tree of machine state.  Simplicity and consistency in use of these macros is important.  These
-// are still under development.   --BJS
+/*---------------------------------------------------------------------------*/
+// NOTE:  The following set of BX_REGISTER macros are for use in registering 
+// system state for the purposes of debugging visibility and save/restore 
+// functions.  The goal of the macros is to completely eliminate the need to 
+// explicity set up the tree of bx_param_c's that represent the tree of machine
+//state.  Simplicity and consistency in use of these macros is important.  
+// These are still under development.   --BJS
 // TODO: provide examples  --BJS
-#define BX_REGISTER_NUM(_variable_p, _name, _desc, _parent_p)              \
+#define BX_REGISTER_NUM(_variable_p, _name, _desc, _parent_p)                 \
    (new bx_shadow_num_c(_parent_p, _name, _desc, _variable_p))
 
-#define BX_REGISTER_ENUM(_variable_p, _name, _desc, _parent_p)             \
+#define BX_REGISTER_ENUM(_variable_p, _name, _desc, _parent_p)                \
    (new bx_shadow_num_c(_parent_p, _name, _desc, (Bit32u*)(_variable_p)))
 
-#define BX_REGISTER_BOOL(_variable_p, _name, _desc, _parent_p)              \
-   (new bx_shadow_bool_c(_parent_p, _name, _desc, (bx_bool*)(_variable_p))) \
+#define BX_REGISTER_BOOL(_variable_p, _name, _desc, _parent_p)                \
+   (new bx_shadow_bool_c(_parent_p, _name, _desc, (bx_bool*)(_variable_p)))
 
-#define BX_REGISTER_BITS(_variable_p, _name, _desc, _bit_high, _bit_low, _parent_p)\
-   (new bx_shadow_num_c(_parent_p, _name, _desc, _variable_p, _highbit, _lowbit))
+#define BX_REGISTER_BITS(_variable_p,_name,_desc,_bit_high,_bit_low,_parent_p)\
+   (new bx_shadow_num_c(_parent_p,_name,_desc,_variable_p,_highbit,_lowbit))
 
 
-#define BX_REGISTER_ARRAY(_this_list_p, _itr, _index_name, _name, _desc, _parent_p, _size)\
+/*---------------------------------------------------------------------------*/
+#define BX_REGISTER_ARRAY(_this_list_p, _itr, _index_name, _name, _desc,      \
+                          _parent_p, _size)                                   \
   static char foobar##_this_list_p[_size][30];                                \
   char *_index_name = foobar##_this_list_p[0];                                \
   bx_list_c *_this_list_p = new bx_list_c(_parent_p, _name, _desc, _size);    \
@@ -1225,23 +1229,30 @@ void print_tree (bx_param_c *node, int level = 0);
 #define FIXME_FAKE_PARENT NULL
 
 
-// NOTE: The following macros are the same as the above with the exception that they allow one extra
-// parameter for registering a handler function.  The will be filled in when the above macros have
-// been tested and considered stable.   --BJS
+/*---------------------------------------------------------------------------*/
+// NOTE: The following macros are the same as the above with the exception 
+// that they allow one extra parameter for registering a handler function.  The
+// will be filled in when the above macros have  been tested and considered 
+// stable.   --BJS
 // TODO: write these!  or find a better way to do this!
 #define BX_REGISTER_NUM_H(_variable_p, _name, _desc, _parent_p, _handler_p)
 
 #define BX_REGISTER_BOOL_H(_variable_p, _name, _desc, _parent_p, _handler_p)
 
-#define BX_REGISTER_BITS_H(_variable_p, _name, _desc, _bit_high, _bit_low, _parent_p, _handler_p)
+#define BX_REGISTER_BITS_H(_variable_p, _name, _desc, _bit_high, _bit_low,    \
+                           _parent_p, _handler_p)
 
-#define BX_REGISTER_ARRAY_H(_this_list_p, _itr, _index_name, _name, _desc, _parent_p, _size, _handler_p)    
+#define BX_REGISTER_ARRAY_H(_this_list_p, _itr, _index_name, _name, _desc,    \
+                            _parent_p, _size, _handler_p)    
   
-#define BX_REGISTER_LIST_H(_this_list_p, _name, _desc, _parent_p, _size, _handler_p)
+#define BX_REGISTER_LIST_H(_this_list_p, _name, _desc, _parent_p, _size,      \
+                           _handler_p)
 
 #define BX_REGISTER_HANDLER_NULL param_event_handler // FIXME:  --BJS
 
 
+
+/*---------------------------------------------------------------------------*/
 // NOTE:  The following macros are testing the possibility of using implicit
 // operands rather than using the lare number of explicit parameters that the
 // BX_REGISTER functions require.  The goal is to make registering state in a
@@ -1249,19 +1260,27 @@ void print_tree (bx_param_c *node, int level = 0);
 // necessary for a large number of classes. --BJS
 // TODO: provide examples and documentation.  These will become standard over
 // the above sets of macros.
+// TODO: for large arrays, we want to use a different approach.  perhaps, 
+// we can use this macro to decide what approach we take with large arrays,
+// and that way, the registration of devices is ignorant of this decisio.
 #define BXRS_START(_type, _this, _name, _desc, _parent_p, _def_size)          \
-{                                                                             \
-  void *_ireg_this = _this;                                                   \
-  void *_old_this;                                                            \
-  Bit64u _ireg_def_size = _def_size;                                          \
+{                           /* one may look at some of this code and wonder */\
+  void *_ireg_this = _this; /* what is going on.  the seemingling pointless */\
+/*void *_old_this = NULL+1;    operations were added to stop compiler       */\
+/*_old_this--;                 warnings with unused variables.    --BJS     */\
+  Bit64u _ireg_def_size = _def_size+1;                                        \
+  _ireg_def_size--;                                                           \
   typedef _type _ireg_this_t;                                                 \
-  bx_list_c *_ireg_cur_list_p =                                               \
-    new bx_list_c (_parent_p, _name, _desc, _def_size);                       \
-  bx_list_c *_reg_old_list_p;
+  bx_list_c *_ireg_cur_list_p = (bx_list_c*)_parent_p;
+
+
+  //bx_list_c *_ireg_cur_list_p =                                          
+  //  new bx_list_c (_parent_p, _name, _desc, _def_size);
 
 #define BXRS_END                                                              \
 }
 
+/*---------------------------------------------------------------------------*/
 #define BXRS_STRUCT_START(_type, _var)                                        \
   BXRS_STRUCT_START_D(_type, _var, "")
 
@@ -1279,6 +1298,7 @@ void print_tree (bx_param_c *node, int level = 0);
 #define BXRS_STRUCT_END                                                       \
 }
 
+/*---------------------------------------------------------------------------*/
 #define BXRS_ENUM(_type, _var)                                                \
   BXRS_ENUM_D(_type, _var, "")
 
@@ -1288,6 +1308,7 @@ void print_tree (bx_param_c *node, int level = 0);
                      _desc,                                                   \
                      (Bit32u*)(&((*((_ireg_this_t*)_ireg_this))._var)));
 
+/*---------------------------------------------------------------------------*/
 #define BXRS_NUM(_type, _var)                                                 \
   BXRS_NUM_D(_type, _var, "")
 
@@ -1297,6 +1318,7 @@ void print_tree (bx_param_c *node, int level = 0);
                      _desc,                                                   \
                      (_type*)(&((*((_ireg_this_t*)_ireg_this))._var)));
 
+/*---------------------------------------------------------------------------*/
 #define BXRS_BOOL(_type, _var)                                                \
   BXRS_BOOL_D(_type, _var, "")
 
@@ -1306,6 +1328,7 @@ void print_tree (bx_param_c *node, int level = 0);
                      _desc,                                                   \
                      (_type*)(&((*((_ireg_this_t*)_ireg_this))._var)));
 
+/*---------------------------------------------------------------------------*/
 #define BXRS_BITS(_type, _var, _highbit, _lowbit)                             \
   BXRS_BITS_D(_type, _var, _highbit, _lowbit, "")
 
@@ -1317,6 +1340,7 @@ void print_tree (bx_param_c *node, int level = 0);
                      _highbit,                                                \
                      _lowbit);
 
+/*---------------------------------------------------------------------------*/
 #define BXRS_ARRAY_START(_type, _var, _size)                                  \
   BXRS_ARRAY_START_D(_type, _var, _size, "")
 
@@ -1346,6 +1370,10 @@ void print_tree (bx_param_c *node, int level = 0);
 #define BXRS_ARRAY_END                                                        \
 }}
 
+/*---------------------------------------------------------------------------*/
+// TODO: for large arrays, we want to use a different approach.  perhaps, 
+// we can use this macro to decide what approach we take with large arrays,
+// and that way, the registration of devices is ignorant of this decisio.
 #define BXRS_ARRAY_NUM(_type, _var, _size)                                    \
   BXRS_ARRAY_NUM_D(_type, _var, _size, "")                                    \
 
@@ -1366,6 +1394,7 @@ void print_tree (bx_param_c *node, int level = 0);
                       &((*((_ireg_this_t*)_ireg_this))._var[_itr])   );       \
 }
 
+/*---------------------------------------------------------------------------*/
 #define BXRS_ARRAY_ENUM(_type, _var, _size)                                   \
   BXRS_ARRAY_ENUM_D(_type, _var, _size, _desc)
 
@@ -1386,8 +1415,8 @@ void print_tree (bx_param_c *node, int level = 0);
                      (Bit32u*)&((*((_ireg_this_t*)_ireg_this))._var[_itr]));  \
 }
 
-//                 (&((*((_ireg_this_t*)_ireg_this)).##_var))
 
+/*---------------------------------------------------------------------------*/
 #define BXRS_ARRAY_BOOL(_type, _var, _size)                                   \
   BXRS_ARRAY_BOOL_D(_type, _var, _size, "")
 
@@ -1403,22 +1432,124 @@ void print_tree (bx_param_c *node, int level = 0);
           _index_name = foobar[_itr],                                         \
           true);                                                              \
        _itr++)                                                                \
-  new bx_shadow_bool_c(_ireg_cur_list_p, _index_name, _desc,                  \
-                      &(((_ireg_this_t *)_ireg_arr_this)[_itr]));             \
+  new bx_shadow_bool_c(_ireg_cur_list_p, _index_name, "",                     \
+                      &((*((_ireg_this_t*)_ireg_this))._var[_itr])   );       \
 }
 
+
+/*---------------------------------------------------------------------------*/
 #define BXRS_OBJ(_type, _var)                                                 \
-  BXRS_OBJ_D(_type, _var, "")                                                 \
+  BXRS_OBJ_D(_type, _var, "")
 
 #define BXRS_OBJ_D(_type, _var, _desc)                                        \
+  BXRS_STRUCT_START(_type, _var);                                             \
   ((_type*)&(((_ireg_this_t*)_ireg_this)->_var))->                            \
-    register_state(#_var, _desc, _ireg_cur_list_p);
+    register_state(#_var, _desc, _ireg_cur_list_p);                           \
+  BXRS_STRUCT_END;
 
 
+/*---------------------------------------------------------------------------*/
+// for pointers to objects
+#define BXRS_OBJP(_type, _var_p)                                              \
+   BXRS_OBJP_D(_type, _var_p, "")                                             \
+
+#define BXRS_OBJP_D(_type, _var_p, _desc)                                     \
+  BXRS_STRUCT_START(_type, _var);                                             \
+  ((_type*) (((_ireg_this_t*)_ireg_this)->_var_p))->                          \
+    register_state(#_var_p, _desc, _ireg_cur_list_p);                         \
+  BXRS_STRUCT_END;
+
+
+/*---------------------------------------------------------------------------*/
 #define BXRS_UNION_START {
-#define BXRS_UNION_START_D {
 
+#define BXRS_UNION_START_D BXRS_UNION_START
+  
 #define BXRS_UNION_END }
+  
+
+/*---------------------------------------------------------------------------*/
+// maximum size of a line in checkpoint ascii file
+#define MAX_CHECKPOINT_LINE_SIZE 256  
+
+/*---------------------------------------------------------------------------*/
+// This class was created to encapsulate the save/restore mechanisms related
+// to checkpointing the bochs pc system.  --BJS
+// FIXME: this class should have a different name since it can include other
+// functions related to the state registration tree.  For instance, we can
+// merge checkpoint functions with functions that are used to display the tree
+// to the screen (ie, dump to STDOUT or display internal debugger windows)
+class bx_checkpoint_c {
+ public:
+  bx_checkpoint_c();
+  ~bx_checkpoint_c();
+
+  // given a checkpoint name and the state registry tree, read() and write()
+  // serialize the bochs system with the appropriate files on the host 
+  // platform disk.  These files will be saved and loaded from the directory
+  // named by variable checkpoint_name.
+  void write(const char *checkpoint_name, bx_param_c *current_tree_p);
+
+  // The local tree passed in must be an initialized tree of params that
+  // correspond to the tree of registered state.  The checkpoint files will
+  // be read from the host platform's disk, and the values of corresponding 
+  // parameters will be loaded into the params and pointers in the
+  // current_tree_p passed into the function.
+  void read(const char *checkpoint_name, bx_param_c *param_tree_p);
+
+  // the state registration tree will be dumped to the STDOUT
+  void dump_param_tree(bx_param_c *param_tree_p);
+  
+ private:
+  // file pointers used for serializing bochs with data files
+  FILE *m_ascii_fp;
+  FILE *m_data_fp;
+  
+  // buffer used to get data from file and a cursor marking the current pos.
+  char  m_line_buf[MAX_CHECKPOINT_LINE_SIZE];  
+  char *m_line_buf_cursor;
+
+  // dump the parameter tree to the appropriate FILE stream.
+  void save_param_tree(bx_param_c *param_tree_p, int level=0);
+  void load_param_tree(bx_param_c *param_tree_p,
+                       char *qualified_path_str="");
+
+  // Once a the parameter name and value string have been extracted, these
+  // functions load the values (or traverse the tree in the case of list)
+  // into the appropriate parameter on the current tree level in bx_list_c*
+  // parent_p.
+  bx_bool load_param_hex_num(bx_param_c *parent_p, 
+                             char *param_str, 
+                             char *value_str,
+                             char *qualified_path_str);
+  bx_bool load_param_dec_num(bx_param_c *parent_p, 
+                             char *param_str, 
+                             char *value_str,
+                             char *qualified_path_str);
+  bx_bool load_param_string(bx_param_c *parent_p, 
+                            char *param_str, 
+                            char *value_str,
+                            char *qualified_path_str);
+  bx_bool load_param_bool(bx_param_c *parent_p, 
+                          char *param_str, 
+                          char *value_str,
+                          char *qualified_path_str);
+  bx_bool load_param_enum(bx_param_c *parent_p, 
+                          char *param_str, 
+                          char *value_str,
+                          char *qualified_path_str);
+  bx_bool load_param_list(bx_param_c *parent_p, 
+                          char *param_str, 
+                          char *value_str,
+                          char *qualified_path_str);
+
+  // read one token from the current ascii file (m_ascii_fp)
+  // NOTE: read_next_param() consumes the '=' character but does not return it
+  // and read_next_value () consumes '\n' but does not return it.  Also, both
+  // functions do not return surrounding white space
+  char *read_next_param();
+  char *read_next_value();
+};
 
 
 #include <setjmp.h>

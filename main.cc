@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.5 2003/03/24 04:19:15 bdenney Exp $
+// $Id: main.cc,v 1.223.4.6 2003/03/25 08:45:04 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -2345,7 +2345,8 @@ bx_init_hardware()
   DEV_init_devices();
   printf ("after init_devices\n");
   printf ("------------------\n");
-  print_tree (SIM->get_param ("."));
+#warning SLECHTA DISABLED because of segfault.  not sure why yet!
+  //print_tree (SIM->get_param ("."));
   printf ("------------------\n");
   DEV_reset_devices(BX_RESET_HARDWARE);
   bx_gui->init_signal_handlers ();

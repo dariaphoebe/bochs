@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cmos.h,v 1.9 2003/01/04 00:02:07 vruppert Exp $
+// $Id: cmos.h,v 1.9.4.1 2003/03/25 08:45:18 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -43,6 +43,7 @@ public:
   ~bx_cmos_c(void);
 
   virtual void init(void);
+  virtual void register_state(char *name, char *desc, bx_list_c *parent_p);
   virtual void checksum_cmos(void);
   virtual void reset(unsigned type);
 
@@ -56,7 +57,7 @@ public:
     return s.timeval;
   }
 
-  struct {
+  struct s_t {
     int     periodic_timer_index;
     Bit32u  periodic_interval_usec;
     int     one_second_timer_index;

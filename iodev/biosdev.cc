@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: biosdev.cc,v 1.5 2002/10/24 21:07:08 bdenney Exp $
+// $Id: biosdev.cc,v 1.5.6.1 2003/03/25 08:45:13 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -106,6 +106,23 @@ bx_biosdev_c::init(void)
   DEV_register_iowrite_handler(this, write_handler, 0x0502, "VGABios Panic Port 2", 7);
   DEV_register_iowrite_handler(this, write_handler, 0x0503, "VGABios Debug Port", 7);
   DEV_register_iowrite_handler(this, write_handler, 0x0500, "VGABios Info Port", 7);
+}
+
+  void 
+bx_biosdev_c::register_state(char *name, char *desc, bx_list_c *parent_p)
+{
+  BXRS_START(bx_biosdev_c, this, name, desc, parent_p, 4);
+  {
+    BXRS_STRUCT_START(struct s_t, s);
+    {
+      BXRS_ARRAY_NUM(Bit8u, bios_message, BX_BIOS_MESSAGE_SIZE);
+      BXRS_NUM      (unsigned int, bios_message_i);  
+      BXRS_ARRAY_NUM(Bit8u, vgabios_message, BX_BIOS_MESSAGE_SIZE);
+      BXRS_NUM      (unsigned int, vgabios_message_i);
+    } 
+    BXRS_STRUCT_END;
+  }
+  BXRS_END;
 }
 
   void

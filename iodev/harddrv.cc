@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.97.2.1 2003/03/21 20:49:01 slechta Exp $
+// $Id: harddrv.cc,v 1.97.2.2 2003/03/25 08:45:23 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -176,7 +176,7 @@ bx_hard_drive_c::init(void)
   Bit8u channel;
   char  string[5];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.1 2003/03/21 20:49:01 slechta Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.2 2003/03/25 08:45:23 slechta Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
@@ -503,10 +503,11 @@ bx_hard_drive_c::init(void)
     BX_INFO(("Floppy boot signature check is %sabled", bx_options.OfloppySigCheck->get() ? "dis" : "en"));
     }
 
-#warning slechta debug.  remove at some point
-  BX_REGISTER_LIST(parent_p, "root2", "slechta's fancy root2", (bx_list_c*)0, 15);
-  this->register_state ("hrddrv", "the hard drive", parent_p);
-  print_tree(parent_p,0);
+  // FIXME:
+  //#warning slechta debug.  remove at some point
+  //BX_REGISTER_LIST(parent_p, "root2", "slechta's fancy root2", (bx_list_c*)0, 15);
+  //this->register_state ("hrddrv", "the hard drive", parent_p);
+  //print_tree(parent_p,0);
 
 
 }
@@ -3535,7 +3536,7 @@ cdrom_t::register_state(char* name, char *desc, bx_list_c *parent_p)
     BXRS_BOOL(bx_bool, ready);
     BXRS_BOOL(bx_bool, locked);
 #ifdef LOWLEVEL_CDROM
-# warning implement registration of LOWLEVEL_CDROM* cd;
+    if (cd) BXRS_OBJP(LOWLEVEL_CDROM, cd);
 #endif
     BXRS_NUM (uint32, capacity);
     BXRS_NUM (int, next_lba);

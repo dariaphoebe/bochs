@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.cc,v 1.28 2003/03/09 14:03:32 vruppert Exp $
+// $Id: dma.cc,v 1.28.2.1 2003/03/25 08:45:20 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -134,7 +134,7 @@ bx_dma_c::get_TC(void)
 bx_dma_c::init(void)
 {
   unsigned c, i, j;
-  BX_DEBUG(("Init $Id: dma.cc,v 1.28 2003/03/09 14:03:32 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: dma.cc,v 1.28.2.1 2003/03/25 08:45:20 slechta Exp $"));
 
   /* 8237 DMA controller */
 
@@ -182,6 +182,60 @@ bx_dma_c::init(void)
     }
   BX_DMA_THIS s[1].chan[0].used = 1; // cascade channel in use
   BX_INFO(("channel 4 used by cascade"));
+}
+
+void
+bx_dma_c::register_state(char *name, char* desc, bx_list_c *parent_p)
+{
+  BXRS_START(bx_dma_c, this, name, desc, parent_p, 10);
+  {
+    BXRS_ARRAY_START_D(struct s_t, s, 2, "state information DMA-1 / DMA-2");
+    {
+      BXRS_ARRAY_BOOL_D(bx_bool, DRQ, 4, "DMA Request");  
+      BXRS_ARRAY_BOOL_D(bx_bool, DACK, 4, "DMA Acknowlege"); 
+                             
+      BXRS_ARRAY_BOOL(bx_bool, mask, 4);
+      BXRS_BOOL      (bx_bool, flip_flop);
+      BXRS_NUM       (Bit8u  , status_reg);
+      BXRS_NUM       (Bit8u  , command_reg);
+      BXRS_NUM       (Bit8u  , request_reg);
+      BXRS_NUM       (Bit8u  , temporary_reg);
+      BXRS_ARRAY_START_D(struct s_t::chan_t, chan, 4, "DMA channels 0..3"); 
+      {
+        BXRS_STRUCT_START(struct s_t::chan_t::mode_t, mode); 
+        {
+          BXRS_NUM(Bit8u, mode_type);
+          BXRS_NUM(Bit8u, address_decrement);
+          BXRS_NUM(Bit8u, autoinit_enable);
+          BXRS_NUM(Bit8u, transfer_type);
+        }
+        BXRS_STRUCT_END;
+        BXRS_NUM (Bit16u , base_address);
+        BXRS_NUM (Bit16u , current_address);
+        BXRS_NUM (Bit16u , base_count);
+        BXRS_NUM (Bit16u , current_count);
+        BXRS_NUM (Bit8u  , page_reg);
+        BXRS_BOOL(bx_bool, used);
+      }
+      BXRS_ARRAY_END;
+    }
+    BXRS_ARRAY_END;
+
+    BXRS_BOOL_D(bx_bool, HLDA, "Hold Acknowlege");    
+    BXRS_BOOL_D(bx_bool, TC, "Terminal Count");    
+    
+    //BXRS_ARRAY_START_D(struct h_t, h, 4, "DMA read and write handlers");
+    //{
+#warning do we have to register function pointers in DMA.s.h[]?
+      //void (* dmaRead8)(Bit8u *data_byte);
+      //void (* dmaWrite8)(Bit8u *data_byte);
+      //void (* dmaRead16)(Bit16u *data_word);
+      //void (* dmaWrite16)(Bit16u *data_word);
+    //}
+    //BXRS_ARRAY_END;
+  }
+  BXRS_END;
+
 }
 
   void
