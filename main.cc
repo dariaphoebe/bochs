@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.3 2003/03/20 10:14:30 slechta Exp $
+// $Id: main.cc,v 1.223.4.4 2003/03/24 01:14:09 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -53,6 +53,10 @@
 #define BX_SHARE_PATH NULL
 #endif
 
+#define BXPN_VGA_UPDATE_INTERVAL         "time.vga_update_interval"
+#define BXPN_MOUSE_ENABLED               "keyboard.enable_mouse"
+#define BXPN_KBD_PASTE_DELAY             "keyboard.paste_delay"
+#define BXPN_SCREENMODE                  "display.screen_mode"
 
 int bochsrc_include_count = 0;
 
@@ -104,131 +108,148 @@ static Bit32s parse_line_unformatted(char *context, char *line);
 static Bit32s parse_line_formatted(char *context, int num_params, char *params[]);
 static int parse_bochsrc(char *rcfile);
 
+Bit32s strtol_or_die (
+    const char *str,
+    const char *err_msg,
+    Bit32s min,
+    Bit32s max)
+{
+  char *endptr;
+  if (str[0] == 0) {
+    BX_PANIC (("%s (string is empty)", err_msg));
+    return 0;
+  }
+  Bit32s ret = (Bit32s) strtol (str, &endptr, 0);
+  if (endptr == str) {
+    // no valid digits were found
+    BX_PANIC (("%s (no valid digits in '%s')", err_msg, str));
+    return 0;
+  }
+  if (endptr[0] != 0) {
+    // end pointer did not move all the way to the NULL terminator.
+    // there must be non-numeric chars in there.
+    BX_PANIC (("%s (invalid digits in '%s')", err_msg, str));
+    return 0;
+  }
+  if (ret < min || ret > max) {
+    // check range
+    BX_PANIC (("%s (%d not between %d and %d)", err_msg, ret, min, max));
+    return 0;
+  }
+  return ret;
+}
+
 static Bit64s
 bx_param_handler (bx_param_c *param, int set, Bit64s val)
 {
   char pname[BX_PATHNAME_LEN];
   param->get_param_path (pname, BX_PATHNAME_LEN);
-  BX_INFO (("num handler called for param '%s'", pname));
-  BX_INFO (("ignoring for now"));
-  return val;
-#warning num handler has been disabled
-
-  bx_id id = param->get_id ();
-  switch (id) {
-    case BXP_VGA_UPDATE_INTERVAL:
-      // if after init, notify the vga device to change its timer.
-      if (set && SIM->get_init_done ())
-        DEV_vga_set_update_interval (val);
-      break;
-    case BXP_MOUSE_ENABLED:
-      // if after init, notify the GUI
-      if (set && SIM->get_init_done ()) {
-        bx_gui->mouse_enabled_changed (val!=0);
-        DEV_mouse_enabled_changed (val!=0);
-      }
-      break;
-    case BXP_NE2K_PRESENT:
-      if (set) {
-        int enable = (val != 0);
-        SIM->get_param (BXP_NE2K_IOADDR)->set_enabled (enable);
-        SIM->get_param (BXP_NE2K_IRQ)->set_enabled (enable);
-        SIM->get_param (BXP_NE2K_MACADDR)->set_enabled (enable);
-        SIM->get_param (BXP_NE2K_ETHMOD)->set_enabled (enable);
-        SIM->get_param (BXP_NE2K_ETHDEV)->set_enabled (enable);
-        SIM->get_param (BXP_NE2K_SCRIPT)->set_enabled (enable);
-      }
-      break;
-    case BXP_LOAD32BITOS_WHICH:
-      if (set) {
-        int enable = (val != 0);
-        SIM->get_param (BXP_LOAD32BITOS_PATH)->set_enabled (enable);
-        SIM->get_param (BXP_LOAD32BITOS_IOLOG)->set_enabled (enable);
-        SIM->get_param (BXP_LOAD32BITOS_INITRD)->set_enabled (enable);
-      }
-      break;
-    case BXP_ATA0_MASTER_STATUS:
-    case BXP_ATA0_SLAVE_STATUS:
-    case BXP_ATA1_MASTER_STATUS:
-    case BXP_ATA1_SLAVE_STATUS:
-    case BXP_ATA2_MASTER_STATUS:
-    case BXP_ATA2_SLAVE_STATUS:
-    case BXP_ATA3_MASTER_STATUS:
-    case BXP_ATA3_SLAVE_STATUS:
-      if ((set) && (SIM->get_init_done ())) {
-        Bit8u device = id - BXP_ATA0_MASTER_STATUS;
-        Bit32u handle = DEV_hd_get_device_handle (device/2, device%2);
-        DEV_hd_set_cd_media_status(handle, val == BX_INSERTED);
-        bx_gui->update_drive_status_buttons ();
-      }
-      break;
-    case BXP_FLOPPYA_TYPE:
-      if ((set) && (!SIM->get_init_done ())) {
-        bx_options.floppya.Odevtype->set (val);
-      }
-      break;
-    case BXP_FLOPPYA_STATUS:
-      if ((set) && (SIM->get_init_done ())) {
-        DEV_floppy_set_media_status(0, val == BX_INSERTED);
-        bx_gui->update_drive_status_buttons ();
-      }
-      break;
-    case BXP_FLOPPYB_TYPE:
-      if ((set) && (!SIM->get_init_done ())) {
-        bx_options.floppyb.Odevtype->set (val);
-      }
-      break;
-    case BXP_FLOPPYB_STATUS:
-      if ((set) && (SIM->get_init_done ())) {
-        DEV_floppy_set_media_status(1, val == BX_INSERTED);
-        bx_gui->update_drive_status_buttons ();
-      }
-      break;
-    case BXP_KBD_PASTE_DELAY:
-      if ((set) && (SIM->get_init_done ())) {
-        DEV_kbd_paste_delay_changed ();
-        }
-      break;
-    case BXP_ATA0_MASTER_TYPE:
-    case BXP_ATA0_SLAVE_TYPE:
-    case BXP_ATA1_MASTER_TYPE:
-    case BXP_ATA1_SLAVE_TYPE:
-    case BXP_ATA2_MASTER_TYPE:
-    case BXP_ATA2_SLAVE_TYPE:
-    case BXP_ATA3_MASTER_TYPE:
-    case BXP_ATA3_SLAVE_TYPE:
-      if (set) {
-        int device = id - BXP_ATA0_MASTER_TYPE;
-        switch (val) {
-          case BX_ATA_DEVICE_DISK:
-            SIM->get_param_num ((bx_id)(BXP_ATA0_MASTER_PRESENT + device))->set (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_PATH + device))->set_enabled (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_CYLINDERS + device))->set_enabled (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_HEADS + device))->set_enabled (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_SPT + device))->set_enabled (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_STATUS + device))->set_enabled (0);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_MODEL + device))->set_enabled (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_BIOSDETECT + device))->set_enabled (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_TRANSLATION + device))->set_enabled (1);
-            break;
-          case BX_ATA_DEVICE_CDROM:
-            SIM->get_param_num ((bx_id)(BXP_ATA0_MASTER_PRESENT + device))->set (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_PATH + device))->set_enabled (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_CYLINDERS + device))->set_enabled (0);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_HEADS + device))->set_enabled (0);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_SPT + device))->set_enabled (0);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_STATUS + device))->set_enabled (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_MODEL + device))->set_enabled (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_BIOSDETECT + device))->set_enabled (1);
-            SIM->get_param ((bx_id)(BXP_ATA0_MASTER_TRANSLATION + device))->set_enabled (0);
-            break;
-          }
-        }
-      break;
-    default:
-      BX_PANIC (("bx_param_handler called with unknown id %d", id));
-      return -1;
+  BX_INFO (("bx_param_handler called with param '%s', set=%d, new value %d", pname, set, val));
+  if (!strcmp (pname, BXPN_VGA_UPDATE_INTERVAL)) {
+    // if after init, notify the vga device to change its timer.
+    if (set && SIM->get_init_done ())
+      DEV_vga_set_update_interval (val);
+    return val;
+#warning TESTME: when vga_update_interval param changes, device timing changes.
   }
+  if (strcmp (pname, BXPN_MOUSE_ENABLED) == 0) {
+    // if after init, notify the GUI
+    if (set && SIM->get_init_done ()) {
+      bx_gui->mouse_enabled_changed (val!=0);
+      DEV_mouse_enabled_changed (val!=0);
+    }
+    return val;
+#warning TESTME: when mouse enabled param changes, icon changes and device modified
+  }
+  if (strncmp ("ata.", pname, 4) == 0) {
+    if (strcmp ("status", param->get_name()) == 0) {
+      // handle ata.N.[master|slave].status
+      if (set && SIM->get_init_done ()) {
+	// must figure out the device number and whether it is master
+	// or slave.
+	Bit8u device = (strcmp ("master", param->get_parent()->get_name ())==0)?
+	  0     // if name is "master"
+	  : 1;  // if name is "slave"
+	char *channel_str = param->get_parent()->get_parent()->get_name();
+	Bit8u channel = strtol_or_die (channel_str, 
+	  "wrong structure of ATA parameters. expected ata.N.[master|slave].status",
+	  0, BX_MAX_ATA_CHANNEL-1);
+	Bit32u handle = DEV_hd_get_device_handle (channel, device);
+	DEV_hd_set_cd_media_status(handle, val == BX_INSERTED);
+	bx_gui->update_drive_status_buttons ();
+      }
+      return val;
+#warning TESTME: when ata status is changed, icons updated
+    } else if (strcmp ("type", param->get_name ()) == 0) {
+      if (set) {
+	// handle ata.N.[master|slave].status.  The same structures are
+	// shared for hard drives and cdroms, but a different set of parameters
+	// are enabled/disabled according to the type.
+	bx_list_c *atadev = (bx_list_c *)param->get_parent ();
+	bx_param_num_c *present = (bx_param_num_c *)atadev->get_by_name ("present");
+	switch (val)
+	{
+	case BX_ATA_DEVICE_DISK:
+	  present->set (1);
+	  atadev->get_by_name ("path")->set_enabled (1);
+	  atadev->get_by_name ("cylinders")->set_enabled (1);
+	  atadev->get_by_name ("heads")->set_enabled (1);
+	  atadev->get_by_name ("spt")->set_enabled (1);
+	  atadev->get_by_name ("status")->set_enabled (0);
+	  atadev->get_by_name ("model")->set_enabled (1);
+	  atadev->get_by_name ("biosdetect")->set_enabled (1);
+	  atadev->get_by_name ("translation")->set_enabled (1);
+	  break;
+	case BX_ATA_DEVICE_CDROM:
+	  present->set (1);
+	  atadev->get_by_name ("path")->set_enabled (1);
+	  atadev->get_by_name ("cylinders")->set_enabled (0);
+	  atadev->get_by_name ("heads")->set_enabled (0);
+	  atadev->get_by_name ("spt")->set_enabled (0);
+	  atadev->get_by_name ("status")->set_enabled (1);
+	  atadev->get_by_name ("model")->set_enabled (1);
+	  atadev->get_by_name ("biosdetect")->set_enabled (1);
+	  atadev->get_by_name ("translation")->set_enabled (0);
+	  break;
+	}
+      }
+      return val;
+#warning TESTME: when atadev type changes from hd to cd, params like cyl, heads, spt, translation, status are enabled accordingly
+    }
+  }
+
+  if (strncmp ("floppy.", pname, 7) == 0) {
+    Bit32u floppy_num = strtol_or_die (
+	param->get_parent()->get_name (),
+	"wrong structure of floppy parameters. expected floppy.N.status",
+	0,1);
+    if (set && strcmp ("status", param->get_name ()) == 0) {
+      if ((set) && (SIM->get_init_done ())) {
+        DEV_floppy_set_media_status(floppy_num, val == BX_INSERTED);
+        bx_gui->update_drive_status_buttons ();
+      }
+#warning TESTME: setting floppy status updates icon
+    } else if (set && strcmp ("type", param->get_name ()) == 0) {
+      // set sibling param "devtype" to match the new type
+      bx_param_enum_c *devtype = (bx_param_enum_c *)
+	param->get_parent()->get_by_name ("devtype");
+      if (!devtype) {
+	BX_PANIC (("could not find floppy devtype relative to type param"));
+	return val;
+      }
+      devtype->set (val);
+#warning TESTME: setting floppy type changes devtype param too (?)
+    }
+    return val;
+  }
+  
+  if (strcmp (pname, BXPN_KBD_PASTE_DELAY) == 0) {
+    if (set && (SIM->get_init_done ())) {
+      DEV_kbd_paste_delay_changed ();
+    }
+    return val;
+  }
+  BX_PANIC (("bx_param_handler called with unknown param '%s'", pname));
   return val;
 }
 
@@ -236,115 +257,100 @@ char *bx_param_string_handler (bx_param_string_c *param, int set, char *val, int
 {
   char pname[BX_PATHNAME_LEN];
   param->get_param_path (pname, BX_PATHNAME_LEN);
-  BX_INFO (("string handler called for param '%s'", pname));
-  BX_INFO (("ignoring for now"));
-  return val;
-#warning string handler has been disabled
-
-  bx_id id = BXP_NULL;
+  BX_INFO (("bx_param_handler called with param '%s', set=%d, new value '%s'", pname, set, val));
   int empty = 0;
   if ((strlen(val) < 1) || !strcmp ("none", val)) {
     empty = 1;
     val = "none";
   }
-  switch (id) {
-    case BXP_FLOPPYA_PATH:
-      if (set==1) {
-        if (SIM->get_init_done ()) {
-          if (empty) {
-            DEV_floppy_set_media_status(0, 0);
-            bx_gui->update_drive_status_buttons ();
-          } else {
-            if (!SIM->get_param_num(BXP_FLOPPYA_TYPE)->get_enabled()) {
-              BX_ERROR(("Cannot add a floppy drive at runtime"));
-              bx_options.floppya.Opath->set ("none");
-            }
-          }
-          if ((DEV_floppy_present()) &&
-              (SIM->get_param_num(BXP_FLOPPYA_STATUS)->get () == BX_INSERTED)) {
-            // tell the device model that we removed, then inserted the disk
-            DEV_floppy_set_media_status(0, 0);
-            DEV_floppy_set_media_status(0, 1);
-          }
-        } else {
-          SIM->get_param_num(BXP_FLOPPYA_DEVTYPE)->set_enabled (!empty);
-          SIM->get_param_num(BXP_FLOPPYA_TYPE)->set_enabled (!empty);
-          SIM->get_param_num(BXP_FLOPPYA_STATUS)->set_enabled (!empty);
-        }
-      }
-      break;
-    case BXP_FLOPPYB_PATH:
-      if (set==1) {
-        if (SIM->get_init_done ()) {
-          if (empty) {
-            DEV_floppy_set_media_status(1, 0);
-            bx_gui->update_drive_status_buttons ();
-          } else {
-            if (!SIM->get_param_num(BXP_FLOPPYB_TYPE)->get_enabled ()) {
-              BX_ERROR(("Cannot add a floppy drive at runtime"));
-              bx_options.floppyb.Opath->set ("none");
-            }
-          }
-          if ((DEV_floppy_present()) &&
-              (SIM->get_param_num(BXP_FLOPPYB_STATUS)->get () == BX_INSERTED)) {
-            // tell the device model that we removed, then inserted the disk
-            DEV_floppy_set_media_status(1, 0);
-            DEV_floppy_set_media_status(1, 1);
-          }
-        } else {
-          SIM->get_param_num(BXP_FLOPPYB_DEVTYPE)->set_enabled (!empty);
-          SIM->get_param_num(BXP_FLOPPYB_TYPE)->set_enabled (!empty);
-          SIM->get_param_num(BXP_FLOPPYB_STATUS)->set_enabled (!empty);
-        }
-      }
-      break;
-
-    case BXP_ATA0_MASTER_PATH:
-    case BXP_ATA0_SLAVE_PATH:
-    case BXP_ATA1_MASTER_PATH:
-    case BXP_ATA1_SLAVE_PATH:
-    case BXP_ATA2_MASTER_PATH:
-    case BXP_ATA2_SLAVE_PATH:
-    case BXP_ATA3_MASTER_PATH:
-    case BXP_ATA3_SLAVE_PATH:
-      if (set==1) {
-        if (SIM->get_init_done ()) {
-
-          Bit8u device = id - BXP_ATA0_MASTER_PATH;
-          Bit32u handle = DEV_hd_get_device_handle(device/2, device%2);
-
-          if (empty) {
-            DEV_hd_set_cd_media_status(handle, 0);
-            bx_gui->update_drive_status_buttons ();
-          } else {
-            if (!SIM->get_param_num((bx_id)(BXP_ATA0_MASTER_PRESENT + device))->get ()) {
-              BX_ERROR(("Cannot add a cdrom drive at runtime"));
-              bx_options.atadevice[device/2][device%2].Opresent->set (0);
-            }
-            if (SIM->get_param_num((bx_id)(BXP_ATA0_MASTER_TYPE + device))->get () != BX_ATA_DEVICE_CDROM) {
-              BX_ERROR(("Device is not a cdrom drive"));
-              bx_options.atadevice[device/2][device%2].Opresent->set (0);
-            }
-          }
-          if (DEV_hd_present() &&
-              (SIM->get_param_num((bx_id)(BXP_ATA0_MASTER_STATUS + device))->get () == BX_INSERTED) &&
-              (SIM->get_param_num((bx_id)(BXP_ATA0_MASTER_TYPE + device))->get () == BX_ATA_DEVICE_CDROM)) {
-            // tell the device model that we removed, then inserted the cd
-            DEV_hd_set_cd_media_status(handle, 0);
-            DEV_hd_set_cd_media_status(handle, 1);
-          }
-        }
-      }
-      break;
-    
-    case BXP_SCREENMODE:
-      if (set==1) {
-        BX_INFO (("Screen mode changed to %s", val));
-      }
-      break;
-    default:
-        BX_PANIC (("bx_param_string_handler called with unexpected parameter %d", param->get_id()));
+  if (strcmp (pname, BXPN_SCREENMODE) == 0) {
+    if (set) {
+      BX_INFO (("Screen mode changed to %s", val));
+    }
   }
+  if (strncmp ("floppy.", pname, 7) == 0) {
+    if (strcmp ("path", param->get_name ()) == 0) {
+      bx_list_c *dev = (bx_list_c*)param->get_parent ();
+      Bit32u floppy_num = strtol_or_die (dev->get_name (),
+	  "wrong structure of floppy parameters. expected floppy.N.path",
+	  0,1);
+      if (set) {
+        if (SIM->get_init_done ()) {
+          if (empty) {
+            DEV_floppy_set_media_status(floppy_num, 0);
+            bx_gui->update_drive_status_buttons ();
+          } else {
+            if (!dev->get_by_name("type")->get_enabled ()) {
+              BX_ERROR(("Cannot add a floppy drive at runtime"));
+	      param->set ("none");
+            }
+          }
+	  bx_param_enum_c *status = (bx_param_enum_c*)
+	    dev->get_by_name ("status");
+          if ((DEV_floppy_present()) && (status->get () == BX_INSERTED)) {
+            // tell the device model that we removed, then inserted the disk
+            DEV_floppy_set_media_status(floppy_num, 0);
+            DEV_floppy_set_media_status(floppy_num, 1);
+          }
+        } else {
+	  // before sim starts, path changes affect whether other params are
+	  // enabled or not.
+	  dev->get_by_name("devtype")->set_enabled (!empty);
+          dev->get_by_name("type")->set_enabled (!empty);
+          dev->get_by_name("status")->set_enabled (!empty);
+        }
+      }
+      return val;
+#warning TESTME: floppy devtype, type, status enabled by path at config time. icon changes according to path at runtime. cannot add a floppy device at runtime.
+    }
+  }
+  if (strncmp ("ata.", pname, 4) == 0) {
+    if (strcmp (param->get_name(), "path") == 0) {
+      if (set && SIM->get_init_done ()) {
+	// master or slave device?
+	bx_list_c *atadev = (bx_list_c *)param->get_parent ();
+	Bit8u device = (strcmp ("master", atadev->get_name ())==0)?
+	  0     // if name is "master"
+	  : 1;  // if name is "slave"
+	char *channel_str = atadev->get_parent()->get_name();
+	Bit8u channel = strtol_or_die (channel_str, 
+	  "wrong structure of ATA parameters. expected ata.N.[master|slave].path",
+	  0, BX_MAX_ATA_CHANNEL-1);
+	Bit32u handle = DEV_hd_get_device_handle (channel, device);
+	bx_param_num_c *present = (bx_param_num_c *)
+	  atadev->get_by_name ("present");
+	bx_param_num_c *type = (bx_param_num_c *)
+	  atadev->get_by_name ("type");
+	bx_param_num_c *status = (bx_param_num_c *)
+	  atadev->get_by_name ("status");
+	if (empty) {
+	  DEV_hd_set_cd_media_status(handle, 0);
+	  bx_gui->update_drive_status_buttons ();
+	} else {
+	  if (!present->get ()) {
+	    BX_ERROR(("Cannot add a hd/cd drive at runtime"));
+	    present->set (0);
+	    // present is already 0, so this set appears useless. 
+	    // however this triggers the side-effects in the handler.
+	  }
+	  if (type->get () != BX_ATA_DEVICE_CDROM) {
+	    BX_ERROR(("Setting path at runtime, but device is not a cdrom drive."));
+	    present->set (0);
+	  }
+	}
+	if (DEV_hd_present() &&
+	    (status->get () == BX_INSERTED) &&
+	    (type->get () == BX_ATA_DEVICE_CDROM)) {
+	  // tell the device model that we removed, then inserted the cd
+	  DEV_hd_set_cd_media_status(handle, 0);
+	  DEV_hd_set_cd_media_status(handle, 1);
+	}
+#warning TESTME: runtime behavior of cdrom params when cdrom path changes. when path set to none, icon updates. cannot add cd or hd at runtime. cd path change causes dev model to read other image
+      }
+      return val;
+    }
+  }
+  BX_PANIC (("bx_param_string_handler called with unknown param '%s'", pname));
   return val;
 }
 
@@ -370,7 +376,6 @@ void bx_init_options ()
   bx_list_c *parallel_root = new bx_list_c (param_root, "parallel", "");
   bx_list_c *usb_root = new bx_list_c (param_root, "usb", "");
   bx_list_c *ne2k_root = new bx_list_c (param_root, "ne2k", "", 10);
-  bx_list_c *sb16_root = new bx_list_c (param_root, "sb16", "", 10);
   bx_list_c *pci_root = new bx_list_c (param_root, "pci", "");
   bx_list_c *keyboard_root = new bx_list_c (param_root, "keyboard", "", 20);
   bx_list_c *menu_root = new bx_list_c (param_root, "menu", "all menus", 20);
@@ -389,12 +394,13 @@ void bx_init_options ()
       BX_RUN_START,
       BX_QUICK_START);
 
-  // was BXP_MENU_DISK
   bx_list_c *disk_menu = new bx_list_c (menu_root, "disk", "Bochs Disk Options", 20);
   disk_menu->get_options ()->set (disk_menu->SHOW_PARENT);
+  disk_menu->add (SIM->get_param ("floppy"));
+  disk_menu->add (SIM->get_param ("ata"));
 
   // floppya
-  bx_list_c *floppya_menu = new bx_list_c (disk_menu, "0", "Options for first floppy disk", 10);
+  bx_list_c *floppya_menu = new bx_list_c (floppy_root, "0", "Options for first floppy disk", 10);
   floppya_menu->get_options ()->set (floppya_menu->SERIES_ASK);
 
   bx_options.floppya.Opath = new bx_param_filename_c (floppya_menu,
@@ -444,7 +450,7 @@ void bx_init_options ()
   };
 #endif
 
-  bx_list_c *floppyb_menu = new bx_list_c (disk_menu, "1", "Options for second floppy disk", 10);
+  bx_list_c *floppyb_menu = new bx_list_c (floppy_root, "1", "Options for second floppy disk", 10);
   floppyb_menu->get_options ()->set (floppyb_menu->SERIES_ASK);
 
   bx_options.floppyb.Opath = new bx_param_filename_c (floppyb_menu,
@@ -732,6 +738,7 @@ void bx_init_options ()
       "Skips check for the 0xaa55 signature on floppy boot device.",
       0);
 
+#warning FIXME: disk menu was ruined during param overhaul
 #if 0
   // disk menu
   bx_param_c *disk_menu_init_list[] = {
@@ -1098,23 +1105,16 @@ void bx_init_options ()
       "Device configuration script",
       "none", BX_PATHNAME_LEN);
   bx_options.ne2k.Oscript->set_ask_format ("Enter new script name, or 'none': [%s] ");
-  bx_param_c *ne2k_init_list[] = {
-    bx_options.ne2k.Opresent,
-    bx_options.ne2k.Oioaddr,
-    bx_options.ne2k.Oirq,
-    bx_options.ne2k.Omacaddr,
-    bx_options.ne2k.Oethmod,
-    bx_options.ne2k.Oethdev,
-    bx_options.ne2k.Oscript,
-    NULL
-  };
-  // was BXP_NE2K
-  menu = new bx_list_c (menu_root, "ne2k", "NE2K Configuration", ne2k_init_list);
-  menu->get_options ()->set (menu->SHOW_PARENT);
-  bx_options.ne2k.Opresent->set_handler (bx_param_handler);
-  bx_options.ne2k.Opresent->set (0);
+  // ne2k_root is exactly what the menu should be, so use it as the menu.
+  ne2k_root->get_options ()->set (menu->SHOW_PARENT);
+  menu_root->add (ne2k_root);
+  // set dependency list so that ne2k.present enables all ne2k parameters
+  deplist = new bx_list_c (NULL, 1);
+  deplist->add (ne2k_root);
+  bx_options.ne2k.Opresent->set_dependent_list (deplist);
 
   // SB16 options
+  bx_list_c *sb16_root = new bx_list_c (param_root, "sb16", "SB16 Configuration", 10);
   bx_options.sb16.Opresent = new bx_param_bool_c (sb16_root,
       "present",
       "SB16 is present",
@@ -1151,6 +1151,7 @@ void bx_init_options ()
       "DMA timer",
       0, BX_MAX_BIT32U,
       0);
+  sb16_root->get_options ()->set (menu->SHOW_PARENT);
   bx_param_c *sb16_init_list[] = {
     bx_options.sb16.Opresent,
     bx_options.sb16.Omidifile,
@@ -1163,8 +1164,7 @@ void bx_init_options ()
     NULL
   };
   // was BXP_SB16
-  menu = new bx_list_c (menu_root, "sb16", "SB16 Configuration", sb16_init_list);
-  menu->get_options ()->set (menu->SHOW_PARENT);
+  menu_root->add (sb16_root);
   // sb16_dependent_list is a null-terminated list including all the
   // sb16 fields except for the "present" field.  These will all be enabled/
   // disabled according to the value of the present field.
@@ -1210,13 +1210,15 @@ void bx_init_options ()
       "initrd",
       "Pathname of initrd",
       "", BX_PATHNAME_LEN);
-  bx_param_c *loader_init_list[] = {
-    bx_options.load32bitOSImage.OwhichOS,
-    bx_options.load32bitOSImage.Opath,
-    bx_options.load32bitOSImage.Oiolog,
-    bx_options.load32bitOSImage.Oinitrd,
-    NULL
-  };
+  load32bitos_root->get_options ()->set (menu->SERIES_ASK);
+  menu_root->add (load32bitos_root);
+  // make OwhichOS parameter enable all the other load32bitos parameters
+  deplist = new bx_list_c (NULL, 5);
+  deplist->add (bx_options.load32bitOSImage.Opath);
+  deplist->add (bx_options.load32bitOSImage.Oiolog);
+  deplist->add (bx_options.load32bitOSImage.Oinitrd);
+  bx_options.load32bitOSImage.OwhichOS->set_dependent_list (deplist);
+
   bx_options.load32bitOSImage.OwhichOS->set_format ("os=%s");
   bx_options.load32bitOSImage.Opath->set_format (", path=%s");
   bx_options.load32bitOSImage.Oiolog->set_format (", iolog=%s");
@@ -1225,11 +1227,6 @@ void bx_init_options ()
   bx_options.load32bitOSImage.Opath->set_ask_format ("Enter pathname of OS: [%s]");
   bx_options.load32bitOSImage.Oiolog->set_ask_format ("Enter pathname of I/O log: [%s] ");
   bx_options.load32bitOSImage.Oinitrd->set_ask_format ("Enter pathname of initrd: [%s] ");
-  // was BXP_LOAD32BITOS
-  menu = new bx_list_c (menu_root, "load32bitos", "32-bit OS Loader", loader_init_list);
-  menu->get_options ()->set (menu->SERIES_ASK);
-  bx_options.load32bitOSImage.OwhichOS->set_handler (bx_param_handler);
-  bx_options.load32bitOSImage.OwhichOS->set (Load32bitOSNone);
 
   // other
   bx_options.Okeyboard_serial_delay = new bx_param_num_c (keyboard_root,
@@ -1313,7 +1310,7 @@ void bx_init_options ()
       bx_options.cmos.OcmosImage,
       bx_options.cmos.Opath,
       bx_options.cmos.Otime0,
-      SIM->get_param ("menu.load32bitOSImage"),
+      SIM->get_param ("menu.load32bitos"),
       bx_options.keyboard.OuseMapping,
       bx_options.keyboard.Okeymap,
       bx_options.Okeyboard_type,
@@ -1321,12 +1318,8 @@ void bx_init_options ()
       NULL
   };
   // was BXP_MENU_MISC
-  menu = new bx_list_c (menu_root, "other", "Configure Everything Else", other_init_list);
+  menu = new bx_list_c (menu_root, "misc", "Configure Everything Else", other_init_list);
   menu->get_options ()->set (menu->SHOW_PARENT);
-
-  printf ("parameter tree:\n");
-#warning FIXME: slechta disabled because it segfaults
-  // FIXME:print_tree (param_root, 0);
 }
 
 void bx_reset_options ()
@@ -1586,19 +1579,48 @@ void bx_test_param_tree () {
   printf ("bx_test_param_tree done\n");
 }
 
+void bx_test_strtol_or_die ()
+{
+  Bit32s n;
+  n = strtol_or_die ("34", "in bx_test_strtol_or_die", 0, 100);
+  printf ("n=%d\n", n);
+  n = strtol_or_die ("100", "in bx_test_strtol_or_die", 0, 100);
+  printf ("n=%d\n", n);
+  // test out of range value
+  //n = strtol_or_die ("101", "in bx_test_strtol_or_die", 0, 100);
+  //printf ("n=%d\n", n);
+  //n = strtol_or_die ("-14", "in bx_test_strtol_or_die", 0, 100);
+  //printf ("n=%d\n", n);
+  // test invalid number
+  //n = strtol_or_die ("a", "in bx_test_strtol_or_die", 0, 100);
+  //printf ("n=%d\n", n);
+  // test empty string
+  //n = strtol_or_die ("", "in bx_test_strtol_or_die", 0, 100);
+  //printf ("n=%d\n", n);
+  // test extra junk
+  //n = strtol_or_die ("14f", "in bx_test_strtol_or_die", 0, 100);
+  //printf ("n=%d\n", n);
+}
+
 int bxmain () {
   bx_init_siminterface ();   // create the SIM object
+  static jmp_buf context;
+  if (setjmp (context) == 0) {
+    SIM->set_quit_context (&context);
+    if (bx_init_main (bx_startup_flags.argc, bx_startup_flags.argv) < 0) 
+      return 0;
+
+
+//// misc testing code
+  //bx_test_strtol_or_die ();
   //bx_test_params ();
   //bx_test_param_tree ();
   //exit(0);
 
 
 
-  static jmp_buf context;
-  if (setjmp (context) == 0) {
-    SIM->set_quit_context (&context);
-    if (bx_init_main (bx_startup_flags.argc, bx_startup_flags.argv) < 0) 
-      return 0;
+
+
     // read a param to decide which config interface to start.
     // If one exists, start it.  If not, just begin.
     bx_param_enum_c *ci_param = SIM->get_param_enum ("display.config_interface");
@@ -2320,6 +2342,10 @@ bx_init_hardware()
 
 #if BX_DEBUGGER == 0
   DEV_init_devices();
+  printf ("after init_devices\n");
+  printf ("------------------\n");
+  print_tree (SIM->get_param ("."));
+  printf ("------------------\n");
   DEV_reset_devices(BX_RESET_HARDWARE);
   bx_gui->init_signal_handlers ();
   bx_pc_system.start_timers();
