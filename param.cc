@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: param.cc,v 1.1.2.4 2003/04/04 04:57:41 bdenney Exp $
+// $Id: param.cc,v 1.1.2.5 2003/04/04 05:42:39 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 
 #ifndef PARAM_STANDALONE
@@ -475,7 +475,7 @@ bx_shadow_bool_c::set (Bit64s newval, bx_bool ignore_handler)
 {
   // only change the bitnum bit
   Bit64s tmp = (newval&1) << bitnum;
-  *(val.pbool) &= ~tmp;
+  *(val.pbool) &= ~(1<<bitnum);
   *(val.pbool) |= tmp;
   if (!ignore_handler && handler) {
     // the handler can override the new value and/or perform some side effect
