@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.8.7 2004/04/06 13:41:30 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.8.8 2004/04/06 13:50:55 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -620,11 +620,13 @@ static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n)
 
   work = st1 >> 32;
   work *= (u32)q;
-  x -= work;
+  x -= work << 32;
 
   work = (u32)st1;
   work *= q >> 32;
-  x -= work;
+  x -= work << 32;
+  
+  *y = x;
 }
 
 
