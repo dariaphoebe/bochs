@@ -30,19 +30,17 @@ these four paragraphs for those parts of this code that are retained.
 /* executes single exponent reduction cycle */
 static Bit64u remainder_kernel(Bit64u aSig0, Bit64u bSig, int expDiff, Bit64u *zSig0, Bit64u *zSig1)
 {
-    Bit64u term0, term1, rem0, rem1;
+    Bit64u term0, term1;
     Bit64u aSig1 = 0;
 
     shortShift128Left(aSig1, aSig0, expDiff, &aSig1, &aSig0);
     Bit64u q = estimateDiv128To64(aSig1, aSig0, bSig);
     mul64To128(bSig, q, &term0, &term1);
-    sub128(aSig1, aSig0, term0, term1, &rem0, &rem1);
-    while ((Bit64s) rem0 < 0) {
-        --q;
-        add128(rem0, rem1, 0, bSig, &rem0, &rem1);
-    }
-    mul64To128(bSig, q, &term0, &term1);
     sub128(aSig1, aSig0, term0, term1, zSig1, zSig0);
+    while ((Bit64s)(*zSig1) < 0) {
+        --q;
+        add128(*zSig1, *zSig0, 0, bSig, zSig1, zSig0);
+    }
     return q;
 }
 

@@ -52,9 +52,6 @@ typedef struct {
 | The pattern for a default generated single-precision NaN.
 *----------------------------------------------------------------------------*/
 #define float32_default_nan 0xFFC00000
-/*
-#define float32_default_nan 0x7FFFFFFF
-*/
 
 #define float32_fraction extractFloat32Frac
 #define float32_exp extractFloat32Exp
@@ -203,9 +200,6 @@ BX_CPP_INLINE float32 propagateFloat32NaN(float32 a, float32 b, float_status_t &
 | The pattern for a default generated double-precision NaN.
 *----------------------------------------------------------------------------*/
 #define float64_default_nan BX_CONST64(0xFFF8000000000000)
-/*
-#define float64_default_nan BX_CONST64(0x7FFFFFFFFFFFFFFF)
-*/
 
 #define float64_fraction extractFloat64Frac
 #define float64_exp extractFloat64Exp
@@ -359,10 +353,6 @@ BX_CPP_INLINE float64 propagateFloat64NaN(float64 a, float64 b, float_status_t &
 *----------------------------------------------------------------------------*/
 #define floatx80_default_nan_exp 0xFFFF
 #define floatx80_default_nan_fraction BX_CONST64(0xC000000000000000)
-/*
-#define floatx80_default_nan_exp 0x7FFF
-#define floatx80_default_nan_fraction BX_CONST64(0xFFFFFFFFFFFFFFFF)
-*/
 
 #define floatx80_fraction extractFloatx80Frac
 #define floatx80_exp extractFloatx80Exp
