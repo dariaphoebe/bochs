@@ -36,9 +36,10 @@
 
 #define EXP_BIAS 0x3FFF
 
+extern floatx80 trig_arg_reduction(floatx80 a, Bit64u &q, float_status_t &status);
+
 #if BX_SUPPORT_FPU
 static const floatx80 floatx80_one = packFloatx80(0, 0x3fff, BX_CONST64(0x8000000000000000));
-static const floatx80 floatx80_pi2 = packFloatx80(0, 0x3fff, BX_CONST64(0xc90fdaa22168c235));
 static const float128 float128_one = packFloat128(0, 0x3fff, 0, 0);
 
 #define SIN_ARR_SIZE 9
@@ -69,17 +70,6 @@ static float128 cos_arr[COS_ARR_SIZE] =
     packFloat128(BX_CONST64(0xbfda93974a8c07c9), BX_CONST64(0xd20badf145dfa3e5)), /* 14 */
     packFloat128(BX_CONST64(0x3fd2ae7f3e733b81), BX_CONST64(0xf11d8656b0ee8cb0))  /* 16 */
 };
-
-/*
-//!!!!!!!!!!
-static void print(const char *s, const floatx80 &r)
-{
-        long double *a = (long double *)(&r);
-	printf("%s: %04lx.%08lx%08lx -> ", s, (Bit32u)r.exp, (Bit32u)(r.fraction >> 32), (Bit32u)(r.fraction & 0xFFFFFFFF));
-	cout << *a << endl;
-}
-//!!!!!!!!!!
-*/
 
 static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
 {
@@ -114,9 +104,6 @@ static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
 /* 0 <= x <= pi/4 */
 static float128 poly_sin(float128 x, float_status_t &status)
 {
-    if (float128_exp(x) <= EXP_BIAS - 68)
-        return x;
-
     float128 t = poly_sincos(x, sin_arr, status);
     t = float128_mul(t, x, status);
     return t;
@@ -125,13 +112,24 @@ static float128 poly_sin(float128 x, float_status_t &status)
 /* 0 <= x <= pi/4 */
 static float128 poly_cos(float128 x, float_status_t &status)
 {
-    if (float128_exp(x) <= EXP_BIAS - 68)
-        return float128_one;
-
     return poly_sincos(x, cos_arr, status);
 }
 
-static void sincos_approximation(floatx80 &x, int quotient, float_status_t &status)
+static int handle_small_argument(floatx80 &a, Bit64u quotient)
+{
+    if (floatx80_exp(a) <= EXP_BIAS - 68)
+    {
+        if (quotient & 0x1) a = floatx80_one;
+        if (quotient & 0x2) 
+           floatx80_chs(a);
+
+        return 1;
+    }
+
+    return 0;
+}
+
+static void sincos_approximation(floatx80 &x, Bit64u quotient, float_status_t &status)
 {
   int neg = floatx80_sign(x);
   float128 r = floatx80_to_float128(floatx80_abs(x), status);
@@ -178,14 +176,7 @@ void BX_CPU_C::FSIN(bxInstruction_c *i)
   }
 
   /* reduce trigonometric function argument */
-  floatx80 y = floatx80_ieee754_remainder(x, floatx80_pi2, quotient, status);
-
-/* !!!!!
-printf("=================================\n");
-print("before arg reduction: ", x);
-printf("q is %d ->", (int)(quotient&3));
-print("after  arg reduction: ", y);
-*/
+  floatx80 y = trig_arg_reduction(x, quotient, status);
 
   clear_C2();
 
@@ -193,6 +184,14 @@ print("after  arg reduction: ", y);
   {   
       if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
           BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
+
+      return;
+  }
+
+  if (handle_small_argument(y, quotient))
+  {   
+      if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+          BX_WRITE_FPU_REG(y, 0);
 
       return;
   }
@@ -235,7 +234,8 @@ void BX_CPU_C::FCOS(bxInstruction_c *i)
   }
 
   /* reduce trigonometric function argument */
-  floatx80 y = floatx80_ieee754_remainder(x, floatx80_pi2, quotient, status);
+  floatx80 y = trig_arg_reduction(x, quotient, status);
+  ++ quotient;
 
   clear_C2();
 
@@ -247,7 +247,15 @@ void BX_CPU_C::FCOS(bxInstruction_c *i)
       return;
   }
 
-  sincos_approximation(y, quotient+1, status);
+  if (handle_small_argument(y, quotient))
+  {   
+      if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+          BX_WRITE_FPU_REG(y, 0);
+
+      return;
+  }
+
+  sincos_approximation(y, quotient, status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -294,7 +302,7 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
   }
 
   /* reduce trigonometric function argument */
-  floatx80 y = floatx80_ieee754_remainder(x, floatx80_pi2, quotient, status);
+  floatx80 y = trig_arg_reduction(x, quotient, status);
 
   clear_C2();
 
@@ -310,11 +318,18 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
       return;
   }
 
-  floatx80 siny, cosy;
+  floatx80 siny = y, cosy = y;
 
-  sincos_approximation(siny, quotient, status);
-  quotient++;
-  sincos_approximation(cosy, quotient, status);
+  if (handle_small_argument(siny, quotient))
+  {
+      quotient++;
+      handle_small_argument(cosy, quotient);
+  }
+  else {
+      sincos_approximation(siny, quotient, status);
+      quotient++;
+      sincos_approximation(cosy, quotient, status);
+  }
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -363,7 +378,7 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
   }
 
   /* reduce trigonometric function argument */
-  floatx80 y = floatx80_ieee754_remainder(x, floatx80_pi2, quotient, status);
+  floatx80 y = trig_arg_reduction(x, quotient, status);
 
   clear_C2();
 
@@ -375,6 +390,14 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
           BX_CPU_THIS_PTR the_i387.FPU_push();
           BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
       }
+
+      return;
+  }
+
+  if (handle_small_argument(y, quotient))
+  {   
+      if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+          BX_WRITE_FPU_REG(y, 0);
 
       return;
   }

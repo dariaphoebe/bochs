@@ -55,8 +55,8 @@ BX_INCDIRS = -I.. -I$(srcdir)/.. -I../@INSTRUMENT_DIR@ -I$(srcdir)/../@INSTRUMEN
 FPU_FLAGS = -DUSE_WITH_CPU_SIM $(PARANOID) $(DEBUG)
 FPU_GLUE_OBJ = wmFPUemu_glue.o ferr.o fpu.o fpu_arith.o fpu_compare.o \
                fpu_const.o fpu_load_store.o fpu_misc.o fpu_trans.o \
-               fpu_trig.o fprem.o softfloat.o softfloatx80.o softfloat-round-pack.o \
-               softfloat128.o poly_eval.o
+               fpu_trig.o fprem.o fsincos.o softfloat.o softfloatx80.o \
+               softfloat-round-pack.o softfloat128.o poly_eval.o
 
 # From 'C' language sources:
 C_OBJS = errors.o fpu_tags.o fpu_trig_c.o \
@@ -147,6 +147,8 @@ shr_Xsig.o: shr_Xsig.c fpu_emu.h linkage.h fpu_system.h ../config.h \
 wm_shrx.o: wm_shrx.c fpu_emu.h linkage.h fpu_system.h ../config.h \
   ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h
 fprem.o: fprem.@CPP_SUFFIX@ softfloatx80.h softfloat.h ../config.h \
+  softfloat-specialize.h softfloat-round-pack.h softfloat-macros.h
+fsincos.o: fsincos.@CPP_SUFFIX@ softfloatx80.h softfloat.h ../config.h \
   softfloat-specialize.h softfloat-round-pack.h softfloat-macros.h
 poly_eval.o: poly_eval.@CPP_SUFFIX@ softfloatx80.h softfloat.h ../config.h \
   softfloat-specialize.h softfloat-round-pack.h softfloat-macros.h

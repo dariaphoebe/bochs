@@ -504,8 +504,6 @@ BX_CPP_INLINE int lt128(Bit64u a0, Bit64u a1, Bit64u b0, Bit64u b1)
 
 #endif	/* FLOATX80 */
 
-#ifdef FLOAT128
-
 /*----------------------------------------------------------------------------
 | Multiplies the 128-bit value formed by concatenating `a0' and `a1' by
 | `b' to obtain a 192-bit product.  The product is broken into three 64-bit
@@ -531,6 +529,8 @@ BX_CPP_INLINE void mul128By64To192(
     *z1Ptr = z1;
     *z0Ptr = z0;
 }
+
+#ifdef FLOAT128
 
 /*----------------------------------------------------------------------------
 | Multiplies the 128-bit value formed by concatenating `a0' and `a1' to the
