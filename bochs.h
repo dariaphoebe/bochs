@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: bochs.h,v 1.120.2.3 2003/04/04 06:24:32 bdenney Exp $
+// $Id: bochs.h,v 1.120.2.4 2003/04/07 11:06:47 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -165,6 +165,8 @@ int bx_begin_simulation (int argc, char *argv[]);
 #define BX_MEM(x)                   (bx_mem_array[x])
 #endif
 
+class BX_MEM_C;
+
 #define BX_SET_ENABLE_A20(enabled)  bx_pc_system.set_enable_a20(enabled)
 #define BX_GET_ENABLE_A20()         bx_pc_system.get_enable_a20()
 
@@ -239,6 +241,9 @@ extern Bit8u DTPageDirty[];
 
 #define MAGIC_LOGNUM 0x12345678
 
+//////////////////////////////////////////////////////////////////////
+// logfunctions declaration
+//////////////////////////////////////////////////////////////////////
 
 typedef class BOCHSAPI logfunctions {
 	char *prefix;
@@ -306,6 +311,11 @@ enum {
   PLUGINLOG, EXTFPUIRQLOG , PCIVGALOG, PCIUSBLOG, VTIMERLOG, PARAMLOG
 };
 
+//////////////////////////////////////////////////////////////////////
+// iofunctions declaration
+//////////////////////////////////////////////////////////////////////
+
+
 class BOCHSAPI iofunctions {
 	int magic;
 	char logprefix[BX_LOGPREFIX_SIZE];
@@ -357,6 +367,29 @@ protected:
 
 
 };
+
+//////////////////////////////////////////////////////////////////////
+// bx_devmodel_c declaration
+//////////////////////////////////////////////////////////////////////
+
+// This class defines virtual methods that are common to all devices. 
+// Child classes do not need to implement all of them, because in this 
+// definition they are defined as empty, as opposed to being pure 
+// virtual (= 0).
+class BOCHSAPI bx_devmodel_c : public logfunctions {
+  public:
+  virtual ~bx_devmodel_c () {}
+  virtual void init_mem(BX_MEM_C *) {}
+  virtual void init(void) {}
+  // called to register its parameters so that save/restore can work
+  virtual void register_state(bx_param_c *list_p) {}
+  virtual void reset(unsigned type) {}
+  // called just before saving state
+  virtual void before_save_state () {}
+  // called just after restoring state
+  virtual void after_restore_state () {}
+};
+
 
 typedef class BOCHSAPI iofunctions iofunc_t;
 
