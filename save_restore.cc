@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: save_restore.cc,v 1.1.2.1 2004/11/05 00:56:40 slechta Exp $
+// $Id: save_restore.cc,v 1.1.2.2 2004/11/06 03:22:21 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 
 #ifndef PARAM_STANDALONE
@@ -18,6 +18,7 @@ logfunctions *param_log = NULL;
 #define LOG_THIS param_log->
 sr_list_c *root_param = NULL;
 
+/*---------------------------------------------------------------------------*/
 void sr_init_param()
 {
 #ifndef PARAM_STANDALONE
@@ -33,8 +34,8 @@ void sr_init_param()
   }
 }
 
-sr_param_c *
-sr_param_get_root ()
+/*---------------------------------------------------------------------------*/
+sr_param_c *sr_param_get_root ()
 {
   return root_param;
 }
@@ -43,23 +44,26 @@ sr_param_get_root ()
 // define methods of sr_param_* and family
 /////////////////////////////////////////////////////////////////////////
 
+/*---------------------------------------------------------------------------*/
 sr_object_c::sr_object_c ()
 {
 }
 
-void
-sr_object_c::set_type (sr_objtype type)
+/*---------------------------------------------------------------------------*/
+void sr_object_c::set_type (sr_objtype type)
 {
   this->type = type;
 }
 
 const char* sr_param_c::default_text_format = NULL;
 
+/*---------------------------------------------------------------------------*/
 bx_bool sr_param_c::is_shadow_param() 
 {
   return is_shadow;
 };
 
+/*---------------------------------------------------------------------------*/
 sr_param_c::sr_param_c (sr_param_c *parent, char *name, char *description)
   : sr_object_c ()
 {
@@ -79,6 +83,7 @@ sr_param_c::sr_param_c (sr_param_c *parent, char *name, char *description)
   }
 }
 
+/*---------------------------------------------------------------------------*/
 void sr_param_c::get_param_path (char *path_out, int maxlen)
 {
   if (get_parent() == NULL || get_parent() == root_param) {
@@ -93,7 +98,7 @@ void sr_param_c::get_param_path (char *path_out, int maxlen)
   strncat (path_out, name, maxlen);
 }
 
-
+/*---------------------------------------------------------------------------*/
 sr_param_c *sr_param_c::get_by_name (const char *name)
 {
   if (is_type (SRT_LIST)) {
@@ -105,6 +110,7 @@ sr_param_c *sr_param_c::get_by_name (const char *name)
   return NULL;
 }
 
+/*---------------------------------------------------------------------------*/
 bx_bool sr_param_c::child_of (sr_param_c *test_ancestor)
 {
   sr_param_c *param;
@@ -114,6 +120,7 @@ bx_bool sr_param_c::child_of (sr_param_c *test_ancestor)
   return false;
 }
 
+/*---------------------------------------------------------------------------*/
 void sr_param_c::set_parent (sr_param_c *newparent) {
   if (parent) {
     // if this object already had a parent, the correct thing
@@ -135,6 +142,7 @@ const char* sr_param_c::set_default_format (const char *f) {
   return old;
 }
 
+/*---------------------------------------------------------------------------*/
 sr_param_num_c::sr_param_num_c (sr_param_c *parent,
     char *name,
     char *description,
@@ -157,33 +165,36 @@ sr_param_num_c::sr_param_num_c (sr_param_c *parent,
 #warning slechta changed the default base to 10 for debugging
 Bit32u sr_param_num_c::default_base = 16;
 
-Bit32u sr_param_num_c::set_default_base (Bit32u val) {
+/*---------------------------------------------------------------------------*/
+Bit32u sr_param_num_c::set_default_base (Bit32u val) 
+{
   Bit32u old = default_base;
   default_base = val; 
   return old;
 }
 
-void 
-sr_param_num_c::reset ()
+/*---------------------------------------------------------------------------*/
+void sr_param_num_c::reset ()
 {
   this->val.number = initial_val;
 }
 
-void 
-sr_param_num_c::set_handler (sr_param_event_handler handler)
+/*---------------------------------------------------------------------------*/
+void sr_param_num_c::set_handler (sr_param_event_handler handler)
 { 
   this->handler = handler; 
   // now that there's a handler, call set once to run the handler immediately
   //set (get ());
 }
 
+/*---------------------------------------------------------------------------*/
 void sr_param_num_c::set_dependent_list (sr_list_c *l) {
   dependent_list = l; 
   update_dependents (dependent_list);
 }
 
-Bit64s 
-sr_param_num_c::get64 (bx_bool ignore_handler)
+/*---------------------------------------------------------------------------*/
+Bit64s sr_param_num_c::get64 (bx_bool ignore_handler)
 {
   if (!ignore_handler && handler) {
     // the handler can decide what value to return and/or do some side effect
@@ -194,8 +205,8 @@ sr_param_num_c::get64 (bx_bool ignore_handler)
   }
 }
 
-void
-sr_param_num_c::set (Bit64s newval, bx_bool ignore_handler)
+/*---------------------------------------------------------------------------*/
+void sr_param_num_c::set (Bit64s newval, bx_bool ignore_handler)
 {
   if (!ignore_handler && handler) {
     // the handler can override the new value and/or perform some side effect
@@ -217,16 +228,19 @@ sr_param_num_c::set (Bit64s newval, bx_bool ignore_handler)
   if (dependent_list != NULL) update_dependents (dependent_list);
 }
 
+/*---------------------------------------------------------------------------*/
 void sr_param_num_c::set_range (Bit64u min, Bit64u max)
 {
   this->min = min;
   this->max = max;
 }
 
+/*---------------------------------------------------------------------------*/
 void sr_param_num_c::set_initial_val (Bit64s initial_val) { 
   this->val.number = this->initial_val = initial_val;
 }
 
+/*---------------------------------------------------------------------------*/
 void sr_param_num_c::update_dependents (sr_list_c *list)
 {
   if (list) {
@@ -245,13 +259,14 @@ void sr_param_num_c::update_dependents (sr_list_c *list)
   }
 }
 
-void
-sr_param_num_c::set_enabled (int en)
+/*---------------------------------------------------------------------------*/
+void sr_param_num_c::set_enabled (int en)
 {
   sr_param_c::set_enabled (en);
   update_dependents (dependent_list);
 }
 
+/*---------------------------------------------------------------------------*/
 // Signed 64 bit
 sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
     char *name,
@@ -266,6 +281,7 @@ sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
   init (highbit, lowbit);
 }
 
+/*---------------------------------------------------------------------------*/
 // Unsigned 64 bit
 sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
     char *name,
@@ -280,6 +296,7 @@ sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
   init (highbit, lowbit);
 }
 
+/*---------------------------------------------------------------------------*/
 // Signed 32 bit
 sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
     char *name,
@@ -294,6 +311,7 @@ sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
   init (highbit, lowbit);
 }
 
+/*---------------------------------------------------------------------------*/
 // Unsigned 32 bit
 sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
     char *name,
@@ -308,6 +326,7 @@ sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
   init (highbit, lowbit);
 }
 
+/*---------------------------------------------------------------------------*/
 // Signed 16 bit
 sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
     char *name,
@@ -322,6 +341,7 @@ sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
   init (highbit, lowbit);
 }
 
+/*---------------------------------------------------------------------------*/
 // Unsigned 16 bit
 sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
     char *name,
@@ -336,6 +356,7 @@ sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
   init (highbit, lowbit);
 }
 
+/*---------------------------------------------------------------------------*/
 // Signed 8 bit
 sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
     char *name,
@@ -350,6 +371,7 @@ sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
   init (highbit, lowbit);
 }
 
+/*---------------------------------------------------------------------------*/
 // Unsigned 8 bit
 sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
     char *name,
@@ -364,8 +386,8 @@ sr_shadow_num_c::sr_shadow_num_c (sr_param_c *parent,
   init (highbit, lowbit);
 }
 
-void
-sr_shadow_num_c::init (int highbit, int lowbit)
+/*---------------------------------------------------------------------------*/
+void sr_shadow_num_c::init (int highbit, int lowbit)
 {
   BX_ASSERT (highbit >= 0 && highbit < varsize);
   BX_ASSERT (lowbit  >= 0 && lowbit  < varsize);
@@ -377,8 +399,8 @@ sr_shadow_num_c::init (int highbit, int lowbit)
   this->is_shadow = 1;
 }
 
-Bit64s
-sr_shadow_num_c::get64 (bx_bool ignore_handler) {
+/*---------------------------------------------------------------------------*/
+Bit64s sr_shadow_num_c::get64 (bx_bool ignore_handler) {
   Bit64u current = 0;
   switch (varsize) {
     case 8: current = *(val.p8bit);
@@ -398,8 +420,8 @@ sr_shadow_num_c::get64 (bx_bool ignore_handler) {
   }
 }
 
-void
-sr_shadow_num_c::set (Bit64s newval, bx_bool ignore_handler)
+/*---------------------------------------------------------------------------*/
+void sr_shadow_num_c::set (Bit64s newval, bx_bool ignore_handler)
 {
   Bit64u tmp = 0;
   if (newval < min || newval > max) {
@@ -438,12 +460,13 @@ sr_shadow_num_c::set (Bit64s newval, bx_bool ignore_handler)
   }
 }
 
-void 
-sr_shadow_num_c::reset ()
+/*---------------------------------------------------------------------------*/
+void sr_shadow_num_c::reset ()
 {
   BX_PANIC (("reset not supported on sr_shadow_num_c yet"));
 }
 
+/*---------------------------------------------------------------------------*/
 sr_param_bool_c::sr_param_bool_c (sr_param_c *parent,
     char *name,
     char *description,
@@ -454,6 +477,7 @@ sr_param_bool_c::sr_param_bool_c (sr_param_c *parent,
   set (initial_val);
 }
 
+/*---------------------------------------------------------------------------*/
 sr_shadow_bool_c::sr_shadow_bool_c (sr_param_c *parent,
       char *name,
       char *description,
@@ -466,8 +490,8 @@ sr_shadow_bool_c::sr_shadow_bool_c (sr_param_c *parent,
   this->is_shadow = 1;
 }
 
-Bit64s
-sr_shadow_bool_c::get64 (bx_bool ignore_handler) {
+/*---------------------------------------------------------------------------*/
+Bit64s sr_shadow_bool_c::get64 (bx_bool ignore_handler) {
   if (!ignore_handler && handler) {
     // the handler can decide what value to return and/or do some side effect
     Bit64s ret = (*handler)(this, 0, (Bit64s) *(val.pbool));
@@ -478,8 +502,8 @@ sr_shadow_bool_c::get64 (bx_bool ignore_handler) {
   }
 }
 
-void
-sr_shadow_bool_c::set (Bit64s newval, bx_bool ignore_handler)
+/*---------------------------------------------------------------------------*/
+void sr_shadow_bool_c::set (Bit64s newval, bx_bool ignore_handler)
 {
   // only change the bitnum bit
   Bit64s tmp = (newval&1) << bitnum;
@@ -491,6 +515,7 @@ sr_shadow_bool_c::set (Bit64s newval, bx_bool ignore_handler)
   }
 }
 
+/*---------------------------------------------------------------------------*/
 sr_param_enum_c::sr_param_enum_c (sr_param_c *parent,
       char *name,
       char *description,
@@ -511,8 +536,8 @@ sr_param_enum_c::sr_param_enum_c (sr_param_c *parent,
   set (initial_val);
 }
 
-int 
-sr_param_enum_c::find_by_name (const char *string)
+/*---------------------------------------------------------------------------*/
+int sr_param_enum_c::find_by_name (const char *string)
 {
   char **p;
   for (p=&choices[0]; *p; p++) {
@@ -522,8 +547,8 @@ sr_param_enum_c::find_by_name (const char *string)
   return -1;
 }
 
-bool 
-sr_param_enum_c::set_by_name (const char *string, bx_bool ignore_handler)
+/*---------------------------------------------------------------------------*/
+bool sr_param_enum_c::set_by_name (const char *string, bx_bool ignore_handler)
 {
   int n = find_by_name (string);
   if (n<0) return false;
@@ -531,6 +556,7 @@ sr_param_enum_c::set_by_name (const char *string, bx_bool ignore_handler)
   return true;
 }
 
+/*---------------------------------------------------------------------------*/
 sr_param_string_c::sr_param_string_c (sr_param_c *parent,
     char *name,
     char *description,
@@ -552,6 +578,7 @@ sr_param_string_c::sr_param_string_c (sr_param_c *parent,
   set (initial_val);
 }
 
+/*---------------------------------------------------------------------------*/
 sr_param_filename_c::sr_param_filename_c (sr_param_c *parent,
     char *name,
     char *description,
@@ -562,6 +589,7 @@ sr_param_filename_c::sr_param_filename_c (sr_param_c *parent,
   get_options()->set (IS_FILENAME);
 }
 
+/*---------------------------------------------------------------------------*/
 sr_param_string_c::~sr_param_string_c ()
 {
     if ( this->val != NULL )
@@ -582,21 +610,21 @@ sr_param_string_c::~sr_param_string_c ()
     }
 }
 
-void 
-sr_param_string_c::reset () {
+/*---------------------------------------------------------------------------*/
+void sr_param_string_c::reset () {
   strncpy (this->val, this->initial_val, maxsize);
 }
 
-void 
-sr_param_string_c::set_handler (sr_param_string_event_handler handler)
+/*---------------------------------------------------------------------------*/
+void sr_param_string_c::set_handler (sr_param_string_event_handler handler)
 {
   this->handler = handler; 
   // now that there's a handler, call set once to run the handler immediately
   //set (getptr ());
 }
 
-Bit32s
-sr_param_string_c::get (char *buf, int len, bx_bool ignore_handler)
+/*---------------------------------------------------------------------------*/
+Bit32s sr_param_string_c::get (char *buf, int len, bx_bool ignore_handler)
 {
   if (options->get () & RAW_BYTES)
     memcpy (buf, val, len);
@@ -610,8 +638,8 @@ sr_param_string_c::get (char *buf, int len, bx_bool ignore_handler)
   return 0;
 }
 
-void 
-sr_param_string_c::set (char *buf, bx_bool ignore_handler)
+/*---------------------------------------------------------------------------*/
+void sr_param_string_c::set (char *buf, bx_bool ignore_handler)
 {
   if (options->get () & RAW_BYTES)
     memcpy (val, buf, maxsize);
@@ -623,8 +651,8 @@ sr_param_string_c::set (char *buf, bx_bool ignore_handler)
   }
 }
 
-bx_bool
-sr_param_string_c::equals (const char *buf)
+/*---------------------------------------------------------------------------*/
+bx_bool sr_param_string_c::equals (const char *buf)
 {
   if (options->get () & RAW_BYTES)
     return (memcmp (val, buf, maxsize) == 0);
@@ -632,6 +660,7 @@ sr_param_string_c::equals (const char *buf)
     return (strncmp (val, buf, maxsize) == 0);
 }
 
+/*---------------------------------------------------------------------------*/
 sr_list_c::sr_list_c (sr_param_c *parent, int maxsize)
   : sr_param_c (parent, "list", "")
 {
@@ -642,6 +671,7 @@ sr_list_c::sr_list_c (sr_param_c *parent, int maxsize)
   init ();
 }
 
+/*---------------------------------------------------------------------------*/
 sr_list_c::sr_list_c (sr_param_c *parent, char *name, char *description, 
     int maxsize)
   : sr_param_c (parent, name, description)
@@ -653,6 +683,7 @@ sr_list_c::sr_list_c (sr_param_c *parent, char *name, char *description,
   init ();
 }
 
+/*---------------------------------------------------------------------------*/
 sr_list_c::sr_list_c (sr_param_c *parent, char *name, char *description, sr_param_c **init_list)
   : sr_param_c (parent, name, description)
 {
@@ -667,6 +698,7 @@ sr_list_c::sr_list_c (sr_param_c *parent, char *name, char *description, sr_para
   init ();
 }
 
+/*---------------------------------------------------------------------------*/
 sr_list_c::~sr_list_c()
 {
     if (this->list)
@@ -691,8 +723,115 @@ sr_list_c::~sr_list_c()
     }
 }
 
-void
-sr_list_c::init ()
+/*---------------------------------------------------------------------------*/
+sr_shadow_data_c::sr_shadow_data_c (sr_param_c *parent,
+                                    char *name,
+                                    char *description,
+                                    void **ptr_to_real_ptr, 
+                                    int data_size)
+  : sr_param_c(parent, name, description)
+{  
+  this->data_pp = ptr_to_real_ptr;
+  this->data_size = data_size;
+  this->set_type(SRT_PARAM_DATA);
+  this->is_shadow = 1;
+}
+
+/*---------------------------------------------------------------------------*/
+void sr_shadow_data_c::set (void* new_data_ptr, bx_bool ignore_handler)
+{
+  (*data_pp) = new_data_ptr;
+
+  if (!ignore_handler && handler) {
+    // the handler can override the new value and/or perform some side effect
+    // BBD: we should really send the oldval and newval to the handler,
+    // so that it can change it back if necessary.  Maybe it should be
+    // changed to   val.number = (*handler)(this, 1, val.number, newval);
+    (*handler)(this, 1, new_data_ptr);
+  }
+
+  return;
+}
+
+/*---------------------------------------------------------------------------*/
+void *sr_shadow_data_c::get(bx_bool ignore_handler)
+{
+  if (!ignore_handler && handler) {
+    // the handler can decide what value to return and/or do some side effect
+    return (*handler)(this, 0, *data_pp);
+  } 
+  else {
+    // just return the value
+    return (*data_pp);
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+sr_param_data_c::sr_param_data_c (sr_param_c *parent,
+                                  char *name,
+                                  char *description,
+                                  void *ptr_to_data, 
+                                  int data_size)
+  : sr_shadow_data_c(parent, name, description, &data_p, data_size)
+{  
+  this->data_p = ptr_to_data;
+  this->is_shadow = 0;
+}
+
+/*---------------------------------------------------------------------------*/
+sr_shadow_image_c::sr_shadow_image_c (sr_param_c *parent,
+                                      char *name,
+                                      char *description,
+                                      int *ptr_to_real_fd)
+  : sr_param_c(parent, name, description)
+{  
+  this->fd_p = ptr_to_real_fd;
+  this->set_type(SRT_PARAM_IMAGE);
+  this->is_shadow = 1;
+}
+
+/*---------------------------------------------------------------------------*/
+void sr_shadow_image_c::set (int new_fd, bx_bool ignore_handler)
+{
+  (*fd_p) = new_fd;
+
+  if (!ignore_handler && handler) {
+    // the handler can override the new value and/or perform some side effect
+    // BBD: we should really send the oldval and newval to the handler,
+    // so that it can change it back if necessary.  Maybe it should be
+    // changed to   val.number = (*handler)(this, 1, val.number, newval);
+    (*handler)(this, 1, new_fd);
+  }
+
+  return;
+}
+
+/*---------------------------------------------------------------------------*/
+int sr_shadow_image_c::get(bx_bool ignore_handler)
+{
+  if (!ignore_handler && handler) {
+    // the handler can decide what value to return and/or do some side effect
+    return (*handler)(this, 0, *fd_p);
+  } 
+  else {
+    // just return the value
+    return (*fd_p);
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+sr_param_image_c::sr_param_image_c (sr_param_c *parent,
+                                  char *name,
+                                  char *description,
+                                  int fd)
+  : sr_shadow_image_c(parent, name, description, &(this->fd))
+{  
+  this->fd = fd;
+  this->is_shadow = 0;
+}
+
+/*---------------------------------------------------------------------------*/
+void sr_list_c::init ()
 {
   // the title defaults to the name
   this->title = new sr_param_string_c (NULL,
@@ -707,8 +846,8 @@ sr_list_c::init ()
       1);
 }
 
-void
-sr_list_c::add (sr_param_c *param)
+/*---------------------------------------------------------------------------*/
+void sr_list_c::add (sr_param_c *param)
 {
   if (this->size >= this->maxsize) {
     char ppath[SR_PARAM_PATH_MAX];
@@ -728,15 +867,15 @@ sr_list_c::add (sr_param_c *param)
   size++;
 }
 
-sr_param_c *
-sr_list_c::get (int index)
+/*---------------------------------------------------------------------------*/
+sr_param_c *sr_list_c::get (int index)
 {
   BX_ASSERT (index >= 0 && index < size);
   return list[index];
 }
 
-sr_param_c *
-sr_list_c::get_by_name (const char *name)
+/*---------------------------------------------------------------------------*/
+sr_param_c *sr_list_c::get_by_name (const char *name)
 {
   int i, imax = get_size ();
   for (i=0; i<imax; i++) {
@@ -748,6 +887,7 @@ sr_list_c::get_by_name (const char *name)
   return NULL;
 }
 
+/*---------------------------------------------------------------------------*/
 void param_print_tree (sr_param_c *node, int level)
 {
   int i;
@@ -932,8 +1072,7 @@ void bx_checkpoint_c::save_param_tree(sr_param_c *node, int level)
       fprintf (m_ascii_fp, "%s=<data>%ld %d\n", node->get_name(), 
                ftell(m_data_fp), data_size);
       
-      unsigned write_amt = fwrite(data_p, sizeof(Bit8u), data_size, m_data_fp);
-      if (write_amt != data_size)
+      if (fwrite(data_p, sizeof(Bit8u), data_size, m_data_fp) != data_size)
         {
           BX_PANIC(("data not written to data file in bx_checkpoint_c::save_param_tree()"));          
         }
@@ -974,6 +1113,56 @@ void bx_checkpoint_c::save_param_tree(sr_param_c *node, int level)
       fprintf (m_ascii_fp, "%s=<enum>0x%llx\n", e->get_name (), 
                (Bit64u)e->get64(1/*ignore_handler*/)); 
           break;
+    }
+  case SRT_PARAM_IMAGE:
+    {
+      sr_shadow_image_c *shadow_image_p = dynamic_cast<sr_shadow_image_c*>(node);
+      if (!shadow_image_p) {
+        BX_PANIC(("unsuccessful dynamic_cast!"));
+      }
+      
+      int fd = shadow_image_p->get();
+      int image_size = lseek(fd, 0, SEEK_END);
+      
+      fprintf (m_ascii_fp, "%s=<image>%ld %d\n", node->get_name(), 
+               ftell(m_data_fp), image_size);
+      
+      if (image_size >= 0) {
+
+        // create a buffer to use for file transfers
+        void *buf_p = NULL;
+        if (image_size > MAX_IMAGE_CHUNK) {
+          buf_p = malloc(MAX_IMAGE_CHUNK);
+        }
+        else {
+          buf_p = malloc(image_size);
+        }
+      
+        if (lseek(fd, 0, SEEK_SET) != 0) {
+          BX_PANIC(("could not seek to beginning of image file"));
+        }
+      
+        // copy over the data to the image file in chunks
+        for (unsigned remaining = image_size; remaining != 0; ) {
+        
+          // size of next chunk
+          unsigned amt = (remaining < MAX_IMAGE_CHUNK) ? remaining : MAX_IMAGE_CHUNK;
+        
+          if (::read(fd, buf_p, amt) != amt) {
+            BX_PANIC(("ran out of image file"));
+          }
+        
+          if (fwrite(buf_p, sizeof(Bit8u), amt, m_data_fp) != amt)
+            {
+              BX_PANIC(("image not written to data file in bx_checkpoint_c::save_param_tree()"));          
+            }
+        
+          remaining -= amt;
+        }
+      
+        free(buf_p);
+      }
+      break;
     }
   case SRT_PARAM:
     {
@@ -1074,6 +1263,12 @@ void bx_checkpoint_c::load_param_tree(sr_param_c *param_tree_p,
         {
           load_param_data(param_tree_p, param_str, &(value_str[6]), 
                           qualified_path_str);
+        }
+      // check for image
+      else if (strncmp(value_str, "<image>", 7) == 0)
+        {
+          load_param_image(param_tree_p, param_str, &(value_str[7]), 
+                           qualified_path_str);
         }
       // assume that the value is an decimal string
       else
@@ -1498,7 +1693,7 @@ bx_checkpoint_c::load_param_hex_num(sr_param_c *parent_p,
         {
           printf(" ");
         }
-      Bit64u value = strtoull(value_str, &str_ptr, 0);
+      Bit64s value = strtoull(value_str, &str_ptr, 0);
       if (*str_ptr != '\0')
         {
           BX_PANIC(("fatal error when loading checkpoint. " \
@@ -1549,7 +1744,7 @@ bx_checkpoint_c::load_param_dec_num(sr_param_c *parent_p,
           
       // convert the hex string to a long int
       char *str_ptr;
-      Bit64u value = strtoull(value_str, &str_ptr, 0);
+      Bit64s value = strtoull(value_str, &str_ptr, 0);
       if (*str_ptr != '\0')
         {
           BX_PANIC(("error when loading checkpoint. " \
@@ -1759,7 +1954,7 @@ bx_checkpoint_c::load_param_enum(sr_param_c *parent_p,
           
       // convert the hex string to a long int
       char *str_ptr;
-      Bit64u value = strtoull(value_str, &str_ptr, 0);
+      Bit64s value = strtoull(value_str, &str_ptr, 0);
       if (*str_ptr != '\0')
         {
           BX_PANIC(("error when loading checkpoint. " \
@@ -1815,7 +2010,7 @@ bx_checkpoint_c::load_param_data(sr_param_c *parent_p,
                 
       // convert the hex string to a long int
       char *str_ptr;
-      Bit64u offset = strtoull(value_str, &str_ptr, 0);
+      Bit64s offset = strtoull(value_str, &str_ptr, 0);
       if (*str_ptr != '\0')
         {
           BX_PANIC(("fatal error when loading checkpoint. " \
@@ -1829,7 +2024,7 @@ bx_checkpoint_c::load_param_data(sr_param_c *parent_p,
 
       // load binary data
       char *size_str = read_next_value();
-      Bit64u size = strtoull(size_str, &str_ptr, 0);
+      Bit64s size = strtoull(size_str, &str_ptr, 0);
       if (*str_ptr != '\0')
         {
           BX_PANIC(("fatal error when loading checkpoint. " \
@@ -1885,61 +2080,120 @@ bx_checkpoint_c::load_param_data(sr_param_c *parent_p,
 
 
 /*---------------------------------------------------------------------------*/
-sr_shadow_data_c::sr_shadow_data_c (sr_param_c *parent,
-                                    char *name,
-                                    char *description,
-                                    void **ptr_to_real_ptr, 
-                                    int data_size)
-  : sr_param_c(parent, name, description)
-{  
-  this->data = ptr_to_real_ptr;
-  this->data_size = data_size;
-  this->set_type(SRT_PARAM_DATA);
-  this->is_shadow = 1;
-}
-
-/*---------------------------------------------------------------------------*/
-void
-sr_shadow_data_c::set (void* new_data_ptr, bx_bool ignore_handler)
+bx_bool 
+bx_checkpoint_c::load_param_image(sr_param_c *parent_p, 
+                                  char *param_str, 
+                                  char *value_str,
+                                  char *qualified_path_str)
 {
-  // BJS TODO: implement handlers
-  (*data) = new_data_ptr;
+#if CHKPT_DEBUG
+  for (int i=0; i<level; i++) printf(" ");
+  printf("image param = %s, value = %s\n", param_str, value_str);
+#endif // #if CHKPT_DEBUG
+
+  sr_param_c *param_p = parent_p->get_by_name(param_str);
+  if (param_p == NULL)
+    {
+      CHKPT_PARAM_NOT_FOUND();
+    }
+  else
+    {
+      CHKPT_ASSERT_INPUT_TYPE(param_p->get_type(), SRT_PARAM_IMAGE);
+                
+      // convert the hex string to a long int
+      char *str_ptr;
+      Bit64s offset = strtoull(value_str, &str_ptr, 0);
+      if (*str_ptr != '\0')
+        {
+          BX_PANIC(("fatal error when loading checkpoint. " \
+                   "offset not valid with param %s.\n", param_str));
+        }
+
+#if CHKPT_DEBUG
+      for (int i=0; i<level; i++) printf(" ");
+      printf("            %s, put   = %0xlx\n", param_str, offset);
+#endif // #if CHKPT_DEBUG
+
+      // load binary data
+      char *size_str = read_next_value();
+      Bit64s image_size = strtoull(size_str, &str_ptr, 0);
+      if (*str_ptr != '\0')
+        {
+          BX_PANIC(("fatal error when loading checkpoint. " \
+                    "value not valid with param %s.\n", param_str));
+        }
+
+      if (image_size >= 0) {
+        
+        // get the image parameter base class (shadow_image is a base class of image)
+        sr_shadow_image_c *image_p = dynamic_cast<sr_shadow_image_c*>(param_p);
+        
+        if (image_p == NULL) {
+          BX_PANIC(("unsuccessful dynamic_cast!"));
+        }
+        
+        // open the image.
+        int fd = image_p->get();
+        
+        // truncate the image to the correct size
+        if (ftruncate(fd, image_size) < 0) {
+          BX_PANIC(("could not truncate image file"));
+        }
+        // set the position to the beginning of the image
+        if (lseek(fd, 0, SEEK_SET) != 0) {
+          BX_PANIC(("could not set the file position"));
+        }
+        
+        // create a buffer to use for file transfers
+        void* buf_p = NULL;
+        if (image_size > MAX_IMAGE_CHUNK) {
+          buf_p = malloc(MAX_IMAGE_CHUNK);
+        }
+        else {
+          buf_p = malloc(image_size);
+        }
+        
+        unsigned next_offset = offset;
+        
+        // copy over the data to the image file in chunks
+        for (unsigned remaining = image_size; remaining != 0; ) {
+          
+          // seek the next chunk position in the data file
+          if (fseek(m_data_fp, next_offset, SEEK_SET) < 0)
+            {
+              BX_PANIC(("fatal error when loading checkpoint. " \
+                        "could not seek to offset %u in param_data", offset));
+            }
+          
+          // amount remaining
+          unsigned amt = (remaining < MAX_IMAGE_CHUNK) ? remaining : MAX_IMAGE_CHUNK;
+          
+          // get the chunk from the data file
+          if (fread(buf_p, sizeof(Bit8u), amt, m_data_fp) != amt)
+            {
+              BX_PANIC(("fatal error when loading checkpoint. " \
+                        "could not fread %u bytes in param_data", amt));
+            }
+          
+          // write the chunk to the image file
+          if (::write(fd, buf_p, amt) != amt) 
+            {
+              BX_PANIC(("fatal error when loading checkpoint. " \
+                        "could not write %u bytes to image", amt));
+          }
+          
+          remaining -= amt;
+          next_offset += amt;
+        }
+        
+        free(buf_p);
+      }
+    }
+      
+  return 1;
 }
 
-void*
-sr_shadow_data_c::get(bx_bool ignore_handler)
-{
-  return (*data);
-}
-
-/*---------------------------------------------------------------------------*/
-sr_param_data_c::sr_param_data_c (sr_param_c *parent,
-                                  char *name,
-                                  char *description,
-                                  void *ptr_to_data, 
-                                  int data_size)
-  : sr_param_c(parent, name, description)
-{  
-  this->data = ptr_to_data;
-  this->data_size = data_size;
-  this->set_type(SRT_PARAM_DATA);
-  this->is_shadow = 0;
-}
-
-/*---------------------------------------------------------------------------*/
-void
-sr_param_data_c::set (void* new_data_ptr, bx_bool ignore_handler)
-{
-  // BJS TODO: implement handlers
-  data = new_data_ptr;
-}
-
-void*
-sr_param_data_c::get(bx_bool ignore_handler)
-{
-  return data;
-}
-
+  
 ////////////////////////////////////////////////////////////////////////
 // finding parameters by name
 ////////////////////////////////////////////////////////////////////////

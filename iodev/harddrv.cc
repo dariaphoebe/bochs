@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.127.2.1 2004/11/05 00:56:44 slechta Exp $
+// $Id: harddrv.cc,v 1.127.2.2 2004/11/06 03:22:22 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -163,7 +163,7 @@ bx_hard_drive_c::init(void)
   char  string[5];
   char  sbtext[8];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.127.2.1 2004/11/05 00:56:44 slechta Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.127.2.2 2004/11/06 03:22:22 slechta Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
@@ -755,9 +755,7 @@ bx_hard_drive_c::register_state(sr_param_c *list_p)
   {
     BXRS_ARRAY_START(struct channel_t::drive_t, drives, 2); 
     {
-#warning hard drive images are current *not* save_restored
-      // BJS TODO: device_image_t* hard_drive;
-      // BJS TODO: implement device_image_t* hard_drive registration
+      BXRS_OBJP(device_image_t, hard_drive);
       BXRS_ENUM(device_type_t, device_type);
       // 512 byte buffer for ID drive command
       // These words are stored in native word endian format, as
@@ -796,6 +794,33 @@ bx_hard_drive_c::register_state(sr_param_c *list_p)
 #endif
   BXRS_END;
 }
+
+void 
+default_image_t::register_state(sr_param_c *list_p)
+{
+  device_image_t::register_state(list_p);
+
+  BXRS_START(default_image_t, this, list_p, 5);
+  {
+    BXRS_IMAGE(int, fd);
+  }
+  BXRS_END;
+}
+
+
+void 
+device_image_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(default_image_t, this, list_p, 5);
+  {
+    // base class registration
+    BXRS_NUM(unsigned, cylinders);
+    BXRS_NUM(unsigned, heads);
+    BXRS_NUM(unsigned, sectors);
+  }
+  BXRS_END;
+}
+
 
 #endif // #if BX_SAVE_RESTORE
 

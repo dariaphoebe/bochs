@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.cc,v 1.37.2.1 2004/11/05 00:56:46 slechta Exp $
+// $Id: pci.cc,v 1.37.2.2 2004/11/06 03:22:22 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -588,6 +588,9 @@ bx_pci_c::register_state(sr_param_c *list_p)
 
     BXRS_NUM(unsigned, num_pci_handles);
     
+    BXRS_ARRAY_BOOL(bx_bool, slot_used, BX_N_PCI_SLOTS);
+    BXRS_BOOL(bx_bool, slots_checked);
+
     BXRS_STRUCT_START(struct s_t, s);
     {
       BXRS_STRUCT_START(s_t::bx_def440fx_t, i440fx);

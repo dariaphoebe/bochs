@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.26.2.1 2004/11/05 00:56:44 slechta Exp $
+// $Id: harddrv.h,v 1.26.2.2 2004/11/06 03:22:22 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -140,6 +140,11 @@ class device_image_t
       unsigned cylinders;
       unsigned heads;
       unsigned sectors;
+
+#if BX_SAVE_RESTORE
+      virtual void register_state(sr_param_c *list_p);
+#endif // #if BX_SAVE_RESTORE
+
 };
 
 // FLAT MODE
@@ -167,9 +172,12 @@ class default_image_t : public device_image_t
       // written (count).
       ssize_t write (const void* buf, size_t count);
 
+#if BX_SAVE_RESTORE
+      virtual void register_state(sr_param_c *list_p);
+#endif // #if BX_SAVE_RESTORE
+
   private:
       int fd;
-
 };
 
 // CONCAT MODE
@@ -297,7 +305,6 @@ class sparse_image_t : public device_image_t
                        set_virtual_page(uint32 new_virtual_page);
  void read_header();
  ssize_t read_page_fragment(uint32 read_virtual_page, uint32 read_page_offset, size_t read_size, void * buf);
-
  sparse_image_t *  parent_image;
 };
 
@@ -632,7 +639,7 @@ struct sense_info_t {
   Bit8u ascq;
 #if BX_SAVE_RESTORE
   void register_state(sr_param_c *list_p);
-#endif // #if BX_SAVE_RESTORE
+#endif 
 };
 
 struct error_recovery_t {
@@ -641,7 +648,7 @@ struct error_recovery_t {
   error_recovery_t ();
 #if BX_SAVE_RESTORE
   void register_state(sr_param_c *list_p);
-#endif // #if BX_SAVE_RESTORE
+#endif
 };
 
 uint16 read_16bit(const uint8* buf) BX_CPP_AttrRegparmN(1);

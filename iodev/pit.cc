@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit.cc,v 1.19.2.1 2004/11/05 00:56:47 slechta Exp $
+// $Id: pit.cc,v 1.19.2.2 2004/11/06 03:22:22 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -891,7 +891,7 @@ bx_pit_c::register_state(sr_param_c *list_p)
     }
     BXRS_ARRAY_END;
     BXRS_NUM(Bit8u, speaker_data_on);
-    BXRS_BOOL(refresh_clock_div2);
+    BXRS_BOOL(bx_bool, refresh_clock_div2);
     BXRS_ARRAY_NUM(int, timer_handle, 3);
 
   }

@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /////////////////////////////////////////////////////////////////////////
-// $Id: save_restore.h,v 1.1.2.1 2004/11/05 00:56:40 slechta Exp $
+// $Id: save_restore.h,v 1.1.2.2 2004/11/06 03:22:21 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 #ifndef SAVE_RESTORE__H
 #define SAVE_RESTORE__H
@@ -62,6 +62,7 @@ typedef enum {
   SRT_PARAM_ENUM,
   SRT_PARAM_STRING,
   SRT_PARAM_DATA,
+  SRT_PARAM_IMAGE,
   SRT_LIST
 } sr_objtype;
 
@@ -103,6 +104,10 @@ class sr_param_string_c;
 class sr_param_filename_c;
 class sr_list_c;
 
+class sr_param_file_c;
+class sr_shadow_file_c;
+
+/*---------------------------------------------------------------------------*/
 class BOCHSAPI sr_object_c {
 private:
   sr_objtype type;
@@ -118,6 +123,8 @@ public:
   }
 };
 
+
+/*---------------------------------------------------------------------------*/
 class BOCHSAPI sr_param_c : public sr_object_c {
   BOCHSAPI_CYGONLY static const char *default_text_format;
 protected:
@@ -157,6 +164,8 @@ public:
   bx_bool  is_shadow_param();
 };
 
+
+/*---------------------------------------------------------------------------*/
 typedef Bit64s (*sr_param_event_handler)(class sr_param_c *, int set, Bit64s val);
 
 class BOCHSAPI sr_param_num_c : public sr_param_c {
@@ -207,6 +216,8 @@ public:
 #endif
 };
 
+
+/*---------------------------------------------------------------------------*/
 // a sr_shadow_num_c is like a sr_param_num_c except that it doesn't
 // store the actual value with its data. Instead, it uses val.p32bit
 // to keep a pointer to the actual data.  This is used to register
@@ -272,55 +283,72 @@ public:
 };
 
 
+/*---------------------------------------------------------------------------*/
 typedef void* (*sr_param_data_handler)(class sr_param_c *, int set, void* val);
-
-class BOCHSAPI sr_param_data_c : public sr_param_c
-{
- private:
-  int data_size;
-  void *data;
-  sr_param_data_handler handler;
-
- public:
-  sr_param_data_c (sr_param_c *parent,
-                   char *name,
-                   char *description,
-                   void *ptr_to_data, 
-                   int data_size);
-
-  void set_handler (sr_param_data_handler handler);
-
-  void set_data_size(int size) {data_size = size;};
-  int  get_data_size() {return data_size;};
-  virtual void set (void* new_data_ptr, bx_bool ignore_handler=0);
-  virtual void* get(bx_bool ignore_handler=0);
-};
-
-
-typedef void* (*sr_shadow_data_handler)(class sr_param_c *, int set, void** val);
 
 class BOCHSAPI sr_shadow_data_c : public sr_param_c
 {
- private:
-  int data_size;
-  void **data;
-  sr_shadow_data_handler handler;
-
  public:
-  sr_shadow_data_c (sr_param_c *parent,
-                    char *name,
-                    char *description,
-                    void **ptr_to_real_ptr, 
-                    int data_size);
+  sr_shadow_data_c (sr_param_c *parent, char *name, char *descr,
+                    void **ptr_to_real_ptr, int data_size);
 
-  void set_handler (sr_shadow_data_handler handler);
+  void  set_handler (sr_param_data_handler handler) { this->handler = handler; };
 
-  void set_data_size(int size) {data_size = size;};
-  int  get_data_size() {return data_size;};
-  virtual void set (void* new_data_ptr, bx_bool ignore_handler=0);
-  virtual void* get(bx_bool ignore_handler=0);
+  void  set_data_size(int size) {data_size = size;};
+  int   get_data_size() {return data_size;};
+  void  set (void* new_data_ptr, bx_bool ignore_handler=0);
+  void* get(bx_bool ignore_handler=0);
+
+ protected:
+  int data_size;
+  void **data_pp;
+  sr_param_data_handler handler;
 };
 
+
+/*---------------------------------------------------------------------------*/
+class BOCHSAPI sr_param_data_c : public sr_shadow_data_c
+{
+ public:
+  sr_param_data_c (sr_param_c *parent, char *name, char *descr, 
+                   void *ptr_to_data, int data_size);
+
+protected:
+  void *data_p;
+};
+
+
+/*---------------------------------------------------------------------------*/
+typedef int (*sr_param_image_handler)(class sr_param_c *, int set, int fd);
+
+class BOCHSAPI sr_shadow_image_c : public sr_param_c
+{
+public:
+  sr_shadow_image_c (sr_param_c *parent, char *name, char *desc, int *ptr_to_fd);
+
+  void  set_handler (sr_param_image_handler handler) { this->handler = handler; };
+
+  void  set (int new_fd, bx_bool ignore_handler=0);
+  int   get(bx_bool ignore_handler=0);
+
+protected:
+  int *fd_p;
+  sr_param_image_handler handler;
+};
+
+
+/*---------------------------------------------------------------------------*/
+class BOCHSAPI sr_param_image_c : public sr_shadow_image_c
+{
+public:
+  sr_param_image_c (sr_param_c *parent, char *name, char *desc, int fd);
+
+protected:
+  int fd;
+};
+
+
+/*---------------------------------------------------------------------------*/
 class BOCHSAPI sr_param_bool_c : public sr_param_num_c {
   // many boolean variables are used to enable/disable modules.  In the
   // user interface, the enable variable should enable/disable all the
@@ -336,6 +364,8 @@ public:
 #endif
 };
 
+
+/*---------------------------------------------------------------------------*/
 // a sr_shadow_bool_c is a shadow sr_param based on sr_param_bool_c.
 class BOCHSAPI sr_shadow_bool_c : public sr_param_bool_c {
   // each bit of a bitfield can be a separate value.  bitnum tells which
@@ -352,6 +382,7 @@ public:
 };
 
 
+/*---------------------------------------------------------------------------*/
 class BOCHSAPI sr_param_enum_c : public sr_param_num_c {
   char **choices;
 public:
@@ -370,6 +401,8 @@ public:
 #endif
 };
 
+
+/*---------------------------------------------------------------------------*/
 typedef char* (*sr_param_string_event_handler)(class sr_param_string_c *, int set, char *val, int maxlen);
 
 class BOCHSAPI sr_param_string_c : public sr_param_c {
@@ -406,6 +439,8 @@ public:
 #endif
 };
 
+
+/*---------------------------------------------------------------------------*/
 // Declare a filename class.  It is identical to a string, except that
 // it initializes the options differently.  This is just a shortcut
 // for declaring a string sr_param and setting the options with IS_FILENAME.
@@ -418,8 +453,10 @@ public:
       int maxsize=-1);
 };
 
+
 #define BX_DEFAULT_LIST_SIZE 6
 
+/*---------------------------------------------------------------------------*/
 class BOCHSAPI sr_list_c : public sr_param_c {
 protected:
   // just a list of sr_param_c objects.  size tells current number of
@@ -774,11 +811,13 @@ extern int bx_just_restored_state;
 
 #define BXRS_OBJP_D(_type, _var_p, _desc)                                     \
 {                                                                             \
-  _bxrs_this_t* _bxrs_obj = (_bxrs_this_t*)_bxrs_this;                        \
-  BXRS_STRUCTP_START_D(_type, _var_p, _desc);                                 \
-  ((_type*)(( _bxrs_obj )->_var_p))->register_state(_bxrs_cur_list_p);        \
-  UNUSED(_bxrs_this);                                                         \
-  BXRS_STRUCTP_END;                                                           \
+  if ((((_bxrs_this_t*)_bxrs_this))->_var_p) {                                \
+    _bxrs_this_t* _bxrs_obj = (_bxrs_this_t*)_bxrs_this;                      \
+    BXRS_STRUCTP_START_D(_type, _var_p, _desc);                               \
+    ((_type*)(( _bxrs_obj )->_var_p))->register_state(_bxrs_cur_list_p);      \
+    UNUSED(_bxrs_this);                                                       \
+    BXRS_STRUCTP_END;                                                         \
+  }                                                                           \
 }
 
 
@@ -853,6 +892,26 @@ extern int bx_just_restored_state;
                      (void*) &(((*((_bxrs_this_t*)_bxrs_this))._ptr)),       \
                      _len)); 
 
+/*---------------------------------------------------------------------------*/
+// register a file descriptor variable in the current bxrs scope
+#define BXRS_IMAGE(_type, _var)                                              \
+  BXRS_IMAGE_DH(_type, _var, "", NULL)
+
+#define BXRS_IMAGE_D(_type, _var, _desc)                                     \
+  BXRS_IMAGE_DH(_type, _var, _desc, NULL);
+
+#define BXRS_IMAGE_H(_type, _var, _handler)                                  \
+  BXRS_IMAGE_DH(_type, _var, "", _handler);
+
+#define BXRS_IMAGE_D(_type, _var, _desc)                                     \
+  BXRS_IMAGE_DH(_type, _var, _desc, NULL);
+
+#define BXRS_IMAGE_DH(_type, _var, _desc, _handler)                          \
+  (new sr_shadow_image_c(_bxrs_cur_list_p,                                   \
+                     #_var,                                                  \
+                     _desc,                                                  \
+                     (_type*)(&((*((_bxrs_this_t*)_bxrs_this))._var))))->    \
+  set_handler(_handler);
 
 
 /*---------------------------------------------------------------------------*/
@@ -909,6 +968,8 @@ class bx_checkpoint_c {
   char  m_line_buf[MAX_CHECKPOINT_LINE_SIZE];  
   char *m_line_buf_cursor;
 
+  static const unsigned MAX_IMAGE_CHUNK = (1*1024*1024);
+
   // dump the sr_parameter tree to the appropriate FILE stream.
   void save_param_tree(sr_param_c *sr_param_tree_p, int level=0);
   void load_param_tree(sr_param_c *sr_param_tree_p,
@@ -943,6 +1004,10 @@ class bx_checkpoint_c {
                        char *value_str,
                        char *qualified_path_str);
   bx_bool load_param_data(sr_param_c *parent_p, 
+                          char *sr_param_str, 
+                          char *value_str,
+                          char *qualified_path_str);
+  bx_bool load_param_image(sr_param_c *parent_p, 
                           char *sr_param_str, 
                           char *value_str,
                           char *qualified_path_str);
