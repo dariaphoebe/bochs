@@ -105,7 +105,9 @@ static floatx80 do_fprem(floatx80 a, floatx80 b, Bit64u &q, int rounding_mode, f
         zExp = bExp;
 
         if (expDiff < 0) {
-            if (expDiff < -1) return a;
+            if (expDiff < -1)
+                return (a.fraction & BX_CONST64(0x8000000000000000)) ? 
+                    packFloatx80(aSign, aExp, aSig0) : a;
             shift128Right(aSig0, 0, 1, &aSig0, &aSig1);
             expDiff = 0;
         }
