@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94.4.7 2003/03/25 08:45:08 slechta Exp $
+// $Id: siminterface.cc,v 1.94.4.8 2003/03/28 02:10:45 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -892,6 +892,7 @@ bx_param_c::bx_param_c (bx_param_c *parent, char *name, char *description)
   this->runtime_param = 0;
   this->enabled = 1;
   this->parent = NULL;
+  this->is_shadow = 0; // can be re-set to 1 in shadow constructors --BJS
   if (parent) {
     BX_ASSERT (parent->is_type (BXT_LIST));
     this->parent = (bx_list_c *)parent;
@@ -1014,9 +1015,9 @@ bx_param_num_c::get64 ()
 }
 
 void
-bx_param_num_c::set (Bit64s newval)
+bx_param_num_c::set (Bit64s newval, bx_bool ignore_handler)
 {
-  if (handler) {
+  if (!ignore_handler && handler) {
     // the handler can override the new value and/or perform some side effect
     // BBD: we should really send the oldval and newval to the handler,
     // so that it can change it back if necessary.  Maybe it should be
@@ -1080,6 +1081,7 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p64bit = ptr_to_real_val;
+  this->is_shadow = 1;
 }
 
 // Unsigned 64 bit
@@ -1095,6 +1097,7 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p64bit = (Bit64s*) ptr_to_real_val;
+  this->is_shadow = 1;
 }
 
 // Signed 32 bit
@@ -1110,6 +1113,7 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p32bit = ptr_to_real_val;
+  this->is_shadow = 1;	
 }
 
 // Unsigned 32 bit
@@ -1125,6 +1129,7 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p32bit = (Bit32s*) ptr_to_real_val;
+  this->is_shadow = 1;
 }
 
 // Signed 16 bit
@@ -1140,6 +1145,7 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p16bit = ptr_to_real_val;
+  this->is_shadow = 1;
 }
 
 // Unsigned 16 bit
@@ -1155,6 +1161,7 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p16bit = (Bit16s*) ptr_to_real_val;
+  this->is_shadow = 1;
 }
 
 // Signed 8 bit
@@ -1170,6 +1177,7 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p8bit = ptr_to_real_val;
+  this->is_shadow = 1;
 }
 
 // Unsigned 8 bit
@@ -1185,6 +1193,7 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p8bit = (Bit8s*) ptr_to_real_val;
+  this->is_shadow = 1;
 }
 
 Bit64s
@@ -1208,7 +1217,7 @@ bx_shadow_num_c::get64 () {
 }
 
 void
-bx_shadow_num_c::set (Bit64s newval)
+bx_shadow_num_c::set (Bit64s newval, bx_bool ignore_handler)
 {
   Bit64u tmp = 0;
   if ((newval < min || newval > max) && max != BX_MAX_BIT64U)
@@ -1237,7 +1246,7 @@ bx_shadow_num_c::set (Bit64s newval)
     default: 
       BX_PANIC(("unsupported varsize %d", varsize));
   }
-  if (handler) {
+  if (!ignore_handler && handler) {
     // the handler can override the new value and/or perform some side effect
     (*handler)(this, 1, tmp);
   }
@@ -1268,6 +1277,7 @@ bx_shadow_bool_c::bx_shadow_bool_c (bx_param_c *parent,
 {
   val.pbool = ptr_to_real_val;
   this->bitnum = bitnum;
+  this->is_shadow = 1;
 }
 
 Bit64s
@@ -1283,13 +1293,13 @@ bx_shadow_bool_c::get64 () {
 }
 
 void
-bx_shadow_bool_c::set (Bit64s newval)
+bx_shadow_bool_c::set (Bit64s newval, bx_bool ignore_handler)
 {
   // only change the bitnum bit
   Bit64s tmp = (newval&1) << bitnum;
   *(val.pbool) &= ~tmp;
   *(val.pbool) |= tmp;
-  if (handler) {
+  if (!ignore_handler && handler) {
     // the handler can override the new value and/or perform some side effect
     (*handler)(this, 1, newval&1);
   }
@@ -1327,11 +1337,11 @@ bx_param_enum_c::find_by_name (const char *string)
 }
 
 bool 
-bx_param_enum_c::set_by_name (const char *string)
+bx_param_enum_c::set_by_name (const char *string, bx_bool ignore_handler)
 {
   int n = find_by_name (string);
   if (n<0) return false;
-  set (n);
+  set (n, ignore_handler);
   return true;
 }
 
@@ -1415,13 +1425,13 @@ bx_param_string_c::get (char *buf, int len)
 }
 
 void 
-bx_param_string_c::set (char *buf)
+bx_param_string_c::set (char *buf, bx_bool ignore_handler)
 {
   if (options->get () & RAW_BYTES)
     memcpy (val, buf, maxsize);
   else
     strncpy (val, buf, maxsize);
-  if (handler) {
+  if (!ignore_handler && handler) {
     // the handler can return a different char* to be copied into the value
     buf = (*handler)(this, 1, buf, -1);
   }
@@ -1582,27 +1592,20 @@ void print_tree (bx_param_c *node, int level)
       {
 	printf ("%s = \n", node->get_name ());
 	bx_list_c *list = (bx_list_c*)node;
-#warning slechta added this suppression for debug... may wish to remove
-        if (list->get_size() <= 100) {
-          for (i=0; i < list->get_size (); i++) {
-            // distinguish between real children and 'links' where the 
-	    // child's parent ptr does not point to this list.  For links,
-	    // do not descend into the object.
-	    bx_bool is_link = (list != list->get(i)->get_parent ());
-	    if (is_link) {
-	      char pname[BX_PATHNAME_LEN];
-	      list->get(i)->get_param_path (pname, sizeof(pname));
-	      for (int indent=0; indent<level+1; indent++) printf ("  ");
-	      printf ("%s --> link to %s\n", list->get(i)->get_name (), pname);
+        for (i=0; i < list->get_size (); i++) {
+          // distinguish between real children and 'links' where the 
+          // child's parent ptr does not point to this list.  For links,
+          // do not descend into the object.
+          bx_bool is_link = (list != list->get(i)->get_parent ());
+          if (is_link) {
+            char pname[BX_PATHNAME_LEN];
+            list->get(i)->get_param_path (pname, sizeof(pname));
+            for (int indent=0; indent<level+1; indent++) printf ("  ");
+            printf ("%s --> link to %s\n", list->get(i)->get_name (), pname);
 	    } else {
               print_tree (list->get(i), level+1);
 	    }
           }
-        }
-        else {
-	  for (int indent=0; indent<level; indent++) printf ("  ");
-          printf(".. %d items suppressed ..\n", list->get_size ());
-        }
 	break;
       }
     case BXT_PARAM_ENUM:
@@ -1689,7 +1692,7 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
           char pname[BX_PATHNAME_LEN];
           list->get(i)->get_param_path (pname, sizeof(pname));
           for (int indent=0; indent<level+1; indent++) fprintf (m_ascii_fp, " ");
-          fprintf (m_ascii_fp, "%s-->link to %s\n", list->get(i)->get_name (), pname);
+          fprintf (m_ascii_fp, "%s=<link>\"%s\"\n", list->get(i)->get_name (), pname);
         } else {
           save_param_tree (list->get(i), level+1);
         }
@@ -1705,8 +1708,7 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
     {
       bx_param_enum_c *e = (bx_param_enum_c*) node;
       int val = e->get ();
-      char *choice = e->get_choice(val);
-      fprintf (m_ascii_fp, "%s=0x%x (enum \"%s\")\n", node->get_name (), val, choice); 
+      fprintf (m_ascii_fp, "%s=<enum>0x%x\n", e->get_name (), val); 
       break;
     }
   case BXT_PARAM:
@@ -1720,14 +1722,24 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
 
 
 /*---------------------------------------------------------------------------*/
-#define PARAM_NOT_FOUND                                                       \
-  /* FIXME: use bochs's standard mechanisms for reporting errors  */          \
-  fprintf(stderr, "error when loading checkpoint. "                           \
+#define CHKPT_PARAM_NOT_FOUND()                                               \
+  BX_PANIC(("error when loading checkpoint. "                                 \
           "param \"%s\" not found in list param \"%s\".\n",                   \
-          param_str, qualified_path_str);
+          param_str, qualified_path_str));
 
-// DEBUG
+#define CHKPT_ASSERT_INPUT_TYPE(_param_type, _chk_type)                       \
+  if (_param_type != _chk_type) {                                             \
+    BX_PANIC(("error when loading checkpoint. "                               \
+          "bad bx_objtype found in param \"%s\" not in list param \"%s\".\n", \
+          param_str, qualified_path_str));                                    \
+  }
+  
+
+#define CHKPT_DEBUG 0
+
+#if CHKPT_DEBUG
 static int level=0;
+#endif
 
 /*---------------------------------------------------------------------------*/
 // The following recursive function is a somewhat crude and contstained parser.
@@ -1737,8 +1749,8 @@ void bx_checkpoint_c::load_param_tree(bx_param_c *param_tree_p,
                                       char *qualified_path_str)
 {
   char *param_str = NULL, *value_str = NULL;
-
-  // TODO: assert that qualified_path_str != NULL
+  
+  BX_ASSERT(qualified_path_str != NULL);
   
   // read each parameter on this level
   while ((param_str = read_next_param()) != NULL)
@@ -1753,10 +1765,8 @@ void bx_checkpoint_c::load_param_tree(bx_param_c *param_tree_p,
       value_str = read_next_value();
       if (value_str == NULL)
         {
-          // FIXME: use bochs's standard mechanisms for reporting errors
-          fprintf(stderr, "fatal error when loading checkpoint. " \
-                  "value not present with param %s.\n", param_str);
-          exit(0);
+          BX_PANIC(("fatal error when loading checkpoint. " \
+                   "value not present with param %s.\n", param_str));
         }
 
       // check for bx_list_c param
@@ -1783,13 +1793,24 @@ void bx_checkpoint_c::load_param_tree(bx_param_c *param_tree_p,
           load_param_hex_num(param_tree_p, param_str, value_str, 
                              qualified_path_str);
         }
+      // check for enum
+      else if (strncmp(value_str, "<enum>", 6) == 0)
+        {
+          load_param_enum(param_tree_p, param_str, &(value_str[6]), 
+                          qualified_path_str);
+        }
+      // check for link
+      else if (strncmp(value_str, "<link>", 6) == 0)
+        {
+          // we dont need to read through this link since it is somewhere
+          // else in the tree
+        }
       // assume that the value is an decimal string
       else
         {
           load_param_dec_num(param_tree_p, param_str, value_str, 
                              qualified_path_str);
         }
-      // TODO: implement enum!
     }
 
   return;
@@ -1818,29 +1839,25 @@ void bx_checkpoint_c::write(const char *checkpoint_name,
   struct stat mystat;
   if( stat(checkpoint_name, &mystat) >= 0)
     {
+      // FIXME:
       // checkpoint file exists ... is it a directory?
-      if (!S_ISDIR(mystat.st_rdev))
-        {
-          // FIXME: use bochs's standard mechanisms for reporting errors
-          fprintf(stderr, "could no create \"%s\" directory.  file exists.\n",
-                  checkpoint_name);
-          // FIXME:return;
-        }
-      else 
-        {
-          // TODO: already exists ... warn user.
-          // FIXME: use bochs's standard mechanisms for reporting errors
-          fprintf(stderr, "warning: checkpoint directory \"%s\"exists.\n",
-                  checkpoint_name);
-          
-        }
+      //if (!S_ISDIR(mystat.st_rdev))
+      //  {
+      //    BX_PANIC(("could no create \"%s\" directory.  file exists.\n",
+      //             checkpoint_name));
+      //  }
+      //else 
+      //  {
+      //    // already exists ... warn user.
+      //    BX_INFO(("warning: checkpoint directory \"%s\"exists.\n",
+      //            checkpoint_name));
+      //  }
     }
   // create the checkpoint directory
   else if (mkdir(checkpoint_name, 0755) <0)
     {
-      // FIXME: use bochs's standard mechanisms for reporting errors
-      fprintf(stderr, "could not create checkpoint directory \"%s\"\n",
-              checkpoint_name);
+      BX_PANIC(("could not create checkpoint directory \"%s\"\n",
+               checkpoint_name));
       return;
     }
 
@@ -1864,23 +1881,20 @@ void bx_checkpoint_c::write(const char *checkpoint_name,
 
   if (data_filename == NULL || ascii_filename == NULL)
     {
-      // FIXME: use bochs's standard mechanisms for reporting errors
-      fprintf(stderr, "system could not service malloc() call\n");
+      BX_PANIC(("system could not service malloc() call\n"));
     }
   // open ascii file for writing
   else if ((m_ascii_fp = fopen(ascii_filename, "w+b")) == NULL)
     {
-      // FIXME: use bochs's standard mechanisms for reporting errors
-      fprintf(stderr, "could not create/open file \"%s\"\n",
-              checkpoint_name);
+      BX_PANIC(("could not create/open file \"%s\"\n",
+               checkpoint_name));
     }
   // open binary data file for writing
   else if ((m_data_fp = fopen(data_filename, "w+b")) == NULL)
     {
-      // FIXME: use bochs's standard mechanisms for reporting errors
-      fprintf(stderr, "could not create/open file \"%s\"\n",
-              checkpoint_name);
-
+      BX_PANIC(("could not create/open file \"%s\"\n",
+               checkpoint_name));
+      
     }
   // if no errors and the files all opened succesfully ...
   else 
@@ -1949,23 +1963,20 @@ void bx_checkpoint_c::read(const char *checkpoint_name,
   // check for malloc() failures
   if (data_filename == NULL || ascii_filename == NULL)
     {
-      // FIXME: use bochs's standard mechanisms for reporting errors
-      fprintf(stderr, "system could not service malloc() call\n");
+      BX_PANIC(("system could not service malloc() call\n"));
     }
   // open ascii file for reading
   else if ((m_ascii_fp = fopen(ascii_filename, "rb")) == NULL)
     {
-      // FIXME: use bochs's standard mechanisms for reporting errors
-      fprintf(stderr, "could not create/open file \"%s\"\n",
-              checkpoint_name);
+      
+      BX_PANIC(("could not create/open file \"%s\"\n for reading",
+               checkpoint_name));
     }
   // open binary data file for reading
   else if ((m_data_fp = fopen(data_filename, "rb")) == NULL)
     {
-      // FIXME: use bochs's standard mechanisms for reporting errors
-      fprintf(stderr, "could not create/open file \"%s\"\n",
-              checkpoint_name);
-
+      BX_PANIC(("could not create/open file \"%s\" for reading\n",
+               checkpoint_name));
     }
   // if no errors and the files all opened succesfully ...
   else 
@@ -1974,7 +1985,9 @@ void bx_checkpoint_c::read(const char *checkpoint_name,
       read_next_param();
       read_next_value();
       // TODO: assert that curly_str is '{'
-      level = 0;  // DEBUG
+#if CHKPT_DEBUG
+      level = 0; 
+#endif
       load_param_tree(param_tree_p, "root");
     }
 
@@ -2049,6 +2062,7 @@ void bx_checkpoint_c::dump_param_tree(bx_param_c *param_tree_p)
 
 
 /*---------------------------------------------------------------------------*/
+// read the next parameter in the line buffer
 char* bx_checkpoint_c::read_next_param()
 {
   if (m_ascii_fp == NULL)
@@ -2099,6 +2113,7 @@ char* bx_checkpoint_c::read_next_param()
 
 
 /*---------------------------------------------------------------------------*/
+// read the next parameter value in the line buffer
 char* bx_checkpoint_c::read_next_value()
 {
   // advance pointer to first non-white space
@@ -2123,11 +2138,17 @@ char* bx_checkpoint_c::read_next_value()
           break;
         }
     }
+  
+  int toggle_quote = 0;
 
   // look for end of first token (white space or '=' marks end-of-token)
   for (; i<line_size; i++)
     {
-      if ( isspace(m_line_buf_cursor[i]) )
+      if (m_line_buf_cursor[i] == '\"')
+        {
+          toggle_quote = toggle_quote ? 0 : 1;
+        }
+      else if ( !toggle_quote && isspace(m_line_buf_cursor[i]) )
         {
           m_line_buf_cursor[i] = '\0';
           break;
@@ -2146,31 +2167,43 @@ bx_checkpoint_c::load_param_hex_num(bx_param_c *parent_p,
                                     char *value_str,
                                     char *qualified_path_str)
 {
-  // DEBUG
+#if CHKPT_DEBUG
   for (int i=0; i<level; i++) printf(" ");
   printf("hex param = %s, value = %s\n", param_str, value_str);
+#endif // #if CHKPT_DEBUG
 
   bx_param_c *param_p = parent_p->get_by_name(param_str);
   if (param_p == NULL)
     {
-      PARAM_NOT_FOUND;
+      CHKPT_PARAM_NOT_FOUND();
     }
   else
     {
-      // TODO: ASSERT that this is a bx_param_num_c
-          
+      CHKPT_ASSERT_INPUT_TYPE(param_p->get_type(), BXT_PARAM_NUM);
+                
       // convert the hex string to a long int
       char *str_ptr;
-      long int value = strtol(value_str, &str_ptr, 16);
+      long int value = strtol(value_str, &str_ptr, 0);
       if (*str_ptr != '\0')
         {
-          // FIXME: use bochs's standard mechanisms for reporting errors
-          fprintf(stderr, "fatal error when loading checkpoint. " \
-                  "value not valid with param %s.\n", param_str);
+          BX_PANIC(("fatal error when loading checkpoint. " \
+                   "value not valid with param %s.\n", param_str));
         }
-      
-      // TODO: actual loading of new value
-      //param_p->set(value);      
+
+#if CHKPT_DEBUG
+      for (int i=0; i<level; i++) printf(" ");
+      printf("            %s, put   = %0xlx\n", param_str, value);
+#endif // #if CHKPT_DEBUG
+
+      // actual loading of new value
+      if (param_p->is_shadow_param())
+        {
+          ((bx_shadow_num_c*)param_p)->set(value);
+        }
+      else
+        {
+          ((bx_param_num_c*)param_p)->set(value, 1);
+        }
     }
           
 
@@ -2185,30 +2218,43 @@ bx_checkpoint_c::load_param_dec_num(bx_param_c *parent_p,
                                     char *value_str,
                                     char *qualified_path_str)
 {
+#if CHKPT_DEBUG
   for (int i=0; i<level; i++) printf(" ");
-  printf("hex param = %s, value = %s\n", param_str, value_str);
+  printf("dec param = %s, value = %s\n", param_str, value_str);
+#endif // #if CHKPT_DEBUG
 
   bx_param_c *param_p = parent_p->get_by_name(param_str);
   if (param_p == NULL)
     {
-      PARAM_NOT_FOUND;
+      CHKPT_PARAM_NOT_FOUND();
     }
   else
     {
-      // TODO: ASSERT that this is a bx_param_num_c
+      CHKPT_ASSERT_INPUT_TYPE(param_p->get_type(), BXT_PARAM_NUM);
           
       // convert the hex string to a long int
       char *str_ptr;
-      long int value = strtol(value_str, &str_ptr, 16);
+      long int value = strtol(value_str, &str_ptr, 0);
       if (*str_ptr != '\0')
         {
-          // FIXME: use bochs's standard mechanisms for reporting errors
-          fprintf(stderr, "fatal error when loading checkpoint. " \
-                  "value not valid with param %s.\n", param_str);
+          BX_PANIC(("error when loading checkpoint. " \
+                   "value not valid with param %s.\n", param_str));
         }
+
+#if CHKPT_DEBUG
+      for (int i=0; i<level; i++) printf(" ");
+      printf("            %s, put   = %ld\n", param_str, value);
+#endif // #if CHKPT_DEBUG
       
-      // TODO: actual loading of new value
-      //param_p->set(value);      
+      // actual loading of new value into location pointed to by shadow
+      if (param_p->is_shadow_param())
+        {
+          ((bx_shadow_num_c*)param_p)->set(value);
+        }
+      else 
+        {
+          ((bx_param_num_c*)param_p)->set(value, 1);
+        }
       
     }
   return 1;
@@ -2221,23 +2267,36 @@ bx_checkpoint_c::load_param_string(bx_param_c *parent_p,
                                    char *value_str,
                                    char *qualified_path_str)
 {
-  // TODO: ASSERT that this is a bx_string_param_c
-          
-  // DEBUG
+#if CHKPT_DEBUG
   for (int i=0; i<level; i++) printf(" ");
   printf("str param = %s, value = %s\n", param_str, value_str);
+#endif // #if CHKPT_DEBUG
           
   bx_param_c *param_p = parent_p->get_by_name(param_str);
   if (param_p == NULL)
     {
-      // FIXME: use bochs's standard mechanisms for reporting errors
-      fprintf(stderr, "error when loading checkpoint. " \
-              "param \"%s\" not found in list param \"%s\".\n", 
-              param_str, qualified_path_str);
+      BX_PANIC(("error when loading checkpoint. " \
+                "param \"%s\" not found in list param \"%s\".\n", 
+                param_str, qualified_path_str));
     }
   else
     {
-      ;// TODO: implement actual loading of new value
+      CHKPT_ASSERT_INPUT_TYPE(param_p->get_type(), BXT_PARAM_STRING);
+
+      BX_ASSERT(param_p->is_shadow_param() == 0);
+
+      // since the string contains '\"' at the beginning and the end, we
+      // need to remove them.
+      value_str = &(value_str[1]);
+      value_str[strlen(value_str)-1] = '\0';
+
+#if CHKPT_DEBUG
+      for (int i=0; i<level; i++) printf(" ");
+      printf("            %s, put   = \"%s\"\n", param_str, value_str);
+#endif // #if CHKPT_DEBUG
+
+      // actual loading of new value
+      ((bx_param_string_c*)param_p)->set(value_str);
     }
           
 
@@ -2251,26 +2310,40 @@ bx_checkpoint_c::load_param_bool(bx_param_c *parent_p,
                                  char *value_str,
                                  char *qualified_path_str)
 {
-  // DEBUG
+
+#if CHKPT_DEBUG
   for (int i=0; i<level; i++) printf(" ");
   printf("boolean param = %s, value = %s\n", param_str, value_str);
+#endif // #if CHKPT_DEBUG
 
   bx_param_c *param_p = parent_p->get_by_name(param_str);
   if (param_p == NULL)
     {
-      PARAM_NOT_FOUND;
+      CHKPT_PARAM_NOT_FOUND();
     }
   else
     {
-      // TODO: ASSERT that this is a bx_param_bool_c
-      // TODO: actually set the value
+      CHKPT_ASSERT_INPUT_TYPE(param_p->get_type(), BXT_PARAM_BOOL);
+      
+      bx_bool value;
+
       if (strcmp(value_str, "true") == 0)
         {
-          //param_p->set(1);
+          value = 1;
         }
       else 
         {
-          //param_p->set(0);
+          value = 0;
+        }
+
+      // actually set the value
+      if (param_p->is_shadow_param())
+        {
+          ((bx_shadow_bool_c*)param_p)->set(value);
+        }
+      else
+        {
+          ((bx_param_bool_c*)param_p)->set(value, 1);
         }
     }
 
@@ -2286,20 +2359,22 @@ bx_checkpoint_c::load_param_list(bx_param_c *parent_p,
 {
   // this param is a bx_list_c, so descend param_tree and recursively
   // call load_param_tree() to process next level
-  
-  // DEBUG
+
+#if CHKPT_DEBUG
   for (int i=0; i<level; i++) printf(" ");
   printf("list param = %s\n", param_str);
+#endif // #if CHKPT_DEBUG
 
   // find the param in the current level of the tree
   bx_param_c *param_p = parent_p->get_by_name(param_str);
   if (param_p == NULL)
     {
-      PARAM_NOT_FOUND;
+      CHKPT_PARAM_NOT_FOUND();
     }
   else
     {
-      // TODO: ASSERT that this is a bx_list_c
+      CHKPT_ASSERT_INPUT_TYPE(param_p->get_type(), BXT_LIST);
+
       // we have found the param we are looking for.  create a new
       // qualified path string and recurse
       char *new_qual_str =  
@@ -2307,24 +2382,76 @@ bx_checkpoint_c::load_param_list(bx_param_c *parent_p,
                        strlen(param_str)+1+1);
       if (new_qual_str == 0)
         {
-          // FIXME: use bochs's standard mechanisms for reporting errors
-          fprintf(stderr, "fatal error when loading checkpoint. " \
-                  "malloc() returned no memory in %s.%s.\n", 
-                  qualified_path_str, param_str);
-          exit(0);
+          BX_PANIC(("fatal error when loading checkpoint. " \
+                   "malloc() returned no memory in %s.%s.\n", 
+                   qualified_path_str, param_str));
         }
       strcpy(new_qual_str, qualified_path_str);
       strcat(new_qual_str, ".");
       strcat(new_qual_str, param_str);
 
       // recurse down the tree
+#if CHKPT_DEBUG
       level++;
       load_param_tree(param_p, new_qual_str);
       level--;
+#else // #if CHKPT_DEBUG
+      load_param_tree(param_p, new_qual_str);
+#endif // #if CHKPT_DEBUG
 
       // free string memory
       free(new_qual_str);
     }
 
+  return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+bx_bool 
+bx_checkpoint_c::load_param_enum(bx_param_c *parent_p, 
+                                    char *param_str, 
+                                    char *value_str,
+                                    char *qualified_path_str)
+{
+#if CHKPT_DEBUG
+  for (int i=0; i<level; i++) printf(" ");
+  printf("enum param = %s, value = %s\n", param_str, value_str);
+#endif // #if CHKPT_DEBUG
+
+  bx_param_c *param_p = ((bx_list_c*)parent_p)->get_by_name(param_str);
+  if (param_p == NULL)
+    {
+      CHKPT_PARAM_NOT_FOUND();
+    }
+  else
+    {
+      CHKPT_ASSERT_INPUT_TYPE(param_p->get_type(), BXT_PARAM_ENUM);
+          
+      // convert the hex string to a long int
+      char *str_ptr;
+      long int value = strtol(value_str, &str_ptr, 0);
+
+#if CHKPT_DEBUG
+      for (int i=0; i<level; i++) printf(" ");
+      printf("             %s, put   = %lx\n", param_str, value);
+#endif // #if CHKPT_DEBUG
+
+      if (*str_ptr != '\0')
+        {
+          BX_PANIC(("error when loading checkpoint. " \
+                   "value not valid with param %s.\n", param_str));
+        }
+      
+      // actual loading of new value into location pointed to by shadow
+      if (param_p->is_shadow_param())
+        {
+          ((bx_shadow_num_c*)param_p)->set(value);
+        }
+      else 
+        {
+          ((bx_param_enum_c*)param_p)->set(value, 1);
+        }
+      
+    }
   return 1;
 }

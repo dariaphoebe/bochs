@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.cc,v 1.21.2.4 2003/03/21 20:49:02 slechta Exp $
+// $Id: pit82c54.cc,v 1.21.2.5 2003/03/28 02:10:45 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -177,8 +177,6 @@ pit_82C54::decrement (counter_type & thisctr) {
     }
     seen_problems=0;
 
-    //BX_REGISTER_LIST(list_p, "root", "", (bx_list_c*)0, 15);  
-    //register_state("pit", "new pit", list_p);
   }
 
 

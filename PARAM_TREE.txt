@@ -1,4 +1,4 @@
-$Id: PARAM_TREE.txt,v 1.1.2.4 2003/03/27 01:08:33 bdenney Exp $
+$Id: PARAM_TREE.txt,v 1.1.2.5 2003/03/28 02:10:44 slechta Exp $
 
 I'm trying to organize the parameters into a tree structure instead of
 a huge flat list.  Once the parameter code is improved, I hope to use
@@ -103,6 +103,8 @@ Notes:
        addr = 0xd0000
       }
      }
+     some_enum = <enum>0x5
+     some_link = <link>"ata.0"
     }
 - (bryce) configuration parameters should be in
   devicename.num.config.*
@@ -114,7 +116,8 @@ Notes:
   as binary data.  During save/restore, the binary blocks will be stored
   in a binary file, not in the ascii checkpoint file that shows the 
   parameter tree.
-
+- (brian) a field was added to the bx_param_c was added to identify those
+  parameters that are considers shadow parameters (bx_bool is_shadow)
 
 Proposed organizion of parameters into a tree
 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.97.2.3 2003/03/27 02:04:18 bdenney Exp $
+// $Id: harddrv.cc,v 1.97.2.4 2003/03/28 02:10:45 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -176,7 +176,7 @@ bx_hard_drive_c::init(void)
   Bit8u channel;
   char  string[5];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.3 2003/03/27 02:04:18 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.4 2003/03/28 02:10:45 slechta Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
@@ -505,8 +505,7 @@ bx_hard_drive_c::init(void)
 
   // FIXME:
   //#warning slechta debug.  remove at some point
-  //BX_REGISTER_LIST(parent_p, "root2", "slechta's fancy root2", (bx_list_c*)0,
-5);
+  //BX_REGISTER_LIST(parent_p, "root2", "slechta's fancy root2", (bx_list_c*)0,5);
   //this->register_state ("hrddrv", "the hard drive", parent_p);
   //print_tree(parent_p,0);
 
@@ -3442,22 +3441,22 @@ controller_t::register_state(char* name, char *desc, bx_param_c *parent_p)
     BXRS_UNION_START;
     {
       BXRS_NUM(Bit8u, sector_count);
-#       warning TODO: register controller_t::interrupt_reason_t 
-//      BXRS_STRUCT_START(struct interrupt_reason_t, interrupt_reason);
-//      {
-//#ifdef BX_LITTLE_ENDIAN
-//        BXRS_BITS(unsigned, c_d, 0, 0); //: 1;
-//        BXRS_BITS(unsigned, i_o, 1, 1); //: 1;
-//        BXRS_BITS(unsigned, rel, 2, 2); //: 1;
-//        BXRS_BITS(unsigned, tag, 7, 3); //: 5;
-//#else  /* BX_BIG_ENDIAN */
-//        BXRS_NUM(unsigned, tag, 4, 0); //: 5;
-//        BXRS_NUM(unsigned, rel, 5, 5); //: 1;
-//        BXRS_NUM(unsigned, i_o, 6, 6); //: 1;
-//        BXRS_NUM(unsigned, c_d, 7, 7); //: 1;
-//#endif
-//      }
-//      BXRS_STRUCT_END;
+      // TODO: register controller_t::interrupt_reason_t 
+      //      BXRS_STRUCT_START(struct interrupt_reason_t, interrupt_reason);
+      //      {
+      //#ifdef BX_LITTLE_ENDIAN
+      //        BXRS_BITS(unsigned, c_d, 0, 0); //: 1;
+      //        BXRS_BITS(unsigned, i_o, 1, 1); //: 1;
+      //        BXRS_BITS(unsigned, rel, 2, 2); //: 1;
+      //        BXRS_BITS(unsigned, tag, 7, 3); //: 5;
+      //#else  /* BX_BIG_ENDIAN */
+      //        BXRS_NUM(unsigned, tag, 4, 0); //: 5;
+      //        BXRS_NUM(unsigned, rel, 5, 5); //: 1;
+      //        BXRS_NUM(unsigned, i_o, 6, 6); //: 1;
+      //        BXRS_NUM(unsigned, c_d, 7, 7); //: 1;
+      //#endif
+      //      }
+      //      BXRS_STRUCT_END;
     }
     BXRS_UNION_END;
 
@@ -3538,19 +3537,19 @@ cdrom_t::register_state(char* name, char *desc, bx_param_c *parent_p)
   {
     BXRS_BOOL(bx_bool, ready);
     BXRS_BOOL(bx_bool, locked);
-#warning FIXME: BXRS_OBJP call disabled by BBD
+    //FIXME: BXRS_OBJP call disabled by BBD
 #ifdef LOWLEVEL_CDROM
     //if (cd) BXRS_OBJP(LOWLEVEL_CDROM, cd);
 #endif
     BXRS_NUM (uint32, capacity);
     BXRS_NUM (int, next_lba);
     BXRS_NUM (int, remaining_blocks);
-    BXRS_STRUCT_START(struct currentStruct, current); 
-    {
-#warning FIXME: BXRS_OBJ call disabled by BBD
-      //BXRS_OBJ(error_recovery_t, error_recovery);
-    } 
-    BXRS_STRUCT_END;
+    // TODO: BXRS_STRUCT_START(struct currentStruct, current); 
+    //{
+    //  //FIXME: BXRS_OBJ call disabled by BBD
+    //  //BXRS_OBJ(error_recovery_t, error_recovery);
+    //} 
+    //BXRS_STRUCT_END;
   }
   BXRS_END;
   
@@ -3578,7 +3577,7 @@ bx_hard_drive_c::register_state(char* name, char *desc, bx_param_c *parent_p)
     BXRS_ARRAY_START(struct channel_t::drive_t, drives, 2); 
     {
       // TODO: device_image_t* hard_drive;
-#     warning TODO: implement device_image_t* hard_drive registration
+      // TODO: implement device_image_t* hard_drive registration
       BXRS_ENUM(device_type_t, device_type);
       // 512 byte buffer for ID drive command
       // These words are stored in native word endian format, as
@@ -3586,7 +3585,7 @@ bx_hard_drive_c::register_state(char* name, char *desc, bx_param_c *parent_p)
       // there's no need to keep them in x86 endian format.
       BXRS_ARRAY_NUM(Bit16u, id_drive, 256);
 
-#warning FIXME: four BXRS_OBJ calls disabled by BBD
+      //FIXME: four BXRS_OBJ calls disabled by BBD
       //BXRS_OBJ(controller_t, controller);
       //BXRS_OBJ(cdrom_t, cdrom);
       //BXRS_OBJ(sense_info_t, sense);

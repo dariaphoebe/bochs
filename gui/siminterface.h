@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.8 2003/03/25 08:45:10 slechta Exp $
+// $Id: siminterface.h,v 1.99.4.9 2003/03/28 02:10:45 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -791,6 +791,7 @@ protected:
   char *ask_format;  // format string for asking for a new value
   int runtime_param;
   int enabled;
+  bx_bool is_shadow;
 public:
   bx_param_c (bx_param_c *parent, char *name, char *description);
   bx_param_c *get_parent () { return (bx_param_c *) parent; }
@@ -816,6 +817,7 @@ public:
   virtual void text_print (FILE *fp) {}
   virtual int text_ask (FILE *fpin, FILE *fpout) {return -1;}
 #endif
+  bx_bool  is_shadow_param() {return is_shadow;};
 };
 
 typedef Bit64s (*param_event_handler)(class bx_param_c *, int set, Bit64s val);
@@ -852,7 +854,7 @@ public:
   virtual void set_enabled (int enabled);
   virtual Bit32s get () { return (Bit32s) get64(); }
   virtual Bit64s get64 ();
-  virtual void set (Bit64s val);
+  virtual void set (Bit64s val, bx_bool ignore_handler=0);
   void set_base (int base) { this->base = base; }
   void set_initial_val (Bit64s initial_val);
   int get_base () { return base; }
@@ -926,7 +928,7 @@ public:
       Bit8u highbit = 7,
       Bit8u lowbit = 0);
   virtual Bit64s get64 ();
-  virtual void set (Bit64s val);
+  virtual void set (Bit64s val, bx_bool ignore_handler=0);
   virtual void reset ();
 };
 
@@ -957,7 +959,7 @@ public:
       bx_bool *ptr_to_real_val,
       Bit8u bitnum = 0);
   virtual Bit64s get64 ();
-  virtual void set (Bit64s val);
+  virtual void set (Bit64s val, bx_bool ignore_handler=0);
 };
 
 
@@ -972,7 +974,7 @@ public:
       Bit64s value_base = 0);
   char *get_choice (int n) { return choices[n]; }
   int find_by_name (const char *string);
-  bool set_by_name (const char *string);
+  bool set_by_name (const char *string, bx_bool ignore_handler=0);
 #if BX_UI_TEXT
   virtual void text_print (FILE *fp);
   virtual int text_ask (FILE *fpin, FILE *fpout);
@@ -1005,7 +1007,7 @@ public:
   void set_handler (param_string_event_handler handler);
   Bit32s get (char *buf, int len);
   char *getptr () {return val; }
-  void set (char *buf);
+  void set (char *buf, bx_bool ignore_handler=0);
   bx_bool equals (const char *buf);
   bx_param_num_c *get_options () { return options; }
   void set_separator (char sep) {separator = sep; }
@@ -1195,7 +1197,6 @@ void print_tree (bx_param_c *node, int level = 0);
 // explicity set up the tree of bx_param_c's that represent the tree of machine
 //state.  Simplicity and consistency in use of these macros is important.  
 // These are still under development.   --BJS
-// TODO: provide examples  --BJS
 #define BX_REGISTER_NUM(_variable_p, _name, _desc, _parent_p)                 \
    (new bx_shadow_num_c(_parent_p, _name, _desc, _variable_p))
 
@@ -1263,84 +1264,120 @@ void print_tree (bx_param_c *node, int level = 0);
 // TODO: for large arrays, we want to use a different approach.  perhaps, 
 // we can use this macro to decide what approach we take with large arrays,
 // and that way, the registration of devices is ignorant of this decisio.
+
+
+// This macro sets up the environment necessary for the rest of the BXRS
+// macros.  This environment includes a current "_bxrs_this" pointer which is
+// a pointer to the current structure we are registering variables, a current
+// "_bxrs_this_t" type which defines the type of the current "this" object,
+// a current "_bxrs_cur_list_p" which a pointer to the bx_param_c list object
+// that represents the object pointed to by "this", and a "_def_size" which is 
+// the default size of the enclosing list params.
 #define BXRS_START(_type, _this, _name, _desc, _parent_p, _def_size)          \
 {                           /* one may look at some of this code and wonder */\
-  void *_ireg_this = _this; /* what is going on.  the seemingling pointless */\
+  void *_bxrs_this = _this; /* what is going on.  the seemingling pointless */\
 /*void *_old_this = NULL+1;    operations were added to stop compiler       */\
 /*_old_this--;                 warnings with unused variables.    --BJS     */\
-  Bit64u _ireg_def_size = _def_size+1;                                        \
-  _ireg_def_size--;                                                           \
-  typedef _type _ireg_this_t;                                                 \
-  bx_list_c *_ireg_cur_list_p = (bx_list_c*)_parent_p;
-
-
-  //bx_list_c *_ireg_cur_list_p =                                          
-  //  new bx_list_c (_parent_p, _name, _desc, _def_size);
+  Bit64u _bxrs_def_size = _def_size+1;                                        \
+  _bxrs_def_size--;                                                           \
+  typedef _type _bxrs_this_t;                                                 \
+  bx_list_c *_bxrs_cur_list_p = (bx_list_c*)_parent_p;
 
 #define BXRS_END                                                              \
 }
 
 /*---------------------------------------------------------------------------*/
+// register a struct in the current bxrs scope and begins a new bxrs scope
 #define BXRS_STRUCT_START(_type, _var)                                        \
   BXRS_STRUCT_START_D(_type, _var, "")
 
 #define BXRS_STRUCT_START_D(_type, _var, _desc)                               \
 {                                                                             \
-  void *_ireg_old_this = (_ireg_this_t *)_ireg_this;                          \
-  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
-  bx_list_c *_ireg_cur_list_p = new bx_list_c (_ireg_old_list_p,              \
+  void *_bxrs_old_this = (_bxrs_this_t *)_bxrs_this;                          \
+  bx_list_c *_bxrs_old_list_p = _bxrs_cur_list_p;                             \
+  bx_list_c *_bxrs_cur_list_p = new bx_list_c (_bxrs_old_list_p,              \
                                                #_var,                         \
                                                _desc,                         \
-                                    _ireg_def_size);                          \
-  void *_ireg_this = (&((*((_ireg_this_t *)_ireg_old_this))._var));           \
-  typedef _type _ireg_this_t;
+                                    _bxrs_def_size);                          \
+  void *_bxrs_this = (&((*((_bxrs_this_t *)_bxrs_old_this))._var));           \
+  typedef _type _bxrs_this_t;
 
 #define BXRS_STRUCT_END                                                       \
 }
 
 /*---------------------------------------------------------------------------*/
+// register an enum variable in the current bxrs scope
 #define BXRS_ENUM(_type, _var)                                                \
   BXRS_ENUM_D(_type, _var, "")
 
 #define BXRS_ENUM_D(_type, _var, _desc)                                       \
-  new bx_shadow_num_c(_ireg_cur_list_p,                                       \
-                     #_var,                                                   \
-                     _desc,                                                   \
-                     (Bit32u*)(&((*((_ireg_this_t*)_ireg_this))._var)));
+  if (sizeof(_type) == 1) {                                                   \
+    new bx_shadow_num_c(_bxrs_cur_list_p,                                     \
+                        #_var,                                                \
+                        _desc,                                                \
+                        (Bit8u*)(&((*((_bxrs_this_t*)_bxrs_this))._var)));    \
+  }                                                                           \
+  else if (sizeof(_type) == 2) {                                              \
+    new bx_shadow_num_c(_bxrs_cur_list_p,                                     \
+                        #_var,                                                \
+                        _desc,                                                \
+                        (Bit16u*)(&((*((_bxrs_this_t*)_bxrs_this))._var)));   \
+  }                                                                           \
+  else if (sizeof(_type) == 4) {                                              \
+    new bx_shadow_num_c(_bxrs_cur_list_p,                                     \
+                        #_var,                                                \
+                        _desc,                                                \
+                        (Bit32u*)(&((*((_bxrs_this_t*)_bxrs_this))._var)));   \
+  }                                                                           \
+  else if (sizeof(_type) == 8) {                                              \
+    new bx_shadow_num_c(_bxrs_cur_list_p,                                     \
+                        #_var,                                                \
+                        _desc,                                                \
+                        (Bit64u*)(&((*((_bxrs_this_t*)_bxrs_this))._var)));   \
+  }                                                                           \
+  else                                                                        \
+  {                                                                           \
+    BX_PANIC(("encountered an enum that is not 1, 2, 4, or 8 bytes"));        \
+  }
 
 /*---------------------------------------------------------------------------*/
+// register an number variable in the current bxrs scope
 #define BXRS_NUM(_type, _var)                                                 \
   BXRS_NUM_D(_type, _var, "")
 
 #define BXRS_NUM_D(_type, _var, _desc)                                        \
-  new bx_shadow_num_c(_ireg_cur_list_p,                                       \
+  new bx_shadow_num_c(_bxrs_cur_list_p,                                       \
                      #_var,                                                   \
                      _desc,                                                   \
-                     (_type*)(&((*((_ireg_this_t*)_ireg_this))._var)));
+                     (_type*)(&((*((_bxrs_this_t*)_bxrs_this))._var)));
 
 /*---------------------------------------------------------------------------*/
+// register an boolean variable in the current bxrs scope
 #define BXRS_BOOL(_type, _var)                                                \
   BXRS_BOOL_D(_type, _var, "")
 
 #define BXRS_BOOL_D(_type, _var, _desc)                                       \
-  new bx_shadow_bool_c(_ireg_cur_list_p,                                      \
+  new bx_shadow_bool_c(_bxrs_cur_list_p,                                      \
                      #_var,                                                   \
                      _desc,                                                   \
-                     (_type*)(&((*((_ireg_this_t*)_ireg_this))._var)));
+                     (_type*)(&((*((_bxrs_this_t*)_bxrs_this))._var)));
 
 /*---------------------------------------------------------------------------*/
+// register certain bits of a number variable in the current bxrs scope
 #define BXRS_BITS(_type, _var, _highbit, _lowbit)                             \
   BXRS_BITS_D(_type, _var, _highbit, _lowbit, "")
 
 #define BXRS_BITS_D(_type, _var, _highbit, _lowbit, _desc)                    \
-  new bx_shadow_num_c(_ireg_cur_list_p,                                       \
+  new bx_shadow_num_c(_bxrs_cur_list_p,                                       \
                      #_var,                                                   \
                      _desc,                                                   \
-                     (_type*)(&((*((_ireg_this_t*)_ireg_this))._var)),        \
+                     (_type*)(&((*((_bxrs_this_t*)_bxrs_this))._var)),        \
                      _highbit,                                                \
                      _lowbit);
 
 /*---------------------------------------------------------------------------*/
+// register an array of structs variable in the current bxrs scope and begin
+// a new bxrs scope.
 #define BXRS_ARRAY_START(_type, _var, _size)                                  \
   BXRS_ARRAY_START_D(_type, _var, _size, "")
 
@@ -1348,10 +1385,10 @@ void print_tree (bx_param_c *node, int level = 0);
 {                                                                             \
   static char foobar[_size][30];                                              \
   char *_index_name = foobar[0];                                              \
-  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
-  bx_list_c *_ireg_cur_list_p =                                               \
-    new bx_list_c(_ireg_old_list_p, #_var, _desc,_size);                      \
-  void *_ireg_arr_this = &(((_ireg_this_t *)_ireg_this)->_var);               \
+  bx_list_c *_bxrs_old_list_p = _bxrs_cur_list_p;                             \
+  bx_list_c *_bxrs_cur_list_p =                                               \
+    new bx_list_c(_bxrs_old_list_p, #_var, _desc,_size);                      \
+  void *_bxrs_arr_this = &(((_bxrs_this_t *)_bxrs_this)->_var);               \
   for (int _itr = 0;                                                          \
        (_itr < _size) &&                                                      \
          (sprintf(foobar[_itr], "%d", _itr),                                  \
@@ -1359,18 +1396,19 @@ void print_tree (bx_param_c *node, int level = 0);
           true);                                                              \
        _itr++)                                                                \
 {                                                                             \
-  typedef _type _ireg_this_t;                                                 \
-  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
-  bx_list_c *_ireg_cur_list_p = new bx_list_c (_ireg_old_list_p,              \
+  typedef _type _bxrs_this_t;                                                 \
+  bx_list_c *_bxrs_old_list_p = _bxrs_cur_list_p;                             \
+  bx_list_c *_bxrs_cur_list_p = new bx_list_c (_bxrs_old_list_p,              \
                                     _index_name,                              \
                                     "",                                       \
-                                    _ireg_def_size);                          \
-  void *_ireg_this = &(((_ireg_this_t *)_ireg_arr_this)[_itr]);
+                                    _bxrs_def_size);                          \
+  void *_bxrs_this = &(((_bxrs_this_t *)_bxrs_arr_this)[_itr]);
 
 #define BXRS_ARRAY_END                                                        \
 }}
 
 /*---------------------------------------------------------------------------*/
+// register an array of number variables in the current bxrs scope
 // TODO: for large arrays, we want to use a different approach.  perhaps, 
 // we can use this macro to decide what approach we take with large arrays,
 // and that way, the registration of devices is ignorant of this decisio.
@@ -1381,20 +1419,21 @@ void print_tree (bx_param_c *node, int level = 0);
 {                                                                             \
   static char foobar[_size][30];                                              \
   char *_index_name = foobar[0];                                              \
-  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
-  bx_list_c *_ireg_cur_list_p =                                               \
-    new bx_list_c(_ireg_old_list_p, #_var, _desc, _size);                     \
+  bx_list_c *_bxrs_old_list_p = _bxrs_cur_list_p;                             \
+  bx_list_c *_bxrs_cur_list_p =                                               \
+    new bx_list_c(_bxrs_old_list_p, #_var, _desc, _size);                     \
   for (int _itr = 0;                                                          \
        (_itr < _size) &&                                                      \
          (sprintf(foobar[_itr], "%d", _itr),                                  \
           _index_name = foobar[_itr],                                         \
           true);                                                              \
        _itr++)                                                                \
-  new bx_shadow_num_c(_ireg_cur_list_p, _index_name, "",                      \
-                      &((*((_ireg_this_t*)_ireg_this))._var[_itr])   );       \
+  new bx_shadow_num_c(_bxrs_cur_list_p, _index_name, "",                      \
+                      &((*((_bxrs_this_t*)_bxrs_this))._var[_itr])   );       \
 }
 
 /*---------------------------------------------------------------------------*/
+// register an array of enum variables in the current bxrs scope
 #define BXRS_ARRAY_ENUM(_type, _var, _size)                                   \
   BXRS_ARRAY_ENUM_D(_type, _var, _size, _desc)
 
@@ -1402,21 +1441,22 @@ void print_tree (bx_param_c *node, int level = 0);
 {                                                                             \
   static char foobar[_size][30];                                              \
   char *_index_name = foobar[0];                                              \
-  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
-  bx_list_c *_ireg_cur_list_p =                                               \
-    new bx_list_c(_ireg_old_list_p, #_var, _desc,_size);                      \
+  bx_list_c *_bxrs_old_list_p = _bxrs_cur_list_p;                             \
+  bx_list_c *_bxrs_cur_list_p =                                               \
+    new bx_list_c(_bxrs_old_list_p, #_var, _desc,_size);                      \
   for (int _itr = 0;                                                          \
        (_itr < _size) &&                                                      \
          (sprintf(foobar[_itr], "%d", _itr),                                  \
           _index_name = foobar[_itr],                                         \
           true);                                                              \
        _itr++)                                                                \
-  new bx_shadow_num_c(_ireg_cur_list_p, _index_name, "",                      \
-                     (Bit32u*)&((*((_ireg_this_t*)_ireg_this))._var[_itr]));  \
+  new bx_shadow_num_c(_bxrs_cur_list_p, _index_name, "",                      \
+                     (Bit32u*)&((*((_bxrs_this_t*)_bxrs_this))._var[_itr]));  \
 }
 
 
 /*---------------------------------------------------------------------------*/
+// register an array of bx_bool variables in the current bxrs scope
 #define BXRS_ARRAY_BOOL(_type, _var, _size)                                   \
   BXRS_ARRAY_BOOL_D(_type, _var, _size, "")
 
@@ -1424,40 +1464,40 @@ void print_tree (bx_param_c *node, int level = 0);
 {                                                                             \
   static char foobar[_size][30];                                              \
   char *_index_name = foobar[0];                                              \
-  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
-  bx_list_c *_ireg_cur_list_p = new bx_list_c(_ireg_old_list_p, #_var, _desc, _size);\
+  bx_list_c *_bxrs_old_list_p = _bxrs_cur_list_p;                             \
+  bx_list_c *_bxrs_cur_list_p = new bx_list_c(_bxrs_old_list_p, #_var, _desc, _size);\
   for (int _itr = 0;                                                          \
        (_itr < _size) &&                                                      \
          (sprintf(foobar[_itr], "%d", _itr),                                  \
           _index_name = foobar[_itr],                                         \
           true);                                                              \
        _itr++)                                                                \
-  new bx_shadow_bool_c(_ireg_cur_list_p, _index_name, "",                     \
-                      &((*((_ireg_this_t*)_ireg_this))._var[_itr])   );       \
+  new bx_shadow_bool_c(_bxrs_cur_list_p, _index_name, "",                     \
+                      &((*((_bxrs_this_t*)_bxrs_this))._var[_itr])   );       \
 }
 
 
 /*---------------------------------------------------------------------------*/
+// register an object variable in the current bxrs scope by calling that 
+// object's register_state() function.
 #define BXRS_OBJ(_type, _var)                                                 \
   BXRS_OBJ_D(_type, _var, "")
 
 #define BXRS_OBJ_D(_type, _var, _desc)                                        \
-  BXRS_STRUCT_START(_type, _var);                                             \
-  ((_type*)&(((_ireg_this_t*)_ireg_this)->_var))->                            \
-    register_state(#_var, _desc, _ireg_cur_list_p);                           \
+  _bxrs_this_t* _bxrs_obj = (_bxrs_this_t*)_bxrs_this;                        \
+  BXRS_STRUCT_START_D(_type, _var, _desc);                                    \
+  ((_type*)&(( _bxrs_obj )->_var))->                                          \
+    register_state(#_var, _desc, _bxrs_cur_list_p);                           \
   BXRS_STRUCT_END;
 
-
 /*---------------------------------------------------------------------------*/
-// for pointers to objects
+// register an object variable in the current bxrs scope by calling that 
+// object's register_state() function.
 #define BXRS_OBJP(_type, _var_p)                                              \
    BXRS_OBJP_D(_type, _var_p, "")                                             \
 
-#define BXRS_OBJP_D(_type, _var_p, _desc)                                     \
-  BXRS_STRUCT_START(_type, _var);                                             \
-  ((_type*) (((_ireg_this_t*)_ireg_this)->_var_p))->                          \
-    register_state(#_var_p, _desc, _ireg_cur_list_p);                         \
-  BXRS_STRUCT_END;
+// TODO: implement me!!
+#define BXRS_OBJP_D(_type, _var_p, _desc)
 
 
 /*---------------------------------------------------------------------------*/

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.52.2.6 2003/03/27 02:01:02 bdenney Exp $
+// $Id: devices.cc,v 1.52.2.7 2003/03/28 02:10:45 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -93,7 +93,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.6 2003/03/27 02:01:02 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.7 2003/03/28 02:10:45 slechta Exp $"));
   mem = newmem;
 
   /* no read / write handlers defined */
@@ -203,15 +203,18 @@ bx_devices_c::init(BX_MEM_C *newmem)
   pit->init();
   pit->register_state ("pit8254", "8254 PIT", SIM->get_param ("pit"));
   
-#warning FIXME: slechta added for his debugging
+  // BJS FIXME: slechta added for his debugging
   BX_REGISTER_LIST(parent_p, "root", "slechta's fancy root", (bx_list_c*)0, 15);
   pit->register_state ("pit", "8254 PIT", parent_p);
   bx_checkpoint_c chkpt;
   chkpt.write("march24", parent_p);
-
   chkpt.read("march24", parent_p);
-
   chkpt.write("march24_2", parent_p);
+
+  chkpt.write("all_state", SIM->get_param("."));
+  chkpt.read("all_state", SIM->get_param("."));
+  chkpt.write("all_state_2", SIM->get_param("."));
+  
 
   bx_virt_timer.init();
 
