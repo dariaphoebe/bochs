@@ -90,7 +90,7 @@ void BX_CPU_C::printMmxRegisters(void)
 {
   for(int i=0;i<8;i++) {
       BxPackedMmxRegister mm = BX_READ_MMX_REG(i);
-      fprintf(stderr, "MM%d: %lx%lx\n", i, MMXUD1(mm), MMXUD0(mm));
+      fprintf(stderr, "MM%d: %08x%08x\n", i, MMXUD1(mm), MMXUD0(mm));
   }
 }
 

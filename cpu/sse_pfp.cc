@@ -58,6 +58,22 @@ static softfloat_status_word_t MXCSR_to_softfloat_status_word(bx_mxcsr_t mxcsr)
 #endif
 
 /* 
+ * Opcode: 0F 2A
+ * Possible floating point exceptions: #P
+ */
+void BX_CPU_C::CVTPI2PS_VpsQq(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 1
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BX_PANIC(("CVTPI2PS_VpsQq: SSE instruction still not implemented"));
+#else
+  BX_INFO(("CVTPI2PS_VpsQq: required SSE, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
  * Opcode: 66 0F 2A
  * Convert two 32bit signed integers from MMX/MEM to two double precision FP
  * Possible floating point exceptions: -
@@ -117,150 +133,10 @@ void BX_CPU_C::CVTSI2SD_VsdEd(bxInstruction_c *i)
 #endif
 }
 
-void BX_CPU_C::CVTTSD2SI_GdWsd(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTTSD2SI_GdWsd: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTTSD2SI_GdWsd: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::CVTSD2SI_GdWsd(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTSD2SI_GdWsd: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTSD2SI_GdWsd: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::CVTTPD2PI_PqWpd(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTTPD2PI_PqWpd: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTTPD2PI_PqWpd: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::CVTPS2PD_VpsWps(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTPS2PD_VpsWps: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTPS2PD_VpsWps: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::CVTPD2PS_VpdWpd(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTPD2PS_VpdWpd: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTPD2PS_VpdWpd: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::CVTPD2PI_PqWpd(bxInstruction_c *i)
-{                      
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTPD2PI_PqWpd: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTPD2PI_PqWpd: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::CVTSD2SS_VsdWsd(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTSD2SS_VsdWsd: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTSD2SS_VsdWsd: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::CVTSS2SD_VssWss(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTSS2SD_VssWss: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTSS2SD_VssWss: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::CVTDQ2PS_VpsWdq(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTDQ2PS_VpsWdq: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTDQ2PS_VpsWdq: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::CVTPS2DQ_VdqWps(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTPS2DQ_VdqWps: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTPS2DQ_VdqWps: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::CVTTPS2DQ_VdqWps(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTTPS2DQ_VdqWps: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTTPS2DQ_VdqWps: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-void BX_CPU_C::CVTPI2PS_VpsQq(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 1
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTPI2PS_VpsQq: SSE instruction still not implemented"));
-#else
-  BX_INFO(("CVTPI2PS_VpsQq: required SSE, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
+/* 
+ * Opcode: F3 0F 2A
+ * Possible floating point exceptions: #P
+ */
 void BX_CPU_C::CVTSI2SS_VssEd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
@@ -273,6 +149,58 @@ void BX_CPU_C::CVTSI2SS_VssEd(bxInstruction_c *i)
 #endif
 }
 
+/* 
+ * Opcode: 66 0F 2C
+ * Possible floating point exceptions: #I, #P
+ */
+void BX_CPU_C::CVTTPD2PI_PqWpd(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BX_PANIC(("CVTTPD2PI_PqWpd: SSE2 instruction still not implemented"));
+#else
+  BX_INFO(("CVTTPD2PI_PqWpd: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: F2 0F 2C
+ * Possible floating point exceptions: #I, #P
+ */
+void BX_CPU_C::CVTTSD2SI_GdWsd(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BX_PANIC(("CVTTSD2SI_GdWsd: SSE2 instruction still not implemented"));
+#else
+  BX_INFO(("CVTTSD2SI_GdWsd: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: F3 0F 2C
+ * Possible floating point exceptions: #I, #P
+ */
+void BX_CPU_C::CVTTSS2SI_GdWss(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 1
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BX_PANIC(("CVTTSS2SI_GdWss: SSE instruction still not implemented"));
+#else
+  BX_INFO(("CVTTSS2SI_GdWss: required SSE, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: 0F 2D
+ * Possible floating point exceptions: #I, #P
+ */
 void BX_CPU_C::CVTTPS2PI_PqWps(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
@@ -285,14 +213,192 @@ void BX_CPU_C::CVTTPS2PI_PqWps(bxInstruction_c *i)
 #endif
 }
 
-void BX_CPU_C::CVTTSS2SI_GdWss(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 1
+/* 
+ * Opcode: 66 0F 2D
+ * Possible floating point exceptions: #I, #P
+ */
+void BX_CPU_C::CVTPD2PI_PqWpd(bxInstruction_c *i)
+{                      
+#if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTTSS2SI_GdWss: SSE instruction still not implemented"));
+  BX_PANIC(("CVTPD2PI_PqWpd: SSE2 instruction still not implemented"));
 #else
-  BX_INFO(("CVTTSS2SI_GdWss: required SSE, use --enable-sse option"));
+  BX_INFO(("CVTPD2PI_PqWpd: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: F2 0F 2D
+ * Possible floating point exceptions: #I, #P
+ */
+void BX_CPU_C::CVTSD2SI_GdWsd(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BX_PANIC(("CVTSD2SI_GdWsd: SSE2 instruction still not implemented"));
+#else
+  BX_INFO(("CVTSD2SI_GdWsd: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: 0F 5A
+ * Possible floating point exceptions: #I, #D
+ */
+void BX_CPU_C::CVTPS2PD_VpsWps(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BX_PANIC(("CVTPS2PD_VpsWps: SSE2 instruction still not implemented"));
+#else
+  BX_INFO(("CVTPS2PD_VpsWps: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: 66 0F 5A
+ * Convert two double precision FP numbers to two single precision FP. 
+ * When a conversion is inexact, the value returned is rounded according
+ * to rounding control bits in MXCSR register.
+ * Possible floating point exceptions: #I, #D, #O, #I, #P
+ */
+void BX_CPU_C::CVTPD2PS_VpdWpd(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BxPackedXmmRegister op, result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op);
+  }
+
+  softfloat_status_word_t status_word;
+  status_word = MXCSR_to_softfloat_status_word(MXCSR);
+
+  result.xmm32u(0) = 
+     float64_to_float32(op.xmm64u(0), status_word);
+  result.xmm32u(1) = 
+     float64_to_float32(op.xmm64u(1), status_word);
+  result.xmm64u(1) = 0;
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
+
+#else
+  BX_INFO(("CVTPD2PS_VpdWpd: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: F2 0F 5A
+ * Convert one double precision FP number to one single precision FP. 
+ * When a conversion is inexact, the value returned is rounded according
+ * to rounding control bits in MXCSR register.
+ * Possible floating point exceptions: #I, #D, #O, #I, #P
+ */
+void BX_CPU_C::CVTSD2SS_VsdWsd(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+
+  Float64 op;
+  Float32 result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op);
+  }
+
+  softfloat_status_word_t status_word = 
+             MXCSR_to_softfloat_status_word(MXCSR);
+
+  result = float64_to_float32(op, status_word);
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG_LO_DWORD(i->nnn(), result);
+
+#else
+  BX_INFO(("CVTSD2SS_VsdWsd: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: F3 0F 5A
+ * Possible floating point exceptions: #I, #D
+ */
+void BX_CPU_C::CVTSS2SD_VssWss(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BX_PANIC(("CVTSS2SD_VssWss: SSE2 instruction still not implemented"));
+#else
+  BX_INFO(("CVTSS2SD_VssWss: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: 0F 5B
+ * Possible floating point exceptions: #P
+ */
+void BX_CPU_C::CVTDQ2PS_VpsWdq(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BX_PANIC(("CVTDQ2PS_VpsWdq: SSE2 instruction still not implemented"));
+#else
+  BX_INFO(("CVTDQ2PS_VpsWdq: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: 66 0F 5B
+ * Possible floating point exceptions: #I, #P
+ */
+void BX_CPU_C::CVTPS2DQ_VdqWps(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BX_PANIC(("CVTPS2DQ_VdqWps: SSE2 instruction still not implemented"));
+#else
+  BX_INFO(("CVTPS2DQ_VdqWps: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: F3 0F 5B
+ * Possible floating point exceptions: #I, #P
+ */
+void BX_CPU_C::CVTTPS2DQ_VdqWps(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BX_PANIC(("CVTTPS2DQ_VdqWps: SSE2 instruction still not implemented"));
+#else
+  BX_INFO(("CVTTPS2DQ_VdqWps: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
@@ -356,7 +462,6 @@ void BX_CPU_C::CVTDQ2PD_VpdWq(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareSSE();
 
   Bit64u op;
-  Bit64u r0, r1;
   BxPackedXmmRegister result;
 
   /* op is a register or memory reference */
@@ -368,8 +473,8 @@ void BX_CPU_C::CVTDQ2PD_VpdWq(bxInstruction_c *i)
     read_virtual_qword(i->seg(), RMAddr(i), &op);
   }
 
-  r0 = Bit32u(op & 0xFFFFFFFF);
-  r1 = Bit32u(op >> 32);
+  Bit32u r0 = Bit32u(op & 0xFFFFFFFF);
+  Bit32u r1 = Bit32u(op >> 32);
 
   result.xmm64u(0) = int32_to_float64(r0);
   result.xmm64u(1) = int32_to_float64(r1);
@@ -527,7 +632,7 @@ void BX_CPU_C::SQRTSD_VsdWsd(bxInstruction_c *i)
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), &op);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op);
   }
 
   softfloat_status_word_t status_word = 
@@ -723,7 +828,7 @@ void BX_CPU_C::ADDSD_VsdWsd(bxInstruction_c *i)
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
   }
 
   softfloat_status_word_t status_word = 
@@ -871,7 +976,7 @@ void BX_CPU_C::MULSD_VsdWsd(bxInstruction_c *i)
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
   }
 
   softfloat_status_word_t status_word = 
@@ -1019,7 +1124,7 @@ void BX_CPU_C::SUBSD_VsdWsd(bxInstruction_c *i)
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
   }
 
   softfloat_status_word_t status_word = 
@@ -1215,7 +1320,7 @@ void BX_CPU_C::DIVSD_VsdWsd(bxInstruction_c *i)
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
   }
 
   softfloat_status_word_t status_word = 
