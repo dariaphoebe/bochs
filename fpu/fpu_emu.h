@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.23.6.1 2004/03/19 13:14:50 sshwarts Exp $
+ |  $Id: fpu_emu.h,v 1.23.6.2 2004/03/19 13:26:48 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -63,39 +63,6 @@
 #define FPU_Exception   (0x80000000)   /* Added to tag returns. */
 
 #include "fpu_system.h"
-
-#define FWAIT_OPCODE 0x9b
-#define OP_SIZE_PREFIX 0x66
-#define ADDR_SIZE_PREFIX 0x67
-
-#if defined(__MWERKS__) && defined(macintosh)
-#pragma options align=packed
-#endif
-struct address {
-  bx_address offset;
-#ifdef EMU_BIG_ENDIAN
-  u32 empty:5;
-  u32 opcode:11;
-  u32 selector:16;
-#else
-  u32 selector:16;
-  u32 opcode:11;
-  u32 empty:5;
-#endif
-} GCC_ATTRIBUTE((packed));
-
-typedef void (*FUNC)(void);
-typedef void (*FUNC_ST0)(FPU_REG *st0_ptr, u_char st0_tag);
-
-typedef struct { u_char address_size, operand_size, segment; }
-        overrides GCC_ATTRIBUTE((packed));
-/* This structure is 32 bits: */
-typedef struct { overrides override;
-		 u_char default_mode; } 
-    fpu_addr_modes GCC_ATTRIBUTE((packed));
-#if defined(__MWERKS__) && defined(macintosh)
-#pragma options align=reset
-#endif
 
 /* PROTECTED has a restricted meaning in the emulator; it is used
    to signal that the emulator needs to do special things to ensure
@@ -172,7 +139,6 @@ asmlinkage int FPU_u_div(FPU_REG const *arg1, FPU_REG const *arg2,
 asmlinkage int FPU_u_add(FPU_REG const *arg1, FPU_REG const *arg2,
 			 FPU_REG *answ, u16 control_w, u_char sign,
 			 s32 expa, s32 expb);
-asmlinkage int wm_sqrt(FPU_REG *n, u16 control_w, u_char sign);
 asmlinkage u32 FPU_shrx(void *l, u32 x);
 asmlinkage u32 FPU_shrxs(void *v, u32 x);
 asmlinkage int FPU_round(FPU_REG *arg, u32 extent,
