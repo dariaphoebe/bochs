@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.12 2003/03/30 08:03:22 bdenney Exp $
+// $Id: main.cc,v 1.223.4.13 2003/04/02 08:54:11 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -2369,7 +2369,7 @@ bx_init_hardware()
   printf ("after init_devices\n");
   printf ("------------------\n");
 #warning SLECHTA DISABLED because of segfault.  not sure why yet!  BBD reenabled because of lack of segfault.
-  param_print_tree (SIM->get_param ("."));
+  //param_print_tree (SIM->get_param ("."));
   printf ("------------------\n");
   DEV_reset_devices(BX_RESET_HARDWARE);
   bx_gui->init_signal_handlers ();

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.cc,v 1.76.2.3 2003/03/29 19:57:17 slechta Exp $
+// $Id: cpu.cc,v 1.76.2.4 2003/04/02 08:54:20 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1358,7 +1358,7 @@ BX_CPU_C::register_state(bx_param_c *list_p)
 void
 bx_cr0_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_cr0_t, BX_CPU_THIS, "", list_p, 15);
+  BXRS_START(bx_cr0_t, this, "", list_p, 15);
   {
     BXRS_NUM_D(Bit32u, val32, "32bit value of register");
     
@@ -1391,7 +1391,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
   {
 #   ifdef BX_BIG_ENDIAN
     {
-      BXRS_START(bx_gen_reg_t, BX_CPU_THIS, "General register set", list_p, 5);
+      BXRS_START(bx_gen_reg_t, this, "General register set", list_p, 5);
       {
         BXRS_UNION_START;
         {
@@ -1467,7 +1467,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
   {
 #   ifdef BX_BIG_ENDIAN
     {
-      BXRS_START(bx_gen_reg_t, BX_CPU_THIS, "General register set", list_p, 5);
+      BXRS_START(bx_gen_reg_t, this, "General register set", list_p, 5);
       {
         BXRS_UNION_START;
         {
@@ -1500,7 +1500,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
     }
 #   else  // #ifdef BX_BIG_ENDIAN
     {
-      BXRS_START(bx_gen_reg_t, BX_CPU_THIS, "General register set", list_p, 5);
+      BXRS_START(bx_gen_reg_t, this, "General register set", list_p, 5);
       {
         BXRS_UNION_START;
         {
@@ -1647,7 +1647,7 @@ bx_segment_reg_t::register_state(bx_param_c *list_p)
 void 
 bx_regs_msr_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_regs_msr_t, BX_CPU_THIS, "", list_p, 10);
+  BXRS_START(bx_regs_msr_t, this, "", list_p, 10);
   {
     BXRS_NUM(Bit64u, apicbase);
 #   if BX_SUPPORT_X86_64

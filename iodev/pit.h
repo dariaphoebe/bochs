@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit.h,v 1.10.6.2 2003/03/20 05:56:26 bdenney Exp $
+// $Id: pit.h,v 1.10.6.3 2003/04/02 08:54:34 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -33,10 +33,12 @@
 
 #if BX_USE_PIT_SMF
 #  define BX_PIT_SMF  static
-#  define BX_PIT_THIS bx_pit.
+#  define BX_PIT_THIS_PTR  bx_pit.
+#  define BX_PIT_THIS (&bx_pit)
 #else
 #  define BX_PIT_SMF
-#  define BX_PIT_THIS this->
+#  define BX_PIT_THIS_PTR this->
+#  define BX_PIT_THIS this
 #endif
 
 #ifdef OUT

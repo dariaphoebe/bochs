@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit.cc,v 1.14.6.1 2003/03/20 04:52:53 slechta Exp $
+// $Id: pit.cc,v 1.14.6.2 2003/04/02 08:54:31 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -131,9 +131,6 @@
 
 
 bx_pit_c bx_pit;
-#if BX_USE_PIT_SMF
-#define this (&bx_pit)
-#endif
 
 #ifdef OUT
 #  undef OUT
@@ -148,8 +145,8 @@ bx_pit_c::bx_pit_c( void )
 
   /* 8254 PIT (Programmable Interval Timer) */
 
-  BX_PIT_THIS s.timer_handle[1] = BX_NULL_TIMER_HANDLE;
-  BX_PIT_THIS s.timer_handle[2] = BX_NULL_TIMER_HANDLE;
+  BX_PIT_THIS_PTR s.timer_handle[1] = BX_NULL_TIMER_HANDLE;
+  BX_PIT_THIS_PTR s.timer_handle[2] = BX_NULL_TIMER_HANDLE;
 }
 
 bx_pit_c::~bx_pit_c( void )
@@ -161,62 +158,62 @@ bx_pit_c::~bx_pit_c( void )
 bx_pit_c::init( void )
 {
   DEV_register_irq(0, "8254 PIT");
-  DEV_register_ioread_handler(this, read_handler, 0x0040, "8254 PIT", 7);
-  DEV_register_ioread_handler(this, read_handler, 0x0041, "8254 PIT", 7);
-  DEV_register_ioread_handler(this, read_handler, 0x0042, "8254 PIT", 7);
-  DEV_register_ioread_handler(this, read_handler, 0x0043, "8254 PIT", 7);
-  DEV_register_ioread_handler(this, read_handler, 0x0061, "8254 PIT", 7);
+  DEV_register_ioread_handler(BX_PIT_THIS, read_handler, 0x0040, "8254 PIT", 7);
+  DEV_register_ioread_handler(BX_PIT_THIS, read_handler, 0x0041, "8254 PIT", 7);
+  DEV_register_ioread_handler(BX_PIT_THIS, read_handler, 0x0042, "8254 PIT", 7);
+  DEV_register_ioread_handler(BX_PIT_THIS, read_handler, 0x0043, "8254 PIT", 7);
+  DEV_register_ioread_handler(BX_PIT_THIS, read_handler, 0x0061, "8254 PIT", 7);
 
-  DEV_register_iowrite_handler(this, write_handler, 0x0040, "8254 PIT", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0041, "8254 PIT", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0042, "8254 PIT", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0043, "8254 PIT", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0061, "8254 PIT", 7);
+  DEV_register_iowrite_handler(BX_PIT_THIS, write_handler, 0x0040, "8254 PIT", 7);
+  DEV_register_iowrite_handler(BX_PIT_THIS, write_handler, 0x0041, "8254 PIT", 7);
+  DEV_register_iowrite_handler(BX_PIT_THIS, write_handler, 0x0042, "8254 PIT", 7);
+  DEV_register_iowrite_handler(BX_PIT_THIS, write_handler, 0x0043, "8254 PIT", 7);
+  DEV_register_iowrite_handler(BX_PIT_THIS, write_handler, 0x0061, "8254 PIT", 7);
 
-  BX_PIT_THIS s.speaker_data_on = 0;
-  BX_PIT_THIS s.refresh_clock_div2 = 0;
+  BX_PIT_THIS_PTR s.speaker_data_on = 0;
+  BX_PIT_THIS_PTR s.refresh_clock_div2 = 0;
 
-  BX_PIT_THIS s.timer[0].mode        = 3;  /* periodic rate generator */
-  BX_PIT_THIS s.timer[0].latch_mode  = BX_PIT_LATCH_MODE_16BIT;
-  BX_PIT_THIS s.timer[0].input_latch_value = 0;
-  BX_PIT_THIS s.timer[0].input_latch_toggle = 0;
-  BX_PIT_THIS s.timer[0].output_latch_value = 0;
-  BX_PIT_THIS s.timer[0].output_latch_toggle = 0;
-  BX_PIT_THIS s.timer[0].output_latch_full = 0;
-  BX_PIT_THIS s.timer[0].counter_max = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
-  BX_PIT_THIS s.timer[0].counter     = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
-  BX_PIT_THIS s.timer[0].bcd_mode    = 0;  /* binary counting mode */
-  BX_PIT_THIS s.timer[0].GATE        = 1;  /* GATE tied to + logic */
-  BX_PIT_THIS s.timer[0].OUT         = 1;
-  BX_PIT_THIS s.timer[0].active      = 0;
+  BX_PIT_THIS_PTR s.timer[0].mode        = 3;  /* periodic rate generator */
+  BX_PIT_THIS_PTR s.timer[0].latch_mode  = BX_PIT_LATCH_MODE_16BIT;
+  BX_PIT_THIS_PTR s.timer[0].input_latch_value = 0;
+  BX_PIT_THIS_PTR s.timer[0].input_latch_toggle = 0;
+  BX_PIT_THIS_PTR s.timer[0].output_latch_value = 0;
+  BX_PIT_THIS_PTR s.timer[0].output_latch_toggle = 0;
+  BX_PIT_THIS_PTR s.timer[0].output_latch_full = 0;
+  BX_PIT_THIS_PTR s.timer[0].counter_max = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
+  BX_PIT_THIS_PTR s.timer[0].counter     = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
+  BX_PIT_THIS_PTR s.timer[0].bcd_mode    = 0;  /* binary counting mode */
+  BX_PIT_THIS_PTR s.timer[0].GATE        = 1;  /* GATE tied to + logic */
+  BX_PIT_THIS_PTR s.timer[0].OUT         = 1;
+  BX_PIT_THIS_PTR s.timer[0].active      = 0;
 
-  BX_PIT_THIS s.timer[1].mode        = 3;  /* periodic rate generator */
-  BX_PIT_THIS s.timer[1].latch_mode  = BX_PIT_LATCH_MODE_16BIT;
-  BX_PIT_THIS s.timer[1].input_latch_value = 0;
-  BX_PIT_THIS s.timer[1].input_latch_toggle = 0;
-  BX_PIT_THIS s.timer[1].output_latch_value = 0;
-  BX_PIT_THIS s.timer[1].output_latch_toggle = 0;
-  BX_PIT_THIS s.timer[1].output_latch_full = 0;
-  BX_PIT_THIS s.timer[1].counter_max = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
-  BX_PIT_THIS s.timer[1].counter     = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
-  BX_PIT_THIS s.timer[1].bcd_mode    = 0;  /* binary counting mode */
-  BX_PIT_THIS s.timer[1].GATE        = 1;  /* GATE tied to + logic */
-  BX_PIT_THIS s.timer[1].OUT         = 1;
-  BX_PIT_THIS s.timer[1].active      = 0;
+  BX_PIT_THIS_PTR s.timer[1].mode        = 3;  /* periodic rate generator */
+  BX_PIT_THIS_PTR s.timer[1].latch_mode  = BX_PIT_LATCH_MODE_16BIT;
+  BX_PIT_THIS_PTR s.timer[1].input_latch_value = 0;
+  BX_PIT_THIS_PTR s.timer[1].input_latch_toggle = 0;
+  BX_PIT_THIS_PTR s.timer[1].output_latch_value = 0;
+  BX_PIT_THIS_PTR s.timer[1].output_latch_toggle = 0;
+  BX_PIT_THIS_PTR s.timer[1].output_latch_full = 0;
+  BX_PIT_THIS_PTR s.timer[1].counter_max = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
+  BX_PIT_THIS_PTR s.timer[1].counter     = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
+  BX_PIT_THIS_PTR s.timer[1].bcd_mode    = 0;  /* binary counting mode */
+  BX_PIT_THIS_PTR s.timer[1].GATE        = 1;  /* GATE tied to + logic */
+  BX_PIT_THIS_PTR s.timer[1].OUT         = 1;
+  BX_PIT_THIS_PTR s.timer[1].active      = 0;
 
-  BX_PIT_THIS s.timer[2].mode        = 3;  /* periodic rate generator */
-  BX_PIT_THIS s.timer[2].latch_mode  = BX_PIT_LATCH_MODE_16BIT;
-  BX_PIT_THIS s.timer[2].input_latch_value = 0;
-  BX_PIT_THIS s.timer[2].input_latch_toggle = 0;
-  BX_PIT_THIS s.timer[2].output_latch_value = 0;
-  BX_PIT_THIS s.timer[2].output_latch_toggle = 0;
-  BX_PIT_THIS s.timer[2].output_latch_full = 0;
-  BX_PIT_THIS s.timer[2].counter_max = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
-  BX_PIT_THIS s.timer[2].counter     = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
-  BX_PIT_THIS s.timer[2].bcd_mode    = 0;  /* binary counting mode */
-  BX_PIT_THIS s.timer[2].GATE        = 0;  /* timer2 gate controlled by port 61h bit 0 */
-  BX_PIT_THIS s.timer[2].OUT         = 1;
-  BX_PIT_THIS s.timer[2].active      = 0;
+  BX_PIT_THIS_PTR s.timer[2].mode        = 3;  /* periodic rate generator */
+  BX_PIT_THIS_PTR s.timer[2].latch_mode  = BX_PIT_LATCH_MODE_16BIT;
+  BX_PIT_THIS_PTR s.timer[2].input_latch_value = 0;
+  BX_PIT_THIS_PTR s.timer[2].input_latch_toggle = 0;
+  BX_PIT_THIS_PTR s.timer[2].output_latch_value = 0;
+  BX_PIT_THIS_PTR s.timer[2].output_latch_toggle = 0;
+  BX_PIT_THIS_PTR s.timer[2].output_latch_full = 0;
+  BX_PIT_THIS_PTR s.timer[2].counter_max = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
+  BX_PIT_THIS_PTR s.timer[2].counter     = 0;  /* 0xFFFF + 1 : (1193182 / 65535 = 18.2Hz) */
+  BX_PIT_THIS_PTR s.timer[2].bcd_mode    = 0;  /* binary counting mode */
+  BX_PIT_THIS_PTR s.timer[2].GATE        = 0;  /* timer2 gate controlled by port 61h bit 0 */
+  BX_PIT_THIS_PTR s.timer[2].OUT         = 1;
+  BX_PIT_THIS_PTR s.timer[2].active      = 0;
 
   return(1);
 }
@@ -231,26 +228,26 @@ bx_pit_c::register_state(char *name, char *desc, bx_list_c *parent_p)
       {
         BX_REGISTER_LIST(list_p, iname, "", array_p, 20,);
         {
-          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].mode               ), "mode"               , "", list_p);
-          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].latch_mode         ), "latch_mode"         , "", list_p);
-          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].input_latch_value  ), "input_latch_value"  , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].input_latch_toggle ), "input_latch_toggle" , "", list_p);
-          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].output_latch_value ), "output_latch_value" , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].output_latch_toggle), "output_latch_toggle", "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].output_latch_full  ), "output_latch_full"  , "", list_p);
-          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].counter_max        ), "counter_max"        , "", list_p);
-          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].counter            ), "counter"            , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].bcd_mode           ), "bcd_mode"           , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].active             ), "active"             , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].GATE               ), "GATE"               , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].OUT                ), "OUT"                , "", list_p);
+          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].mode               ), "mode"               , "", list_p);
+          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].latch_mode         ), "latch_mode"         , "", list_p);
+          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].input_latch_value  ), "input_latch_value"  , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].input_latch_toggle ), "input_latch_toggle" , "", list_p);
+          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].output_latch_value ), "output_latch_value" , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].output_latch_toggle), "output_latch_toggle", "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].output_latch_full  ), "output_latch_full"  , "", list_p);
+          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].counter_max        ), "counter_max"        , "", list_p);
+          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].counter            ), "counter"            , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].bcd_mode           ), "bcd_mode"           , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].active             ), "active"             , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].GATE               ), "GATE"               , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].OUT                ), "OUT"                , "", list_p);
         }
       }
-    BX_REGISTER_NUM (&(BX_PIT_THIS s.speaker_data_on)   , "speaker_data_on"   , "", s_list_p);
-    BX_REGISTER_BOOL(&(BX_PIT_THIS s.refresh_clock_div2), "refresh_clock_div2", "", s_list_p);
+    BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.speaker_data_on)   , "speaker_data_on"   , "", s_list_p);
+    BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.refresh_clock_div2), "refresh_clock_div2", "", s_list_p);
     BX_REGISTER_ARRAY(array2_p, i, iname, "timer_handle", "pit timer_handle array", s_list_p, 3)
       {
-        BX_REGISTER_NUM(&(BX_PIT_THIS s.timer_handle[i]), iname, "", array2_p);
+        BX_REGISTER_NUM(&(BX_PIT_THIS_PTR s.timer_handle[i]), iname, "", array2_p);
       }
     
   }
@@ -297,11 +294,11 @@ bx_pit_c::read( Bit32u   address, unsigned int io_len )
 
     case 0x61:
       /* AT, port 61h */
-      BX_PIT_THIS s.refresh_clock_div2 = !BX_PIT_THIS s.refresh_clock_div2;
-      return( (BX_PIT_THIS s.timer[2].OUT<<5) |
-              (BX_PIT_THIS s.refresh_clock_div2<<4) |
-              (BX_PIT_THIS s.speaker_data_on<<1) |
-              (BX_PIT_THIS s.timer[2].GATE) );
+      BX_PIT_THIS_PTR s.refresh_clock_div2 = !BX_PIT_THIS_PTR s.refresh_clock_div2;
+      return( (BX_PIT_THIS_PTR s.timer[2].OUT<<5) |
+              (BX_PIT_THIS_PTR s.refresh_clock_div2<<4) |
+              (BX_PIT_THIS_PTR s.speaker_data_on<<1) |
+              (BX_PIT_THIS_PTR s.timer[2].GATE) );
       break;
 
     default:
@@ -386,11 +383,11 @@ BX_INFO(("timer 0-2 mode control: comm:%02x mode:%02x bcd_mode:%u",
             (unsigned) command));
           break;
         case 0x3: /* timer 0: 16-bit mode */
-          BX_PIT_THIS s.timer[0].mode = mode;
-          BX_PIT_THIS s.timer[0].latch_mode   = BX_PIT_LATCH_MODE_16BIT;
-          BX_PIT_THIS s.timer[0].input_latch_value = 0;
-          BX_PIT_THIS s.timer[0].input_latch_toggle = 0;
-          BX_PIT_THIS s.timer[0].bcd_mode    = bcd_mode;
+          BX_PIT_THIS_PTR s.timer[0].mode = mode;
+          BX_PIT_THIS_PTR s.timer[0].latch_mode   = BX_PIT_LATCH_MODE_16BIT;
+          BX_PIT_THIS_PTR s.timer[0].input_latch_value = 0;
+          BX_PIT_THIS_PTR s.timer[0].input_latch_toggle = 0;
+          BX_PIT_THIS_PTR s.timer[0].bcd_mode    = bcd_mode;
           if ( (mode!=3 && mode!=2 && mode!=0) || bcd_mode!=0 )
             BX_PANIC(("pit: outp(43h): comm 3, mode %02x, bcd %02x unhandled",
               (unsigned) mode, bcd_mode));
@@ -405,11 +402,11 @@ BX_INFO(("timer 0-2 mode control: comm:%02x mode:%02x bcd_mode:%u",
             (unsigned) command));
           break;
         case 0x7: /* timer 1: 16-bit mode */
-          BX_PIT_THIS s.timer[1].mode = mode;
-          BX_PIT_THIS s.timer[1].latch_mode   = BX_PIT_LATCH_MODE_16BIT;
-          BX_PIT_THIS s.timer[1].input_latch_value = 0;
-          BX_PIT_THIS s.timer[1].input_latch_toggle = 0;
-          BX_PIT_THIS s.timer[1].bcd_mode    = bcd_mode;
+          BX_PIT_THIS_PTR s.timer[1].mode = mode;
+          BX_PIT_THIS_PTR s.timer[1].latch_mode   = BX_PIT_LATCH_MODE_16BIT;
+          BX_PIT_THIS_PTR s.timer[1].input_latch_value = 0;
+          BX_PIT_THIS_PTR s.timer[1].input_latch_toggle = 0;
+          BX_PIT_THIS_PTR s.timer[1].bcd_mode    = bcd_mode;
           if ( (mode!=3 && mode!=2 && mode!=0) || bcd_mode!=0 )
             BX_PANIC(("pit: outp(43h): comm 7, mode %02x, bcd %02x unhandled",
               (unsigned) mode, bcd_mode));
@@ -424,11 +421,11 @@ BX_INFO(("timer 0-2 mode control: comm:%02x mode:%02x bcd_mode:%u",
             (unsigned) command));
           break;
         case 0xb: /* timer 2: 16-bit mode */
-          BX_PIT_THIS s.timer[2].mode = mode;
-          BX_PIT_THIS s.timer[2].latch_mode   = BX_PIT_LATCH_MODE_16BIT;
-          BX_PIT_THIS s.timer[2].input_latch_value = 0;
-          BX_PIT_THIS s.timer[2].input_latch_toggle = 0;
-          BX_PIT_THIS s.timer[2].bcd_mode    = bcd_mode;
+          BX_PIT_THIS_PTR s.timer[2].mode = mode;
+          BX_PIT_THIS_PTR s.timer[2].latch_mode   = BX_PIT_LATCH_MODE_16BIT;
+          BX_PIT_THIS_PTR s.timer[2].input_latch_value = 0;
+          BX_PIT_THIS_PTR s.timer[2].input_latch_toggle = 0;
+          BX_PIT_THIS_PTR s.timer[2].bcd_mode    = bcd_mode;
           if ( (mode!=3 && mode!=2 && mode!=0) || bcd_mode!=0 )
             BX_PANIC(("pit: outp(43h): comm Bh, mode %02x, bcd %02x unhandled",
               (unsigned) mode, bcd_mode));
@@ -460,7 +457,7 @@ BX_INFO(("timer 0-2 mode control: comm:%02x mode:%02x bcd_mode:%u",
       break;
 
     case 0x61:
-      BX_PIT_THIS s.speaker_data_on = (value >> 1) & 0x01;
+      BX_PIT_THIS_PTR s.speaker_data_on = (value >> 1) & 0x01;
 /*??? only on AT+ */
       set_GATE(2, value & 0x01);
 #if BX_CPU_LEVEL < 2
@@ -483,36 +480,36 @@ bx_pit_c::write_count_reg( Bit8u   value, unsigned timerid )
 {
   bx_bool xfer_complete;
 
-  switch ( BX_PIT_THIS s.timer[timerid].latch_mode ) {
+  switch ( BX_PIT_THIS_PTR s.timer[timerid].latch_mode ) {
     case BX_PIT_LATCH_MODE_16BIT: /* write1=LSB, write2=MSB */
-      if (BX_PIT_THIS s.timer[timerid].input_latch_toggle==0) {
-        BX_PIT_THIS s.timer[timerid].input_latch_value = value;
-        BX_PIT_THIS s.timer[timerid].input_latch_toggle = 1;
+      if (BX_PIT_THIS_PTR s.timer[timerid].input_latch_toggle==0) {
+        BX_PIT_THIS_PTR s.timer[timerid].input_latch_value = value;
+        BX_PIT_THIS_PTR s.timer[timerid].input_latch_toggle = 1;
         xfer_complete = 0;
         if (bx_dbg.pit)
-          BX_INFO(("pit: BX_PIT_THIS s.timer[timerid] write L = %02x", (unsigned) value));
+          BX_INFO(("pit: BX_PIT_THIS_PTR s.timer[timerid] write L = %02x", (unsigned) value));
         }
       else {
-        BX_PIT_THIS s.timer[timerid].input_latch_value |= (value << 8);
-        BX_PIT_THIS s.timer[timerid].input_latch_toggle = 0;
+        BX_PIT_THIS_PTR s.timer[timerid].input_latch_value |= (value << 8);
+        BX_PIT_THIS_PTR s.timer[timerid].input_latch_toggle = 0;
         xfer_complete = 1;
         if (bx_dbg.pit)
-          BX_INFO(("pit: BX_PIT_THIS s.timer[timerid] write H = %02x", (unsigned) value));
+          BX_INFO(("pit: BX_PIT_THIS_PTR s.timer[timerid] write H = %02x", (unsigned) value));
         }
       break;
 
     case BX_PIT_LATCH_MODE_MSB: /* write1=MSB, LSB=0 */
-      BX_PIT_THIS s.timer[timerid].input_latch_value = (value << 8);
+      BX_PIT_THIS_PTR s.timer[timerid].input_latch_value = (value << 8);
       xfer_complete = 1;
       if (bx_dbg.pit)
-        BX_INFO(("pit: BX_PIT_THIS s.timer[timerid] write H = %02x", (unsigned) value));
+        BX_INFO(("pit: BX_PIT_THIS_PTR s.timer[timerid] write H = %02x", (unsigned) value));
       break;
 
     case BX_PIT_LATCH_MODE_LSB: /* write1=LSB, MSB=0 */
-      BX_PIT_THIS s.timer[timerid].input_latch_value = value;
+      BX_PIT_THIS_PTR s.timer[timerid].input_latch_value = value;
       xfer_complete = 1;
       if (bx_dbg.pit)
-        BX_INFO(("pit: BX_PIT_THIS s.timer[timerid] write L = %02x", (unsigned) value));
+        BX_INFO(("pit: BX_PIT_THIS_PTR s.timer[timerid] write L = %02x", (unsigned) value));
       break;
 
     default:
@@ -521,10 +518,10 @@ bx_pit_c::write_count_reg( Bit8u   value, unsigned timerid )
     }
 
   if (xfer_complete) {
-    BX_PIT_THIS s.timer[timerid].counter_max = BX_PIT_THIS s.timer[timerid].input_latch_value;
+    BX_PIT_THIS_PTR s.timer[timerid].counter_max = BX_PIT_THIS_PTR s.timer[timerid].input_latch_value;
 
     // reprogramming counter clears latch
-    BX_PIT_THIS s.timer[timerid].output_latch_full = 0;
+    BX_PIT_THIS_PTR s.timer[timerid].output_latch_full = 0;
 
     // counter bounds
     // mode      minimum    maximum
@@ -534,12 +531,12 @@ bx_pit_c::write_count_reg( Bit8u   value, unsigned timerid )
     //  3           2          0
     //  4           1          0
     //  5           1          0
-    switch (BX_PIT_THIS s.timer[timerid].mode) {
+    switch (BX_PIT_THIS_PTR s.timer[timerid].mode) {
       case 0:
-        BX_PIT_THIS s.timer[timerid].counter = BX_PIT_THIS s.timer[timerid].counter_max;
-        BX_PIT_THIS s.timer[timerid].active = 1;
-        if (BX_PIT_THIS s.timer[timerid].GATE) {
-          BX_PIT_THIS s.timer[timerid].OUT = 0; // OUT pin starts low
+        BX_PIT_THIS_PTR s.timer[timerid].counter = BX_PIT_THIS_PTR s.timer[timerid].counter_max;
+        BX_PIT_THIS_PTR s.timer[timerid].active = 1;
+        if (BX_PIT_THIS_PTR s.timer[timerid].GATE) {
+          BX_PIT_THIS_PTR s.timer[timerid].OUT = 0; // OUT pin starts low
           start( timerid );
           }
         break;
@@ -548,27 +545,27 @@ bx_pit_c::write_count_reg( Bit8u   value, unsigned timerid )
                  timerid));
         break;
       case 2:
-        if ( BX_PIT_THIS s.timer[timerid].counter_max == 1 )
+        if ( BX_PIT_THIS_PTR s.timer[timerid].counter_max == 1 )
           BX_PANIC(("pit:write_count_reg(%u): mode %u counter_max=1",
-                   timerid, (unsigned) BX_PIT_THIS s.timer[timerid].mode));
-        if ( BX_PIT_THIS s.timer[timerid].GATE && !BX_PIT_THIS s.timer[timerid].active ) {
+                   timerid, (unsigned) BX_PIT_THIS_PTR s.timer[timerid].mode));
+        if ( BX_PIT_THIS_PTR s.timer[timerid].GATE && !BX_PIT_THIS_PTR s.timer[timerid].active ) {
           // software triggered
-          BX_PIT_THIS s.timer[timerid].counter = BX_PIT_THIS s.timer[timerid].counter_max;
-          BX_PIT_THIS s.timer[timerid].active  = 1;
-          BX_PIT_THIS s.timer[timerid].OUT     = 1; // initially set high
+          BX_PIT_THIS_PTR s.timer[timerid].counter = BX_PIT_THIS_PTR s.timer[timerid].counter_max;
+          BX_PIT_THIS_PTR s.timer[timerid].active  = 1;
+          BX_PIT_THIS_PTR s.timer[timerid].OUT     = 1; // initially set high
           start( timerid );
           }
         break;
       case 3:
-        if ( BX_PIT_THIS s.timer[timerid].counter_max == 1 )
+        if ( BX_PIT_THIS_PTR s.timer[timerid].counter_max == 1 )
           BX_PANIC(("pit:write_count_reg(%u): mode %u counter_max=1",
-                   timerid, (unsigned) BX_PIT_THIS s.timer[timerid].mode));
-        BX_PIT_THIS s.timer[timerid].counter_max = BX_PIT_THIS s.timer[timerid].counter_max & 0xfffe;
-        if ( BX_PIT_THIS s.timer[timerid].GATE && !BX_PIT_THIS s.timer[timerid].active ) {
+                   timerid, (unsigned) BX_PIT_THIS_PTR s.timer[timerid].mode));
+        BX_PIT_THIS_PTR s.timer[timerid].counter_max = BX_PIT_THIS_PTR s.timer[timerid].counter_max & 0xfffe;
+        if ( BX_PIT_THIS_PTR s.timer[timerid].GATE && !BX_PIT_THIS_PTR s.timer[timerid].active ) {
           // software triggered
-          BX_PIT_THIS s.timer[timerid].counter = BX_PIT_THIS s.timer[timerid].counter_max;
-          BX_PIT_THIS s.timer[timerid].active  = 1;
-          BX_PIT_THIS s.timer[timerid].OUT     = 1; // initially set high
+          BX_PIT_THIS_PTR s.timer[timerid].counter = BX_PIT_THIS_PTR s.timer[timerid].counter_max;
+          BX_PIT_THIS_PTR s.timer[timerid].active  = 1;
+          BX_PIT_THIS_PTR s.timer[timerid].OUT     = 1; // initially set high
           start( timerid );
           }
         break;
@@ -591,33 +588,33 @@ bx_pit_c::read_counter( unsigned timerid )
   Bit16u  counter_value;
   Bit8u    retval;
 
-  if (BX_PIT_THIS s.timer[timerid].output_latch_full) { /* latched read */
-    counter_value = BX_PIT_THIS s.timer[timerid].output_latch_value;
+  if (BX_PIT_THIS_PTR s.timer[timerid].output_latch_full) { /* latched read */
+    counter_value = BX_PIT_THIS_PTR s.timer[timerid].output_latch_value;
     }
   else { /* direct unlatched read */
-    counter_value = BX_PIT_THIS s.timer[timerid].counter;
-BX_INFO(("CV=%04x", (unsigned) BX_PIT_THIS s.timer[timerid].counter));
+    counter_value = BX_PIT_THIS_PTR s.timer[timerid].counter;
+BX_INFO(("CV=%04x", (unsigned) BX_PIT_THIS_PTR s.timer[timerid].counter));
     }
 
-  switch (BX_PIT_THIS s.timer[timerid].latch_mode) {
+  switch (BX_PIT_THIS_PTR s.timer[timerid].latch_mode) {
     case BX_PIT_LATCH_MODE_LSB:
       retval = (Bit8u  ) counter_value;
-      BX_PIT_THIS s.timer[timerid].output_latch_full = 0;
+      BX_PIT_THIS_PTR s.timer[timerid].output_latch_full = 0;
       break;
     case BX_PIT_LATCH_MODE_MSB:
       retval = (Bit8u  ) ( counter_value >> 8 );
-      BX_PIT_THIS s.timer[timerid].output_latch_full = 0;
+      BX_PIT_THIS_PTR s.timer[timerid].output_latch_full = 0;
       break;
     case BX_PIT_LATCH_MODE_16BIT:
-      if (BX_PIT_THIS s.timer[timerid].output_latch_toggle==0) { /* LSB 1st */
+      if (BX_PIT_THIS_PTR s.timer[timerid].output_latch_toggle==0) { /* LSB 1st */
         retval = (Bit8u  ) counter_value;
         }
       else { /* MSB 2nd */
         retval = (Bit8u  ) ( counter_value >> 8 );
         }
-      BX_PIT_THIS s.timer[timerid].output_latch_toggle = !BX_PIT_THIS s.timer[timerid].output_latch_toggle;
-      if (BX_PIT_THIS s.timer[timerid].output_latch_toggle == 0)
-        BX_PIT_THIS s.timer[timerid].output_latch_full = 0;
+      BX_PIT_THIS_PTR s.timer[timerid].output_latch_toggle = !BX_PIT_THIS_PTR s.timer[timerid].output_latch_toggle;
+      if (BX_PIT_THIS_PTR s.timer[timerid].output_latch_toggle == 0)
+        BX_PIT_THIS_PTR s.timer[timerid].output_latch_full = 0;
       break;
     default:
       BX_PANIC(("pit: io read from port 40h: unknown latch mode"));
@@ -631,18 +628,18 @@ BX_INFO(("CV=%04x", (unsigned) BX_PIT_THIS s.timer[timerid].counter));
 bx_pit_c::latch( unsigned timerid )
 {
   /* subsequent counter latch commands are ignored until value read out */
-  if (BX_PIT_THIS s.timer[timerid].output_latch_full) {
+  if (BX_PIT_THIS_PTR s.timer[timerid].output_latch_full) {
     BX_INFO(("pit: pit(%u) latch: output latch full, ignoring",
               timerid));
     return;
     }
 
-  BX_PIT_THIS s.timer[timerid].output_latch_value = BX_PIT_THIS s.timer[timerid].counter;
+  BX_PIT_THIS_PTR s.timer[timerid].output_latch_value = BX_PIT_THIS_PTR s.timer[timerid].counter;
 
   if (bx_dbg.pit)
-    BX_INFO(("pit: latch_value = %u", (unsigned) BX_PIT_THIS s.timer[timerid].output_latch_value));
-  BX_PIT_THIS s.timer[timerid].output_latch_toggle = 0;
-  BX_PIT_THIS s.timer[timerid].output_latch_full   = 1;
+    BX_INFO(("pit: latch_value = %u", (unsigned) BX_PIT_THIS_PTR s.timer[timerid].output_latch_value));
+  BX_PIT_THIS_PTR s.timer[timerid].output_latch_toggle = 0;
+  BX_PIT_THIS_PTR s.timer[timerid].output_latch_full   = 1;
 }
 
   void
@@ -655,31 +652,31 @@ bx_pit_c::set_GATE(unsigned pit_id, unsigned value)
   value = (value > 0);
 
   /* if no transition of GATE input line, then nothing to do */
-  if (value == BX_PIT_THIS s.timer[2].GATE)
+  if (value == BX_PIT_THIS_PTR s.timer[2].GATE)
     return;
 
   if (value) { /* PIT2: GATE transition from 0 to 1 */
-    BX_PIT_THIS s.timer[2].GATE  = 1;
-    switch ( BX_PIT_THIS s.timer[2].mode ) {
+    BX_PIT_THIS_PTR s.timer[2].GATE  = 1;
+    switch ( BX_PIT_THIS_PTR s.timer[2].mode ) {
       case 0:
-        BX_PIT_THIS s.timer[2].counter = BX_PIT_THIS s.timer[2].counter_max;
-        if (BX_PIT_THIS s.timer[2].active) {
-          BX_PIT_THIS s.timer[2].OUT = 0;
+        BX_PIT_THIS_PTR s.timer[2].counter = BX_PIT_THIS_PTR s.timer[2].counter_max;
+        if (BX_PIT_THIS_PTR s.timer[2].active) {
+          BX_PIT_THIS_PTR s.timer[2].OUT = 0;
           }
         start( 2 );
         break;
       case 2:
         // begin counting, reload counter
-        BX_PIT_THIS s.timer[2].active = 1;
-        BX_PIT_THIS s.timer[2].OUT = 1;
-        BX_PIT_THIS s.timer[2].counter = BX_PIT_THIS s.timer[2].counter_max;
+        BX_PIT_THIS_PTR s.timer[2].active = 1;
+        BX_PIT_THIS_PTR s.timer[2].OUT = 1;
+        BX_PIT_THIS_PTR s.timer[2].counter = BX_PIT_THIS_PTR s.timer[2].counter_max;
         start( 2 );
         break;
       case 3:
         // begin counting, reload counter
-        BX_PIT_THIS s.timer[2].active = 1;
-        BX_PIT_THIS s.timer[2].OUT = 1;
-        BX_PIT_THIS s.timer[2].counter = BX_PIT_THIS s.timer[2].counter_max;
+        BX_PIT_THIS_PTR s.timer[2].active = 1;
+        BX_PIT_THIS_PTR s.timer[2].OUT = 1;
+        BX_PIT_THIS_PTR s.timer[2].counter = BX_PIT_THIS_PTR s.timer[2].counter_max;
         start( 2 );
         break;
       case 1:
@@ -687,30 +684,30 @@ bx_pit_c::set_GATE(unsigned pit_id, unsigned value)
       case 5:
       default:
         BX_PANIC(("bx_pit_c::set_GATE: unhandled timer2 mode %u",
-                 (unsigned) BX_PIT_THIS s.timer[2].mode));
+                 (unsigned) BX_PIT_THIS_PTR s.timer[2].mode));
       }
     }
   else {       // PIT2: GATE transition from 1 to 0, deactivate
-    BX_PIT_THIS s.timer[2].GATE  = 0;
-    switch ( BX_PIT_THIS s.timer[2].mode ) {
+    BX_PIT_THIS_PTR s.timer[2].GATE  = 0;
+    switch ( BX_PIT_THIS_PTR s.timer[2].mode ) {
       case 0:
         break;
       case 2:
         // 1) stops count, 2) OUT goes immediately high
-        BX_PIT_THIS s.timer[2].active = 0;
-        BX_PIT_THIS s.timer[2].OUT = 1;
+        BX_PIT_THIS_PTR s.timer[2].active = 0;
+        BX_PIT_THIS_PTR s.timer[2].OUT = 1;
         break;
       case 3:
         // 1) stops count, 2) OUT goes immediately high
-        BX_PIT_THIS s.timer[2].active = 0;
-        BX_PIT_THIS s.timer[2].OUT = 1;
+        BX_PIT_THIS_PTR s.timer[2].active = 0;
+        BX_PIT_THIS_PTR s.timer[2].OUT = 1;
         break;
       case 1:
       case 4:
       case 5:
       default:
         BX_PANIC(("bx_pit_c::set_GATE: unhandled timer2 mode %u",
-                 (unsigned) BX_PIT_THIS s.timer[2].mode));
+                 (unsigned) BX_PIT_THIS_PTR s.timer[2].mode));
       }
     }
 }
@@ -721,21 +718,21 @@ bx_pit_c::start(unsigned timerid)
 {
   unsigned long period_hz;
 
-  if (BX_PIT_THIS s.timer[timerid].counter_max == 0x0000) {
+  if (BX_PIT_THIS_PTR s.timer[timerid].counter_max == 0x0000) {
     period_hz   = 1193182 / 65536;
     }
   else {
-    period_hz = 1193182 / BX_PIT_THIS s.timer[timerid].counter_max;
+    period_hz = 1193182 / BX_PIT_THIS_PTR s.timer[timerid].counter_max;
     }
   BX_INFO(("timer%u period set to %lu hz", timerid, period_hz));
 
 
-  switch (BX_PIT_THIS s.timer[timerid].mode) {
+  switch (BX_PIT_THIS_PTR s.timer[timerid].mode) {
     case 0: /* single timeout */
       break;
     case 1: /* retriggerable one-shot */
       BX_PANIC(("start: mode %u unhandled",
-               (unsigned) BX_PIT_THIS s.timer[timerid].mode));
+               (unsigned) BX_PIT_THIS_PTR s.timer[timerid].mode));
       break;
     case 2: /* rate generator */
       break;
@@ -743,15 +740,15 @@ bx_pit_c::start(unsigned timerid)
       break;
     case 4: /* software triggered strobe */
       BX_PANIC(("start: mode %u unhandled",
-               (unsigned) BX_PIT_THIS s.timer[timerid].mode));
+               (unsigned) BX_PIT_THIS_PTR s.timer[timerid].mode));
       break;
     case 5: /* hardware retriggerable strobe */
       BX_PANIC(("start: mode %u unhandled",
-               (unsigned) BX_PIT_THIS s.timer[timerid].mode));
+               (unsigned) BX_PIT_THIS_PTR s.timer[timerid].mode));
       break;
     default:
       BX_PANIC(("start: timer%u has bad mode",
-               (unsigned) BX_PIT_THIS s.timer[timerid].mode));
+               (unsigned) BX_PIT_THIS_PTR s.timer[timerid].mode));
     }
 }
 
@@ -762,7 +759,7 @@ bx_pit_c::start(unsigned timerid)
 bx_pit_c::SaveState( class state_file *fd )
 {
   fd->write_check ("8254 start");
-  fd->write (&BX_PIT_THIS s, sizeof (BX_PIT_THIS s));
+  fd->write (&BX_PIT_THIS_PTR s, sizeof (BX_PIT_THIS_PTR s));
   fd->write_check ("8254 end");
   return(0);
 }
@@ -772,7 +769,7 @@ bx_pit_c::SaveState( class state_file *fd )
 bx_pit_c::LoadState( class state_file *fd )
 {
   fd->read_check ("8254 start");
-  fd->read (&BX_PIT_THIS s, sizeof (BX_PIT_THIS s));
+  fd->read (&BX_PIT_THIS_PTR s, sizeof (BX_PIT_THIS_PTR s));
   fd->read_check ("8254 end");
   return(0);
 }
@@ -793,105 +790,105 @@ bx_pit_c::periodic( Bit32u   usec_delta )
 {
   bx_bool prev_timer0_out;
 
-  prev_timer0_out = BX_PIT_THIS s.timer[0].OUT;
+  prev_timer0_out = BX_PIT_THIS_PTR s.timer[0].OUT;
 
   for (unsigned i = 0; i < 3; i++) {
     // is timer enabled and active?
-    if ( BX_PIT_THIS s.timer[i].GATE && BX_PIT_THIS s.timer[i].active ) {
-      switch ( BX_PIT_THIS s.timer[i].mode ) {
+    if ( BX_PIT_THIS_PTR s.timer[i].GATE && BX_PIT_THIS_PTR s.timer[i].active ) {
+      switch ( BX_PIT_THIS_PTR s.timer[i].mode ) {
         case 0: // Mode 0: Single Timeout
           // wraps after count expires
-          if ( BX_PIT_THIS s.timer[i].counter == 0 ) {
+          if ( BX_PIT_THIS_PTR s.timer[i].counter == 0 ) {
             // counter previously expired, wrap counter
-            BX_PIT_THIS s.timer[i].counter = 0xffff;
+            BX_PIT_THIS_PTR s.timer[i].counter = 0xffff;
             }
-          else if ( usec_delta >= BX_PIT_THIS s.timer[i].counter ) {
+          else if ( usec_delta >= BX_PIT_THIS_PTR s.timer[i].counter ) {
             // counter expired
-            BX_PIT_THIS s.timer[i].counter = 0;
-            BX_PIT_THIS s.timer[i].OUT     = 1;
+            BX_PIT_THIS_PTR s.timer[i].counter = 0;
+            BX_PIT_THIS_PTR s.timer[i].OUT     = 1;
             }
           else {
             // decrement counter by elapsed useconds
-            BX_PIT_THIS s.timer[i].counter -= (Bit16u ) usec_delta;
+            BX_PIT_THIS_PTR s.timer[i].counter -= (Bit16u ) usec_delta;
             }
           break;
 
         case 1: // Mode 1: Retriggerable One-Shot
           // wraps after count expires
           BX_PANIC(("bx_pit_c::periodic: bad mode: timer[%u], mode %u",
-                        i, (unsigned) BX_PIT_THIS s.timer[i].mode));
+                        i, (unsigned) BX_PIT_THIS_PTR s.timer[i].mode));
           break;
 
         case 2: // Mode 2: Rate Generator
           // reloads after count expires
           // OUT is low when counter=1, high otherwise
           // min count=2, max count=0
-          if ( BX_PIT_THIS s.timer[i].counter == 0 ) {
+          if ( BX_PIT_THIS_PTR s.timer[i].counter == 0 ) {
             // max counter val, just wrap
-            BX_PIT_THIS s.timer[i].counter = 0xffff;
-            BX_PIT_THIS s.timer[i].OUT     = 1;
+            BX_PIT_THIS_PTR s.timer[i].counter = 0xffff;
+            BX_PIT_THIS_PTR s.timer[i].OUT     = 1;
             }
-          else if ( BX_PIT_THIS s.timer[i].counter == 1 ) {
+          else if ( BX_PIT_THIS_PTR s.timer[i].counter == 1 ) {
             // counter previously expired, reload
-            BX_PIT_THIS s.timer[i].counter = BX_PIT_THIS s.timer[i].counter_max;
-            BX_PIT_THIS s.timer[i].OUT     = 1;
+            BX_PIT_THIS_PTR s.timer[i].counter = BX_PIT_THIS_PTR s.timer[i].counter_max;
+            BX_PIT_THIS_PTR s.timer[i].OUT     = 1;
             }
-          else if ( (BX_PIT_THIS s.timer[i].counter == 2) ||
-                    (usec_delta >= (Bit32u(BX_PIT_THIS s.timer[i].counter) - 1)) ) {
+          else if ( (BX_PIT_THIS_PTR s.timer[i].counter == 2) ||
+                    (usec_delta >= (Bit32u(BX_PIT_THIS_PTR s.timer[i].counter) - 1)) ) {
             // in either case, counter will reach 1
-            BX_PIT_THIS s.timer[i].counter = 1;
-            BX_PIT_THIS s.timer[i].OUT = 0;
+            BX_PIT_THIS_PTR s.timer[i].counter = 1;
+            BX_PIT_THIS_PTR s.timer[i].OUT = 0;
             }
           else {
             // decrement counter by elapsed useconds
-            BX_PIT_THIS s.timer[i].counter -= (Bit16u ) usec_delta;
+            BX_PIT_THIS_PTR s.timer[i].counter -= (Bit16u ) usec_delta;
             }
           break;
 
         case 3: // Mode 3: Square Wave Mode
           // reloads after count expires
           // min count=2, max count=0
-          if ( BX_PIT_THIS s.timer[i].counter == 0 ) {
+          if ( BX_PIT_THIS_PTR s.timer[i].counter == 0 ) {
             // max count, dec by 2
-            BX_PIT_THIS s.timer[i].counter = 0xfffe;
+            BX_PIT_THIS_PTR s.timer[i].counter = 0xfffe;
             }
-          else if ( (BX_PIT_THIS s.timer[i].counter <= 2) ||
-                    ( (usec_delta*2) >= BX_PIT_THIS s.timer[i].counter ) ) {
+          else if ( (BX_PIT_THIS_PTR s.timer[i].counter <= 2) ||
+                    ( (usec_delta*2) >= BX_PIT_THIS_PTR s.timer[i].counter ) ) {
             // counter expired, reload
-            BX_PIT_THIS s.timer[i].counter = BX_PIT_THIS s.timer[i].counter_max;
-            BX_PIT_THIS s.timer[i].OUT     = !BX_PIT_THIS s.timer[i].OUT;
+            BX_PIT_THIS_PTR s.timer[i].counter = BX_PIT_THIS_PTR s.timer[i].counter_max;
+            BX_PIT_THIS_PTR s.timer[i].OUT     = !BX_PIT_THIS_PTR s.timer[i].OUT;
             //BX_INFO(("CV: reload t%u to %04x", (unsigned) i, (unsigned)
-            //  BX_PIT_THIS s.timer[i].counter));
+            //  BX_PIT_THIS_PTR s.timer[i].counter));
             }
           else {
             // decrement counter by elapsed useconds
-            BX_PIT_THIS s.timer[i].counter -= (Bit16u ) ( 2*usec_delta );
+            BX_PIT_THIS_PTR s.timer[i].counter -= (Bit16u ) ( 2*usec_delta );
             //BX_INFO(("CV: dec count to %04x",
-            //          (unsigned) BX_PIT_THIS s.timer[i].counter));
+            //          (unsigned) BX_PIT_THIS_PTR s.timer[i].counter));
             }
           break;
 
         case 4: // Mode 4: Software Triggered Strobe
           // wraps after count expires
           BX_PANIC(("bx_pit_c::periodic: bad mode: timer[%u], mode %u",
-                        i, (unsigned) BX_PIT_THIS s.timer[i].mode));
+                        i, (unsigned) BX_PIT_THIS_PTR s.timer[i].mode));
           break;
 
         case 5: // Mode 5: Hardware Retriggerable Strobe
           // wraps after count expires
           BX_PANIC(("bx_pit_c::periodic: bad mode: timer[%u], mode %u",
-                        i, (unsigned) BX_PIT_THIS s.timer[i].mode));
+                        i, (unsigned) BX_PIT_THIS_PTR s.timer[i].mode));
           break;
         default:
           BX_PANIC(("bx_pit_c::periodic: bad mode: timer[%u], mode %u",
-                        i, (unsigned) BX_PIT_THIS s.timer[i].mode));
+                        i, (unsigned) BX_PIT_THIS_PTR s.timer[i].mode));
           break;
-        } // switch ( BX_PIT_THIS s.tim...
-      } // if ( BX_PIT_THIS s.timer[i]...
+        } // switch ( BX_PIT_THIS_PTR s.tim...
+      } // if ( BX_PIT_THIS_PTR s.timer[i]...
     } // for (unsigned i...
 
   // see if there's a rising edge on timer0's output to trigger an IRQ0.
-  if ( (prev_timer0_out==0) && (BX_PIT_THIS s.timer[0].OUT==1) )
+  if ( (prev_timer0_out==0) && (BX_PIT_THIS_PTR s.timer[0].OUT==1) )
     return(1); // request IRQ 0
   else
     return(0);
