@@ -1,4 +1,4 @@
-$Id: PARAM_TREE.txt,v 1.1 2003/03/15 17:51:36 bdenney Exp $
+$Id: PARAM_TREE.txt,v 1.1.2.1 2003/03/20 05:10:21 bdenney Exp $
 
 I'm trying to organize the parameters into a tree structure instead of
 a huge flat list.  Once the parameter code is improved, I hope to use
@@ -26,7 +26,6 @@ Notes:
   in rom's list of children.
 - alternative notation: memory/rom/address, ata>1>slave>cylinders,
   memory'optional_rom'path
-
 - parameters have additional information inside them, like the name,
   description, min, max, initial value.  Do we need a way to name
   this stuff?  Invent syntax.... PARAM'FIELD means field FIELD of parameter
@@ -54,7 +53,9 @@ Notes:
 - I have written all the parameter names in "C variable name" style, 
   lowercase with underscores instead of spaces.  But for display purposes
   it may be k
-
+- when adding a child to a parent, verify that there isn't already a 
+  child with the same name. Duplicate named children should not be permitted.
+- bx_param_c::clone should not automatically add the clone to the parent.
 
 Proposed organizion of parameters into a tree
 
@@ -64,7 +65,8 @@ memory
   rom                 
     address           BXP_ROM_ADDRESS,
     path              BXP_ROM_PATH,
-    vga_rom_path      BXP_VGA_ROM_PATH,
+  vgarom
+    path              BXP_VGA_ROM_PATH,
   optional_rom
     0
       path              BXP_OPTROM1_PATH,
@@ -81,7 +83,7 @@ memory
 
 cmos
   path              BXP_CMOS_PATH,
-  image             BXP_CMOS_IMAGE,
+  use_image         BXP_CMOS_IMAGE,
   time0             BXP_CMOS_TIME0,
 
 pit                   
@@ -130,31 +132,31 @@ ata
 
 serial
   0
-    enabled        BXP_COM1_ENABLED
+    enable        BXP_COM1_ENABLED
     path           BXP_COM1_PATH
   1
-    enabled        BXP_COM2_ENABLED
+    enable        BXP_COM2_ENABLED
     path           BXP_COM2_PATH
   2
-    enabled        BXP_COM3_ENABLED
+    enable        BXP_COM3_ENABLED
     path           BXP_COM3_PATH
   3
-    enabled        BXP_COM4_ENABLED
+    enable        BXP_COM4_ENABLED
     path           BXP_COM4_PATH
 
 usb
   1
-    enabled          BXP_USB1_ENABLED,
+    enable          BXP_USB1_ENABLED,
     ioaddr           BXP_USB1_IOADDR,
     irq              BXP_USB1_IRQ,
 
 parallel
   0
-    enabled           BXP_PARPORT1_ENABLED,
-    outfile           BXP_PARPORT1_OUTFILE,
+    enable           BXP_PARPORT1_ENABLED,
+    path           BXP_PARPORT1_OUTFILE,
   1
-    enabled           BXP_PARPORT2_ENABLED,
-    outfile           BXP_PARPORT2_OUTFILE,
+    enable           BXP_PARPORT2_ENABLED,
+    path           BXP_PARPORT2_OUTFILE,
 
 ne2k
   0                   BXP_NE2K,
@@ -168,16 +170,16 @@ ne2k
 
 sb16                BXP_SB16,
   present           BXP_SB16_PRESENT,
-  midifile          BXP_SB16_MIDIFILE,
-  wavefile          BXP_SB16_WAVEFILE,
-  logfile           BXP_SB16_LOGFILE,
-  midimode          BXP_SB16_MIDIMODE,
-  wavemode          BXP_SB16_WAVEMODE,
-  loglevel          BXP_SB16_LOGLEVEL,
-  dmatimer          BXP_SB16_DMATIMER,
+  midi_file          BXP_SB16_MIDIFILE,
+  wave_file          BXP_SB16_WAVEFILE,
+  log_file           BXP_SB16_LOGFILE,
+  midi_mode          BXP_SB16_MIDIMODE,
+  wave_mode          BXP_SB16_WAVEMODE,
+  log_level          BXP_SB16_LOGLEVEL,
+  dma_timer          BXP_SB16_DMATIMER,
 
 pci
-  i440fx_support        BXP_I440FX_SUPPORT,
+  enable            BXP_I440FX_SUPPORT,
 
 # experiment with how to organize the configurable parameters versus
 # the variables in the device itself.  Try putting the configurable
@@ -279,9 +281,9 @@ boot_params
   boot_drive           BXP_BOOTDRIVE,
   floppy_sig_check     BXP_FLOPPYSIGCHECK,
   load32bitos          BXP_LOAD32BITOS,
-    which              BXP_LOAD32BITOS_WHICH,
+    which_os           BXP_LOAD32BITOS_WHICH,
     path               BXP_LOAD32BITOS_PATH,
-    iolog              BXP_LOAD32BITOS_IOLOG,
+    io_log             BXP_LOAD32BITOS_IOLOG,
     initrd             BXP_LOAD32BITOS_INITRD,
 
 time
@@ -298,15 +300,15 @@ display
   full_screen        BXP_FULLSCREEN,
   screen_mode        BXP_SCREENMODE,
 
-general
+misc
   start_mode          BXP_BOCHS_START,
   text_snapshot_check BXP_TEXT_SNAPSHOT_CHECK,
 
 log
-  filename               BXP_LOG_FILENAME,
+  path                   BXP_LOG_FILENAME,
   prefix                 BXP_LOG_PREFIX,
-  debugger_filename      BXP_DEBUGGER_LOG_FILENAME,
 
 debugger
   running             BXP_DEBUG_RUNNING,
+  log_path            BXP_DEBUGGER_LOG_FILENAME,
 
