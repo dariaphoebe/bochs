@@ -96,8 +96,6 @@ public:
     unsigned char align3;
 };
 
-extern softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word);
-
 #define IS_TAG_EMPTY(i) 		\
   ((BX_CPU_THIS_PTR the_i387.FPU_gettagi(i)) == FPU_Tag_Empty)
 

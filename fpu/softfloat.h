@@ -111,7 +111,6 @@ struct float_status_t
     int float_nan_handling_mode;	/* flag register */
     int flush_underflow_to_zero;	/* flag register */
 };
-typedef struct float_status_t softfloat_status_word_t;
 
 /*----------------------------------------------------------------------------
 | Routine to raise any or all of the software IEC/IEEE floating-point

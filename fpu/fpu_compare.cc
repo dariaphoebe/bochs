@@ -27,6 +27,7 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
+extern float_status_t FPU_pre_exception_handling(Bit16u control_word);
 
 #if BX_SUPPORT_FPU
 
@@ -101,7 +102,7 @@ void BX_CPU_C::FCOM_STi(bxInstruction_c *i)
       return;
   }
 
-  softfloat_status_word_t status = 
+  float_status_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   int rc = floatx80_compare(BX_READ_FPU_REG(0), BX_READ_FPU_REG(i->rm()), status);
@@ -141,7 +142,7 @@ void BX_CPU_C::FCOMI_ST0_STj(bxInstruction_c *i)
       return;
   }
 
-  softfloat_status_word_t status = 
+  float_status_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   int rc = floatx80_compare(BX_READ_FPU_REG(0), BX_READ_FPU_REG(i->rm()), status);
@@ -181,7 +182,7 @@ void BX_CPU_C::FUCOMI_ST0_STj(bxInstruction_c *i)
       return;
   }
 
-  softfloat_status_word_t status = 
+  float_status_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   int rc = floatx80_compare_quiet(BX_READ_FPU_REG(0), BX_READ_FPU_REG(i->rm()), status);
@@ -219,7 +220,7 @@ void BX_CPU_C::FUCOM_STi(bxInstruction_c *i)
       return;
   }
 
-  softfloat_status_word_t status = 
+  float_status_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   int rc = floatx80_compare_quiet(BX_READ_FPU_REG(0), BX_READ_FPU_REG(i->rm()), status);
@@ -262,7 +263,7 @@ void BX_CPU_C::FCOM_SINGLE_REAL(bxInstruction_c *i)
   float32 load_reg;
   read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
 
-  softfloat_status_word_t status = 
+  float_status_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   int rc = floatx80_compare(BX_READ_FPU_REG(0), 
@@ -306,7 +307,7 @@ void BX_CPU_C::FCOM_DOUBLE_REAL(bxInstruction_c *i)
   float64 load_reg;
   read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
 
-  softfloat_status_word_t status = 
+  float_status_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   int rc = floatx80_compare(BX_READ_FPU_REG(0), 
@@ -350,7 +351,7 @@ void BX_CPU_C::FICOM_WORD_INTEGER(bxInstruction_c *i)
   Bit16s load_reg;
   read_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&load_reg));
 
-  softfloat_status_word_t status = 
+  float_status_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   int rc = floatx80_compare(BX_READ_FPU_REG(0), 
@@ -394,7 +395,7 @@ void BX_CPU_C::FICOM_DWORD_INTEGER(bxInstruction_c *i)
   Bit32s load_reg;
   read_virtual_dword(i->seg(), RMAddr(i), (Bit32u*)(&load_reg));
 
-  softfloat_status_word_t status = 
+  float_status_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   int rc = floatx80_compare(BX_READ_FPU_REG(0), 
@@ -435,7 +436,7 @@ void BX_CPU_C::FCOMPP(bxInstruction_c *i)
       return;
   }
 
-  softfloat_status_word_t status = 
+  float_status_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   int rc = floatx80_compare(BX_READ_FPU_REG(0), BX_READ_FPU_REG(1), status);
@@ -473,7 +474,7 @@ void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
       return;
   }
 
-  softfloat_status_word_t status = 
+  float_status_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   int rc = floatx80_compare_quiet(BX_READ_FPU_REG(0), BX_READ_FPU_REG(1), status);
@@ -548,7 +549,7 @@ void BX_CPU_C::FTST(bxInstruction_c *i)
       return;
   }
 
-  softfloat_status_word_t status = 
+  float_status_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   int rc = floatx80_compare(BX_READ_FPU_REG(0), Const_Z, status);
