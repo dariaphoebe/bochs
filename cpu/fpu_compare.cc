@@ -27,6 +27,9 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
+#if BX_SUPPORT_FPU
+#include "softfloat-specialize.h"
+#endif
 
 #if BX_SUPPORT_FPU
 static int status_word_flags_fpu_compare(int float_relation)
@@ -729,13 +732,67 @@ void BX_CPU_C::FTST(bxInstruction_c *i)
 #endif
 }
 
+/* D9 E5 */
 void BX_CPU_C::FXAM(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  floatx80 reg = BX_READ_FPU_REG(0);
+  int sign = floatx80_sign(reg);
+
+  /* 
+   * Examine the contents of the ST(0) register and sets the condition 
+   * code flags C0, C2 and C3 in the FPU status word to indicate the 
+   * class of value or number in the register.
+   */
+
+  if (IS_TAG_EMPTY(0))
+  {
+      SETCC(FPU_SW_C3|FPU_SW_C1|FPU_SW_C0);
+  }
+  else
+  {
+      float_class_t aClass = floatx80_class(reg);
+
+      switch(aClass)
+      {
+        case float_negative_zero:
+        case float_positive_zero:
+           SETCC(FPU_SW_C3|FPU_SW_C1);
+           break;
+       
+        case float_NaN:
+           if (! (reg.fraction & BX_CONST64(0x8000000000000000))) {
+               SETCC(FPU_SW_C1); // unsupported handled as NaNs
+           } else {
+               SETCC(FPU_SW_C1|FPU_SW_C0);
+           }
+           break;
+       
+        case float_negative_inf:
+        case float_positive_inf:
+           SETCC(FPU_SW_C2|FPU_SW_C1|FPU_SW_C0);
+           break;
+       
+        case float_denormal:
+           SETCC(FPU_SW_C3|FPU_SW_C2|FPU_SW_C1);
+           break;
+       
+        case float_normalized:
+           SETCC(FPU_SW_C2|FPU_SW_C1);
+           break;
+      }
+  }
+
+  /* 
+   * The C1 flag is set to the sign of the value in ST(0), regardless 
+   * of whether the register is empty or full.
+   */
+  if (! sign)
+    clear_C1();
+
+#else
   BX_INFO(("FXAM: required FPU, configure --enable-fpu"));
 #endif
 }
