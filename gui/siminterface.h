@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.2 2003/03/20 05:24:24 bdenney Exp $
+// $Id: siminterface.h,v 1.99.4.3 2003/03/20 05:53:56 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -1193,34 +1193,17 @@ typedef struct {
 // tree of machine state.  Simplicity and consistency in use of these macros is important.  These
 // are still under development.   --BJS
 // TODO: provide examples  --BJS
-#define BX_REGISTER_NUM(_variable_p, _name, _desc, _parent_p)                 \
-{                                                                             \
-  bx_shadow_num_c *_param_p =                                                 \
-    new bx_shadow_num_c(BX_REGISTER_NEXT_ID/*id*/, _name, _desc, _variable_p);\
-  _parent_p->add(_param_p);                                                   \
-}
+#define BX_REGISTER_NUM(_variable_p, _name, _desc, _parent_p)              \
+   (new bx_shadow_num_c(_parent_p, _name, _desc, _variable_p))
 
-#define BX_REGISTER_ENUM(_variable_p, _name, _desc, _parent_p)                \
-{                                                                             \
-  bx_shadow_num_c *_param_p =                                                 \
-    new bx_shadow_num_c(BX_REGISTER_NEXT_ID/*id*/, _name, _desc, (Bit32u*)(_variable_p));\
-  _parent_p->add(_param_p);                                                   \
-}
+#define BX_REGISTER_ENUM(_variable_p, _name, _desc, _parent_p)             \
+   (new bx_shadow_num_c(_parent_p, _name, _desc, (Bit32u*)(_variable_p)))
 
-#define BX_REGISTER_BOOL(_variable_p, _name, _desc, _parent_p)                \
-{                                                                             \
-  bx_shadow_bool_c *_param_p =                                                \
-    new bx_shadow_bool_c(BX_REGISTER_NEXT_ID/*id*/, _name, _desc, (bx_bool*)(_variable_p));\
-  _parent_p->add(_param_p);                                                   \
-}
-
+#define BX_REGISTER_BOOL(_variable_p, _name, _desc, _parent_p)              \
+   (new bx_shadow_bool_c(_parent_p, _name, _desc, (bx_bool*)(_variable_p))) \
 
 #define BX_REGISTER_BITS(_variable_p, _name, _desc, _bit_high, _bit_low, _parent_p)\
-{                                                                             \
-  bx_shadow_num_c *_param_p =                                                 \
-    new bx_shadow_num_c(BX_REGISTER_NEXT_ID/*id*/, _name, _desc, _variable_p, _highbit, _lowbit);\
-  _parent_p->add(_param_p);                                                   \
-}
+   (new bx_shadow_num_c(_parent_p, _name, _desc, _variable_p, _highbit, _lowbit))
 
 
 #define BX_REGISTER_ARRAY(_this_list_p, _itr, _index_name, _name, _desc, _parent_p, _size)\
@@ -1231,17 +1214,15 @@ typedef struct {
        (_itr < _size) &&                                                      \
          (sprintf(foobar##_this_list_p[_itr], "%d", _itr),                    \
           _index_name = foobar##_this_list_p[_itr],                           \
-          _this_list_p= new bx_list_c(BX_REGISTER_NEXT_ID/*_itr id*/, _name, _desc, _size),\
-          _parent_p->add(_this_list_p),                                       \
+          _this_list_p= new bx_list_c(_parent_p, _name, _desc, _size),        \
           true);                                                              \
        _itr++)
     
   
 #define BX_REGISTER_LIST(_this_list_p, _name, _desc, _parent_p, _size)        \
-  bx_list_c *_this_list_p = new bx_list_c (BX_REGISTER_NEXT_ID/*id*/, _name, _desc, _size);\
-  _parent_p->add((bx_param_c*)_this_list_p);                                  
+  bx_list_c *_this_list_p = new bx_list_c (_parent_p, _name, _desc, _size)
 
-#define BX_REGISTER_NEXT_ID BXP_NULL
+#define FIXME_FAKE_PARENT NULL
 
 
 // NOTE: The following macros are the same as the above with the exception that they allow one extra
@@ -1261,17 +1242,17 @@ typedef struct {
 #define BX_REGISTER_HANDLER_NULL param_event_handler // FIXME:  --BJS
 
 
-// NOTE:  The following macros are testing the possibility of using implicit operands rather than
-// using the lare number of explicit parameters that the BX_REGISTER functions require.  The goal is
-// to make registering state in a given class extremely systematic and automatic which is all that
-// is necessary for a large number of classes. --BJS
+// NOTE:  The following macros are testing the possibility of using implicit
+// operands rather than using the lare number of explicit parameters that the
+// BX_REGISTER functions require.  The goal is to make registering state in a
+// given class extremely systematic and automatic which is all that is
+// necessary for a large number of classes. --BJS
 #define BX_IREG_START(_type, _this, _name, _desc, _def_size, _parent_p)       \
 {                                                                             \
   void *_ireg_this = _this;                                                   \
   void *_old_this;                                                            \
   Bit64u _ireg_def_size = _def_size;                                          \
-  bx_list_c *_ireg_cur_list_p = new bx_list_c (BX_REGISTER_NEXT_ID/*id*/, _name, _desc, _def_size);\
-  _parent_p->add((bx_param_c*)_ireg_cur_list_p);                              \
+  bx_list_c *_ireg_cur_list_p = new bx_list_c (_parent_p, _name, _desc, _def_size);\
   bx_list_c *_old_list_p;                                                     \
 
 #define BX_IREG_END                                                           \
@@ -1281,7 +1262,7 @@ typedef struct {
 {                                                                             \
   void* _old_this = _ireg_this;                                               \
   _old_list_p = _ireg_cur_list_p;                                             \
-  _ireg_cur_list_p = new bx_list_c (BX_REGISTER_NEXT_ID/*id*/, (*((IREG_TYPE *)_ireg_this)).##_var, _desc, _ireg_def_size);\
+  _ireg_cur_list_p = new bx_list_c (FIXME_FAKE_PARENT/*id*/, (*((IREG_TYPE *)_ireg_this)).##_var, _desc, _ireg_def_size);\
   _old_list_p->add((bx_param_c*)_ireg_cur_list_p);
 
 #define BX_IREG_LIST_END                                                      \
