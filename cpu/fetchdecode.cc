@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: fetchdecode.cc,v 1.61.10.1 2004/04/09 12:29:39 sshwarts Exp $
+// $Id: fetchdecode.cc,v 1.61.10.2 2004/04/09 15:53:34 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1887,15 +1887,16 @@ modrm_done:
               */
              OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[mod==0xc0]);
              break;
+#if BX_SUPPORT_FPU
          case BxFPGroup:
              if (mod != 0xc0)  // mod != 11b
                 OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[nnn]);
-             else
-             {
+             else {
                 int index = (b1-0xD8)*64 + (0x3f & b2);
                 OpcodeInfoPtr = &(BxOpcodeInfo_FloatingPoint[index]);
              }
              break;
+#endif
          default:
              BX_PANIC(("fetchdecode: Unknown opcode group"));
        }

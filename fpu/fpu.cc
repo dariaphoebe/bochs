@@ -301,19 +301,6 @@ int BX_CPU_C::fpu_load_environment(bxInstruction_c *i)
 }
 #endif
 
-/* 9B */
-void BX_CPU_C::FWAIT(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  if (BX_CPU_THIS_PTR cr0.ts && BX_CPU_THIS_PTR cr0.mp)
-    exception(BX_NM_EXCEPTION, 0, 0);
-
-  BX_CPU_THIS_PTR FPU_check_pending_exceptions();
-#else
-  BX_INFO(("FWAIT: requred FPU, use --enable-fpu"));
-#endif
-}
-
 /* D9 /5 */
 void BX_CPU_C::FLDCW(bxInstruction_c *i)
 {

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.161.4.1 2004/04/09 12:29:39 sshwarts Exp $
+// $Id: cpu.h,v 1.161.4.2 2004/04/09 15:53:34 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1872,6 +1872,9 @@ union {
   BX_SMF void FPU_ESC(bxInstruction_c *);
 #endif
 
+  BX_SMF void FWAIT(bxInstruction_c *);
+
+#if BX_SUPPORT_FPU
   // load/store
   BX_SMF void FLD_STi(bxInstruction_c *);  
   BX_SMF void FLD_SINGLE_REAL(bxInstruction_c *);
@@ -2014,8 +2017,7 @@ union {
   BX_SMF void FSCALE(bxInstruction_c *);
   BX_SMF void FSIN(bxInstruction_c *);
   BX_SMF void FCOS(bxInstruction_c *);
-
-  BX_SMF void FWAIT(bxInstruction_c *);
+#endif
 
   /* MMX */
   BX_SMF void PUNPCKLBW_PqQd(bxInstruction_c *i);

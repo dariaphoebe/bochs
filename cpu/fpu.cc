@@ -27,8 +27,20 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-/* relevant only when FPU support is disabled */
+/* 9B */
+void BX_CPU_C::FWAIT(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  if (BX_CPU_THIS_PTR cr0.ts && BX_CPU_THIS_PTR cr0.mp)
+    exception(BX_NM_EXCEPTION, 0, 0);
 
+  BX_CPU_THIS_PTR FPU_check_pending_exceptions();
+#else
+  BX_INFO(("FWAIT: requred FPU, use --enable-fpu"));
+#endif
+}
+
+/* relevant only when FPU support is disabled */
 #if BX_SUPPORT_FPU == 0
 void BX_CPU_C::FPU_ESC(bxInstruction_c *i)
 {
