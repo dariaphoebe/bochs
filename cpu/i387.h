@@ -150,8 +150,6 @@ struct i387_t
 
 extern "C" int FPU_tagof(FPU_REG *reg) BX_CPP_AttrRegparmN(1);
 
-#include "softfloat.h"
-
 struct i387_structure_t : public i387_t
 {
     i387_structure_t() {}

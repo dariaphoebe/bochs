@@ -40,7 +40,7 @@ void BX_CPU_C::FLDL2T(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FLDL2T: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -51,7 +51,7 @@ void BX_CPU_C::FLDL2E(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FLDL2E: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -62,7 +62,7 @@ void BX_CPU_C::FLDPI(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FLDPI: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -73,7 +73,7 @@ void BX_CPU_C::FLDLG2(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FLDLG2: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -84,7 +84,7 @@ void BX_CPU_C::FLDLN2(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FLDLN2: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -95,7 +95,7 @@ void BX_CPU_C::FLD1(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FLD1: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -106,7 +106,7 @@ void BX_CPU_C::FLDZ(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FLDZ: required FPU, configure --enable-fpu"));
 #endif
 }

@@ -33,7 +33,7 @@ void BX_CPU_C::FCOM_STi(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCOM_STi: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -44,7 +44,7 @@ void BX_CPU_C::FCOMP_STi(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCOMP_STi: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -55,7 +55,7 @@ void BX_CPU_C::FCOMI_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCOMI_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -66,7 +66,7 @@ void BX_CPU_C::FCOMIP_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCOMIP_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -77,7 +77,7 @@ void BX_CPU_C::FUCOMI_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FUCOMI_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -88,7 +88,7 @@ void BX_CPU_C::FUCOMIP_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FUCOMIP_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -99,7 +99,7 @@ void BX_CPU_C::FUCOM_STi(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FUCOM_STi: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -110,7 +110,7 @@ void BX_CPU_C::FUCOMP_STi(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FUCOMP_STi: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -121,7 +121,7 @@ void BX_CPU_C::FCOM_SINGLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCOM_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -132,7 +132,7 @@ void BX_CPU_C::FCOMP_SINGLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCOMP_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -143,7 +143,7 @@ void BX_CPU_C::FCOM_DOUBLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCOM_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -154,7 +154,7 @@ void BX_CPU_C::FCOMP_DOUBLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCOMP_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -165,7 +165,7 @@ void BX_CPU_C::FICOM_WORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FICOM_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -176,7 +176,7 @@ void BX_CPU_C::FICOMP_WORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FICOMP_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -187,7 +187,7 @@ void BX_CPU_C::FICOM_DWORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FICOM_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -198,7 +198,7 @@ void BX_CPU_C::FICOMP_DWORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FICOMP_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -209,7 +209,7 @@ void BX_CPU_C::FCOMPP(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCOMPP: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -220,7 +220,7 @@ void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FUCOMPP: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -231,7 +231,7 @@ void BX_CPU_C::FCMOVB_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCMOVB_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
@@ -243,7 +243,7 @@ void BX_CPU_C::FCMOVE_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCMOVE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
@@ -255,7 +255,7 @@ void BX_CPU_C::FCMOVBE_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCMOVBE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
@@ -267,7 +267,7 @@ void BX_CPU_C::FCMOVU_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCMOVU_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
@@ -279,7 +279,7 @@ void BX_CPU_C::FCMOVNB_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCMOVNB_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
@@ -291,7 +291,7 @@ void BX_CPU_C::FCMOVNE_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCMOVNE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
@@ -303,7 +303,7 @@ void BX_CPU_C::FCMOVNBE_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCMOVNBE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
@@ -315,7 +315,7 @@ void BX_CPU_C::FCMOVNU_ST0_STj(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FCMOVNU_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
@@ -327,7 +327,7 @@ void BX_CPU_C::FTST(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FTST: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -338,7 +338,7 @@ void BX_CPU_C::FXAM(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FXAM: required FPU, configure --enable-fpu"));
 #endif
 }

@@ -140,7 +140,7 @@ void BX_CPU_C::FNSAVE(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i, !CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FNSAVE: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -151,7 +151,7 @@ void BX_CPU_C::FRSTOR(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i, CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FRSTOR: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -199,7 +199,7 @@ updating the internal state.
 */
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FLDENV: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -210,7 +210,7 @@ void BX_CPU_C::FNSTENV(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i, !CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
 
   fpu_execute(i);
-#else
+//#else
   BX_INFO(("FNSTENV: required FPU, configure --enable-fpu"));
 #endif
 }

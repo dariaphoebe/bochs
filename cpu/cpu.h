@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.160.2.1 2004/02/21 14:40:39 sshwarts Exp $
+// $Id: cpu.h,v 1.160.2.2 2004/02/21 17:38:54 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1175,8 +1175,8 @@ typedef struct {
 class BX_MEM_C;
 
 #if BX_SUPPORT_FPU || BX_SUPPORT_MMX
-#include "cpu/i387.h"
 #include "cpu/softfloat.h"
+#include "cpu/i387.h"
 #endif
 
 #include "cpu/xmm.h"
@@ -2763,7 +2763,8 @@ union {
   // revalidate_prefetch_q is now a no-op, due to the newer EIP window
   // technique.
   BX_SMF BX_CPP_INLINE void revalidate_prefetch_q(void) { }
-  BX_SMF BX_CPP_INLINE void invalidate_prefetch_q(void) {
+  BX_SMF BX_CPP_INLINE void invalidate_prefetch_q(void) 
+    {
     BX_CPU_THIS_PTR eipPageWindowSize = 0;
     }
 
@@ -2775,12 +2776,18 @@ union {
   BX_SMF void write_virtual_qword(unsigned seg, bx_address offset, Bit64u *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void write_virtual_dqword(unsigned s, bx_address off, Bit8u *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void write_virtual_dqword_aligned(unsigned s, bx_address off, Bit8u *data) BX_CPP_AttrRegparmN(3);
+#if BX_SUPPORT_FPU
+  BX_SMF void write_virtual_tword(unsigned seg, bx_address offset, floatx80 *data) BX_CPP_AttrRegparmN(3);
+#endif
   BX_SMF void read_virtual_byte(unsigned seg, bx_address offset, Bit8u *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void read_virtual_word(unsigned seg, bx_address offset, Bit16u *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void read_virtual_dword(unsigned seg, bx_address offset, Bit32u *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void read_virtual_qword(unsigned seg, bx_address offset, Bit64u *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void read_virtual_dqword(unsigned s, bx_address off, Bit8u *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void read_virtual_dqword_aligned(unsigned s, bx_address off, Bit8u *data) BX_CPP_AttrRegparmN(3);
+#if BX_SUPPORT_FPU
+  BX_SMF void read_virtual_tword(unsigned seg, bx_address offset, floatx80 *data) BX_CPP_AttrRegparmN(3);
+#endif
 
 #define readVirtualDQword(s, off, data) read_virtual_dqword(s, off, data)
 #define readVirtualDQwordAligned(s, off, data) read_virtual_dqword_aligned(s, off, data)
