@@ -19,6 +19,7 @@
 %token <sval> BX_TOKEN_STEPN
 %token <sval> BX_TOKEN_NEXT_STEP
 %token <sval> BX_TOKEN_SET
+%token <sval> BX_TOKEN_DEBUGGER
 %token <sval> BX_TOKEN_VBREAKPOINT
 %token <sval> BX_TOKEN_LBREAKPOINT
 %token <sval> BX_TOKEN_PBREAKPOINT
@@ -27,7 +28,13 @@
 %token <sval> BX_TOKEN_QUIT
 %token <sval> BX_TOKEN_PROGRAM
 %token <sval> BX_TOKEN_REGISTERS
+%token <sval> BX_TOKEN_IDT
+%token <sval> BX_TOKEN_GDT
+%token <sval> BX_TOKEN_LDT
+%token <sval> BX_TOKEN_TSS
 %token <sval> BX_TOKEN_DIRTY
+%token <sval> BX_TOKEN_LINUX
+%token <sval> BX_TOKEN_CONTROL_REGS
 %token <sval> BX_TOKEN_EXAMINE
 %token <sval> BX_TOKEN_XFORMAT
 %token <sval> BX_TOKEN_SETPMEM
@@ -133,6 +140,7 @@ command:
     | print_string_command
     | cosim_commands
     | v2l_command
+    | 
     | '\n'
       {
       }
@@ -462,6 +470,36 @@ info_command:
         {
         bx_dbg_info_dirty_command();
         free($1); free($2);
+	}
+    | BX_TOKEN_INFO BX_TOKEN_IDT '\n'
+        {
+        bx_dbg_info_idt_command();
+        free($1); free($2);
+        }
+    | BX_TOKEN_INFO BX_TOKEN_GDT '\n'
+        {
+        bx_dbg_info_gdt_command();
+        free($1); free($2);
+        }
+    | BX_TOKEN_INFO BX_TOKEN_LDT '\n'
+        {
+        bx_dbg_info_ldt_command();
+        free($1); free($2);
+        }
+    | BX_TOKEN_INFO BX_TOKEN_TSS '\n'
+        {
+        bx_dbg_info_tss_command();
+        free($1); free($2);
+        }
+    | BX_TOKEN_INFO BX_TOKEN_LINUX '\n'
+        {
+        bx_dbg_info_linux_command();
+        free($1); free($2);
+        }
+    | BX_TOKEN_INFO BX_TOKEN_CONTROL_REGS '\n'
+        {
+        bx_dbg_info_control_regs_command();
+        free($1); free($2);
         }
     ;
 
@@ -581,6 +619,11 @@ disassemble_command:
       BX_TOKEN_DISASSEMBLE BX_TOKEN_NUMERIC BX_TOKEN_NUMERIC '\n'
         {
         bx_dbg_disassemble_command($2, $3);
+        free($1);
+        }
+    | BX_TOKEN_DISASSEMBLE BX_TOKEN_NUMERIC '\n'
+        {
+        bx_dbg_disassemble_command($2, $2);
         free($1);
         }
     ;
