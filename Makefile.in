@@ -44,6 +44,8 @@ SRPMS=/usr/src/redhat/SRPMS
 MKDIR=mkdir
 TAR=tar
 RPM=rpm
+CHMOD=chmod
+CHOWN=chown
 
 @SUFFIX_LINE@
 
@@ -235,6 +237,10 @@ install_dlx::
 	${GUNZIP} -c ${DLXLINUX_TAR} | (cd ${PREFIX}; tar -xvf -)
 	test -d ${PREFIX}/dlxlinux
 	(cd ${PREFIX}/dlxlinux; ${MV} .bochsrc .bochsrc.orig; ${SED} -e "s/BIOS-bochs-990925a/${DLXLINUX_ROMFILE}/" -e "s/1\.1\.2/${VERSION}/g"< .bochsrc.orig > bochsrc; rm -f .bochsrc.orig)
+	${CHOWN} -R root.root ${PREFIX}/dlxlinux
+	${CHMOD} 777 ${PREFIX}/dlxlinux
+	${CHMOD} 666 ${PREFIX}/dlxlinux/*
+	${CHMOD} 644 ${PREFIX}/dlxlinux/README
 
 erase_install::
 	${RM} -rf ${PREFIX}/${VERSION}
