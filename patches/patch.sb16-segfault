@@ -1,0 +1,41 @@
+----------------------------------------------------------------------
+Patch name: patch.sb16-segfault
+Author: Bryce
+Date: Thu May 17 17:22:15 EDT 2001
+
+Detailed description:
+This has already been applied in the main branch.
+Apply in next bugfix release!
+
+----------------------------------------------------------------------
+Index: sb16.cc
+===================================================================
+RCS file: /cvsroot/bochs/bochs/iodev/sb16.cc,v
+retrieving revision 1.4
+retrieving revision 1.5
+diff -u -r1.4 -r1.5
+--- sb16.cc	2001/05/15 15:21:19	1.4
++++ sb16.cc	2001/05/17 20:58:31	1.5
+@@ -41,6 +41,9 @@
+ 
+ #define BX_SB16_OUTPUT  BX_SB16_THIS output
+ 
++// here's a safe way to print out null pointeres
++#define MIGHT_BE_NULL(x)  ((x==NULL)? "(null)" : x)
++
+ bx_sb16_c bx_sb16;
+ #if BX_USE_SB16_SMF
+ #define this ((void *)&bx_sb16)
+@@ -159,9 +162,9 @@
+     }
+ 
+   BX_INFO(("midi=%d,%s  wave=%d,%s  log=%d,%s  dmatimer=%d\n",
+-	    bx_options.sb16.midimode, bx_options.sb16.midifile,
+-	    bx_options.sb16.wavemode, bx_options.sb16.wavefile,
+-	    bx_options.sb16.loglevel, bx_options.sb16.logfile,
++	    bx_options.sb16.midimode, MIGHT_BE_NULL(bx_options.sb16.midifile),
++	    bx_options.sb16.wavemode, MIGHT_BE_NULL(bx_options.sb16.wavefile),
++	    bx_options.sb16.loglevel, MIGHT_BE_NULL(bx_options.sb16.logfile),
+ 	    bx_options.sb16.dmatimer));
+ 
+   // allocate the FIFO buffers - except for the MPUMIDICMD buffer
