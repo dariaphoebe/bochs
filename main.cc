@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.11 2003/03/30 07:53:52 bdenney Exp $
+// $Id: main.cc,v 1.223.4.12 2003/03/30 08:03:22 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -52,30 +52,6 @@
 #ifndef BX_SHARE_PATH
 #define BX_SHARE_PATH NULL
 #endif
-
-#define BXPN_VGA_UPDATE_INTERVAL         "time.vga_update_interval"
-#define BXPN_MOUSE_ENABLED               "keyboard.enable_mouse"
-#define BXPN_KBD_PASTE_DELAY             "keyboard.paste_delay"
-#define BXPN_SCREENMODE                  "display.screen_mode"
-#define BXPN_FLOPPYA                     "floppy.0"
-#define BXPN_FLOPPYB                     "floppy.1"
-#define BXPN_ATA0                        "ata.0"
-#define BXPN_ATA0_MASTER                 "ata.0.master"
-#define BXPN_ATA0_SLAVE                  "ata.0.master"
-#define BXPN_ATA1                        "ata.1"
-#define BXPN_ATA1_MASTER                 "ata.1.master"
-#define BXPN_ATA1_SLAVE                  "ata.1.master"
-#define BXPN_ATA2                        "ata.2"
-#define BXPN_ATA2_MASTER                 "ata.2.master"
-#define BXPN_ATA2_SLAVE                  "ata.2.master"
-#define BXPN_ATA3                        "ata.3"
-#define BXPN_ATA3_MASTER                 "ata.3.master"
-#define BXPN_ATA3_SLAVE                  "ata.3.master"
-#define BXPN_NEWHARDDRIVESUPPORT         "ata.new_drive_support"
-#define BXPN_BOOTDRIVE                   "boot_param.boot_drive"
-#define BXPN_FLOPPYSIGCHECK              "boot_param.floppy_sig_check"
-#define BXPN_MEM_SIZE "memory.ram.megs"
-#define BXPN_RAM "memory.ram"
 
 int bochsrc_include_count = 0;
 

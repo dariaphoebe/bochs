@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: gui.cc,v 1.65.4.1 2003/03/30 05:42:19 bdenney Exp $
+// $Id: gui.cc,v 1.65.4.2 2003/03/30 08:03:27 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -41,10 +41,6 @@
 #if BX_WITH_MACOS
 #  include <Disks.h>
 #endif
-
-#define BXPN_FLOPPYA_PATH                     "floppy.0.path"
-#define BXPN_FLOPPYB_PATH                     "floppy.1.path"
-#define BXPN_USER_SHORTCUT                    "keyboard.user_shortcut"
 
 bx_gui_c *bx_gui = NULL;
 

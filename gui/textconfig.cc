@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: textconfig.cc,v 1.8.6.5 2003/03/30 07:53:53 bdenney Exp $
+// $Id: textconfig.cc,v 1.8.6.6 2003/03/30 08:03:29 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // This is code for a text-mode configuration interfac.  Note that this file
@@ -25,29 +25,6 @@ extern "C" {
 #include "param.h"
 #include "siminterface.h"
 #include "extplugin.h"
-
-#define BXPN_ATA0_MASTER                 "ata.0.master"
-#define BXPN_ATA0_MASTER_BIOSDETECT      "ata.0.master.biosdetect"
-#define BXPN_ATA0_MASTER_MODEL           "ata.0.master.model"
-#define BXPN_ATA0_MASTER_TYPE            "ata.0.master.type"
-#define BXPN_DEBUGGER_LOG_FILENAME       "debugger.log_path"
-#define BXPN_FLOPPYA                     "floppy.0"
-#define BXPN_FLOPPYB                     "floppy.1"
-#define BXPN_IPS                         "time.ips"
-#define BXPN_KBD_PASTE_DELAY             "keyboard.paste_delay"
-#define BXPN_LOG_FILENAME                "log.path"
-#define BXPN_LOG_PREFIX                  "log.prefix"
-#define BXPN_MENU_DISK                   "menu.disk"
-#define BXPN_MENU_INTERFACE              "menu.interface"
-#define BXPN_MENU_MEMORY                 "menu.memory"
-#define BXPN_MENU_MISC                   "menu.misc"
-#define BXPN_MENU_SERIAL_PARALLEL        "menu.serial_parallel"
-#define BXPN_MOUSE_ENABLED               "keyboard.enable_mouse"
-#define BXPN_NE2K                        "ne2k"
-#define BXPN_SB16                        "sb16"
-#define BXPN_USER_SHORTCUT               "keyboard.user_shortcut"
-#define BXPN_VGA_UPDATE_INTERVAL         "time.vga_update_interval"
-
 
 #define CI_PATH_LENGTH 512
 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dbg_main.cc,v 1.98.6.1 2003/03/30 05:42:18 bdenney Exp $
+// $Id: dbg_main.cc,v 1.98.6.2 2003/03/30 08:03:25 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -23,8 +23,6 @@
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-
-#define BXPN_DEBUG           "debug"
 
 extern "C" {
 #include <signal.h>

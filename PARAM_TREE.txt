@@ -1,4 +1,4 @@
-$Id: PARAM_TREE.txt,v 1.1.2.9 2003/03/30 07:52:46 bdenney Exp $
+$Id: PARAM_TREE.txt,v 1.1.2.10 2003/03/30 08:03:20 bdenney Exp $
 
 I'm trying to organize the parameters into a tree structure instead of
 a huge flat list.  Once the parameter code is improved, I hope to use
@@ -56,13 +56,6 @@ Notes:
     change the value back by calling set() again, which will invoke the
     handler again.  Significant danger of infinite loops if handler is
     broken.
-- (Bryce) BXP_* are enumerated id numbers.  These no longer work and will be
-  eliminated soon.
-- (Bryce) BXPN_* are parameter names like "memory.rom.address" in the form of
-  string constants.  Bryce has been temporarily defining BXPN_* at
-  the top of .cc files, just to save 5 minutes of recompiling every time
-  a new #define is needed.  Obvious they should go in siminterface.h 
-  instead.
 - when adding a child to a parent, verify that there isn't already a 
   child with the same name. Duplicate named children should not be permitted.
 - bx_param_c::clone should not automatically add the clone to the parent.
@@ -102,8 +95,6 @@ Notes:
   siminterface.h comments.  It should be easy to just implement
   text_ask and text_print as overloaded functions in textconfig.cc instead of
   methods of param.cc.
-- (MAYBE) separate parameter code from siminterface so that it can be
-  used and tested separately from Bochs.
 - (LOW PRIORITY) we need to be able to handle arrays of objects, but I think
   it can be done with just another list with names 0, 1, 2, 3, etc.
     floppy
@@ -130,6 +121,13 @@ Notes:
 - (MAYBE LATER) also I don't know if any form of relative pathname would be
   useful/needed.  If so, probably using slash notation and ".."'s would look
   the most familiar to people.
+- (DONE) separate parameter code from siminterface so that it can be
+  used and tested separately from Bochs.
+- (DONE, Bryce) BXP_* are enumerated id numbers.  These no longer work and
+  will be eliminated soon.
+- (DONE, Bryce) BXPN_* are parameter names like "memory.rom.address" in the
+  form of string constants.  These strings can be passed directly to
+  SIM->get_param().
 - (DONE, Brian) write function to dump all parameters into an ASCII file
     # any lines starting with # are comments
     memory {

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.14 2003/03/30 07:53:53 bdenney Exp $
+// $Id: siminterface.h,v 1.99.4.15 2003/03/30 08:03:28 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -74,12 +74,59 @@
 // the difference.
 //
 // An important part of the siminterface implementation is the use of parameter
-// classes, or bx_param_*.  The parameter classes are described below, where
-// they are declared.  Search for "parameter classes" below for detals.
+// classes, or bx_param_*.  The parameter classes are defined in param.h
+// and implemented in param.cc.
 //
-// Also this header file declares data structures for certain events that pass
+// This header file also declares data structures for certain events that pass
 // between the siminterface and the CI.  Search for "event structures" below.
 
+
+// define parameter path names.  These names give the location in the
+// parameter tree where each can be found.  The names correspond to
+// the old BXP_* enum values, which have been eliminated.
+#define BXPN_ATA0                        "ata.0"
+#define BXPN_ATA0_MASTER                 "ata.0.master"
+#define BXPN_ATA0_MASTER_BIOSDETECT      "ata.0.master.biosdetect"
+#define BXPN_ATA0_MASTER_MODEL           "ata.0.master.model"
+#define BXPN_ATA0_MASTER_TYPE            "ata.0.master.type"
+#define BXPN_ATA0_SLAVE                  "ata.0.master"
+#define BXPN_ATA1                        "ata.1"
+#define BXPN_ATA1_MASTER                 "ata.1.master"
+#define BXPN_ATA1_SLAVE                  "ata.1.master"
+#define BXPN_ATA2                        "ata.2"
+#define BXPN_ATA2_MASTER                 "ata.2.master"
+#define BXPN_ATA2_SLAVE                  "ata.2.master"
+#define BXPN_ATA3                        "ata.3"
+#define BXPN_ATA3_MASTER                 "ata.3.master"
+#define BXPN_ATA3_SLAVE                  "ata.3.master"
+#define BXPN_BOOTDRIVE                   "boot_param.boot_drive"
+#define BXPN_DEBUG                       "debug"
+#define BXPN_DEBUGGER_LOG_FILENAME       "debugger.log_path"
+#define BXPN_FLOPPYA                     "floppy.0"
+#define BXPN_FLOPPYA_PATH                "floppy.0.path"
+#define BXPN_FLOPPYB                     "floppy.1"
+#define BXPN_FLOPPYB_PATH                "floppy.1.path"
+#define BXPN_FLOPPYSIGCHECK              "boot_param.floppy_sig_check"
+#define BXPN_IPS                         "time.ips"
+#define BXPN_KBD_PASTE_DELAY             "keyboard.paste_delay"
+#define BXPN_LOG_FILENAME                "log.path"
+#define BXPN_LOG_PREFIX                  "log.prefix"
+#define BXPN_MEM_SIZE                    "memory.ram.megs"
+#define BXPN_MENU_DISK                   "menu.disk"
+#define BXPN_MENU_INTERFACE              "menu.interface"
+#define BXPN_MENU_MEMORY                 "menu.memory"
+#define BXPN_MENU_MISC                   "menu.misc"
+#define BXPN_MENU_SERIAL_PARALLEL        "menu.serial_parallel"
+#define BXPN_MOUSE_ENABLED               "keyboard.enable_mouse"
+#define BXPN_MOUSE_ENABLED               "keyboard.enable_mouse"
+#define BXPN_NE2K                        "ne2k"
+#define BXPN_NEWHARDDRIVESUPPORT         "ata.new_drive_support"
+#define BXPN_RAM                         "memory.ram"
+#define BXPN_SB16                        "sb16"
+#define BXPN_SCREENMODE                  "display.screen_mode"
+#define BXPN_USER_SHORTCUT               "keyboard.user_shortcut"
+#define BXPN_VGA_UPDATE_INTERVAL         "time.vga_update_interval"
+#define BXPN_VGA_UPDATE_INTERVAL         "time.vga_update_interval"
 
 
 //////////////////////////////////////////////////////
