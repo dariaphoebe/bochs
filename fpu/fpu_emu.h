@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.20.2.1 2004/02/10 00:21:49 danielg4 Exp $
+ |  $Id: fpu_emu.h,v 1.20.2.2 2004/02/20 00:50:42 danielg4 Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -101,11 +101,11 @@ typedef void (*FUNC)(void);
 typedef void (*FUNC_ST0)(FPU_REG *st0_ptr, u_char st0_tag);
 
 typedef struct { u_char address_size, operand_size, segment; }
-        GCC_ATTRIBUTE((packed)) overrides;
+        overrides GCC_ATTRIBUTE((packed));
 /* This structure is 32 bits: */
 typedef struct { overrides override;
 		 u_char default_mode; } 
-    GCC_ATTRIBUTE((packed)) fpu_addr_modes;
+    fpu_addr_modes GCC_ATTRIBUTE((packed));
 #if defined(__MWERKS__) && defined(macintosh)
 #pragma options align=reset
 #endif
