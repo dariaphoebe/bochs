@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: fetchdecode.cc,v 1.49.2.1 2003/04/29 10:48:39 sshwarts Exp $
+// $Id: fetchdecode.cc,v 1.49.2.2 2003/04/30 18:06:32 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -761,7 +761,7 @@ static BxOpcodeInfo_t BxOpcodeInfo[512*2] = {
   /* 0F 0C */  { 0, &BX_CPU_C::BxError },
 #if BX_SUPPORT_3DNOW
   /* 0F 0D */  { 0, &BX_CPU_C::NOP   },           // 3DNow! PREFETCH
-  /* 0F 0E */  { 0, &BX_CPU_C::FEMMS },           // 3DNow! FEMMS
+  /* 0F 0E */  { 0, &BX_CPU_C::EMMS },            // 3DNow! FEMMS
   /* 0F 0F */  { BxAnother | BxImmediate_Ib, NULL, Bx3DNowOpcodeInfo },
 #else
   /* 0F 0D */  { 0, &BX_CPU_C::BxError },
@@ -1295,7 +1295,7 @@ static BxOpcodeInfo_t BxOpcodeInfo[512*2] = {
   /* 0F 0C */  { 0, &BX_CPU_C::BxError },
 #if BX_SUPPORT_3DNOW
   /* 0F 0D */  { 0, &BX_CPU_C::NOP   },           // 3DNow! PREFETCH
-  /* 0F 0E */  { 0, &BX_CPU_C::FEMMS },           // 3DNow! FEMMS
+  /* 0F 0E */  { 0, &BX_CPU_C::EMMS },            // 3DNow! FEMMS
   /* 0F 0F */  { BxAnother | BxImmediate_Ib, NULL, Bx3DNowOpcodeInfo },
 #else
   /* 0F 0D */  { 0, &BX_CPU_C::BxError },

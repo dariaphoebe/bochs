@@ -228,7 +228,7 @@ static BxOpcodeInfo_t Bx3DNowOpcodeInfo[256] = {
   /* BC */  { 0, &BX_CPU_C::BxError },
   /* BD */  { 0, &BX_CPU_C::BxError },
   /* BE */  { 0, &BX_CPU_C::BxError },
-  /* BF */  { 0, &BX_CPU_C::PAVGUSB_PqQq },
+  /* BF */  { 0, &BX_CPU_C::PAVGB_PqQq },
   /* C0 */  { 0, &BX_CPU_C::BxError },
   /* C1 */  { 0, &BX_CPU_C::BxError },
   /* C2 */  { 0, &BX_CPU_C::BxError },

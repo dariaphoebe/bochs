@@ -24,11 +24,6 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-void BX_CPU_C::FEMMS(bxInstruction_c *i)
-{
-  BX_PANIC(("FEMMS: 3DNow! instruction still not implemented"));
-}
-
 void BX_CPU_C::PFPNACC_PqQq(bxInstruction_c *i)
 {
   BX_PANIC(("PFPNACC_PqQq: 3DNow! instruction still not implemented"));
@@ -134,19 +129,57 @@ void BX_CPU_C::PFRCPIT2_PqQq(bxInstruction_c *i)
   BX_PANIC(("PFRCPIT2_PqQq: 3DNow! instruction still not implemented"));
 }
 
+/* 0F 0F /r B7 */
 void BX_CPU_C::PMULHRW_PqQq(bxInstruction_c *i)
 {
-  BX_PANIC(("PMULHRW_PqQq: 3DNow! instruction still not implemented"));
+  BX_CPU_THIS_PTR prepareMMX();
+
+  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_MMX_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+  }
+
+  Bit32s product1 = Bit32s(MMXSW0(op1)) * Bit32s(MMXSW0(op2)) + 0x8000;
+  Bit32s product2 = Bit32s(MMXSW1(op1)) * Bit32s(MMXSW1(op2)) + 0x8000;
+  Bit32s product3 = Bit32s(MMXSW2(op1)) * Bit32s(MMXSW2(op2)) + 0x8000;
+  Bit32s product4 = Bit32s(MMXSW3(op1)) * Bit32s(MMXSW3(op2)) + 0x8000;
+
+  MMXUW0(result) = Bit16u(product1 >> 16);
+  MMXUW1(result) = Bit16u(product2 >> 16);
+  MMXUW2(result) = Bit16u(product3 >> 16);
+  MMXUW3(result) = Bit16u(product4 >> 16);
+
+  /* now write result back to destination */
+  BX_WRITE_MMX_REG(i->nnn(), result);
 }
 
+/* 0F 0F /r BB */
 void BX_CPU_C::PSWAPD_PqQq(bxInstruction_c *i)
 {
-  BX_PANIC(("PSWAPD_PqQq: 3DNow! instruction still not implemented"));
-}
+  BX_CPU_THIS_PTR prepareMMX();
 
-void BX_CPU_C::PAVGUSB_PqQq(bxInstruction_c *i)
-{
-  BX_PANIC(("PAVGUSB_PqQq: 3DNow! instruction still not implemented"));
+  BxPackedMmxRegister result, op;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_MMX_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op);
+  }
+
+  MMXUD0(result) = MMXUD1(op);
+  MMXUD1(result) = MMXUD0(op);
+
+  /* now write result back to destination */
+  BX_WRITE_MMX_REG(i->nnn(), result);
 }
 
 #endif
