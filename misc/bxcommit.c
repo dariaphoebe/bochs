@@ -1,11 +1,15 @@
 /*
  * misc/bximage.c
- * $Id: bxcommit.c,v 1.1.2.1 2003/04/10 17:52:48 cbothamy Exp $
+ * $Id: bxcommit.c,v 1.1.2.2 2003/04/11 00:31:20 cbothamy Exp $
  *
  * Commits a redolog file in a flat file for bochs images.
  *
  */
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +30,7 @@
 #include "../iodev/harddrv.h"
 
 char *EOF_ERR = "ERROR: End of input";
-char *rcsid = "$Id: bxcommit.c,v 1.1.2.1 2003/04/10 17:52:48 cbothamy Exp $";
+char *rcsid = "$Id: bxcommit.c,v 1.1.2.2 2003/04/11 00:31:20 cbothamy Exp $";
 char *divider = "========================================================================";
 
 void myexit (int code)
@@ -193,41 +197,40 @@ ask_string (char *prompt, char *the_default, char *out)
   return 0;
 }
 
-/* Create a suited redolog header */
-int read_redolog_header(FILE* redologfile, redolog_header_t *header)
-{
-        if (fread(header, STANDARD_HEADER_SIZE, 1, redologfile) != 1)
-                return 1;
-
-        return 0;
-}
-
 /* produce the image file */
 int commit_redolog (char *flatname, char *redologname )
 {
-  FILE *flatfile, *redologfile;
+  int flatfd, redologfd;
   redolog_header_t header;
-  Bit32u *catalog;
+  Bit32u *catalog, catalog_size;
   Bit8u  *bitmap;
   Bit32u i, bitmap_blocs, extent_blocs;
   Bit8u  buffer[512];
  
   // check if flat file exists
-  flatfile = fopen (flatname, "r+");
-  if (!flatfile) {
+  flatfd = open (flatname, O_WRONLY
+#ifdef O_BINARY
+                         | O_BINARY
+#endif
+                  );
+  if (flatfd<0) {
     fatal ("ERROR: flat file not found or not writable");
   }
 
   // Check if redolog exists
   printf("%s\n",redologname);
-  redologfile = fopen (redologname, "r");
-  if (!redologfile) {
+  redologfd = open (redologname, O_RDONLY
+#ifdef O_BINARY
+                         | O_BINARY
+#endif
+                  );
+  if (redologfd<0) {
     fatal ("ERROR: redolog file not found");
   }
 
   printf ("\nReading redolog header: [");
 
-  if (fread(&header, STANDARD_HEADER_SIZE, 1, redologfile) != 1)
+  if (read(redologfd, &header, STANDARD_HEADER_SIZE) != STANDARD_HEADER_SIZE)
      fatal ("\nERROR: while reading redolog header!");
 
   // Print infos on redlog
@@ -259,10 +262,10 @@ int commit_redolog (char *flatname, char *redologname )
   bitmap = (Bit8u*)malloc(dtoh32(header.specific.bitmap));
   printf ("\nReading Catalog: [");
 
-  if (fseek(redologfile, dtoh32(header.standard.header), SEEK_SET) != 0)
-     fatal ("\nERROR: while seeking to redolog catalog!");
+  lseek(redologfd, dtoh32(header.standard.header), SEEK_SET);
 
-  if (fread(catalog, dtoh32(header.specific.catalog) * sizeof(Bit32u), 1, redologfile) != 1)
+  catalog_size = dtoh32(header.specific.catalog) * sizeof(Bit32u);
+  if (read(redologfd, catalog, catalog_size)!= catalog_size)
      fatal ("\nERROR: while reading redolog catalog!");
 
   printf ("] Done.");
@@ -280,54 +283,53 @@ int commit_redolog (char *flatname, char *redologname )
           if (dtoh32(catalog[i]) != REDOLOG_PAGE_NOT_ALLOCATED) 
           {
                   off_t bitmap_offset;
-                  Bit32u bloc;
+                  Bit32u bitmap_size, j;
 
                   bitmap_offset  = (off_t)STANDARD_HEADER_SIZE + (dtoh32(header.specific.catalog) * sizeof(Bit32u));
                   bitmap_offset += (off_t)512 * dtoh32(catalog[i]) * (extent_blocs + bitmap_blocs);
 
                   // Read bitmap
-                  if (fseek(redologfile, bitmap_offset, SEEK_SET) != 0)
-                          fatal ("\nERROR: while seeking in redolog !");
+                  lseek(redologfd, bitmap_offset, SEEK_SET);
 
-                  if (fread(bitmap, dtoh32(header.specific.bitmap), 1, redologfile) != 1)
+                  bitmap_size = dtoh32(header.specific.bitmap);
+                  if (read(redologfd, bitmap, bitmap_size) != bitmap_size)
                           fatal ("\nERROR: while reading bitmap from redolog !");
 
-                  for(bloc=0; bloc<dtoh32(header.specific.bitmap); bloc++)
+                  for(j=0; j<dtoh32(header.specific.bitmap); j++)
                   {
                           Bit32u bit;
 
                           for(bit=0; bit<8; bit++)
                           {
-                                  if ( (bitmap[bloc] & (1<<bit)) != 0)
+                                  if ( (bitmap[j] & (1<<bit)) != 0)
                                   {
                                           off_t flat_offset, bloc_offset;
 
-                                          bloc_offset  = bitmap_offset + ((off_t)512 * (bitmap_blocs + ((bloc*8)+i)));
+                                          bloc_offset  = bitmap_offset + ((off_t)512 * (bitmap_blocs + ((j*8)+bit)));
                                           
-                                          if (fseek(redologfile, bloc_offset, SEEK_SET) != 0)
-                                                fatal ("\nERROR: while seeking in redolog extents !");
+                                          lseek(redologfd, bloc_offset, SEEK_SET);
                                           
-                                          if (fread(buffer, 512, 1, redologfile) != 1)
+                                          if (read(redologfd, buffer, 512) != 512)
                                                 fatal ("\nERROR: while reading bloc from redolog !");
 
-                                          flat_offset  = (off_t)512 * i * (dtoh32(header.specific.extent));
-                                          flat_offset += ((off_t)512 * ( (bloc * 8) + bit));
+                                          flat_offset  = (off_t)i * (dtoh32(header.specific.extent));
+                                          flat_offset += (off_t)512 * ((j * 8) + bit);
                                           
-                                          if (fseek(flatfile, flat_offset, SEEK_SET) != 0)
-                                                fatal ("\nERROR: while seeking in flatfile !");
+                                          lseek(flatfd, flat_offset, SEEK_SET);
 
-                                          // if (fwrite(buffer, 512, 1, flatfile) != 1)
-                                          //       fatal ("\nERROR: while writing bloc in flatfile !");
+                                          if (write(flatfd, buffer, 512) != 512)
+                                                fatal ("\nERROR: while writing bloc in flatfile !");
 
                                   }
                           }
                   }
           }
   }
-  printf ("] Done.");
+  printf (" Done.");
+  printf ("\n");
 
-  fclose (flatfile);
-  fclose (redologfile);
+  close (flatfd);
+  close (redologfd);
   return 0;
 }
 
@@ -336,7 +338,7 @@ int main()
   char filename[256];
   char tmplogname[256];
   char redologname[256];
-  int  confirm;
+  int  remove;
 
   int (*commit_function)(FILE*, Bit64u)=NULL;
  
@@ -352,13 +354,14 @@ int main()
   if (ask_string ("\nWhat is the redolog name?\n", tmplogname, redologname) < 0)
     fatal (EOF_ERR);
 
-  if (ask_yn ("\nShall I remove the redolog afterwards?\n", 1, &confirm) < 0)
+  if (ask_yn ("\nShall I remove the redolog afterwards?\n", 1, &remove) < 0)
     fatal (EOF_ERR);
 
   commit_redolog(filename, redologname);
 
-  if (confirm) {
-    //unlink(redologname);
+  if (remove) {
+    if (unlink(redologname) != 0)
+       fatal ("ERROR: while removing the redolog !\n");
   }
 
   // make picky compilers (c++, gcc) happy,

@@ -1,6 +1,6 @@
 /*
  * misc/bximage.c
- * $Id: bximage.c,v 1.17.8.2 2003/04/10 17:51:39 cbothamy Exp $
+ * $Id: bximage.c,v 1.17.8.3 2003/04/11 00:31:20 cbothamy Exp $
  *
  * Create empty hard disk or floppy disk images for bochs.
  *
@@ -26,7 +26,7 @@
 #include "../iodev/harddrv.h"
 
 char *EOF_ERR = "ERROR: End of input";
-char *rcsid = "$Id: bximage.c,v 1.17.8.2 2003/04/10 17:51:39 cbothamy Exp $";
+char *rcsid = "$Id: bximage.c,v 1.17.8.3 2003/04/11 00:31:20 cbothamy Exp $";
 char *divider = "========================================================================";
 
 /* menu data for choosing floppy/hard disk */
@@ -345,7 +345,7 @@ int make_growable_image(FILE *fp, Bit64u sec)
         Bit32u i, not_allocated = htod32(REDOLOG_PAGE_NOT_ALLOCATED);
 
         memset(&header, 0, sizeof(header));
-        make_redolog_header(&header, REDOLOG_TYPE_GROWABLE, sec * 512);
+        make_redolog_header(&header, REDOLOG_SUBTYPE_GROWABLE, sec * 512);
 
         if (fwrite(&header, sizeof(header), 1, fp) != 1)
         {
