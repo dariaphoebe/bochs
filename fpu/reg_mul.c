@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_mul.c                                                                |
- |  $Id: reg_mul.c,v 1.4.10.1 2004/04/09 12:29:50 sshwarts Exp $
+ |  $Id: reg_mul.c,v 1.4.10.2 2004/05/23 18:46:19 sshwarts Exp $
  |                                                                           |
  | Multiply one FPU_REG by another, put the result in a destination FPU_REG. |
  |                                                                           |
@@ -118,13 +118,4 @@ int FPU_mul(FPU_REG const *b, u_char tagb, int deststnr, int control_w)
       setsign(dest, sign);
       return TAG_Special;
     }
-
-#ifdef PARANOID
-  else
-    {
-      INTERNAL(0x102);
-      return FPU_Exception;
-    }
-#endif /* PARANOID */
-
 }
