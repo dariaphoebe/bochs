@@ -1,4 +1,41 @@
+//  Copyright (C) 2001  MandrakeSoft S.A.
+//
+//    MandrakeSoft S.A.
+//    43, rue d'Aboukir
+//    75002 Paris - France
+//    http://www.linux-mandrake.com/
+//    http://www.mandrakesoft.com/
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+
+//
+// osdep.cc
+// 
+// Provide definition of library functions that are missing on various
+// systems.  The only reason this is a .cc file rather than a .c file
+// is so that it can include bochs.h.  Bochs.h includes all the required
+// system headers, with appropriate #ifdefs for different compilers and 
+// platforms.
+//
+
 #include "bochs.h"
+
+//////////////////////////////////////////////////////////////////////
+// Missing library functions.  These should work on any platform 
+// that needs them.
+//////////////////////////////////////////////////////////////////////
 
 #if !BX_HAVE_SNPRINTF
 /* XXX use real snprintf */
@@ -20,14 +57,14 @@ int bx_snprintf (char *s, size_t maxlen, const char *format, ...)
 #if (!BX_HAVE_STRTOULL && !BX_HAVE_STRTOUQ)
 /* taken from glibc-2.2.2: strtod.c, and stripped down a lot.  There are 
    still a few leftover references to decimal points and exponents, 
-   but it seems to work for bases 10 and 16 */
+   but it works for bases 10 and 16 */
 
 #define RETURN(val,end)							      \
     do { if (endptr != NULL) *endptr = (char *) (end);		      \
 	 return val; } while (0)
 
-unsigned long long bx_strtoull
-(const char *nptr, char **endptr, int baseignore)
+Bit64u
+bx_strtoull (const char *nptr, char **endptr, int baseignore)
 {
   int negative;			/* The sign of the number.  */
   int exponent;			/* Exponent of the number.  */
@@ -139,9 +176,10 @@ unsigned long long bx_strtoull
   }
   return negative? -n : n;
 }
+#endif  /* !BX_HAVE_STRTOULL */
 
-#if BX_TEST_STRTOULL
-/* test driver for strtoull */
+#if BX_TEST_STRTOULL_MAIN
+/* test driver for strtoull.  Do not compile by default. */
 int main (int argc, char **argv)
 {
   char buf[256], *endbuf;
@@ -159,9 +197,7 @@ int main (int argc, char **argv)
   }
   return 0;
 }
-#endif  /* BX_TEST_STRTOULL */
-
-#endif  /* !BX_HAVE_STRTOULL */
+#endif  /* BX_TEST_STRTOULL_MAIN */
 
 #if !BX_HAVE_STRDUP
 /* XXX use real strdup */
