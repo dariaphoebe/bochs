@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_constant.c                                                           |
- |  $Id: reg_constant.c,v 1.7 2004/03/05 09:19:58 sshwarts Exp $
+ |  $Id: reg_constant.c,v 1.7.2.1 2004/03/12 20:08:49 sshwarts Exp $
  |                                                                           |
  | All of the constant FPU_REGs                                              |
  |                                                                           |
@@ -36,10 +36,6 @@ FPU_REG const CONST_PI2extra = MAKE_REG(NEG, -66,
 /* Only the sign (and tag) is used in internal zeroes */
 FPU_REG const CONST_Z    = MAKE_REG(POS, EXP_UNDER, 0x0, 0x0);
 
-/* Only the sign and significand (and tag) are used in internal NaNs */
-/* The 80486 never generates one of these 
-FPU_REG const CONST_SNAN = MAKE_REG(POS, EXP_OVER, 0x00000001, 0x80000000);
- */
 /* This is the real indefinite QNaN */
 FPU_REG const CONST_QNaN = MAKE_REG(NEG, EXP_OVER, 0x00000000, 0xC0000000);
 

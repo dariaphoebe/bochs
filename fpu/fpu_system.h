@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_system.h                                                             |
- |  $Id: fpu_system.h,v 1.21 2004/02/20 01:30:52 danielg4 Exp $
+ |  $Id: fpu_system.h,v 1.21.6.1 2004/03/12 20:08:49 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1994,1997                                              |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -55,8 +55,6 @@ extern void fpu_put_user(u32 val, bx_address ptr, unsigned len) BX_CPP_AttrRegpa
 extern void fpu_verify_area(unsigned what, bx_address ptr, unsigned n) BX_CPP_AttrRegparmN(3);
 extern unsigned fpu_get_ds(void);
 extern void fpu_set_ax(u16 ax);
-extern u32 fpu_get_eflags();
-extern void fpu_set_eflags(u32 eflags);
 
 #define SIGSEGV  11
 

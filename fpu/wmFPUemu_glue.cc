@@ -167,18 +167,6 @@ fpu_set_ax(Bit16u val16)
   fpu_cpu_ptr->set_AX(val16);
 }
 
-  void
-fpu_set_eflags(Bit32u val32)
-{
-  fpu_cpu_ptr->writeEFlags(val32, 0xFFFFFFFF);
-}
-
-  Bit32u 
-fpu_get_eflags(void)
-{
-  return fpu_cpu_ptr->read_eflags();
-}
-
   void BX_CPP_AttrRegparmN(3)
 fpu_verify_area(unsigned what, bx_address ptr, unsigned n)
 {
