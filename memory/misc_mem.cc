@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: misc_mem.cc,v 1.36.2.6 2003/04/06 13:37:32 bdenney Exp $
+// $Id: misc_mem.cc,v 1.36.2.7 2003/04/06 15:07:00 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -120,7 +120,7 @@ BX_MEM_C::~BX_MEM_C(void)
   void
 BX_MEM_C::init_memory(int memsize)
 {
-	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.36.2.6 2003/04/06 13:37:32 bdenney Exp $"));
+	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.36.2.7 2003/04/06 15:07:00 bdenney Exp $"));
   // you can pass 0 if memory has been allocated already through
   // the constructor, or the desired size of memory if it hasn't
   BX_INFO(("%.2fMB", (float)(BX_MEM_THIS megabytes) ));
@@ -166,13 +166,14 @@ BX_MEM_C::register_state(bx_param_c *list_p)
   {
     BXRS_DARRAY(vector, BX_MEM_THIS len);
     BXRS_NUM_H(size_t, len, mem_vector_restore);
-    BXRS_ENUM_D(size_t, megabytes, "(len in Megabytes)");
+    BXRS_NUM_D(size_t, megabytes, "(len in Megabytes)");
 #if BX_PCI_SUPPORT
-    BXRS_ARRAY_NUM_D(Bit8u, shadow, (4*16*4096), "256k of memory");
+    BXRS_DARRAY_D(shadow, (4*16*4096), "256k of memory");
 #endif
 #if BX_DEBUGGER
-    BXRS_ARRAY_NUM(unsigned char, dbg_dirty_pages,
-                   ((BX_MAX_DIRTY_PAGE_TABLE_MEGS * 1024 * 1024) / 4096));
+#warning CHECKME: do we really need to register this??
+    //BXRS_ARRAY_NUM(unsigned char, dbg_dirty_pages,
+    //               ((BX_MAX_DIRTY_PAGE_TABLE_MEGS * 1024 * 1024) / 4096));
 #endif
   }
   BXRS_END;
