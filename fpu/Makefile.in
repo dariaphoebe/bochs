@@ -53,7 +53,7 @@ L_TARGET = libfpu.a
 BX_INCDIRS = -I.. -I$(srcdir)/.. -I../@INSTRUMENT_DIR@ -I$(srcdir)/../@INSTRUMENT_DIR@ -I. -I$(srcdir)/. -I./stubs -I$(srcdir)/./stubs
 
 FPU_FLAGS = -DUSE_WITH_CPU_SIM $(PARANOID) $(DEBUG)
-FPU_GLUE_OBJ = wmFPUemu_glue.o fpu.o fpu_arith.o fpu_compare.o \
+FPU_GLUE_OBJ = wmFPUemu_glue.o ferr.o fpu.o fpu_arith.o fpu_compare.o \
                fpu_const.o fpu_load_store.o fpu_misc.o fpu_trans.o \
                fprem.o softfloat.o softfloatx80.o softfloat-round-pack.o
 
@@ -163,6 +163,21 @@ wm_shrx.o: wm_shrx.c fpu_emu.h linkage.h fpu_system.h ../config.h \
   ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h
 fprem.o: fprem.@CPP_SUFFIX@ softfloatx80.h softfloat.h ../config.h \
   softfloat-specialize.h softfloat-round-pack.h softfloat-macros.h
+ferr.o: ferr.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h ../bx_debug/debug.h \
+  ../bxversion.h ../gui/siminterface.h ../state_file.h ../cpu/cpu.h \
+  ../cpu/lazy_flags.h ../cpu/hostasm.h ../cpu/apic.h ../fpu/softfloat.h \
+  ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h ../cpu/xmm.h \
+  ../disasm/disasm.h ../memory/memory.h ../pc_system.h ../plugin.h \
+  ../extplugin.h ../gui/gui.h ../gui/textconfig.h ../gui/keymap.h \
+  ../iodev/iodev.h ../iodev/pci.h ../iodev/pci2isa.h ../iodev/pcivga.h \
+  ../iodev/vga.h ../iodev/ioapic.h ../iodev/biosdev.h ../iodev/cmos.h \
+  ../iodev/dma.h ../iodev/floppy.h ../iodev/harddrv.h ../iodev/cdrom.h \
+  ../iodev/vmware3.h ../iodev/keyboard.h ../iodev/parallel.h \
+  ../iodev/pic.h ../iodev/pit.h ../iodev/pit_wrap.h ../iodev/pit82c54.h \
+  ../iodev/virt_timer.h ../iodev/serial.h ../iodev/unmapped.h \
+  ../iodev/eth.h ../iodev/ne2k.h ../iodev/guest2host.h \
+  ../iodev/slowdown_timer.h ../iodev/extfpuirq.h ../iodev/gameport.h \
+  ../iodev/speaker.h ../instrument/stubs/instrument.h
 fpu.o: fpu.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h ../bx_debug/debug.h \
   ../bxversion.h ../gui/siminterface.h ../state_file.h ../cpu/cpu.h \
   ../cpu/lazy_flags.h ../cpu/hostasm.h ../cpu/apic.h ../fpu/softfloat.h \
