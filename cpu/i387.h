@@ -154,6 +154,8 @@ struct i387_structure_t : public i387_t
 {
     i387_structure_t() {}
 
+    void	init();	// initalize fpu stuff
+
 public:
     int    	get_tos() const { return tos; }
 
@@ -234,6 +236,17 @@ BX_CPP_INLINE void i387_structure_t::FPU_save_reg (floatx80 reg, int tag, int re
 
   memcpy(BX_FPU_REG_PTR(regnr), &result, sizeof(FPU_REG));
   FPU_settag(tag, regnr);
+}
+
+BX_CPP_INLINE void i387_structure_t::init()
+{
+  cwd = 0x037F;
+  swd = 0;
+  tos = 0;
+  twd = 0xFFFF;
+
+  fip_ = fcs_ = fds_ = fos_ = foo = 0;
+  fip  = fcs  = fos  = 0;
 }
 #endif
 

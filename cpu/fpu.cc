@@ -46,20 +46,14 @@ void BX_CPU_C::prepareFPU(bxInstruction_c *i,
   {
     BX_CPU_THIS_PTR the_i387.foo = ((Bit32u)(i->b1()) << 8) | (Bit32u)(i->modrm());
     BX_CPU_THIS_PTR the_i387.fcs_= BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].selector.value;
-#if BX_SUPPORT_X86_64
-    BX_CPU_THIS_PTR the_i387.fip_= RIP;
-#else
-    BX_CPU_THIS_PTR the_i387.fip_= EIP;
-#endif
-    if (! i->modC0())
-    {
-      BX_CPU_THIS_PTR the_i387.fds_= BX_CPU_THIS_PTR sregs[i->seg()].selector.value;
-      BX_CPU_THIS_PTR the_i387.fos_= RMAddr(i);
-    }
-    else
-    {
-      BX_CPU_THIS_PTR the_i387.fds_= BX_CPU_THIS_PTR sregs[BX_SEG_REG_SS].selector.value;
-      BX_CPU_THIS_PTR the_i387.fos_= 0;
+    BX_CPU_THIS_PTR the_i387.fip_= BX_CPU_THIS_PTR prev_eip;
+
+    if (! i->modC0()) {
+         BX_CPU_THIS_PTR the_i387.fds_= BX_CPU_THIS_PTR sregs[i->seg()].selector.value;
+         BX_CPU_THIS_PTR the_i387.fos_= RMAddr(i);
+    } else {
+         BX_CPU_THIS_PTR the_i387.fds_= BX_CPU_THIS_PTR sregs[BX_SEG_REG_SS].selector.value;
+         BX_CPU_THIS_PTR the_i387.fos_= 0;
     }
   }
 }
@@ -89,17 +83,6 @@ void BX_CPU_C::FWAIT(bxInstruction_c *i)
   BX_CPU_THIS_PTR FPU_check_pending_exceptions();
 #else
   BX_INFO(("FWAIT: requred FPU, use --enable-fpu"));
-#endif
-}
-
-void BX_CPU_C::FNSTENV(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i, !CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
-
-  fpu_execute(i);
-#else
-  BX_INFO(("FNSTENV: required FPU, configure --enable-fpu"));
 #endif
 }
 
@@ -163,6 +146,17 @@ void BX_CPU_C::FNSAVE(bxInstruction_c *i)
 #endif
 }
 
+void BX_CPU_C::FRSTOR(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i, CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
+
+  fpu_execute(i);
+#else
+  BX_INFO(("FRSTOR: required FPU, configure --enable-fpu"));
+#endif
+}
+
 /* 9B E2 */
 void BX_CPU_C::FNCLEX(bxInstruction_c *i)
 {
@@ -183,8 +177,7 @@ void BX_CPU_C::FNINIT(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i, !CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
-
-  fpu_execute(i);
+  BX_CPU_THIS_PTR the_i387.init();
 #else
   BX_INFO(("FNINIT: required FPU, configure --enable-fpu"));
 #endif
@@ -201,14 +194,14 @@ void BX_CPU_C::FLDENV(bxInstruction_c *i)
 #endif
 }
 
-void BX_CPU_C::FRSTOR(bxInstruction_c *i)
+void BX_CPU_C::FNSTENV(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i, CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
+  BX_CPU_THIS_PTR prepareFPU(i, !CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
 
   fpu_execute(i);
 #else
-  BX_INFO(("FRSTOR: required FPU, configure --enable-fpu"));
+  BX_INFO(("FNSTENV: required FPU, configure --enable-fpu"));
 #endif
 }
 
