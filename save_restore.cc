@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: save_restore.cc,v 1.1.2.2 2004/11/06 03:22:21 slechta Exp $
+// $Id: save_restore.cc,v 1.1.2.3 2004/12/08 21:25:13 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 
 #ifndef PARAM_STANDALONE
@@ -1331,7 +1331,7 @@ int bx_checkpoint_c::write(const char *checkpoint_name,
       //  }
     }
   // create the checkpoint directory
-  else if (mkdir(checkpoint_name, 0755) <0)
+  else if (mkdir(checkpoint_name) <0)
     {
       BX_PANIC(("could not create checkpoint directory \"%s\"\n",
                checkpoint_name));

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.cc,v 1.111.2.1 2004/11/05 00:56:48 slechta Exp $
+// $Id: vga.cc,v 1.111.2.2 2004/12/08 21:25:13 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -3415,7 +3415,7 @@ bx_vga_c::register_state(sr_param_c *list_p)
       BXRS_NUM (Bit16u , vbe_bank);
       BXRS_BOOL(bx_bool, vbe_enabled);
       BXRS_NUM (Bit16u , vbe_curindex);
-      BXRS_NUM (Bit32u , vbe_visable_screen_size); // in bytes
+      BXRS_NUM (Bit32u , vbe_visible_screen_size); // in bytes
       BXRS_NUM (Bit16u , vbe_offset_x);
       BXRS_NUM (Bit16u , vbe_offset_y);
       BXRS_NUM (Bit16u , vbe_virtual_xres);

@@ -52,7 +52,9 @@ public:
   bx_generic_apic_c ();
   virtual ~bx_generic_apic_c ();
   virtual void init ();
-  virtual void register_state(sr_param_c *list_p);
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p) = 0;
+#endif
   virtual void hwreset () { }
   Bit32u get_base (void) const { return base_addr; }
   void set_base (Bit32u newbase);
@@ -177,6 +179,9 @@ public:
   void set_divide_configuration (Bit32u value);
   virtual void update_msr_apicbase(Bit32u newaddr);
   virtual void set_arb_id (int newid);
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+#endif
 };
 
 #define APIC_MAX_ID 0xff
