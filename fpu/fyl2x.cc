@@ -45,6 +45,8 @@ static const float128 float128_ln2inv2 =
 
 #define SQRT2_HALF_SIG 	BX_CONST64(0xb504f333f9de6484)
 
+extern float128 OddPoly(float128 x, float128 *arr, unsigned n, float_status_t &status);
+
 #define L2_ARR_SIZE 9
 
 static float128 ln_arr[L2_ARR_SIZE] =
@@ -62,10 +64,7 @@ static float128 ln_arr[L2_ARR_SIZE] =
 
 static float128 poly_ln(float128 x1, float_status_t &status)
 {
-    float128 x2 = float128_mul(x1, x1, status);
-    float128 x4 = float128_mul(x2, x2, status);
-    float128 r1, r2;
-
+/*
     //
     //                     3     5     7     9     11     13     15
     //        1+u         u     u     u     u     u      u      u
@@ -87,30 +86,8 @@ static float128 poly_ln(float128 x1, float_status_t &status)
     //   1/2 ln --- ~ u * [ p(u) + u * q(u) ]
     //          1-u
     //
-
-    // r1 = x2*(a_1 + x4*(a_3 + x4*(a_5+x4*a_7)));
-    r1 = float128_mul(x4, ln_arr[7], status);
-    r1 = float128_add(r1, ln_arr[5], status);
-    r1 = float128_mul(r1, x4, status);
-    r1 = float128_add(r1, ln_arr[3], status);
-    r1 = float128_mul(r1, x4, status);
-    r1 = float128_add(r1, ln_arr[1], status);
-    r1 = float128_mul(r1, x2, status);
-
-    // r2 = x4*(a_2 + x4*(a_4 + x4*(a_6+x4*a_8)));
-    r2 = float128_mul(x4, ln_arr[8], status);
-    r2 = float128_add(r2, ln_arr[6], status);
-    r2 = float128_mul(r2, x4, status);
-    r2 = float128_add(r2, ln_arr[4], status);
-    r2 = float128_mul(r2, x4, status);
-    r2 = float128_add(r2, ln_arr[2], status);
-    r2 = float128_mul(r2, x4, status);
-
-    r1 = float128_add(r1, r2, status);
-    r1 = float128_add(r1, ln_arr[0], status);
-
-    return 
-        float128_mul(r1, x1, status);
+*/
+    return OddPoly(x1, ln_arr, L2_ARR_SIZE, status);
 }
 
 /* required sqrt(2)/2 < x < sqrt(2) */

@@ -157,7 +157,7 @@ BX_CPP_INLINE float128 poly_sin(float128 x, float_status_t &status)
     //
     //           3                          3
     //          --       4k                --        4k+2
-    //   p(u) = >  C  * x   > 0     q(u) = >  C   * x     < 0
+    //   p(x) = >  C  * x   > 0     q(x) = >  C   * x     < 0
     //          --  2k                     --  2k+1
     //          k=0                        k=0
     //
@@ -180,7 +180,7 @@ BX_CPP_INLINE float128 poly_cos(float128 x, float_status_t &status)
     //
     //           3                          3
     //          --       4k                --        4k+2
-    //   p(u) = >  C  * x   > 0     q(u) = >  C   * x     < 0
+    //   p(x) = >  C  * x   > 0     q(x) = >  C   * x     < 0
     //          --  2k                     --  2k+1
     //          k=0                        k=0
     //

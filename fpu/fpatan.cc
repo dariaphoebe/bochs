@@ -55,17 +55,16 @@ static float128 atan_arr[FPATAN_ARR_SIZE] =
     packFloat128(BX_CONST64(0x3ffb3b13b13b13b1), BX_CONST64(0x3b13b13b13b13b14)), /* 13 */
     packFloat128(BX_CONST64(0xbffb111111111111), BX_CONST64(0x1111111111111111)), /* 15 */
     packFloat128(BX_CONST64(0x3ffae1e1e1e1e1e1), BX_CONST64(0xe1e1e1e1e1e1e1e2)), /* 17 */
-    packFloat128(BX_CONST64(0x3ffaaf286bca1af2), BX_CONST64(0x86bca1af286bca1b)), /* 19 */
+    packFloat128(BX_CONST64(0xbffaaf286bca1af2), BX_CONST64(0x86bca1af286bca1b)), /* 19 */
     packFloat128(BX_CONST64(0x3ffa861861861861), BX_CONST64(0x8618618618618618))  /* 21 */
 };
 
-/* 1/4 < x < 3/4 */
+extern float128 OddPoly(float128 x, float128 *arr, unsigned n, float_status_t &status);
+
+/* |x| < 1/4 */
 static float128 poly_atan(float128 x1, float_status_t &status)
 {
-    float128 x2 = float128_mul(x1, x1, status);
-    float128 x4 = float128_mul(x2, x2, status);
-    float128 r1, r2;
-
+/*
     //                 3     5     7     9     11     13     15     17
     //                x     x     x     x     x      x      x      x
     // atan(x) ~ x - --- + --- - --- + --- - ---- + ---- - ---- + ----
@@ -85,34 +84,8 @@ static float128 poly_atan(float128 x1, float_status_t &status)
     //                            2
     //    atan(x) ~ x * [ p(x) + x * q(x) ]
     //
-
-    // r1 = x2*(a_1 + x4*(a_3 + x4*(a_5+x4*(a_7+x4*a_9))));
-    r1 = float128_mul(x4, atan_arr[9], status);
-    r1 = float128_add(r1, atan_arr[7], status);
-    r1 = float128_mul(r1, x4, status);
-    r1 = float128_add(r1, atan_arr[5], status);
-    r1 = float128_mul(r1, x4, status);
-    r1 = float128_add(r1, atan_arr[3], status);
-    r1 = float128_mul(r1, x4, status);
-    r1 = float128_add(r1, atan_arr[1], status);
-    r1 = float128_mul(r1, x2, status);
-
-    // r2 = x4*(a_2 + x4*(a_4 + x4*(a_6+x4*(a_8+x4*a_10))));
-    r2 = float128_mul(x4, atan_arr[10], status);
-    r2 = float128_add(r2, atan_arr[8], status);
-    r2 = float128_mul(r2, x4, status);
-    r2 = float128_add(r2, atan_arr[6], status);
-    r2 = float128_mul(r2, x4, status);
-    r2 = float128_add(r2, atan_arr[4], status);
-    r2 = float128_mul(r2, x4, status);
-    r2 = float128_add(r2, atan_arr[2], status);
-    r2 = float128_mul(r2, x4, status);
-
-    r1 = float128_add(r1, r2, status);
-    r1 = float128_add(r1, atan_arr[0], status);
-
-    return 
-        float128_mul(r1, x1, status);
+*/
+    return OddPoly(x1, atan_arr, FPATAN_ARR_SIZE, status);
 }
 
 // =================================================
