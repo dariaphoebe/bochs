@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_add_sub.c                                                            |
- |  $Id: reg_add_sub.c,v 1.9 2003/10/05 12:26:11 sshwarts Exp $
+ |  $Id: reg_add_sub.c,v 1.9.8.1 2004/03/26 21:36:09 sshwarts Exp $
  |                                                                           |
  | Functions to add or subtract two registers and put the result in a third. |
  |                                                                           |
@@ -84,7 +84,7 @@ int FPU_add(FPU_REG const *b, u_char tagb, int deststnr, u16 control_w)
 	    {
 	      FPU_copy_to_regi(&CONST_Z, TAG_Zero, deststnr);
 	      /* sign depends upon rounding mode */
-	      setsign(dest, ((control_w & CW_RC) != RC_DOWN)
+	      setsign(dest, ((control_w & FPU_CW_RC) != FPU_RC_DOWN)
 		      ? SIGN_POS : SIGN_NEG);
 	      return TAG_Zero;
 	    }
@@ -214,7 +214,7 @@ int FPU_sub(int flags, FPU_REG *rm, u16 control_w)
 	      FPU_copy_to_regi(&CONST_Z, TAG_Zero, deststnr);
 
 	      /* sign depends upon rounding mode */
-	      setsign(dest, ((control_w & CW_RC) != RC_DOWN)
+	      setsign(dest, ((control_w & FPU_CW_RC) != FPU_RC_DOWN)
 		? SIGN_POS : SIGN_NEG);
 	      return TAG_Zero;
 	    }
@@ -316,7 +316,7 @@ int add_sub_specials_core(FPU_REG const *a, u_char taga, u_char signa,
 	    {
 	      /* Signs are different. */
 	      /* Sign of answer depends upon rounding mode. */
-	      setsign(dest, ((control_w & CW_RC) != RC_DOWN)
+	      setsign(dest, ((control_w & FPU_CW_RC) != FPU_RC_DOWN)
 		      ? SIGN_POS : SIGN_NEG);
 	    }
 	  else
@@ -389,7 +389,7 @@ int add_sub_specials(FPU_REG const *a, u_char taga, u_char signa,
     FPU_REG unrounded;
     
     /* no adjustment needed for add/sub zero with full precision */
-    if ((control_w & CW_PC) == PR_64_BITS)
+    if ((control_w & FPU_CW_PC) == FPU_PR_80_BITS)
         if (taga == TAG_Zero || tagb == TAG_Zero) return tag;
         
     /* no adjustment needed for zero result */

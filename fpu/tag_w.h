@@ -18,8 +18,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 
-#ifndef FPU_TAG_WORD_H
-#define FPU_TAG_WORD_H
+#ifndef _TAG_W_H
+#define _TAG_W_H
 
 /* Tag Word */
 #define FPU_Tag_Valid   0x00

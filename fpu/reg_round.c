@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_round.c                                                              |
- |  $Id: reg_round.c,v 1.8.8.2 2004/03/19 17:43:31 sshwarts Exp $
+ |  $Id: reg_round.c,v 1.8.8.3 2004/03/26 21:36:09 sshwarts Exp $
  |                                                                           |
  | Rounding/truncation/etc for FPU basic arithmetic functions.               |
  |                                                                           |
@@ -151,7 +151,7 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
   if (expon <= EXP_UNDER)
     {
       /* A denormal or zero */
-      if (control_w & CW_Underflow)
+      if (control_w & FPU_CW_Underflow)
 	{
 	  /* Underflow is masked. */
 	  FPU_denormal = DENORMAL;
@@ -222,7 +222,7 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
   else
     FPU_denormal = 0;
 
-  switch (control_w & CW_PC)
+  switch (control_w & FPU_CW_PC)
     {
     case 01:
 #ifndef PECULIAR_486
@@ -234,12 +234,12 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
 #endif
 #endif
 	/* Fall through to the 64 bit case. */
-    case PR_64_BITS:
+    case FPU_PR_80_BITS:
       if (extent)
 	{
-	  switch (control_w & CW_RC)
+	  switch (control_w & FPU_CW_RC)
 	    {
-	    case RC_RND:		/* Nearest or even */
+	    case FPU_RC_RND:		/* Nearest or even */
 	      /* See if there is exactly half a ulp. */
 	      if (extent == 0x80000000)
 		{
@@ -263,11 +263,11 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
 		}
 	      break;
 
-	    case RC_CHOP:		/* Truncate */
+	    case FPU_RC_CHOP:		/* Truncate */
 	      FPU_bits_lost = truncate_64(x);
 	      break;
 	      
-	    case RC_UP:		/* Towards +infinity */
+	    case FPU_RC_UP:		/* Towards +infinity */
 	      if (sign == SIGN_POS)
 		{
 		  FPU_bits_lost = round_up_64(x);
@@ -278,7 +278,7 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
 		}
 	      break;
 
-	    case RC_DOWN:		/* Towards -infinity */
+	    case FPU_RC_DOWN:		/* Towards -infinity */
 	      if (sign != SIGN_POS)
 		{
 		  FPU_bits_lost = round_up_64(x);
@@ -296,13 +296,13 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
 	}
       break;
 
-    case PR_53_BITS:
+    case FPU_PR_64_BITS:
       leading = x->sigl & 0x7ff;
       if (extent || leading)
 	{
-	  switch (control_w & CW_RC)
+	  switch (control_w & FPU_CW_RC)
 	    {
-	    case RC_RND:		/* Nearest or even */
+	    case FPU_RC_RND:		/* Nearest or even */
 	      /* See if there is exactly half a ulp. */
 	      if (leading == 0x400)
 		{
@@ -334,11 +334,11 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
 		}
 	      break;
 
-	    case RC_CHOP:		/* Truncate */
+	    case FPU_RC_CHOP:		/* Truncate */
 	      FPU_bits_lost = truncate_53(x);
 	      break;
 
-	    case RC_UP:		/* Towards +infinity */
+	    case FPU_RC_UP:		/* Towards +infinity */
 	      if (sign == SIGN_POS)
 		{
 		  FPU_bits_lost = round_up_53(x);
@@ -349,7 +349,7 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
 		}
 	      break;
 
-	    case RC_DOWN:		/* Towards -infinity */
+	    case FPU_RC_DOWN:		/* Towards -infinity */
 	      if (sign != SIGN_POS)
 		{
 		  FPU_bits_lost = round_up_53(x);
@@ -369,13 +369,13 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
       FPU_bits_lost = 0;
       break;
 
-    case PR_24_BITS:
+    case FPU_PR_32_BITS:
       leading = x->sigh & 0xff;
       if (leading || x->sigl || extent)
 	{
-	  switch (control_w & CW_RC)
+	  switch (control_w & FPU_CW_RC)
 	    {
-	    case RC_RND:		/* Nearest or even */
+	    case FPU_RC_RND:		/* Nearest or even */
 	      /* See if there is exactly half a ulp. */
 	      if (leading == 0x80)
 		{
@@ -407,11 +407,11 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
 		}
 	      break;
 
-	    case RC_CHOP:		/* Truncate */
+	    case FPU_RC_CHOP:		/* Truncate */
 	      FPU_bits_lost = truncate_24(x);
 	      break;
 
-	    case RC_UP:		/* Towards +infinity */
+	    case FPU_RC_UP:		/* Towards +infinity */
 	      if (sign == SIGN_POS)
 		{
 		  FPU_bits_lost = round_up_24(x);
@@ -422,7 +422,7 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
 		}
 	      break;
 
-	    case RC_DOWN:		/* Towards -infinity */
+	    case FPU_RC_DOWN:		/* Towards -infinity */
 	      if (sign != SIGN_POS)
 		{
 		  FPU_bits_lost = round_up_24(x);
@@ -585,9 +585,9 @@ FPU_round_to_int(FPU_REG *r, u_char tag)
 #define	half_or_more	(eax & 0x80000000)
 #define	frac_part	(eax)
 #define more_than_half  (eax > 0x80000000)
-  switch (FPU_control_word & CW_RC)
+  switch (FPU_control_word & FPU_CW_RC)
     {
-    case RC_RND:
+    case FPU_RC_RND:
       if (more_than_half               	/* nearest */
 	  || (half_or_more && (r->sigl & 1)))	/* odd -> even */
 	{
@@ -596,7 +596,7 @@ FPU_round_to_int(FPU_REG *r, u_char tag)
 	  return PRECISION_LOST_UP;
 	}
       break;
-    case RC_DOWN:
+    case FPU_RC_DOWN:
       if (frac_part && getsign(r))
 	{
 	  if (very_big) return 1;        /* overflow */
@@ -604,7 +604,7 @@ FPU_round_to_int(FPU_REG *r, u_char tag)
 	  return PRECISION_LOST_UP;
 	}
       break;
-    case RC_UP:
+    case FPU_RC_UP:
       if (frac_part && !getsign(r))
 	{
 	  if (very_big) return 1;        /* overflow */
@@ -612,7 +612,7 @@ FPU_round_to_int(FPU_REG *r, u_char tag)
 	  return PRECISION_LOST_UP;
 	}
       break;
-    case RC_CHOP:
+    case FPU_RC_CHOP:
       break;
     }
 

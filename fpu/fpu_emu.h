@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.23.6.3 2004/03/19 17:00:25 sshwarts Exp $
+ |  $Id: fpu_emu.h,v 1.23.6.4 2004/03/26 21:36:09 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -63,15 +63,6 @@
 #define FPU_Exception   (0x80000000)   /* Added to tag returns. */
 
 #include "fpu_system.h"
-
-/* PROTECTED has a restricted meaning in the emulator; it is used
-   to signal that the emulator needs to do special things to ensure
-   that protection is respected in a segmented model. */
-#define PROTECTED 4
-#define SIXTEEN   1         /* We rely upon this being 1 (true) */
-#define VM86      SIXTEEN
-#define PM16      (SIXTEEN | PROTECTED)
-#define SEG32     PROTECTED
 
 #define fpu_register(x)  ( *((FPU_REG *)(FPU_register_base + sizeof(FPU_REG) * (x & 7) )))
 #define	st(x)      ( *((FPU_REG *)(FPU_register_base + sizeof(FPU_REG) * ((FPU_tos+x) & 7) )))

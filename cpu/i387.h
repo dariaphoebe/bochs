@@ -107,23 +107,7 @@ typedef struct bx_fpu_reg_t FPU_REG;
 #define FPU_EX_Denormal		(0x0002)  /* denormalized operand */
 #define FPU_EX_Invalid		(0x0001)  /* invalid operation */
 
-/* Control Word */
-#define FPU_CW_RC		(0x0C00)  /* rounding control */
-#define FPU_CW_PC		(0x0300)  /* precision control */
-
-#define FPU_RC_RND		(0x0000)  /* rounding control */
-#define FPU_RC_DOWN		(0x0400)
-#define FPU_RC_UP		(0x0800)
-#define FPU_RC_CHOP		(0x0C00)
-
-#define FPU_CW_Precision	(0x0020)  /* loss of precision mask */
-#define FPU_CW_Underflow	(0x0010)  /* underflow mask */
-#define FPU_CW_Overflow		(0x0008)  /* overflow mask */
-#define FPU_CW_Zero_Div		(0x0004)  /* divide by zero mask */
-#define FPU_CW_Denormal		(0x0002)  /* denormalized operand mask */
-#define FPU_CW_Invalid		(0x0001)  /* invalid operation mask */
-
-#define FPU_CW_Exceptions_Mask 	(0x003f)  /* all masks */
+#include "fpu/control_w.h"
 
 //
 // Minimal i387 structure

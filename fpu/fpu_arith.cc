@@ -104,14 +104,7 @@ softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word)
   softfloat_status_word_t status;
 
   int precision = control_word & FPU_CW_PC;
-
-/* p 15-5: Precision control bits affect only the following:
-   ADD, SUB(R), MUL, DIV(R), and SQRT */
-#define FPU_PR_32_BITS        (0x000)
-#define FPU_PR_RESERVED_BITS  (0x100)
-#define FPU_PR_64_BITS        (0x200)
-#define FPU_PR_80_BITS        (0x300)
-  
+ 
   switch(precision)
   {
      case FPU_PR_32_BITS:
