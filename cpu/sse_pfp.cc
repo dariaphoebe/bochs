@@ -48,8 +48,9 @@ static void MXCSR_to_softfloat_status_word(softfloat_status_word_t &status, bx_m
   status.float_nan_handling_mode = float_first_operand_nan;
   status.float_rounding_mode = mxcsr.get_rounding_mode();
   status.denormals_are_zeroes = mxcsr.get_DAZ();
-  /* if underflow is masked and FUZ is 1, set it to 1, else to 0 */
-  status.underflow_flush_to_zero = 0;  			  // FixMe
+  // if underflow is masked and FUZ is 1, set it to 1, else to 0
+  status.flush_underflow_to_zero = 
+       (mxcsr.get_flush_masked_underflow() && mxcsr.get_UM()) ? 1 : 0;
 }
 
 /* Comparison predicate for CMPSS/CMPPS instructions */

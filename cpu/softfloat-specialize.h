@@ -76,6 +76,16 @@ BX_CPP_INLINE int get_DAZ(float_status_t &status)
 }
 
 /*----------------------------------------------------------------------------
+| Returns 1 if the <flush-underflow-to-zero> feature is supported;
+| otherwise returns 0.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE int get_flush_underflow_to_zero(float_status_t &status)
+{
+    return status.flush_underflow_to_zero;
+}
+
+/*----------------------------------------------------------------------------
 | Internal canonical NaN format.
 *----------------------------------------------------------------------------*/
 

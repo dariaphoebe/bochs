@@ -629,22 +629,28 @@ void BX_CPU_C::MASKMOVDQU_VdqVRdq(bxInstruction_c *i)
     UndefinedOpcode(i);
   }
 
-  Bit32u edi;
+  bx_address rdi;
   BxPackedXmmRegister op = BX_READ_XMM_REG(i->nnn()), 
     mask = BX_READ_XMM_REG(i->rm());
 
+#if BX_SUPPORT_X86_64
+  if (i->os64L()) { 	/* 64 bit operand size mode */
+      rdi = RDI;
+  } 
+  else
+#endif
   if (i->as32L()) {
-      edi = EDI;
+      rdi = EDI;
   }
   else {   /* 16 bit address mode */
-      edi = DI;
+      rdi = DI;
   }
 
   /* partial write, no data will be written to memory if mask is all 0s */
   for(unsigned j=0; j<16; j++) 
   {
     if(mask.xmmubyte(j) & 0x80)
-        write_virtual_byte(BX_SEG_REG_DS, edi+j, &op.xmmubyte(j));
+        write_virtual_byte(BX_SEG_REG_DS, rdi+j, &op.xmmubyte(j));
   }
 
 #else

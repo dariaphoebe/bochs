@@ -37,7 +37,7 @@ these four paragraphs for those parts of this code that are retained.
  * -----------------
  * 	* Denormals support for add/sub/compare/convert operations
  * 	* DAZ (denormals-are-zeroes) feature support
- * 	* Flush underflow to zero feature support
+ * 	* Flush underflow to zero feature support (implemented)
  * 	* Floating point reciprocal and sqrt reciprocal operations
  */
 
@@ -108,7 +108,7 @@ struct float_status_t
     int float_exception_flags;
     int float_nan_handling_mode;
     int denormals_are_zeroes;		/* flag register */
-    int underflow_flush_to_zero;	/* flag register */
+    int flush_underflow_to_zero;	/* flag register */
 };
 typedef struct float_status_t softfloat_status_word_t;
 

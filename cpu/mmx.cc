@@ -1966,34 +1966,40 @@ void BX_CPU_C::MASKMOVQ_PqPRq(bxInstruction_c *i)
     UndefinedOpcode(i);
   }
 
-  Bit32u edi;
+  bx_address rdi;
   BxPackedMmxRegister op = BX_READ_MMX_REG(i->nnn()), 
     mask = BX_READ_MMX_REG(i->rm());
 
+#if BX_SUPPORT_X86_64
+  if (i->os64L()) { 	/* 64 bit operand size mode */
+      rdi = RDI;
+  } 
+  else
+#endif
   if (i->as32L()) {
-      edi = EDI;
+      rdi = EDI;
   }
-  else {   /* 16 bit address mode */
-      edi = DI;
+  else {   		/* 16 bit address mode */
+      rdi = DI;
   }
 
   /* partial write, no data will be written to memory if mask is all 0s */
   if(MMXUB0(mask) & 0x80)
-      write_virtual_byte(BX_SEG_REG_DS, edi+0, &MMXUB0(op));
+      write_virtual_byte(BX_SEG_REG_DS, rdi+0, &MMXUB0(op));
   if(MMXUB1(mask) & 0x80)
-      write_virtual_byte(BX_SEG_REG_DS, edi+1, &MMXUB1(op));
+      write_virtual_byte(BX_SEG_REG_DS, rdi+1, &MMXUB1(op));
   if(MMXUB2(mask) & 0x80)
-      write_virtual_byte(BX_SEG_REG_DS, edi+2, &MMXUB2(op));
+      write_virtual_byte(BX_SEG_REG_DS, rdi+2, &MMXUB2(op));
   if(MMXUB3(mask) & 0x80)
-      write_virtual_byte(BX_SEG_REG_DS, edi+3, &MMXUB3(op));
+      write_virtual_byte(BX_SEG_REG_DS, rdi+3, &MMXUB3(op));
   if(MMXUB4(mask) & 0x80)
-      write_virtual_byte(BX_SEG_REG_DS, edi+4, &MMXUB4(op));
+      write_virtual_byte(BX_SEG_REG_DS, rdi+4, &MMXUB4(op));
   if(MMXUB5(mask) & 0x80)
-      write_virtual_byte(BX_SEG_REG_DS, edi+5, &MMXUB5(op));
+      write_virtual_byte(BX_SEG_REG_DS, rdi+5, &MMXUB5(op));
   if(MMXUB6(mask) & 0x80)
-      write_virtual_byte(BX_SEG_REG_DS, edi+6, &MMXUB6(op));
+      write_virtual_byte(BX_SEG_REG_DS, rdi+6, &MMXUB6(op));
   if(MMXUB7(mask) & 0x80)
-      write_virtual_byte(BX_SEG_REG_DS, edi+7, &MMXUB7(op));
+      write_virtual_byte(BX_SEG_REG_DS, rdi+7, &MMXUB7(op));
 
 #else
   BX_INFO(("MASKMOVQ_PqPRq: required SSE or 3DNOW, use --enable-sse or --enable-3dnow options"));

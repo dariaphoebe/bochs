@@ -272,7 +272,13 @@ static float32 roundAndPackFloat32(flag zSign, Bit16s zExp, Bit32u zSig, float_s
             shift32RightJamming(zSig, -zExp, &zSig);
             zExp = 0;
             roundBits = zSig & 0x7F;
-            if (isTiny && roundBits) float_raise(status, float_flag_underflow);
+            if (isTiny && roundBits) {
+                float_raise(status, float_flag_underflow);
+                if(get_flush_underflow_to_zero(status)) {
+                    float_raise(status, float_flag_inexact);
+                    return packFloat32(zSign, 0, 0);
+                }
+            }
         }
     }
     if (roundBits) float_raise(status, float_flag_inexact);
@@ -419,7 +425,13 @@ static float64 roundAndPackFloat64(flag zSign, Bit16s zExp, Bit64u zSig, float_s
             shift64RightJamming(zSig, -zExp, &zSig);
             zExp = 0;
             roundBits = zSig & 0x3FF;
-            if (isTiny && roundBits) float_raise(status, float_flag_underflow);
+            if (isTiny && roundBits) {
+                float_raise(status, float_flag_underflow);
+                if(get_flush_underflow_to_zero(status)) {
+                    float_raise(status, float_flag_inexact);
+                    return packFloat64(zSign, 0, 0);
+                }
+            }
         }
     }
     if (roundBits) float_raise(status, float_flag_inexact);
