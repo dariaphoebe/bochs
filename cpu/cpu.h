@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.161.2.4 2004/03/25 22:07:32 sshwarts Exp $
+// $Id: cpu.h,v 1.161.2.5 2004/03/25 23:14:47 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -2083,6 +2083,7 @@ union {
   BX_SMF void FPU_check_pending_exceptions(void);
   BX_SMF void FPU_stack_underflow(int stnr, int pop_stack = 0);
   BX_SMF void FPU_stack_overflow(void);
+  BX_SMF void FPU_handle_unsupported(int stnr, int pop_stack = 0);
   BX_SMF int  FPU_exception(int exception);
 #endif
 
