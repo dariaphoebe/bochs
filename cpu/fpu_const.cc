@@ -27,6 +27,13 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
+
+#if BX_SUPPORT_FPU
+#include "softfloat-specialize.h"
+
+const floatx80 Const_QNaN = { floatx80_default_nan_exp, floatx80_default_nan_fraction };
+#endif
+
 void BX_CPU_C::FLDL2T(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU

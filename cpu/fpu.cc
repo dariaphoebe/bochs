@@ -189,6 +189,16 @@ void BX_CPU_C::FLDENV(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i, CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
 
+/*
+On  the Intel486 processor, when a segment not present exception (#NP)
+occurs in the middle of an FLDENV instruction, it can happen that part
+of  the  environment  is  loaded  and part not. In such cases, the FPU
+control  word is left with a value of 007FH. The P6 family and Pentium
+processors  ensure  the  internal  state  is  correct  at all times by
+attempting  to read the first and last bytes of the environment before
+updating the internal state.
+*/
+
   fpu_execute(i);
 #else
   BX_INFO(("FLDENV: required FPU, configure --enable-fpu"));

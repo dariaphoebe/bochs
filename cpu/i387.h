@@ -167,7 +167,8 @@ public:
     Bit16u 	get_status_word() const { return (swd & ~FPU_SW_Top & 0xFFFF) | ((tos << 11) & FPU_SW_Top); }
     Bit16u 	get_partial_status() const { return swd & 0xFFFF; }
 
-    void   	FPU_pop();
+    void   	FPU_pop ();
+    void   	FPU_push();
 
     void   	FPU_settag (int tag, int regnr);
     int    	FPU_gettag (int regnr);
@@ -175,13 +176,13 @@ public:
     void   	FPU_settagi(int tag, int stnr) { FPU_settag(tag, tos+stnr); }
     int    	FPU_gettagi(int stnr) { return FPU_gettag(tos+stnr); }
 
-    void	FPU_save_reg (floatx80 reg, int tag, int regnr);
-    void	FPU_save_reg (floatx80 reg, int regnr);
+    void	FPU_save_reg (const floatx80 &reg, int tag, int regnr);
+    void	FPU_save_reg (const floatx80 &reg, int regnr);
     floatx80 	FPU_read_reg (int regnr);
 
-    void  	FPU_save_regi(floatx80 reg, int stnr) { FPU_save_reg(reg, (tos+stnr) & 0x07); }
+    void  	FPU_save_regi(const floatx80 &reg, int stnr) { FPU_save_reg(reg, (tos+stnr) & 0x07); }
     floatx80 	FPU_read_regi(int stnr) { FPU_read_reg((tos+stnr) & 0x07); }
-    void  	FPU_save_regi(floatx80 reg, int tag, int stnr) { FPU_save_reg(reg, tag, (tos+stnr) & 0x07); }
+    void  	FPU_save_regi(const floatx80 &reg, int tag, int stnr) { FPU_save_reg(reg, tag, (tos+stnr) & 0x07); }
 };
 
 #define BX_FPU_REG_PTR(index) (&(st_space[index*2]))
@@ -199,6 +200,11 @@ BX_CPP_INLINE void i387_structure_t::FPU_settag (int tag, int regnr)
   regnr &= 7;
   twd &= ~(3 << (regnr*2));
   twd |= (tag & 3) << (regnr*2);
+}
+
+BX_CPP_INLINE void i387_structure_t::FPU_push(void)
+{
+  tos--;
 }
 
 BX_CPP_INLINE void i387_structure_t::FPU_pop(void)
@@ -219,7 +225,7 @@ BX_CPP_INLINE floatx80 i387_structure_t::FPU_read_reg(int regnr)
   return result;
 }
 
-BX_CPP_INLINE void i387_structure_t::FPU_save_reg (floatx80 reg, int regnr)
+BX_CPP_INLINE void i387_structure_t::FPU_save_reg (const floatx80 &reg, int regnr)
 {
   FPU_REG result;
   result.exp  = reg.exp;
@@ -230,7 +236,7 @@ BX_CPP_INLINE void i387_structure_t::FPU_save_reg (floatx80 reg, int regnr)
   FPU_settag(FPU_tagof(&result), regnr);
 }
 
-BX_CPP_INLINE void i387_structure_t::FPU_save_reg (floatx80 reg, int tag, int regnr)
+BX_CPP_INLINE void i387_structure_t::FPU_save_reg (const floatx80 &reg, int tag, int regnr)
 {
   FPU_REG result;
   result.exp  = reg.exp;
@@ -251,6 +257,8 @@ BX_CPP_INLINE void i387_structure_t::init()
   fip_ = fcs_ = fds_ = fos_ = foo = 0;
   fip  = fcs  = fos  = 0;
 }
+
+extern const floatx80 Const_QNaN;
 #endif
 
 #if BX_SUPPORT_MMX

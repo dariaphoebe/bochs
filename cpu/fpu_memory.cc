@@ -27,6 +27,7 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
+
 void BX_CPU_C::FLD_STi(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
@@ -120,20 +121,20 @@ void BX_CPU_C::FST_STi(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
+  int pop_stack = (i->b1() & 0x10) >> 1;
+  int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
+
+  if (st0_tag == FPU_Tag_Empty)
+  {
+     FPU_stack_underflow(i->rm(), pop_stack);
+  }
+
+  floatx80 reg_st0 = 
+        BX_CPU_THIS_PTR the_i387.FPU_read_regi(0);
+
+  BX_CPU_THIS_PTR the_i387.FPU_save_regi(reg_st0, st0_tag, i->rm());
 #else
   BX_INFO(("FST_STi: required FPU, configure --enable-fpu"));
-#endif
-}
-
-void BX_CPU_C::FSTP_STi(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  fpu_execute(i);
-#else
-  BX_INFO(("FSTP_STi: required FPU, configure --enable-fpu"));
 #endif
 }
 
