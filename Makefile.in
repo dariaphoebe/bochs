@@ -1,4 +1,4 @@
-# Copyright (C) 2001  MandrakeSoft S.A.
+# Copyright (C) 2000  MandrakeSoft S.A.
 #
 #   MandrakeSoft S.A.
 #   43, rue d'Aboukir
@@ -36,7 +36,7 @@ CXXFLAGS = @CXXFLAGS@ $(MCH_CFLAGS) $(FLA_FLAGS)
 
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-X_LIBS = @X_LIBS@
+X_LIBS = @X_LIBS@ -lreadline
 X_PRE_LIBS = @X_PRE_LIBS@
 GUI_LINK_OPTS_X = $(X_LIBS) $(X_PRE_LIBS) -lX11
 GUI_LINK_OPTS_BEOS = -lbe
@@ -74,8 +74,7 @@ NONINLINE_OBJS = \
 	main.o \
 	load32bitOShack.o \
 	state_file.o \
-	pc_system.o \
-	osdep.o
+	pc_system.o
 
 EXTERN_ENVIRONMENT_OBJS = \
 	main.o \
@@ -91,7 +90,7 @@ FPU_LIB        = fpu/libfpu.a
 
 BX_OBJS = @NONINLINE_VAR@
 
-BX_INCLUDES = bochs.h config.h osdep.h
+BX_INCLUDES = bochs.h config.h
 
 
 .@CPP_SUFFIX@.o:
