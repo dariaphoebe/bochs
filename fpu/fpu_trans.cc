@@ -29,6 +29,7 @@
 
 #if BX_SUPPORT_FPU
 #include "softfloatx80.h"
+#include "softfloat-specialize.h"
 #endif
 
 extern "C"
@@ -102,6 +103,63 @@ void BX_CPU_C::FYL2X(bxInstruction_c *i)
 	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
 #else
   BX_INFO(("FYL2X: required FPU, configure --enable-fpu"));
+#endif
+}
+
+/* D9 F2 */
+void BX_CPU_C::FPTAN(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  clear_C1();
+  clear_C2();
+
+  if (! IS_TAG_EMPTY(-1) || IS_TAG_EMPTY(0))
+  {
+      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Overflow);
+
+      /* The masked response */
+      if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
+      {
+          BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_default_nan, FPU_Tag_Special, 0);
+          BX_CPU_THIS_PTR the_i387.FPU_push();
+          BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_default_nan, FPU_Tag_Special, 0);
+      }
+
+      return; 
+  }
+
+  softfloat_status_word_t status = 
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 y = BX_READ_FPU_REG(0);
+  if (ftan(y, status) == -1)
+  {
+      FPU_PARTIAL_STATUS |= FPU_SW_C2;
+      return;
+  }
+
+  if (floatx80_is_nan(y))
+  {
+      if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      {
+          BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
+          BX_CPU_THIS_PTR the_i387.FPU_push();
+          BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
+      }
+
+      return;
+  }
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(y, 0);
+  BX_CPU_THIS_PTR the_i387.FPU_push();
+  BX_WRITE_FPU_REGISTER_AND_TAG(Const_1, FPU_Tag_Valid, 0);
+#else
+  BX_INFO(("FPTAN: required FPU, configure --enable-fpu"));
 #endif
 }
 
@@ -231,6 +289,52 @@ void BX_CPU_C::FPREM(bxInstruction_c *i)
 #endif
 }
 
+/* D9 FB */
+void BX_CPU_C::FSINCOS(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  clear_C1();
+  clear_C2();
+
+  if (! IS_TAG_EMPTY(-1) || IS_TAG_EMPTY(0))
+  {
+      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Overflow);
+
+      /* The masked response */
+      if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
+      {
+          BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_default_nan, FPU_Tag_Special, 0);
+          BX_CPU_THIS_PTR the_i387.FPU_push();
+          BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_default_nan, FPU_Tag_Special, 0);
+      }
+
+      return; 
+  }
+
+  softfloat_status_word_t status = 
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 y = BX_READ_FPU_REG(0);
+  floatx80 sin_y, cos_y;
+  if (fsincos(y, &sin_y, &cos_y, status) == -1) 
+  {
+      FPU_PARTIAL_STATUS |= FPU_SW_C2;
+      return;
+  }
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(sin_y, 0);
+  BX_CPU_THIS_PTR the_i387.FPU_push();
+  BX_WRITE_FPU_REG(cos_y, 0);
+#else
+  BX_INFO(("FSINCOS: required FPU, configure --enable-fpu"));
+#endif
+}
+
 /* D9 FD */
 void BX_CPU_C::FSCALE(bxInstruction_c *i)
 {
@@ -256,5 +360,73 @@ void BX_CPU_C::FSCALE(bxInstruction_c *i)
   BX_WRITE_FPU_REG(result, 0);
 #else
   BX_INFO(("FSCALE: required FPU, configure --enable-fpu"));
+#endif
+}
+
+/* D9 FE */
+void BX_CPU_C::FSIN(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  clear_C1();
+  clear_C2();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  softfloat_status_word_t status = 
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 y = BX_READ_FPU_REG(0);
+  if (fsin(y, status) == -1)
+  {
+      FPU_PARTIAL_STATUS |= FPU_SW_C2;
+      return;
+  }
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(y, 0);
+#else
+  BX_INFO(("FSIN: required FPU, configure --enable-fpu"));
+#endif
+}
+
+/* D9 FF */
+void BX_CPU_C::FCOS(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  clear_C1();
+  clear_C2();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  softfloat_status_word_t status = 
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 y = BX_READ_FPU_REG(0);
+  if (fcos(y, status) == -1)
+  {
+      FPU_PARTIAL_STATUS |= FPU_SW_C2;
+      return;
+  }
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(y, 0);
+#else
+  BX_INFO(("FCOS: required FPU, configure --enable-fpu"));
 #endif
 }

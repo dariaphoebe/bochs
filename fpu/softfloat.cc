@@ -27,6 +27,8 @@ the work is derivative, and (2) the source code includes prominent notice with
 these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
+#define FLOAT128
+
 /*============================================================================
  * Adapted for Bochs (x86 achitecture simulator) by
  *            Stanislav Shwartsman (gate at fidonet.org.il)
@@ -2766,6 +2768,396 @@ floatx80 floatx80_sqrt(floatx80 a, float_status_t &status)
     return
         roundAndPackFloatx80(get_float_rounding_precision(status), 
             0, zExp, zSig0, zSig1, status);
+}
+
+#endif
+
+#ifdef FLOAT128
+
+/*----------------------------------------------------------------------------
+| Returns the result of converting the extended double-precision floating-
+| point value `a' to the quadruple-precision floating-point format. The
+| conversion is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*/
+
+float128 floatx80_to_float128(floatx80 a, float_status_t &status)
+{
+    Bit64u zSig0, zSig1;
+
+    Bit64u aSig = extractFloatx80Frac(a);
+    Bit32s aExp = extractFloatx80Exp(a);
+    int   aSign = extractFloatx80Sign(a);
+
+    if ((aExp == 0x7FFF) && (Bit64u) (aSig<<1))
+        return commonNaNToFloat128(floatx80ToCommonNaN(a, status));
+
+    shift128Right(aSig<<1, 0, 16, &zSig0, &zSig1);
+    return packFloat128(aSign, aExp, zSig0, zSig1);
+}
+
+/*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point
+| value `a' to the extended double-precision floating-point format.  The
+| conversion is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*/
+
+floatx80 float128_to_floatx80(float128 a, float_status_t &status)
+{
+    Bit32s aExp;
+    Bit64u aSig0, aSig1;
+
+    aSig1 = extractFloat128Frac1(a);
+    aSig0 = extractFloat128Frac0(a);
+    aExp = extractFloat128Exp(a);
+    int aSign = extractFloat128Sign(a);
+
+    if (aExp == 0x7FFF) {
+        if (aSig0 | aSig1) 
+            return commonNaNToFloatx80(float128ToCommonNaN(a, status));
+
+        return packFloatx80(aSign, 0x7FFF, BX_CONST64(0x8000000000000000));
+    }
+
+    if (aExp == 0) {
+        if ((aSig0 | aSig1) == 0) return packFloatx80(aSign, 0, 0);
+        normalizeFloat128Subnormal(aSig0, aSig1, &aExp, &aSig0, &aSig1);
+    }
+    else aSig0 |= BX_CONST64(0x0001000000000000);
+
+    shortShift128Left(aSig0, aSig1, 15, &aSig0, &aSig1);
+    return roundAndPackFloatx80(80, aSign, aExp, aSig0, aSig1, status);
+}
+
+/*----------------------------------------------------------------------------
+| Returns the result of adding the absolute values of the quadruple-precision
+| floating-point values `a' and `b'. If `zSign' is 1, the sum is negated
+| before being returned. `zSign' is ignored if the result is a NaN.
+| The addition is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*/
+
+static float128 addFloat128Sigs(float128 a, float128 b, int zSign, float_status_t &status)
+{
+    Bit32s aExp, bExp, zExp;
+    Bit64u aSig0, aSig1, bSig0, bSig1, zSig0, zSig1, zSig2;
+    Bit32s expDiff;
+
+    aSig1 = extractFloat128Frac1(a);
+    aSig0 = extractFloat128Frac0(a);
+    aExp = extractFloat128Exp(a);
+    bSig1 = extractFloat128Frac1(b);
+    bSig0 = extractFloat128Frac0(b);
+    bExp = extractFloat128Exp(b);
+    expDiff = aExp - bExp;
+    if (0 < expDiff) {
+        if (aExp == 0x7FFF) {
+            if (aSig0 | aSig1) return propagateFloat128NaN(a, b, status);
+            return a;
+        }
+        if (bExp == 0) --expDiff;
+        else {
+            bSig0 |= BX_CONST64(0x0001000000000000);
+        }
+        shift128ExtraRightJamming(
+            bSig0, bSig1, 0, expDiff, &bSig0, &bSig1, &zSig2);
+        zExp = aExp;
+    }
+    else if (expDiff < 0) {
+        if (bExp == 0x7FFF) {
+            if (bSig0 | bSig1) return propagateFloat128NaN(a, b, status);
+            return packFloat128(zSign, 0x7FFF, 0, 0);
+        }
+        if (aExp == 0) ++expDiff;
+        else {
+            aSig0 |= BX_CONST64(0x0001000000000000);
+        }
+        shift128ExtraRightJamming(
+            aSig0, aSig1, 0, - expDiff, &aSig0, &aSig1, &zSig2);
+        zExp = bExp;
+    }
+    else {
+        if (aExp == 0x7FFF) {
+            if (aSig0 | aSig1 | bSig0 | bSig1) 
+                return propagateFloat128NaN(a, b, status);
+
+            return a;
+        }
+        add128(aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1);
+        if (aExp == 0) return packFloat128(zSign, 0, zSig0, zSig1);
+        zSig2 = 0;
+        zSig0 |= BX_CONST64(0x0002000000000000);
+        zExp = aExp;
+        goto shiftRight1;
+    }
+    aSig0 |= BX_CONST64(0x0001000000000000);
+    add128(aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1);
+    --zExp;
+    if (zSig0 < BX_CONST64(0x0002000000000000)) goto roundAndPack;
+    ++zExp;
+ shiftRight1:
+    shift128ExtraRightJamming(zSig0, zSig1, zSig2, 1, &zSig0, &zSig1, &zSig2);
+ roundAndPack:
+    return roundAndPackFloat128(zSign, zExp, zSig0, zSig1, zSig2, status);
+}
+
+/*----------------------------------------------------------------------------
+| Returns the result of subtracting the absolute values of the quadruple-
+| precision floating-point values `a' and `b'.  If `zSign' is 1, the
+| difference is negated before being returned.  `zSign' is ignored if the
+| result is a NaN.  The subtraction is performed according to the IEC/IEEE
+| Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*/
+
+static float128 subFloat128Sigs(float128 a, float128 b, int zSign, float_status_t &status)
+{
+    Bit32s aExp, bExp, zExp;
+    Bit64u aSig0, aSig1, bSig0, bSig1, zSig0, zSig1;
+    Bit32s expDiff;
+
+    aSig1 = extractFloat128Frac1(a);
+    aSig0 = extractFloat128Frac0(a);
+    aExp = extractFloat128Exp(a);
+    bSig1 = extractFloat128Frac1(b);
+    bSig0 = extractFloat128Frac0(b);
+    bExp = extractFloat128Exp(b);
+
+    expDiff = aExp - bExp;
+    shortShift128Left(aSig0, aSig1, 14, &aSig0, &aSig1);
+    shortShift128Left(bSig0, bSig1, 14, &bSig0, &bSig1);
+    if (0 < expDiff) goto aExpBigger;
+    if (expDiff < 0) goto bExpBigger;
+    if (aExp == 0x7FFF) {
+        if (aSig0 | aSig1 | bSig0 | bSig1)
+            return propagateFloat128NaN(a, b, status);
+
+        float_raise(status, float_flag_invalid);
+        return float128_default_nan;
+    }
+    if (aExp == 0) {
+        aExp = 1;
+        bExp = 1;
+    }
+    if (bSig0 < aSig0) goto aBigger;
+    if (aSig0 < bSig0) goto bBigger;
+    if (bSig1 < aSig1) goto aBigger;
+    if (aSig1 < bSig1) goto bBigger;
+    return packFloat128(0, 0, 0, 0);
+
+ bExpBigger:
+    if (bExp == 0x7FFF) {
+        if (bSig0 | bSig1) return propagateFloat128NaN(a, b, status);
+        return packFloat128(zSign ^ 1, 0x7FFF, 0, 0);
+    }
+    if (aExp == 0) ++expDiff;
+    else {
+        aSig0 |= BX_CONST64(0x4000000000000000);
+    }
+    shift128RightJamming(aSig0, aSig1, - expDiff, &aSig0, &aSig1);
+    bSig0 |= BX_CONST64(0x4000000000000000);
+ bBigger:
+    sub128(bSig0, bSig1, aSig0, aSig1, &zSig0, &zSig1);
+    zExp = bExp;
+    zSign ^= 1;
+    goto normalizeRoundAndPack;
+ aExpBigger:
+    if (aExp == 0x7FFF) {
+        if (aSig0 | aSig1) return propagateFloat128NaN(a, b, status);
+        return a;
+    }
+    if (bExp == 0) --expDiff;
+    else {
+        bSig0 |= BX_CONST64(0x4000000000000000);
+    }
+    shift128RightJamming(bSig0, bSig1, expDiff, &bSig0, &bSig1);
+    aSig0 |= BX_CONST64(0x4000000000000000);
+ aBigger:
+    sub128(aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1);
+    zExp = aExp;
+ normalizeRoundAndPack:
+    --zExp;
+    return normalizeRoundAndPackFloat128(zSign, zExp - 14, zSig0, zSig1, status);
+}
+
+/*----------------------------------------------------------------------------
+| Returns the result of adding the quadruple-precision floating-point values
+| `a' and `b'.  The operation is performed according to the IEC/IEEE Standard
+| for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*/
+
+float128 float128_add(float128 a, float128 b, float_status_t &status)
+{
+    int aSign = extractFloat128Sign(a);
+    int bSign = extractFloat128Sign(b);
+
+    if (aSign == bSign) {
+        return addFloat128Sigs(a, b, aSign, status);
+    }
+    else {
+        return subFloat128Sigs(a, b, aSign, status);
+    }
+}
+
+/*----------------------------------------------------------------------------
+| Returns the result of subtracting the quadruple-precision floating-point
+| values `a' and `b'.  The operation is performed according to the IEC/IEEE
+| Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*/
+
+float128 float128_sub(float128 a, float128 b, float_status_t &status)
+{
+    int aSign = extractFloat128Sign(a);
+    int bSign = extractFloat128Sign(b);
+
+    if (aSign == bSign) {
+        return subFloat128Sigs(a, b, aSign, status);
+    }
+    else {
+        return addFloat128Sigs(a, b, aSign, status);
+    }
+}
+
+/*----------------------------------------------------------------------------
+| Returns the result of multiplying the quadruple-precision floating-point
+| values `a' and `b'.  The operation is performed according to the IEC/IEEE
+| Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*/
+
+float128 float128_mul(float128 a, float128 b, float_status_t &status)
+{
+    int aSign, bSign, zSign;
+    Bit32s aExp, bExp, zExp;
+    Bit64u aSig0, aSig1, bSig0, bSig1, zSig0, zSig1, zSig2, zSig3;
+
+    aSig1 = extractFloat128Frac1(a);
+    aSig0 = extractFloat128Frac0(a);
+    aExp = extractFloat128Exp(a);
+    aSign = extractFloat128Sign(a);
+    bSig1 = extractFloat128Frac1(b);
+    bSig0 = extractFloat128Frac0(b);
+    bExp = extractFloat128Exp(b);
+    bSign = extractFloat128Sign(b);
+
+    zSign = aSign ^ bSign;
+    if (aExp == 0x7FFF) {
+        if (   (aSig0 | aSig1)
+             || ((bExp == 0x7FFF) && (bSig0 | bSig1))) {
+            return propagateFloat128NaN(a, b, status);
+        }
+        if ((bExp | bSig0 | bSig1) == 0) goto invalid;
+        return packFloat128(zSign, 0x7FFF, 0, 0);
+    }
+    if (bExp == 0x7FFF) {
+        if (bSig0 | bSig1) return propagateFloat128NaN(a, b, status);
+        if ((aExp | aSig0 | aSig1) == 0) {
+ invalid:
+            float_raise(status, float_flag_invalid);
+            return float128_default_nan;
+        }
+        return packFloat128(zSign, 0x7FFF, 0, 0);
+    }
+    if (aExp == 0) {
+        if ((aSig0 | aSig1) == 0) return packFloat128(zSign, 0, 0, 0);
+        normalizeFloat128Subnormal(aSig0, aSig1, &aExp, &aSig0, &aSig1);
+    }
+    if (bExp == 0) {
+        if ((bSig0 | bSig1) == 0) return packFloat128(zSign, 0, 0, 0);
+        normalizeFloat128Subnormal(bSig0, bSig1, &bExp, &bSig0, &bSig1);
+    }
+    zExp = aExp + bExp - 0x4000;
+    aSig0 |= BX_CONST64(0x0001000000000000);
+    shortShift128Left(bSig0, bSig1, 16, &bSig0, &bSig1);
+    mul128To256(aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1, &zSig2, &zSig3);
+    add128(zSig0, zSig1, aSig0, aSig1, &zSig0, &zSig1);
+    zSig2 |= (zSig3 != 0);
+    if (BX_CONST64(0x0002000000000000) <= zSig0) {
+        shift128ExtraRightJamming(
+            zSig0, zSig1, zSig2, 1, &zSig0, &zSig1, &zSig2);
+        ++zExp;
+    }
+    return roundAndPackFloat128(zSign, zExp, zSig0, zSig1, zSig2, status);
+}
+
+/*----------------------------------------------------------------------------
+| Returns the result of dividing the quadruple-precision floating-point value
+| `a' by the corresponding value `b'.  The operation is performed according to
+| the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*/
+
+float128 float128_div(float128 a, float128 b, float_status_t &status)
+{
+    int aSign, bSign, zSign;
+    Bit32s aExp, bExp, zExp;
+    Bit64u aSig0, aSig1, bSig0, bSig1, zSig0, zSig1, zSig2;
+    Bit64u rem0, rem1, rem2, rem3, term0, term1, term2, term3;
+
+    aSig1 = extractFloat128Frac1(a);
+    aSig0 = extractFloat128Frac0(a);
+    aExp = extractFloat128Exp(a);
+    aSign = extractFloat128Sign(a);
+    bSig1 = extractFloat128Frac1(b);
+    bSig0 = extractFloat128Frac0(b);
+    bExp = extractFloat128Exp(b);
+    bSign = extractFloat128Sign(b);
+
+    zSign = aSign ^ bSign;
+    if (aExp == 0x7FFF) {
+        if (aSig0 | aSig1) return propagateFloat128NaN(a, b, status);
+        if (bExp == 0x7FFF) {
+            if (bSig0 | bSig1) return propagateFloat128NaN(a, b, status);
+            goto invalid;
+        }
+        return packFloat128(zSign, 0x7FFF, 0, 0);
+    }
+    if (bExp == 0x7FFF) {
+        if (bSig0 | bSig1) return propagateFloat128NaN(a, b, status);
+        return packFloat128(zSign, 0, 0, 0);
+    }
+    if (bExp == 0) {
+        if ((bSig0 | bSig1) == 0) {
+            if ((aExp | aSig0 | aSig1) == 0) {
+ invalid:
+                float_raise(status, float_flag_invalid);
+                return float128_default_nan;
+            }
+            float_raise(status, float_flag_divbyzero);
+            return packFloat128(zSign, 0x7FFF, 0, 0);
+        }
+        normalizeFloat128Subnormal(bSig0, bSig1, &bExp, &bSig0, &bSig1);
+    }
+    if (aExp == 0) {
+        if ((aSig0 | aSig1) == 0) return packFloat128(zSign, 0, 0, 0);
+        normalizeFloat128Subnormal(aSig0, aSig1, &aExp, &aSig0, &aSig1);
+    }
+    zExp = aExp - bExp + 0x3FFD;
+    shortShift128Left(
+        aSig0 | BX_CONST64(0x0001000000000000), aSig1, 15, &aSig0, &aSig1);
+    shortShift128Left(
+        bSig0 | BX_CONST64(0x0001000000000000), bSig1, 15, &bSig0, &bSig1);
+    if (le128(bSig0, bSig1, aSig0, aSig1)) {
+        shift128Right(aSig0, aSig1, 1, &aSig0, &aSig1);
+        ++zExp;
+    }
+    zSig0 = estimateDiv128To64(aSig0, aSig1, bSig0);
+    mul128By64To192(bSig0, bSig1, zSig0, &term0, &term1, &term2);
+    sub192(aSig0, aSig1, 0, term0, term1, term2, &rem0, &rem1, &rem2);
+    while ((Bit64s) rem0 < 0) {
+        --zSig0;
+        add192(rem0, rem1, rem2, 0, bSig0, bSig1, &rem0, &rem1, &rem2);
+    }
+    zSig1 = estimateDiv128To64(rem1, rem2, bSig0);
+    if ((zSig1 & 0x3FFF) <= 4) {
+        mul128By64To192(bSig0, bSig1, zSig1, &term1, &term2, &term3);
+        sub192(rem1, rem2, 0, term1, term2, term3, &rem1, &rem2, &rem3);
+        while ((Bit64s) rem1 < 0) {
+            --zSig1;
+            add192(rem1, rem2, rem3, 0, bSig0, bSig1, &rem1, &rem2, &rem3);
+        }
+        zSig1 |= ((rem1 | rem2 | rem3) != 0);
+    }
+    shift128ExtraRightJamming(zSig0, zSig1, 0, 15, &zSig0, &zSig1, &zSig2);
+    return roundAndPackFloat128(zSign, zExp, zSig0, zSig1, zSig2, status);
 }
 
 #endif

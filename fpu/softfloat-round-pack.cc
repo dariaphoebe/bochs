@@ -27,6 +27,8 @@ the work is derivative, and (2) the source code includes prominent notice with
 these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
+#define FLOAT128
+
 /*============================================================================
  * Adapted for Bochs (x86 achitecture simulator) by
  *            Stanislav Shwartsman (gate at fidonet.org.il)
@@ -278,7 +280,6 @@ void normalizeFloat64Subnormal(Bit64u aSig, Bit16s *zExpPtr, Bit64u *zSigPtr)
 float64 roundAndPackFloat64(int zSign, Bit16s zExp, Bit64u zSig, float_status_t &status)
 {
     Bit16s roundIncrement, roundBits;
-
     int roundingMode = get_float_rounding_mode(status);
     int roundNearestEven = (roundingMode == float_round_nearest_even);
     roundIncrement = 0x200;
@@ -540,6 +541,137 @@ floatx80 normalizeRoundAndPackFloatx80(int roundingPrecision,
     zExp -= shiftCount;
     return
         roundAndPackFloatx80(roundingPrecision, zSign, zExp, zSig0, zSig1, status);
+}
+
+#endif
+
+#ifdef FLOAT128
+
+/*----------------------------------------------------------------------------
+| Normalizes the subnormal quadruple-precision floating-point value
+| represented by the denormalized significand formed by the concatenation of
+| `aSig0' and `aSig1'.  The normalized exponent is stored at the location
+| pointed to by `zExpPtr'.  The most significant 49 bits of the normalized
+| significand are stored at the location pointed to by `zSig0Ptr', and the
+| least significant 64 bits of the normalized significand are stored at the
+| location pointed to by `zSig1Ptr'.
+*----------------------------------------------------------------------------*/
+
+void normalizeFloat128Subnormal(
+     Bit64u aSig0, Bit64u aSig1, Bit32s *zExpPtr, Bit64u *zSig0Ptr, Bit64u *zSig1Ptr)
+{
+    int shiftCount;
+
+    if (aSig0 == 0) {
+        shiftCount = countLeadingZeros64(aSig1) - 15;
+        if (shiftCount < 0) {
+            *zSig0Ptr = aSig1 >>(-shiftCount);
+            *zSig1Ptr = aSig1 << (shiftCount & 63);
+        }
+        else {
+            *zSig0Ptr = aSig1 << shiftCount;
+            *zSig1Ptr = 0;
+        }
+        *zExpPtr = - shiftCount - 63;
+    }
+    else {
+        shiftCount = countLeadingZeros64(aSig0) - 15;
+        shortShift128Left(aSig0, aSig1, shiftCount, zSig0Ptr, zSig1Ptr);
+        *zExpPtr = 1 - shiftCount;
+    }
+}
+
+/*----------------------------------------------------------------------------
+| Takes an abstract floating-point value having sign `zSign', exponent `zExp',
+| and extended significand formed by the concatenation of `zSig0', `zSig1',
+| and `zSig2', and returns the proper quadruple-precision floating-point value
+| corresponding to the abstract input.  Ordinarily, the abstract value is
+| simply rounded and packed into the quadruple-precision format, with the
+| inexact exception raised if the abstract input cannot be represented
+| exactly.  However, if the abstract value is too large, the overflow and
+| inexact exceptions are raised and an infinity or maximal finite value is
+| returned.  If the abstract value is too small, the input value is rounded to
+| a subnormal number, and the underflow and inexact exceptions are raised if
+| the abstract input cannot be represented exactly as a subnormal quadruple-
+| precision floating-point number.
+|     The input significand must be normalized or smaller.  If the input
+| significand is not normalized, `zExp' must be 0; in that case, the result
+| returned is a subnormal number, and it must not require rounding.  In the
+| usual case that the input significand is normalized, `zExp' must be 1 less
+| than the ``true'' floating-point exponent.  The handling of underflow and
+| overflow follows the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*/
+
+float128 roundAndPackFloat128(
+     int zSign, Bit32s zExp, Bit64u zSig0, Bit64u zSig1, Bit64u zSig2, float_status_t &status)
+{
+    int increment = ((Bit64s) zSig2 < 0);
+    if (0x7FFD <= (Bit32u) zExp) {
+        if ((0x7FFD < zExp)
+             || ((zExp == 0x7FFD)
+                  && eq128(BX_CONST64(0x0001FFFFFFFFFFFF),
+                         BX_CONST64(0xFFFFFFFFFFFFFFFF), zSig0, zSig1)
+                  && increment)) 
+        {
+            float_raise(status, float_flag_overflow | float_flag_inexact);
+            return packFloat128(zSign, 0x7FFF, 0, 0);
+        }
+        if (zExp < 0) {
+            int isTiny = (zExp < -1)
+                || ! increment
+                || lt128(zSig0, zSig1,
+                       BX_CONST64(0x0001FFFFFFFFFFFF),
+                       BX_CONST64(0xFFFFFFFFFFFFFFFF)
+                  );
+            shift128ExtraRightJamming(
+                zSig0, zSig1, zSig2, -zExp, &zSig0, &zSig1, &zSig2);
+            zExp = 0;
+            if (isTiny && zSig2) float_raise(status, float_flag_underflow);
+            increment = ((Bit64s) zSig2 < 0);
+        }
+    }
+    if (zSig2) float_raise(status, float_flag_inexact);
+    if (increment) {
+        add128(zSig0, zSig1, 0, 1, &zSig0, &zSig1);
+        zSig1 &= ~((zSig2 + zSig2 == 0) & 1);
+    }
+    else {
+        if ((zSig0 | zSig1) == 0) zExp = 0;
+    }
+    return packFloat128(zSign, zExp, zSig0, zSig1);
+}
+
+/*----------------------------------------------------------------------------
+| Takes an abstract floating-point value having sign `zSign', exponent `zExp',
+| and significand formed by the concatenation of `zSig0' and `zSig1', and
+| returns the proper quadruple-precision floating-point value corresponding
+| to the abstract input.  This routine is just like `roundAndPackFloat128'
+| except that the input significand has fewer bits and does not have to be
+| normalized.  In all cases, `zExp' must be 1 less than the ``true'' floating-
+| point exponent.
+*----------------------------------------------------------------------------*/
+
+float128 normalizeRoundAndPackFloat128(
+     int zSign, Bit32s zExp, Bit64u zSig0, Bit64u zSig1, float_status_t &status)
+{
+    Bit64u zSig2;
+
+    if (zSig0 == 0) {
+        zSig0 = zSig1;
+        zSig1 = 0;
+        zExp -= 64;
+    }
+    int shiftCount = countLeadingZeros64(zSig0) - 15;
+    if (0 <= shiftCount) {
+        zSig2 = 0;
+        shortShift128Left(zSig0, zSig1, shiftCount, &zSig0, &zSig1);
+    }
+    else {
+        shift128ExtraRightJamming(
+            zSig0, zSig1, 0, -shiftCount, &zSig0, &zSig1, &zSig2);
+    }
+    zExp -= shiftCount;
+    return roundAndPackFloat128(zSign, zExp, zSig0, zSig1, zSig2, status);
 }
 
 #endif

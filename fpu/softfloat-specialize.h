@@ -316,7 +316,6 @@ BX_CPP_INLINE float64 propagateFloat64NaN(float64 a, float_status_t &status)
 BX_CPP_INLINE float64 propagateFloat64NaN(float64 a, float64 b, float_status_t &status)
 {
     int aIsNaN, aIsSignalingNaN, bIsNaN, bIsSignalingNaN;
-
     aIsNaN = float64_is_nan(a);
     aIsSignalingNaN = float64_is_signaling_nan(a);
     bIsNaN = float64_is_nan(b);
@@ -487,7 +486,6 @@ BX_CPP_INLINE floatx80 propagateFloatx80NaN(floatx80 a, float_status_t &status)
 BX_CPP_INLINE floatx80 propagateFloatx80NaN(floatx80 a, floatx80 b, float_status_t &status)
 {
     int aIsNaN, aIsSignalingNaN, bIsNaN, bIsSignalingNaN;
-
     aIsNaN = floatx80_is_nan(a);
     aIsSignalingNaN = floatx80_is_signaling_nan(a);
     bIsNaN = floatx80_is_nan(b);
@@ -520,6 +518,15 @@ static const floatx80 floatx80_default_nan =
 #endif /* FLOATX80 */
 
 #ifdef FLOAT128
+
+#include "softfloat-macros.h"
+
+/*----------------------------------------------------------------------------
+| The pattern for a default generated quadruple-precision NaN. The `high' and
+| `low' values hold the most- and least-significant bits, respectively.
+*----------------------------------------------------------------------------*/
+#define float128_default_nan_hi BX_CONST64(0xFFFF800000000000)
+#define float128_default_nan_lo BX_CONST64(0x0000000000000000)
 
 #define float128_exp extractFloat128Exp
 
@@ -617,6 +624,72 @@ BX_CPP_INLINE int float128_is_signaling_nan(float128 a)
     return (((a.hi>>47) & 0xFFFF) == 0xFFFE)
         && (a.lo || (a.hi & BX_CONST64(0x00007FFFFFFFFFFF)));
 }
+
+/*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point NaN
+| `a' to the canonical NaN format.  If `a' is a signaling NaN, the invalid
+| exception is raised.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE commonNaNT float128ToCommonNaN(float128 a, float_status_t &status)
+{
+    commonNaNT z;
+    if (float128_is_signaling_nan(a)) float_raise(status, float_flag_invalid);
+    z.sign = a.hi>>63;
+    shortShift128Left(a.hi, a.lo, 16, &z.hi, &z.lo);
+    return z;
+}
+
+/*----------------------------------------------------------------------------
+| Returns the result of converting the canonical NaN `a' to the quadruple-
+| precision floating-point format.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE float128 commonNaNToFloat128(commonNaNT a)
+{
+    float128 z;
+    shift128Right(a.hi, a.lo, 16, &z.hi, &z.lo);
+    z.hi |= (((Bit64u) a.sign)<<63) | BX_CONST64(0x7FFF800000000000);
+    return z;
+}
+
+/*----------------------------------------------------------------------------
+| Takes two quadruple-precision floating-point values `a' and `b', one of
+| which is a NaN, and returns the appropriate NaN result.  If either `a' or
+| `b' is a signaling NaN, the invalid exception is raised.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE float128 propagateFloat128NaN(float128 a, float128 b, float_status_t &status)
+{
+    int aIsNaN, aIsSignalingNaN, bIsNaN, bIsSignalingNaN;
+    aIsNaN = float128_is_nan(a);
+    aIsSignalingNaN = float128_is_signaling_nan(a);
+    bIsNaN = float128_is_nan(b);
+    bIsSignalingNaN = float128_is_signaling_nan(b);
+    a.hi |= BX_CONST64(0x0000800000000000);
+    b.hi |= BX_CONST64(0x0000800000000000);
+    if (aIsSignalingNaN | bIsSignalingNaN) float_raise(status, float_flag_invalid);
+    if (aIsSignalingNaN) {
+        if (bIsSignalingNaN) goto returnLargerSignificand;
+        return bIsNaN ? b : a;
+    }
+    else if (aIsNaN) {
+        if (bIsSignalingNaN | !bIsNaN) return a;
+ returnLargerSignificand:
+        if (lt128(a.hi<<1, a.lo, b.hi<<1, b.lo)) return b;
+        if (lt128(b.hi<<1, b.lo, a.hi<<1, a.lo)) return a;
+        return (a.hi < b.hi) ? a : b;
+    }
+    else {
+        return b;
+    }
+}
+
+/*----------------------------------------------------------------------------
+| The pattern for a default generated quadruple-precision NaN.
+*----------------------------------------------------------------------------*/
+static const float128 float128_default_nan = 
+    packFloat128(float128_default_nan_hi, float128_default_nan_lo);
 
 #endif /* FLOAT128 */
 

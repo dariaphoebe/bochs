@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig_c.c,v 1.1.2.3 2004/05/25 18:38:34 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.10.7 2004/05/28 11:48:19 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |

@@ -23,8 +23,8 @@ these four paragraphs for those parts of this code that are retained.
  *            Stanislav Shwartsman (gate at fidonet.org.il)
  * ==========================================================================*/ 
 
-#ifndef SOFTFLOATX80_EXTENSIONS_H
-#define SOFTFLOATX80_EXTENSIONS_H
+#ifndef _SOFTFLOATX80_EXTENSIONS_H_
+#define _SOFTFLOATX80_EXTENSIONS_H_
 
 #include "softfloat.h"
 #include "softfloat-specialize.h"
@@ -45,6 +45,16 @@ float_class_t floatx80_class(floatx80);
 floatx80 floatx80_scale(floatx80 a, floatx80 b, float_status_t &status);
 floatx80 floatx80_remainder(floatx80 a, floatx80 b, Bit64u &q, float_status_t &status);
 floatx80 floatx80_ieee754_remainder(floatx80 a, floatx80 b, Bit64u &q, float_status_t &status);
+
+/*----------------------------------------------------------------------------
+| Software IEC/IEEE extended double-precision trigonometric functions 
+| approximations.
+*----------------------------------------------------------------------------*/
+
+int fsincos(floatx80 a, floatx80 *sin_a, floatx80 *cos_a, float_status_t &status);
+int fsin(floatx80 &a, float_status_t &status);
+int fcos(floatx80 &a, float_status_t &status);
+int ftan(floatx80 &a, float_status_t &status);
 
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE extended double-precision compare.
@@ -82,5 +92,6 @@ BX_CPP_INLINE floatx80& floatx80_chs(floatx80 &reg)
 *----------------------------------------------------------------------------*/
 
 extern const floatx80 Const_Z;
+extern const floatx80 Const_1;
 
 #endif
