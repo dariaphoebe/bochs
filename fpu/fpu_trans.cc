@@ -27,6 +27,10 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
+#if BX_SUPPORT_FPU
+#include "softfloatx80.h"
+#endif
+
 extern "C"
 {
   void fsin   (FPU_REG *st0_ptr, Bit8u st0_tag);
@@ -40,7 +44,6 @@ extern "C"
   void f2xm1  (FPU_REG *st0_ptr, Bit8u st0_tag);
   void fyl2x  (FPU_REG *st0_ptr, Bit8u st0_tag);
   void fscale (FPU_REG *st0_ptr, Bit8u st0_tag);
-  void fxtract(FPU_REG *st0_ptr, Bit8u st0_tag);
 }
 
 extern void FPU_initalize_i387(struct i387_t *the_i387);
@@ -196,10 +199,34 @@ void BX_CPU_C::FXTRACT(bxInstruction_c *i)
 
   clear_C1();
 
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+  if (! IS_TAG_EMPTY(-1))
+  {
+      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Overflow);
 
-  fxtract(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+      /* The masked response */
+      if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
+      {
+          BX_WRITE_FPU_REGISTER_AND_TAG(Const_QNaN, FPU_Tag_Special, 0);
+          BX_CPU_THIS_PTR the_i387.FPU_push();
+          BX_WRITE_FPU_REGISTER_AND_TAG(Const_QNaN, FPU_Tag_Special, 0);
+      }
+
+      return; 
+  }
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 a = BX_READ_FPU_REG(0);
+  /* floatx80_extract successfully handle unsupported encodings */
+  floatx80 b = floatx80_extract(a, status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(b, 0);	// exponent
+  BX_CPU_THIS_PTR the_i387.FPU_push();
+  BX_WRITE_FPU_REG(a, 0);	// fraction
 #else
   BX_INFO(("FXTRACT: required FPU, configure --enable-fpu"));
 #endif

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.8.4 2004/03/26 21:36:09 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.8.5 2004/03/27 09:35:35 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -170,38 +170,6 @@ static int trig_arg(FPU_REG *st0_ptr, int flags)
 
   return (q & 3) | (flags & FCOS);
 }
-
-
-/* Convert a s32 to register */
-static void convert_l2reg(s32 const *arg, int deststnr)
-{
-  int tag;
-  s32 num = *arg;
-  u_char sign;
-  FPU_REG *dest = &st(deststnr);
-
-  if (num == 0)
-    {
-      FPU_copy_to_regi(&CONST_Z, TAG_Zero, deststnr);
-      return;
-    }
-
-  if (num > 0)
-    { sign = SIGN_POS; }
-  else
-    { num = -num; sign = SIGN_NEG; }
-
-  dest->sigh = num;
-  dest->sigl = 0;
-  setexponent16(dest, 31);
-  tag = FPU_normalize_nuo(dest,
-                         EXTENDED_Ebias);  /* No underflow or overflow
-                                              is possible */
-  FPU_settagi(deststnr, tag);
-  setsign(dest, sign);
-  return;
-}
-
 
 static void single_arg_error(FPU_REG *st0_ptr, u_char st0_tag)
 {
@@ -401,100 +369,6 @@ void fptan(FPU_REG *st0_ptr, u_char st0_tag)
     }
 
   single_arg_2_error(st0_ptr, st0_tag);
-}
-
-
-void fxtract(FPU_REG *st0_ptr, u_char st0_tag)
-{
-  FPU_REG *st_new_ptr;
-  u_char sign;
-  register FPU_REG *st1_ptr = st0_ptr;  /* anticipate */
-
-  if (FPU_stackoverflow(&st_new_ptr))
-    {  FPU_stack_overflow(); 
-       return; 
-    }
-
-  clear_C1();
-
-  if (st0_tag == TAG_Valid)
-    {
-      s32 e;
-
-      FPU_push();
-      sign = getsign(st1_ptr);
-      reg_copy(st1_ptr, st_new_ptr);
-      setexponent16(st_new_ptr, exponent(st_new_ptr));
-
-    denormal_arg:
-
-      e = exponent16(st_new_ptr);
-      convert_l2reg(&e, 1);
-      setexponentpos(st_new_ptr, 0);
-      setsign(st_new_ptr, sign);
-      FPU_settag0(TAG_Valid);       /* Needed if arg was a denormal */
-      return;
-    }
-  else if (st0_tag == TAG_Zero)
-    {
-      sign = getsign(st0_ptr);
-
-      if (FPU_divide_by_zero(0, SIGN_NEG) < 0)
-	return;
-
-      FPU_push();
-      FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
-      setsign(st_new_ptr, sign);
-      return;
-    }
-
-  if (st0_tag == TAG_Special)
-    st0_tag = FPU_Special(st0_ptr);
-
-  if (st0_tag == TW_Denormal)
-    {
-      if (denormal_operand() < 0)
-	return;
-
-      FPU_push();
-      sign = getsign(st1_ptr);
-      FPU_to_exp16(st1_ptr, st_new_ptr);
-      goto denormal_arg;
-    }
-  else if (st0_tag == TW_Infinity)
-    {
-      sign = getsign(st0_ptr);
-      setpositive(st0_ptr);
-      FPU_push();
-      FPU_copy_to_reg0(&CONST_INF, TAG_Special);
-      setsign(st_new_ptr, sign);
-      return;
-    }
-  else if (st0_tag == TW_NaN)
-    {
-      if (real_1op_NaN(st0_ptr) < 0)
-	return;
-
-      FPU_push();
-      FPU_copy_to_reg0(st0_ptr, TAG_Special);
-      return;
-    }
-  else if (st0_tag == TAG_Empty)
-    {
-      /* Is this the correct behaviour? */
-      if (FPU_control_word & EX_Invalid)
-	{
-	  FPU_stack_underflow();
-	  FPU_push();
-	  FPU_stack_underflow();
-	}
-      else
-	EXCEPTION(EX_StackUnder);
-    }
-#ifdef PARANOID
-  else
-    INTERNAL(0x119);
-#endif /* PARANOID */
 }
 
 int fsin(FPU_REG *st0_ptr, u_char tag)

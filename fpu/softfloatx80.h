@@ -46,7 +46,7 @@ Bit16s floatx80_to_int16_round_to_zero(floatx80, float_status_t &status);
 | Software IEC/IEEE extended double-precision operations.
 *----------------------------------------------------------------------------*/
 
-floatx80 float80_extract(floatx80 &a, float_status_t &status);
+floatx80 floatx80_extract(floatx80 &a, float_status_t &status);
 float_class_t floatx80_class(floatx80);
 
 /*----------------------------------------------------------------------------
@@ -83,5 +83,17 @@ BX_CPP_INLINE floatx80& floatx80_chs(floatx80 &reg)
 /*-----------------------------------------------------------------------------
 | Commonly used extended double-precision floating-point constants.
 *----------------------------------------------------------------------------*/
+
+extern const floatx80 Const_QNaN;
+extern const floatx80 Const_Z;
+extern const floatx80 Const_1;
+extern const floatx80 Const_L2T;
+extern const floatx80 Const_L2E;
+extern const floatx80 Const_PI;
+extern const floatx80 Const_PI2;
+extern const floatx80 Const_PI4;
+extern const floatx80 Const_LG2;
+extern const floatx80 Const_LN2;
+extern const floatx80 Const_INF;
 
 #endif
