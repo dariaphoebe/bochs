@@ -1,4 +1,4 @@
-//  Copyright (C) 2001  MandrakeSoft S.A.
+//  Copyright (C) 2000  MandrakeSoft S.A.
 //
 //    MandrakeSoft S.A.
 //    43, rue d'Aboukir
@@ -23,6 +23,11 @@
 
 extern "C" {
 #include <signal.h>
+#ifdef USE_READLINE
+#include <stdio.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+#endif
 }
 
 #include "bochs.h"
@@ -365,7 +370,6 @@ process_sim2:
   return(0); // keep compiler happy
 }
 
-
   void
 bx_dbg_usage(void)
 {
@@ -425,7 +429,6 @@ bx_dbg_user_input_loop(void)
     }
 }
 
-
   void
 bx_get_command(void)
 {
@@ -433,12 +436,31 @@ bx_get_command(void)
 
   bx_infile_stack[bx_infile_stack_index].lineno++;
 
+  char prompt[256];
   if (bx_infile_stack_index == 0) {
-    fprintf(stderr, "<bochs:%d> ", bx_infile_stack[bx_infile_stack_index].lineno);
+    sprintf(prompt, "<bochs:%d> ", bx_infile_stack[bx_infile_stack_index].lineno);
     }
-
+#ifdef USE_READLINE
+  if (bx_infile_stack_index == 0) {
+    // disable ^C handling during readline so that I get get to GDB
+    //set_ctrlc_handler (0);
+    charptr_ret = readline (prompt);
+    //set_ctrlc_handler (1);
+    if (strlen(charptr_ret) > 0) add_history (charptr_ret);
+    strcpy (tmp_buf, charptr_ret);
+    strcat (tmp_buf, "\n");
+    free (charptr_ret);
+    charptr_ret = &tmp_buf[0];
+  } else {
+    charptr_ret = fgets(tmp_buf, 512,
+      bx_infile_stack[bx_infile_stack_index].fp);
+  }
+#else
+  if (bx_infile_stack_index == 0)
+    fprintf (stderr, "%s", prompt);
   charptr_ret = fgets(tmp_buf, 512,
     bx_infile_stack[bx_infile_stack_index].fp);
+#endif
   if (charptr_ret == NULL) {
     // see if error was due to EOF condition
     if (feof(bx_infile_stack[bx_infile_stack_index].fp)) {
@@ -545,6 +567,7 @@ bxerror(char *s)
 bx_debug_ctrlc_handler(int signum)
 {
   UNUSED(signum);
+  bx_printf ("Ctrl-C detected in signal handler.\n");
 
   signal(SIGINT, bx_debug_ctrlc_handler);
   bx_guard.interrupt_requested = 1;
@@ -950,7 +973,7 @@ bx_dbg_print_string_command(Bit32u start_addr)
       for (int i = 0; ; i++) {
 	    Bit32u paddr;
 	    Bit32u paddr_valid;
-	    Bit8u buf[1];
+	    Bit8u buf[0];
 	    bx_dbg_callback[0].xlate_linear2phy(start_addr+i, &paddr, &paddr_valid);
 	    if (paddr_valid) {
 		  if (bx_dbg_callback[0].getphymem(paddr, 1, buf)) {
@@ -1137,33 +1160,6 @@ bx_dbg_print_stack_command(int nwords)
 	}
 }
 
-#if !BX_HAVE_HASH_MAP
-
-static char *BX_HAVE_HASH_MAP_ERR = "context not implemented because BX_HAVE_HASH_MAP=0\n";
-char*
-bx_dbg_symbolic_address(Bit32u context, Bit32u eip, Bit32u base)
-{
-  static Boolean first = true;
-  if (first) {
-    fprintf (stderr, BX_HAVE_HASH_MAP_ERR);
-    first = false;
-  }
-  return "unknown context";
-}
-
-void
-bx_dbg_symbol_command(char* filename, Boolean global, Bit32u offset)
-{
-  fprintf (stderr, BX_HAVE_HASH_MAP_ERR);
-}
-
-#else   /* if BX_HAVE_HASH_MAP == 1 */
-
-/* Haven't figured out how to port this code to OSF1 cxx compiler.
-   Until a more portable solution is found, at least make it easy
-   to disable the template code:  just set BX_HAVE_HASH_MAP=0
-   in config.h */
-
 #include <hash_map.h>
 #include <set.h>
 
@@ -1242,7 +1238,7 @@ bx_dbg_symbolic_address(Bit32u context, Bit32u eip, Bit32u base)
 {
       static char buf[80];
       if (base != 0) {
-	    snprintf (buf, 80, "non-zero base");
+	    snprintf(buf, 80, "non-zero base");
 	    return buf;
       }
       // Look up this context
@@ -1251,17 +1247,17 @@ bx_dbg_symbolic_address(Bit32u context, Bit32u eip, Bit32u base)
 	    // Try global context
 	    cntx = context_t::get_context(0);
 	    if (!cntx) {
-		  snprintf (buf, 80, "unknown context");
+		  snprintf(buf, 80, "unknown context");
 		  return buf;
 	    }
       }
 
       symbol_entry_t* entr = cntx->get_symbol_entry(eip);
       if (!entr) {
-	    snprintf (buf, 80, "no symbol");
+	    snprintf(buf, 80, "no symbol");
 	    return buf;
       }
-      snprintf (buf, 80, "%s+%x", entr->name, eip - entr->start);
+      snprintf(buf, 80, "%s+%x", entr->name, eip - entr->start);
       return buf;
 }
 
@@ -1314,7 +1310,6 @@ bx_dbg_symbol_command(char* filename, Boolean global, Bit32u offset)
 	    cntx->add_symbol(sym);
       }
 }
-#endif
 
 int num_write_watchpoints = 0;
 int num_read_watchpoints = 0;
@@ -1323,7 +1318,7 @@ Bit32u read_watchpoint[MAX_READ_WATCHPOINTS];
 Boolean watchpoint_continue = 0;
 
 void
-bx_dbg_watch(int read, Bit32u address)
+bx_dbg_watch(Boolean read, Bit32u address)
 {
       if (read == -1) {
 	    // print watch point info
@@ -1361,7 +1356,7 @@ bx_dbg_watch(int read, Bit32u address)
 }
 
 void
-bx_dbg_unwatch(int read, Bit32u address)
+bx_dbg_unwatch(Boolean read, Bit32u address)
 {
       if (read == -1) {
 	    // unwatch all
@@ -3058,7 +3053,7 @@ bx_dbg_maths_expression_command(char *expr)
         res = data1+data2;
         fprintf(stderr," %x + %x = %x ",data1,data2,res);
         data1 = res;
-  break;
+	break;
       case '-':  
         res = data1-data2;
         fprintf(stderr," %x - %x = %x ",data1,data2,res);
@@ -3259,6 +3254,45 @@ bx_dbg_info_dirty_command(void)
       page_tbl[i] = 0; // reset to clean
       }
     }
+}
+
+  void
+bx_dbg_info_control_regs_command(void)
+{
+  bx_dbg_cpu_t cpu;
+  bx_dbg_callback[0].get_cpu(&cpu);
+  int cr0 = cpu.cr0;
+  int cr2 = cpu.cr2;
+  int cr3 = cpu.cr3;
+  int cr4 = cpu.cr4;
+  fprintf (stderr, "CR0=0x%08x\n", cr0);
+  fprintf (stderr, "    PG=paging=%d\n", (cr0>>31) & 1);
+  fprintf (stderr, "    CD=cache disable=%d\n", (cr0>>30) & 1);
+  fprintf (stderr, "    NW=not write through=%d\n", (cr0>>29) & 1);
+  fprintf (stderr, "    AM=alignment mask=%d\n", (cr0>>18) & 1);
+  fprintf (stderr, "    WP=write protect=%d\n", (cr0>>16) & 1);
+  fprintf (stderr, "    NE=numeric error=%d\n", (cr0>>5) & 1);
+  fprintf (stderr, "    ET=extension type=%d\n", (cr0>>4) & 1);
+  fprintf (stderr, "    TS=task switched=%d\n", (cr0>>3) & 1);
+  fprintf (stderr, "    EM=FPU emulation=%d\n", (cr0>>2) & 1);
+  fprintf (stderr, "    MP=monitor coprocessor=%d\n", (cr0>>1) & 1);
+  fprintf (stderr, "    PE=protection enable=%d\n", (cr0>>0) & 1);
+  fprintf (stderr, "CR2=page fault linear address=0x%08x\n", cr2);
+  fprintf (stderr, "CR3=0x%08x\n", cr3);
+  fprintf (stderr, "    PCD=page-level cache disable=%d\n", (cr3>>4) & 1);
+  fprintf (stderr, "    PWT=page-level writes transparent=%d\n", (cr3>>3) & 1);
+  fprintf (stderr, "CR4=0x%08x\n", cr4);
+  fprintf (stderr, "    VME=virtual-8086 mode extensions=%d\n", (cr4>>0) & 1);
+  fprintf (stderr, "    PVI=protected-mode virtual interrupts=%d\n", (cr4>>1) & 1);
+  fprintf (stderr, "    TSD=time stamp disable=%d\n", (cr4>>2) & 1);
+  fprintf (stderr, "    DE=debugging extensions=%d\n", (cr4>>3) & 1);
+  fprintf (stderr, "    PSE=page size extensions=%d\n", (cr4>>4) & 1);
+  fprintf (stderr, "    PAE=physical address extension=%d\n", (cr4>>5) & 1);
+  fprintf (stderr, "    MCE=machine check enable=%d\n", (cr4>>6) & 1);
+  fprintf (stderr, "    PGE=page global enable=%d\n", (cr4>>7) & 1);
+  fprintf (stderr, "    PCE=performance-monitor counter enable=%d\n", (cr4>>8) & 1);
+  fprintf (stderr, "    OXFXSR=OS support for FXSAVE/FXRSTOR=%d\n", (cr4>>9) & 1);
+  fprintf (stderr, "    OSXMMEXCPT=OS support for unmasked SIMD FP exceptions=%d\n", (cr4>>10) & 1);
 }
 
 //
