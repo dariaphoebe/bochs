@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.cc,v 1.2.4.3 2003/04/06 17:29:49 bdenney Exp $
+// $Id: pcivga.cc,v 1.2.4.4 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003 Mike Nordell
@@ -105,7 +105,7 @@ bx_pcivga_c::init(void)
 void
 bx_pcivga_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_pcivga_c, BX_PCIVGA_THIS, "", list_p, 1);
+  BXRS_START(bx_pcivga_c, BX_PCIVGA_THIS, list_p, 1);
   {
     BXRS_STRUCT(struct s_t, s);
     {

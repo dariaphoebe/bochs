@@ -1,4 +1,4 @@
-$Id: SAVE_RESTORE_NOTES.txt,v 1.1.2.1 2003/05/03 16:19:40 bdenney Exp $
+$Id: SAVE_RESTORE_NOTES.txt,v 1.1.2.2 2003/11/22 08:07:05 slechta Exp $
 
 This file has become the to-do list for the save/restore branch.
 The CVS branch is called BRANCH_SAVE_RESTORE.
@@ -30,10 +30,10 @@ Notes:
   significant amounts of time tracking platform dependent bugs related
   to this kind of misuse of boolean vars.  At the moment, bx_bool is
   defined to Bit32u.  If it's defined to Bit8u, the CPU acts differently...
-- (Brian, ??% DONE) add device registration code for iodev/*
-- (Brian, ??% DONE) add device registration code for cpu/*
+- (Brian, 99% DONE, double check) add device registration code for iodev/*
+- (Brian, 99% DONE, double check) add device registration code for cpu/*
 - add device registration code for fpu/*
-- (Brian, ??% DONE) write read_state and write_state functions
+- (Brian, 99% DONE, deal with comments) write read_state and write_state functions
 - each device needs a method that is called before save and one that is
   called after restore, giving it a chance to open/close files or raw 
   devices, or whatever else it needs to do that can't be captured by
@@ -82,7 +82,7 @@ Notes:
   devicename.num.config.*.  And, move the creation of config parameters out of
   main and into the devices.  We can create the config params at the same time
   as we register all the shadow params.
-- test that save/restore/save produces identical files on each save.
+- (Brian, DONE) test that save/restore/save produces identical files on each save.
   All ok on 3/29 except for some differences in CPU unions.
 - test different configurations: multi processor, debugger, x86-64
 - (Bryce) create param to represent an array of byte data.  For large arrays of

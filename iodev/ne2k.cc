@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.cc,v 1.48.2.3 2003/04/06 17:29:49 bdenney Exp $
+// $Id: ne2k.cc,v 1.48.2.4 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -1262,7 +1262,7 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
 void
 bx_ne2k_c::init(void)
 {
-  BX_DEBUG(("Init $Id: ne2k.cc,v 1.48.2.3 2003/04/06 17:29:49 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: ne2k.cc,v 1.48.2.4 2003/11/22 08:07:07 slechta Exp $"));
 
 
   // Bring the register state into power-up state
@@ -1340,10 +1340,10 @@ bx_ne2k_c::init(void)
 void
 bx_ne2k_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_ne2k_c, BX_NE2K_THIS, "", list_p, 35);
+  BXRS_START(bx_ne2k_c, BX_NE2K_THIS, list_p, 35);
   {
     BXRS_OBJ(bx_ne2k_t, s);
-    // BJS TODO: implement eth_pktmover_c *ethdev
+#warning BJS TODO: implement eth_pktmover_c *ethdev for save/restore?
     // eth_pktmover_c *ethdev;
   }
   BXRS_END;
@@ -1622,7 +1622,7 @@ bx_ne2k_c::print_info (FILE *fp, int page, int reg, int brief)
 void
 bx_ne2k_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_ne2k_t, this, "ne2k register state", list_p, 20);
+  BXRS_START(bx_ne2k_t, this, list_p, 20);
   {
     
     BXRS_STRUCT_START_D(struct CR_t, CR, "Command Register - 00h read/write");

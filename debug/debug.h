@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: debug.h,v 1.16.6.2 2003/04/04 06:23:44 bdenney Exp $
+// $Id: debug.h,v 1.16.6.3 2003/11/22 08:07:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -309,7 +309,7 @@ typedef struct {
 
 // working information for each simulator to update when a guard
 // is reached (found)
-typedef struct bx_guard_found_t {
+typedef struct bx_guard_found_type {
   unsigned long guard_found;
   unsigned iaddr_index;
   bx_dbg_icount_t icount; // "number of completed instructions
@@ -319,28 +319,12 @@ typedef struct bx_guard_found_t {
   bx_bool is_32bit_code; // CS seg size at guard point
   bx_bool ctrl_c; // simulator stopped due to Ctrl-C request
 
-  void register_state(bx_param_c *list_p)
-  {
-#warning FIXME: registration for bx_guard_found_t wont compile
-#if 0
-    BXRS_START(struct bx_guard_found_t, this, "", list_p, 10);
-  BXRS_NUM   (unsigned long, guard_found);
-  BXRS_NUM   (unsigned, iaddr_index);
-  BXRS_NUM_D (bx_dbg_icount_t, icount, "number of completed instructions");
-  BXRS_NUM_D (Bit32u, cs, "cs:eip and linear addr of instruction at guard point");
-  BXRS_NUM   (Bit32u ,  eip);
-  BXRS_NUM   (Bit32u ,  laddr)
-  BXRS_BOOL_D(bx_bool, is_32bit_code, "CS seg size at guard point");
-  BXRS_BOOL_D(bx_bool, ctrl_c, "simulator stopped due to Ctrl-C request");
-    BXRS_END;
-#endif
-  }
+  void register_state(bx_param_c *list_p);
+
 } bx_guard_found_t;
 
+
 extern bx_guard_t        bx_guard;
-
-
-
 
 
 int  bx_dbg_main(int argc, char *argv[]);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: biosdev.cc,v 1.5.6.5 2003/04/06 17:29:48 bdenney Exp $
+// $Id: biosdev.cc,v 1.5.6.6 2003/11/22 08:07:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -114,7 +114,7 @@ bx_biosdev_c::init(void)
   void 
 bx_biosdev_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_biosdev_c, BX_BIOS_THIS, "bios rom", list_p, 4);
+  BXRS_START(bx_biosdev_c, BX_BIOS_THIS, list_p, 4);
   {
     BXRS_STRUCT_START(struct s_t, s);
     {

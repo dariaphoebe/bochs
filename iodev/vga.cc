@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.cc,v 1.62.2.2 2003/04/06 17:29:49 bdenney Exp $
+// $Id: vga.cc,v 1.62.2.3 2003/11/22 08:07:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -265,7 +265,7 @@ bx_vga_c::init(void)
 void
 bx_vga_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_vga_c, BX_VGA_THIS, "the vga", list_p, 20);
+  BXRS_START(bx_vga_c, BX_VGA_THIS, list_p, 20);
   {
     BXRS_STRUCT_START_D(struct s_t, s, "state registration");
     {

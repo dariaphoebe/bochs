@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pic.cc,v 1.30.6.3 2003/04/06 17:29:49 bdenney Exp $
+// $Id: pic.cc,v 1.30.6.4 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -133,7 +133,7 @@ bx_pic_c::init(void)
 void
 bx_pic_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_pic_c, BX_PIC_THIS, "programmable interrupt controller", list_p, 20);
+  BXRS_START(bx_pic_c, BX_PIC_THIS, list_p, 20);
   {
     BXRS_STRUCT_START(struct s_t, s);
     {
@@ -160,7 +160,7 @@ bx_pic_c::after_restore_state()
 void
 bx_pic_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_pic_t, this, "", list_p, 25);
+  BXRS_START(bx_pic_t, this, list_p, 25);
   {
     BXRS_NUM_D(Bit8u, single_PIC,        "0=cascaded PIC, 1=master only");
     BXRS_NUM_D(Bit8u, interrupt_offset,  "programmable interrupt vector offset");

@@ -91,7 +91,7 @@ struct bx_mxcsr_t {
   
   void register_state(bx_param_c *list_p)
   {
-    BXRS_START(bx_mxcsr_t, this, "", list_p, 5);
+    BXRS_START(bx_mxcsr_t, this, list_p, 5);
     BXRS_NUM_D(Bit32u, mxcsr, "define bitfields accessors later");
     BXRS_END;
   }

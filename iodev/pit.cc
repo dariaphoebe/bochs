@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit.cc,v 1.14.6.3 2003/04/06 17:29:49 bdenney Exp $
+// $Id: pit.cc,v 1.14.6.4 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -219,39 +219,36 @@ bx_pit_c::init( void )
 }
 
 void
-bx_pit_c::register_state(char *name, char *desc, bx_list_c *parent_p)
+bx_pit_c::register_state(bx_param_c *list_p)
 {
-  BX_REGISTER_LIST(pit_list_p, name, desc, parent_p, 20);
-  BX_REGISTER_LIST(s_list_p, "s", "", pit_list_p, 20);
+  BXRS_START(bx_pit_c, BX_PIT_THIS, list_p, 50);
+  BXRS_STRUCT_START(struct s_type, s);
   {
-    BX_REGISTER_ARRAY(array_p, i, iname, "timer", "pit timer array", s_list_p, 3)
-      {
-        BX_REGISTER_LIST(list_p, iname, "", array_p, 20,);
-        {
-          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].mode               ), "mode"               , "", list_p);
-          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].latch_mode         ), "latch_mode"         , "", list_p);
-          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].input_latch_value  ), "input_latch_value"  , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].input_latch_toggle ), "input_latch_toggle" , "", list_p);
-          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].output_latch_value ), "output_latch_value" , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].output_latch_toggle), "output_latch_toggle", "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].output_latch_full  ), "output_latch_full"  , "", list_p);
-          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].counter_max        ), "counter_max"        , "", list_p);
-          BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.timer[i].counter            ), "counter"            , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].bcd_mode           ), "bcd_mode"           , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].active             ), "active"             , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].GATE               ), "GATE"               , "", list_p);
-          BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.timer[i].OUT                ), "OUT"                , "", list_p);
-        }
-      }
-    BX_REGISTER_NUM (&(BX_PIT_THIS_PTR s.speaker_data_on)   , "speaker_data_on"   , "", s_list_p);
-    BX_REGISTER_BOOL(&(BX_PIT_THIS_PTR s.refresh_clock_div2), "refresh_clock_div2", "", s_list_p);
-    BX_REGISTER_ARRAY(array2_p, i, iname, "timer_handle", "pit timer_handle array", s_list_p, 3)
-      {
-        BX_REGISTER_NUM(&(BX_PIT_THIS_PTR s.timer_handle[i]), iname, "", array2_p);
-      }
-    
+    BXRS_ARRAY_START(bx_pit_t, timer, 3);
+    {
+      BXRS_NUM   (Bit8u  , mode);
+      BXRS_NUM   (Bit8u  , latch_mode);
+      BXRS_NUM   (Bit16u , input_latch_value);
+      BXRS_BOOL  (bx_bool, input_latch_toggle);
+      BXRS_NUM   (Bit16u , output_latch_value);
+      BXRS_BOOL  (bx_bool, output_latch_toggle);
+      BXRS_BOOL  (bx_bool, output_latch_full);
+      BXRS_NUM   (Bit16u , counter_max);
+      BXRS_NUM   (Bit16u , counter);
+      BXRS_BOOL  (bx_bool, bcd_mode);
+      BXRS_BOOL  (bx_bool, active);
+      BXRS_BOOL_D(bx_bool, GATE, "GATE input pin");
+      BXRS_BOOL_D(bx_bool, OUT, "OUT output pin");
+    }
+    BXRS_ARRAY_END;
+    BXRS_NUM(Bit8u, speaker_data_on);
+    BXRS_BOOL(refresh_clock_div2);
+    BXRS_ARRAY_NUM(int, timer_handle, 3);
+
   }
-}
+  BXRS_STRUCT_END;
+  BXRS_END;
+}  
 
 void
 bx_pit_c::before_save_state()

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.cc,v 1.3.4.3 2003/04/06 17:29:49 bdenney Exp $
+// $Id: pciusb.cc,v 1.3.4.4 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -111,7 +111,7 @@ bx_pciusb_c::init(void)
 void
 bx_usb_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_usb_t, this, "", list_p, 30);
+  BXRS_START(bx_usb_t, this, list_p, 30);
   {
     BXRS_NUM(Bit16u, base_ioaddr);
     BXRS_NUM(Bit8u , irq);
@@ -193,7 +193,7 @@ bx_usb_t::register_state(bx_param_c *list_p)
 void
 bx_pciusb_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_pciusb_c, BX_USB_THIS, "", list_p, 30);
+  BXRS_START(bx_pciusb_c, BX_USB_THIS, list_p, 30);
   {
     BXRS_ARRAY_OBJ(bx_usb_t, hub, BX_USB_MAXDEV);
     BXRS_NUM(Bit8u, global_reset);

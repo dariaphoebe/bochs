@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parallel.cc,v 1.22.6.3 2003/04/06 17:29:49 bdenney Exp $
+// $Id: parallel.cc,v 1.22.6.4 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -69,7 +69,7 @@ bx_parallel_c::~bx_parallel_c(void)
   void
 bx_parallel_c::init(void)
 {
-  BX_DEBUG(("Init $Id: parallel.cc,v 1.22.6.3 2003/04/06 17:29:49 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: parallel.cc,v 1.22.6.4 2003/11/22 08:07:07 slechta Exp $"));
 
   if (bx_options.par[0].Oenabled->get ()) {
 
@@ -111,7 +111,7 @@ bx_parallel_c::init(void)
   void
 bx_parallel_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_parallel_c, BX_PAR_THIS, "parallel port", list_p, 1);
+  BXRS_START(bx_parallel_c, BX_PAR_THIS, list_p, 1);
   {
     BXRS_OBJ(bx_par_t, s);
   }
@@ -135,7 +135,7 @@ bx_parallel_c::after_restore_state()
 void
 bx_par_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_par_t, this, "", list_p, 10);
+  BXRS_START(bx_par_t, this, list_p, 10);
   {
     BXRS_NUM(Bit8u, data);
     BXRS_STRUCT_START(struct STATUS_t, STATUS);

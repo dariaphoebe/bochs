@@ -181,12 +181,13 @@ struct BxMmxRegisters
 };
 #endif /* BX_SUPPORT_MMX */
 
-typedef union FpuMmxRegisters
-{
+typedef struct FpuMmxRegisters {
+  union {
     struct BxFpuRegisters soft;
 #if BX_SUPPORT_MMX
     struct BxMmxRegisters mmx;
 #endif
+  };
 } i387_t;
 
 #if BX_SUPPORT_MMX || BX_SUPPORT_SSE != 0

@@ -1,7 +1,7 @@
+// -*- C++ -*-
 /////////////////////////////////////////////////////////////////////////
-// $Id: param.h,v 1.1.2.4 2003/04/04 04:57:41 bdenney Exp $
+// $Id: param.h,v 1.1.2.5 2003/11/22 08:07:05 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
-
 // support for compiling param.cc without Bochs
 #ifdef PARAM_STANDALONE
 #define BOCHSAPI /*empty*/
@@ -454,81 +454,19 @@ public:
 void param_print_tree (bx_param_c *node, int level = 0);
 
 /*---------------------------------------------------------------------------*/
-// note:  the following set of bx_register macros are for use in registering 
-// system state for the purposes of debugging visibility and save/restore 
-// functions.  the goal of the macros is to completely eliminate the need to 
-// explicity set up the tree of bx_param_c's that represent the tree of machine
-//state.  simplicity and consistency in use of these macros is important.  
-// these are still under development.   --bjs
-#define bx_register_num(_variable_p, _name, _desc, _parent_p)                 \
-   (new bx_shadow_num_c(_parent_p, _name, _desc, _variable_p))
-
-#define bx_register_enum(_variable_p, _name, _desc, _parent_p)                \
-   (new bx_shadow_num_c(_parent_p, _name, _desc, (bit32u*)(_variable_p)))
-
-#define bx_register_bool(_variable_p, _name, _desc, _parent_p)                \
-   (new bx_shadow_bool_c(_parent_p, _name, _desc, (bx_bool*)(_variable_p)))
-
-#define bx_register_bits(_variable_p,_name,_desc,_bit_high,_bit_low,_parent_p)\
-   (new bx_shadow_num_c(_parent_p,_name,_desc,_variable_p,_highbit,_lowbit))
-
-
-/*---------------------------------------------------------------------------*/
-#define BX_REGISTER_ARRAY(_this_list_p, _itr, _index_name, _name, _desc,      \
-                          _parent_p, _size)                                   \
-  static char foobar##_this_list_p[_size][30];                                \
-  char *_index_name = foobar##_this_list_p[0];                                \
-  bx_list_c *_this_list_p = new bx_list_c(_parent_p, _name, _desc, _size);    \
-  for (int _itr = 0;                                                          \
-       (_itr < _size) &&                                                      \
-         (sprintf(foobar##_this_list_p[_itr], "%d", _itr),                    \
-          _index_name = foobar##_this_list_p[_itr],                           \
-          true);                                                              \
-       _itr++)
-    
-  
-#define BX_REGISTER_LIST(_this_list_p, _name, _desc, _parent_p, _size)        \
-  bx_list_c *_this_list_p = new bx_list_c (_parent_p, _name, _desc, _size)
-
-#define FIXME_FAKE_PARENT NULL
-
-
-/*---------------------------------------------------------------------------*/
-// NOTE: The following macros are the same as the above with the exception 
-// that they allow one extra parameter for registering a handler function.  The
-// will be filled in when the above macros have  been tested and considered 
-// stable.   --BJS
-// TODO: write these!  or find a better way to do this!
-#define BX_REGISTER_NUM_H(_variable_p, _name, _desc, _parent_p, _handler_p)
-
-#define BX_REGISTER_BOOL_H(_variable_p, _name, _desc, _parent_p, _handler_p)
-
-#define BX_REGISTER_BITS_H(_variable_p, _name, _desc, _bit_high, _bit_low,    \
-                           _parent_p, _handler_p)
-
-#define BX_REGISTER_ARRAY_H(_this_list_p, _itr, _index_name, _name, _desc,    \
-                            _parent_p, _size, _handler_p)    
-  
-#define BX_REGISTER_LIST_H(_this_list_p, _name, _desc, _parent_p, _size,      \
-                           _handler_p)
-
-#define BX_REGISTER_HANDLER_NULL param_event_handler // FIXME:  --BJS
-
-
-
-/*---------------------------------------------------------------------------*/
 // NOTE:  The following macros are testing the possibility of using implicit
 // operands rather than using the lare number of explicit parameters that the
 // BX_REGISTER functions require.  The goal is to make registering state in a
 // given class extremely systematic and automatic which is all that is
 // necessary for a large number of classes. --BJS
-// TODO: provide examples and documentation.  These will become standard over
-// the above sets of macros.
 // TODO: for large arrays, we want to use a different approach.  perhaps, 
 // we can use this macro to decide what approach we take with large arrays,
-// and that way, the registration of devices is ignorant of this decisio.
+// and that way, the registration of devices is ignorant of this decision.
+/*---------------------------------------------------------------------------*/
 
+extern int bx_need_checkpoint;
 
+/*---------------------------------------------------------------------------*/
 // This macro sets up the environment necessary for the rest of the BXRS
 // macros.  This environment includes a current "_bxrs_this" pointer which is
 // a pointer to the current structure we are registering variables, a current
@@ -536,7 +474,7 @@ void param_print_tree (bx_param_c *node, int level = 0);
 // a current "_bxrs_cur_list_p" which a pointer to the bx_param_c list object
 // that represents the object pointed to by "this", and a "_def_size" which is 
 // the default size of the enclosing list params.
-#define BXRS_START(_type, _this, _desc, _parent_p, _def_size)                 \
+#define BXRS_START(_type, _this, _parent_p, _def_size)                        \
 {                           /* one may look at some of this code and wonder */\
   void *_bxrs_this = _this; /* what is going on.  the seemingling pointless */\
 /*void *_old_this = NULL+1;    operations were added to stop compiler       */\
@@ -566,6 +504,25 @@ void param_print_tree (bx_param_c *node, int level = 0);
   typedef _type _bxrs_this_t;
 
 #define BXRS_STRUCT_END                                                       \
+}
+
+/*---------------------------------------------------------------------------*/
+// register a struct pointer in the current bxrs scope and begins a new bxrs scope
+#define BXRS_STRUCTP_START(_type, _var)                                       \
+  BXRS_STRUCT_START_D(_type, _var, "")
+
+#define BXRS_STRUCTP_START_D(_type, _var, _desc)                              \
+{                                                                             \
+  void *_bxrs_old_this = (_bxrs_this_t *)_bxrs_this;                          \
+  bx_list_c *_bxrs_old_list_p = _bxrs_cur_list_p;                             \
+  bx_list_c *_bxrs_cur_list_p = new bx_list_c (_bxrs_old_list_p,              \
+                                               #_var,                         \
+                                               _desc,                         \
+                                    _bxrs_def_size);                          \
+  void *_bxrs_this = (&((((_bxrs_this_t *)_bxrs_old_this))->_var));           \
+  typedef _type _bxrs_this_t;
+
+#define BXRS_STRUCTP_END                                                      \
 }
 
 /*---------------------------------------------------------------------------*/
@@ -761,23 +718,8 @@ void param_print_tree (bx_param_c *node, int level = 0);
           true);                                                              \
        _itr++)                                                                \
   new bx_shadow_bool_c((bx_param_c*)_bxrs_cur_list_p, _index_name, "",        \
-                      &(((((_bxrs_this_t*)_bxrs_this))->_var)[_itr])   );       \
+                      &(((((_bxrs_this_t*)_bxrs_this))->_var)[_itr])   );     \
 }
-//#define BXRS_ARRAY_BOOL_D(_type, _var, _size, _desc)
-//{
-//  static char foobar[_size][30];
-//  char *_index_name = foobar[0];
-//  bx_list_c *_bxrs_old_list_p = _bxrs_cur_list_p;
-//  bx_list_c *_bxrs_cur_list_p = new bx_list_c(_bxrs_old_list_p, #_var, _desc, _size);
-//  for (int _itr = 0;
-//       (_itr < _size) &&
-//         (sprintf(foobar[_itr], "%d", _itr),
-//          _index_name = foobar[_itr],
-//          true);
-//       _itr++)
-//  new bx_shadow_bool_c(_bxrs_cur_list_p, _index_name, "",
-//                      &((*((_bxrs_this_t*)_bxrs_this))._var[_itr])   );
-//}
 
 
 /*---------------------------------------------------------------------------*/
@@ -797,13 +739,19 @@ void param_print_tree (bx_param_c *node, int level = 0);
 }
 
 /*---------------------------------------------------------------------------*/
-// register an object variable in the current bxrs scope by calling that 
+// register an pointer object variable in the current bxrs scope by calling that 
 // object's register_state() function.
 #define BXRS_OBJP(_type, _var_p)                                              \
    BXRS_OBJP_D(_type, _var_p, "")                                             \
 
-// TODO: implement me!!
-#define BXRS_OBJP_D(_type, _var_p, _desc)
+#define BXRS_OBJP_D(_type, _var_p, _desc)                                     \
+{                                                                             \
+  _bxrs_this_t* _bxrs_obj = (_bxrs_this_t*)_bxrs_this;                        \
+  BXRS_STRUCTP_START_D(_type, _var_p, _desc);                                 \
+  ((_type*)(( _bxrs_obj )->_var_p))->register_state(_bxrs_cur_list_p);        \
+  UNUSED(_bxrs_this);                                                         \
+  BXRS_STRUCTP_END;                                                           \
+}
 
 
 /*---------------------------------------------------------------------------*/
@@ -840,7 +788,7 @@ void param_print_tree (bx_param_c *node, int level = 0);
 #define BXRS_RELPTR(_type, _var, _sizetype, _basevar)                         \
   BXRS_RELTPR_D(_type, _var, _sizetype, _basevar, "")
 
-#define BXRS_RELPTR_D(_type, _var, _sizetype, _basevar, _desc)
+#define BXRS_RELPTR_D(_type, _var, _sizetype, _basevar, _desc) assert(0);
 // BJS TODO: implement BXRS_RELNUM_D
 
 /*---------------------------------------------------------------------------*/
@@ -874,6 +822,9 @@ void param_print_tree (bx_param_c *node, int level = 0);
 // maximum size of a line in checkpoint ascii file
 #define MAX_CHECKPOINT_LINE_SIZE 256  
 
+static const char* m_state_filename = "state";
+static const char* m_data_filename = "data";
+
 /*---------------------------------------------------------------------------*/
 // This class was created to encapsulate the save/restore mechanisms related
 // to checkpointing the bochs pc system.  --BJS
@@ -901,7 +852,7 @@ class bx_checkpoint_c {
 
   // the state registration tree will be dumped to the STDOUT
   void dump_param_tree(bx_param_c *param_tree_p);
-  
+
  private:
   // file pointers used for serializing bochs with data files
   FILE *m_ascii_fp;

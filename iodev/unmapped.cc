@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: unmapped.cc,v 1.20.4.3 2003/04/06 17:29:49 bdenney Exp $
+// $Id: unmapped.cc,v 1.20.4.4 2003/11/22 08:07:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -76,7 +76,7 @@ bx_unmapped_c::init(void)
 void
 bx_unmapped_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_unmapped_c, BX_UM_THIS, "unmapped device", list_p, 3);
+  BXRS_START(bx_unmapped_c, BX_UM_THIS, list_p, 3);
   {
     BXRS_STRUCT_START_D(struct s_t, s, "state information");
     {

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.133.2.4 2003/04/06 17:29:48 bdenney Exp $
+// $Id: cpu.h,v 1.133.2.5 2003/11/22 08:07:05 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -31,6 +31,9 @@
 #include <setjmp.h>
 
 #include "cpu/lazy_flags.h"
+
+// BJS TODO: added TEMPORARILY for bx_devmodel_c
+#include "plugin.h"
 
 // segment register encoding
 #define BX_SEG_REG_ES    0

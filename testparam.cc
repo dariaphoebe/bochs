@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: testparam.cc,v 1.1.2.4 2003/05/03 15:58:45 bdenney Exp $
+// $Id: testparam.cc,v 1.1.2.5 2003/11/22 08:07:05 slechta Exp $
 // bx_param's can now be compiled separately from Bochs
 // This demonstrates parameter registration and save/restore on a very small
 // scale.
@@ -62,21 +62,21 @@ void register_param2 ()
   bx_list_c *foo_list_p = new bx_list_c (root, "foo", "foo device");
   bx_list_c *bar_list_p = new bx_list_c (root, "bar", "bar device");
   bx_list_c *baz_list_p = new bx_list_c (root, "baz", "baz device");
-  BXRS_START(device, foo, "foo device", foo_list_p, 5);
+  BXRS_START(device, foo, foo_list_p, 5);
   {
     BXRS_NUM (Bit32u, enable);
     BXRS_NUM (Bit32u, status);
     BXRS_NUM (Bit32u, irq);
   }
   BXRS_END;
-  BXRS_START(device, bar, "bar device", bar_list_p, 5);
+  BXRS_START(device, bar, bar_list_p, 5);
   {
     BXRS_NUM (Bit32u, enable);
     BXRS_NUM (Bit32u, status);
     BXRS_NUM (Bit32u, irq);
   }
   BXRS_END;
-  BXRS_START(device, baz, "baz device", baz_list_p, 5);
+  BXRS_START(device, baz, baz_list_p, 5);
   {
     BXRS_NUM (Bit32u, enable);
     BXRS_NUM (Bit32u, status);

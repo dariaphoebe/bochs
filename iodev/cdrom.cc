@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cdrom.cc,v 1.59.2.2 2003/03/28 09:26:01 slechta Exp $
+// $Id: cdrom.cc,v 1.59.2.3 2003/11/22 08:07:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -468,13 +468,14 @@ cdrom_interface::cdrom_interface(char *dev)
 
 void
 cdrom_interface::init(void) {
-  BX_DEBUG(("Init $Id: cdrom.cc,v 1.59.2.2 2003/03/28 09:26:01 slechta Exp $"));
+  BX_DEBUG(("Init $Id: cdrom.cc,v 1.59.2.3 2003/11/22 08:07:06 slechta Exp $"));
   BX_INFO(("file = '%s'",path));
 }
 
 void
 cdrom_interface::register_state(bx_list_c *list_p)
 {
+#warning implement register_state() for low level cdrom?
   //BXRS_START(cdrom_interface, this, "low level cdrom", list_p, 10);
   //{
   //  // BJS TODO: register function to reload lowlevel cdrom on save/restore

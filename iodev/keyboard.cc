@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: keyboard.cc,v 1.75.2.5 2003/04/06 17:29:49 bdenney Exp $
+// $Id: keyboard.cc,v 1.75.2.6 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -125,7 +125,7 @@ bx_keyb_c::resetinternals(bx_bool powerup)
   void
 bx_keyb_c::init(void)
 {
-  BX_DEBUG(("Init $Id: keyboard.cc,v 1.75.2.5 2003/04/06 17:29:49 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: keyboard.cc,v 1.75.2.6 2003/11/22 08:07:07 slechta Exp $"));
   Bit32u   i;
 
   DEV_register_irq(1, "8042 Keyboard controller");
@@ -207,7 +207,7 @@ bx_keyb_c::init(void)
 void
 bx_keyb_c::register_state(bx_param_c* list_p)
 {
-  BXRS_START(bx_keyb_c, BX_KEY_THIS, "keyboard", list_p, 30);
+  BXRS_START(bx_keyb_c, BX_KEY_THIS, list_p, 30);
   {
     BXRS_STRUCT_START_D(struct s_t, s, "State information for saving/loading");
     {

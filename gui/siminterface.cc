@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94.4.15 2003/04/06 15:57:05 bdenney Exp $
+// $Id: siminterface.cc,v 1.94.4.16 2003/11/22 08:07:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -752,6 +752,7 @@ bx_real_sim_c::save_state (const char *checkpoint_name)
   bx_checkpoint_c chkpt;
   chkpt.write(checkpoint_name, root);
   //param_print_tree (root, 0);
+  bx_need_checkpoint = 1;
   return true;
 }
 
@@ -769,3 +770,4 @@ bx_real_sim_c::restore_state (const char *checkpoint_name)
   set_init_done (1);
   return true;
 }
+

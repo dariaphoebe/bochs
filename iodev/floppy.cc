@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: floppy.cc,v 1.61.4.3 2003/04/06 17:29:48 bdenney Exp $
+// $Id: floppy.cc,v 1.61.4.4 2003/11/22 08:07:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -101,7 +101,7 @@ bx_floppy_ctrl_c::init(void)
 {
   Bit8u i;
 
-  BX_DEBUG(("Init $Id: floppy.cc,v 1.61.4.3 2003/04/06 17:29:48 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: floppy.cc,v 1.61.4.4 2003/11/22 08:07:06 slechta Exp $"));
   DEV_dma_register_8bit_channel(2, dma_read, dma_write, "Floppy Drive");
   DEV_register_irq(6, "Floppy Drive");
   for (unsigned addr=0x03F2; addr<=0x03F7; addr++) {
@@ -274,8 +274,9 @@ bx_floppy_ctrl_c::init(void)
 void
 floppy_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(floppy_t, this, "a floppy_t struct", list_p, 200);
+  BXRS_START(floppy_t, this, list_p, 200);
   {
+#warning floppy file decriptor..  save/restore?
     // BJS TODO: int fd;         /* file descriptor of floppy image file */
     BXRS_NUM_D(unsigned, sectors_per_track, "number of sectors/track");
     BXRS_NUM_D(unsigned, sectors          , "number of formatted sectors on diskette");
@@ -290,7 +291,7 @@ floppy_t::register_state(bx_param_c *list_p)
 void
 bx_floppy_ctrl_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_floppy_ctrl_c, BX_FD_THIS, "floppy drives", list_p, 1000);
+  BXRS_START(bx_floppy_ctrl_c, BX_FD_THIS, list_p, 1000);
   BXRS_STRUCT_START_D(struct s_t, s, "state information");
   {
     BXRS_NUM   (Bit8u  ,data_rate);

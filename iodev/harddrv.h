@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.19.2.5 2003/04/06 17:29:49 bdenney Exp $
+// $Id: harddrv.h,v 1.19.2.6 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -184,21 +184,22 @@ typedef struct {
   } status;
   Bit8u    error_register;
   Bit8u    head_no;
+  typedef struct {
+#ifdef BX_LITTLE_ENDIAN
+        unsigned c_d : 1;
+        unsigned i_o : 1;
+        unsigned rel : 1;
+        unsigned tag : 5;
+#else  /* BX_BIG_ENDIAN */
+        unsigned tag : 5;
+        unsigned rel : 1;
+        unsigned i_o : 1;
+        unsigned c_d : 1;
+#endif
+  } interrupt_reason_t;
   union {
     Bit8u    sector_count;
-    struct interrupt_reason_t {
-#ifdef BX_LITTLE_ENDIAN
-      unsigned c_d : 1;
-      unsigned i_o : 1;
-      unsigned rel : 1;
-      unsigned tag : 5;
-#else  /* BX_BIG_ENDIAN */
-      unsigned tag : 5;
-      unsigned rel : 1;
-      unsigned i_o : 1;
-      unsigned c_d : 1;
-#endif
-    } interrupt_reason;
+    interrupt_reason_t interrupt_reason;
   };
   Bit8u    sector_no;
   union {

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.16 2003/04/06 15:08:06 bdenney Exp $
+// $Id: main.cc,v 1.223.4.17 2003/11/22 08:07:05 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -2308,6 +2308,9 @@ bx_init_hardware()
   bx_list_c *cpu_param_p = 
     new bx_list_c (cpu_param_root, "0", "cpu #0", 100);
 
+  // BJS TODO:
+  //BX_CPU(0)->register_state(cpu_param_p);
+
   BX_CPU(0)->set_cpu_id(0);
 #if BX_SUPPORT_APIC
   BX_CPU(0)->local_apic.set_id (0);
@@ -2315,9 +2318,11 @@ bx_init_hardware()
 
   BX_INSTR_INIT(0);
   BX_CPU(0)->reset(BX_RESET_HARDWARE);
-
-  BX_MEM(0)->register_state(SIM->get_param (BXPN_RAM));
+  
+  // register the CPU in all its glory.  this will call register() on all objects
+  // encapsulated in the CPU.  eg. memory     --BJS
   BX_CPU(0)->register_state(cpu_param_p);
+
 #warning SMP param registration and save/restore mechanisms have NOT been tested
 #else
   // SMP initialization
@@ -2343,9 +2348,6 @@ bx_init_hardware()
   static char param_cpu_buf[BX_SMP_PROCESSORS][30];
   bx_list_c *cpu_list_p = 
     new bx_list_c (SIM->get_param("."), "cpu", "cpu", 100);
-  static char param_mem_buf[BX_SMP_PROCESSORS][30];
-  bx_list_c *mem_list_p = 
-    new bx_list_c (SIM->get_param("."), "mem", "mem", 100);
 
   for (int i=0; i<BX_SMP_PROCESSORS; i++) {
     BX_CPU(i) = new BX_CPU_C;
@@ -2357,29 +2359,18 @@ bx_init_hardware()
     BX_INSTR_INIT(i);
     BX_CPU(i)->reset(BX_RESET_HARDWARE);
     
-    // BJS TODO: TESTME
+#warning  BJS TODO: TESTME smp state registration
     sprintf(param_cpu_buf[i], "%d\0", i);
     bx_list_c *cpu_i_list_p = 
       new bx_list_c (cpu_list_p, 
                      param_cpu_buf[i], 
                      param_cpu_buf[i], 100);
     BX_CPU(i)->register_state(cpu_i_list_p);
-    sprintf(param_mem_buf[i], "%d\0", i);
-    bx_list_c *mam_i_list_p = 
-      new bx_list_c (mem_list_p, 
-                     param_mem_buf[i], 
-                     param_mem_buf[i], 100);
-    BX_MEM(i)->register_state(mem_i_list_p);
   }
 #endif
 
 #if BX_DEBUGGER == 0
   DEV_init_devices();
-  printf ("after init_devices\n");
-  printf ("------------------\n");
-#warning SLECHTA DISABLED because of segfault.  not sure why yet!  BBD reenabled because of lack of segfault.
-  //param_print_tree (SIM->get_param ("."));
-  printf ("------------------\n");
   DEV_reset_devices(BX_RESET_HARDWARE);
   bx_gui->init_signal_handlers ();
   bx_pc_system.start_timers();
@@ -2396,11 +2387,6 @@ bx_init_hardware()
 #endif
   alarm( 1 );
 #endif
-
-  //bx_checkpoint_c chkpt;
-  //chkpt.write("all_state", SIM->get_param("."));
-  //chkpt.read("all_state", SIM->get_param("."));
-  //chkpt.write("all_state_2", SIM->get_param("."));
 
   return(0);
 }

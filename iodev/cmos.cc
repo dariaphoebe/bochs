@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cmos.cc,v 1.36.4.4 2003/04/06 17:29:48 bdenney Exp $
+// $Id: cmos.cc,v 1.36.4.5 2003/11/22 08:07:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -109,7 +109,7 @@ bx_cmos_c::~bx_cmos_c(void)
   void
 bx_cmos_c::init(void)
 {
-  BX_DEBUG(("Init $Id: cmos.cc,v 1.36.4.4 2003/04/06 17:29:48 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: cmos.cc,v 1.36.4.5 2003/11/22 08:07:06 slechta Exp $"));
   // CMOS RAM & RTC
 
   DEV_register_ioread_handler (BX_CMOS_THIS, read_handler, 0x0070, "CMOS RAM", 7);
@@ -203,7 +203,7 @@ bx_cmos_c::init(void)
 
 void bx_cmos_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_cmos_c, BX_CMOS_THIS, "cmos", list_p, 10);
+  BXRS_START(bx_cmos_c, BX_CMOS_THIS, list_p, 10);
   {
     BXRS_STRUCT_START(struct s_t, s); 
     {
@@ -211,7 +211,7 @@ void bx_cmos_c::register_state(bx_param_c *list_p)
       BXRS_NUM       (Bit32u , periodic_interval_usec);
       BXRS_NUM       (int    , one_second_timer_index);
       BXRS_NUM       (int    , uip_timer_index);
-      BXRS_ENUM       (time_t , timeval);
+      BXRS_ENUM      (time_t , timeval);
       BXRS_NUM       (Bit8u  , cmos_mem_address);
       BXRS_BOOL      (bx_bool, timeval_change);
       BXRS_ARRAY_NUM (Bit8u  , reg, BX_NUM_CMOS_REGS);

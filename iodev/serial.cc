@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: serial.cc,v 1.32.6.3 2003/04/06 17:29:49 bdenney Exp $
+// $Id: serial.cc,v 1.32.6.4 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -265,7 +265,7 @@ bx_serial_c::init(void)
 void
 bx_serial_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_serial_c, BX_SER_THIS, "serial port devices", list_p, 1);
+  BXRS_START(bx_serial_c, BX_SER_THIS, list_p, 1);
   BXRS_ARRAY_OBJ(bx_serial_t, s, BX_SERIAL_MAXDEV); 
   BXRS_END;
 }  
@@ -860,7 +860,7 @@ bx_serial_c::rx_timer(void)
 void
 bx_serial_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_serial_t, this, "", list_p, 30);
+  BXRS_START(bx_serial_t, this, list_p, 30);
   {
     /*
      * UART internal state

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.cc,v 1.11.6.2 2003/04/06 17:29:49 bdenney Exp $
+// $Id: ioapic.cc,v 1.11.6.3 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 #include <stdio.h>
@@ -58,7 +58,7 @@ bx_ioapic_c::init ()
 void
 bx_ioapic_c::register_state(bx_param_c *list_p) 
 {
-  BXRS_START(bx_ioapic_c, this, "", list_p, 5);
+  BXRS_START(bx_ioapic_c, this, list_p, 5);
   {
     BXRS_NUM(Bit32u, ioregsel);
     BXRS_NUM(Bit32u, irr);
@@ -84,7 +84,7 @@ bx_ioapic_c::after_restore_state()
 void
 bx_io_redirect_entry_t::register_state(bx_param_c *list_p) 
 {
-  BXRS_START(bx_io_redirect_entry_t, this, "", list_p, 5);
+  BXRS_START(bx_io_redirect_entry_t, this, list_p, 5);
   {
     BXRS_NUM(Bit64u, value);  
     BXRS_NUM(Bit8u, dest);

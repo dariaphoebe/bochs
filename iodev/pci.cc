@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.cc,v 1.28.4.3 2003/04/06 17:29:49 bdenney Exp $
+// $Id: pci.cc,v 1.28.4.4 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -110,7 +110,7 @@ bx_pci_c::init(void)
 void
 bx_def440fx_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_def440fx_t, this, "", list_p, 10);
+  BXRS_START(bx_def440fx_t, this, list_p, 10);
   {
       BXRS_NUM(Bit32u, confAddr);
       BXRS_NUM(Bit32u, confData);
@@ -123,7 +123,7 @@ bx_def440fx_t::register_state(bx_param_c *list_p)
 void
 bx_pci_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_pci_c, BX_PCI_THIS, "", list_p, 10);
+  BXRS_START(bx_pci_c, BX_PCI_THIS, list_p, 10);
   {
     BXRS_ARRAY_NUM_D(Bit8u, pci_handler_id,0x100, "256 devices/functions");
     BXRS_ARRAY_START(struct pci_handler_t, pci_handler, BX_MAX_PCI_DEVICES);

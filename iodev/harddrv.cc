@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.97.2.7 2003/04/06 17:29:48 bdenney Exp $
+// $Id: harddrv.cc,v 1.97.2.8 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -176,7 +176,7 @@ bx_hard_drive_c::init(void)
   Bit8u channel;
   char  string[5];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.7 2003/04/06 17:29:48 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.8 2003/11/22 08:07:07 slechta Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
@@ -3409,7 +3409,7 @@ read_32bit(const uint8* buf)
 void 
 controller_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(controller_t, this, desc, list_p, 20);
+  BXRS_START(controller_t, this, list_p, 20);
   {
     BXRS_STRUCT_START(struct status_t, status);
     {
@@ -3431,22 +3431,6 @@ controller_t::register_state(bx_param_c *list_p)
     BXRS_UNION_START;
     {
       BXRS_NUM(Bit8u, sector_count);
-      // BJS TODO: register controller_t::interrupt_reason_t 
-      //      BXRS_STRUCT_START(struct interrupt_reason_t, interrupt_reason);
-      //      {
-      //#ifdef BX_LITTLE_ENDIAN
-      //        BXRS_BITS(unsigned, c_d, 0, 0); //: 1;
-      //        BXRS_BITS(unsigned, i_o, 1, 1); //: 1;
-      //        BXRS_BITS(unsigned, rel, 2, 2); //: 1;
-      //        BXRS_BITS(unsigned, tag, 7, 3); //: 5;
-      //#else  /* BX_BIG_ENDIAN */
-      //        BXRS_NUM(unsigned, tag, 4, 0); //: 5;
-      //        BXRS_NUM(unsigned, rel, 5, 5); //: 1;
-      //        BXRS_NUM(unsigned, i_o, 6, 6); //: 1;
-      //        BXRS_NUM(unsigned, c_d, 7, 7); //: 1;
-      //#endif
-      //      }
-      //      BXRS_STRUCT_END;
     }
     BXRS_UNION_END;
 
@@ -3481,7 +3465,7 @@ controller_t::register_state(bx_param_c *list_p)
 
 void sense_info_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(struct sense_info_t, this, desc, list_p, 8);
+  BXRS_START(struct sense_info_t, this, list_p, 8);
   {
     BXRS_ENUM(sense_t, sense_key);
     BXRS_STRUCT_START(struct information_t, information);
@@ -3512,7 +3496,7 @@ void sense_info_t::register_state(bx_param_c *list_p)
 void
 error_recovery_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(struct error_recovery_t, this, desc, list_p, 1);
+  BXRS_START(struct error_recovery_t, this, list_p, 1);
   {
     BXRS_ARRAY_NUM(unsigned char, data, 8);
   }
@@ -3523,11 +3507,12 @@ error_recovery_t::register_state(bx_param_c *list_p)
 void 
 cdrom_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(cdrom_t, this, desc, list_p, 10);
+  BXRS_START(cdrom_t, this, list_p, 10);
   {
     BXRS_BOOL(bx_bool, ready);
     BXRS_BOOL(bx_bool, locked);
 #ifdef LOWLEVEL_CDROM
+#warning LOWLEVEL CDROM may not work with save/restore
     // BJS TODO: LOWLEVEL_CDROM
     //if (cd) BXRS_OBJP(LOWLEVEL_CDROM, cd);
 #endif
@@ -3541,13 +3526,12 @@ cdrom_t::register_state(bx_param_c *list_p)
     BXRS_STRUCT_END;
   }
   BXRS_END;
-  
 }
 
 void 
 atapi_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(atapi_t, this, desc, list_p, 3);
+  BXRS_START(atapi_t, this, list_p, 3);
   {
   BXRS_NUM(uint8, command);
   BXRS_NUM(int, drq_bytes);
@@ -3560,7 +3544,7 @@ atapi_t::register_state(bx_param_c *list_p)
 void 
 bx_hard_drive_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_hard_drive_c, BX_HD_THIS, desc, list_p, 20);
+  BXRS_START(bx_hard_drive_c, BX_HD_THIS, list_p, 20);
   BXRS_ARRAY_START(struct channel_t, channels, BX_MAX_ATA_CHANNEL);
   {
     BXRS_ARRAY_START(struct channel_t::drive_t, drives, 2); 

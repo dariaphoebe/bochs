@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dbg_main.cc,v 1.98.6.3 2003/04/04 06:23:43 bdenney Exp $
+// $Id: dbg_main.cc,v 1.98.6.4 2003/11/22 08:07:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -218,6 +218,23 @@ static struct {
 static Bit8u bx_disasm_ibuf[32];
 static char  bx_disasm_tbuf[512];
 #endif
+
+
+void 
+bx_guard_found_t::register_state(bx_param_c *list_p);
+{
+  BXRS_START(bx_guard_found_t, this, list_p, 10);
+  BXRS_NUM   (unsigned long, guard_found);
+  BXRS_NUM   (unsigned, iaddr_index);
+  BXRS_NUM_D (bx_dbg_icount_t, icount, "number of completed instructions");
+  BXRS_NUM_D (Bit32u, cs, "cs:eip and linear addr of instruction at guard point");
+  BXRS_NUM   (Bit32u ,  eip);
+  BXRS_NUM   (Bit32u ,  laddr);
+  BXRS_BOOL_D(bx_bool, is_32bit_code, "CS seg size at guard point");
+  BXRS_BOOL_D(bx_bool, ctrl_c, "simulator stopped due to Ctrl-C request");
+  BXRS_END;
+}
+
 
 void dbg_printf (const char *fmt, ...)
 {

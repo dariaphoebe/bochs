@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.cc,v 1.76.2.7 2003/04/06 17:29:47 bdenney Exp $
+// $Id: cpu.cc,v 1.76.2.8 2003/11/22 08:07:05 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -30,11 +30,13 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-#if BX_USE_CPU_SMF
-#define BX_CPU_THIS (BX_CPU(0))
-#else
-#define BX_CPU_THIS this
-#endif
+// this is already defined in the cpu.h file.  other .cc files need it too
+//  --BJS
+//#if BX_USE_CPU_SMF
+//#define BX_CPU_THIS (BX_CPU(0))
+//#else
+//#define BX_CPU_THIS this
+//#endif
 
 
 #if BX_SIM_ID == 0   // only need to define once
@@ -105,10 +107,10 @@ extern void REGISTER_IADDR(bx_addr addr);
 #define RSP ESP
 #endif
 
-
 void
 BX_CPU_C::cpu_loop(Bit32s max_instr_count)
 {
+ redo_loop:
   unsigned ret;
   bxInstruction_c iStorage BX_CPP_AlignN(32);
   bxInstruction_c *i = &iStorage;
@@ -312,6 +314,10 @@ BX_CPU_C::cpu_loop(Bit32s max_instr_count)
 #endif
 
       BX_TICK1_IF_SINGLE_PROCESSOR();
+      if (bx_need_checkpoint) {
+        bx_need_checkpoint = 0;
+        goto redo_loop;
+      }
     }
 
     else {
@@ -490,7 +496,6 @@ BX_CPU_C::cpu_loop(Bit32s max_instr_count)
       }
     }
 #endif
-
   }  // while (1)
 }
 
@@ -1072,7 +1077,7 @@ BX_CPU_C::dbg_take_dma(void)
 void
 BX_CPU_C::register_state(bx_param_c *list_p)
 {
-  BXRS_START(BX_CPU_C, BX_CPU_THIS, "", list_p, 100);
+  BXRS_START(BX_CPU_C, BX_CPU_THIS, list_p, 100);
   {
     BXRS_ARRAY_ENUM(char, name, 64);
     
@@ -1133,7 +1138,7 @@ BX_CPU_C::register_state(bx_param_c *list_p)
     BXRS_NUM_D(unsigned, inhibit_mask, "What events to inhibit at any given time");
 
     BXRS_ARRAY_OBJ_D(bx_segment_reg_t, sregs, 6, "user segment register set");
-
+    
     /* system segment registers */
 #   if BX_CPU_LEVEL >= 2
     BXRS_STRUCT_START_D(bx_global_segment_reg_t, gdtr, 
@@ -1195,9 +1200,71 @@ BX_CPU_C::register_state(bx_param_c *list_p)
 #   if BX_CPU_LEVEL >= 5
     BXRS_OBJ(bx_regs_msr_t, msr);
 #   endif
-    
-#warning FPU registration not implemented
-    // BJS TODO: BXRS_OBJ(i387_t, the_i387);
+
+
+    // ------------ i387 register -------------
+    BXRS_STRUCT_START(i387_t, the_i387);
+    BXRS_UNION_START;
+    {
+      BXRS_STRUCT_START(struct BxFpuRegisters, soft);
+      {
+        BXRS_NUM (s32, cwd);
+        BXRS_NUM (s32, swd);
+        BXRS_NUM (s32, twd);
+        BXRS_NUM (s32, fip);
+        BXRS_NUM (s32, fcs);
+        BXRS_NUM (s32, foo);
+        BXRS_NUM (s32, fos);
+        BXRS_NUM (u32, fill0);
+        BXRS_ARRAY_NUM (u64, st_space, 16);
+        BXRS_NUM (unsigned char, tos);
+        BXRS_NUM (unsigned char, no_update);
+        BXRS_NUM (unsigned char, rm);
+        BXRS_NUM (unsigned char, alimit);
+      }
+      BXRS_STRUCT_END;
+#if BX_SUPPORT_MMX
+      BXRS_STRUCT_START(struct BxMmxRegisters, mmx);
+      {
+        BXRS_NUM_D(Bit32u, cwd, "fpu control word");
+        BXRS_NUM_D(Bit32u, swd, "fpu status  word");
+        BXRS_NUM_D(Bit32u, twd, "fpu tag     word");
+        BXRS_NUM  (Bit32u, fip);
+        BXRS_NUM  (Bit32u, fcs);
+        BXRS_NUM  (Bit32u, foo);
+        BXRS_NUM  (Bit32u, fos);
+        BXRS_NUM  (Bit32u, alignment);
+
+        BXRS_ARRAY_START(BxMmxRegister, mmx, 8);
+        {
+#ifdef BX_BIG_ENDIAN
+          BXRS_NUM(Bit16u, aligment1);
+          BXRS_NUM(Bit16u, aligment2);
+          BXRS_NUM(Bit16u, aligment3); 
+          BXRS_NUM(Bit16u, exp);
+          BXRS_NUM(Bit64u, packed_mmx_register.u64);
+#else
+          BXRS_NUM(Bit64u, packed_mmx_register.u64);
+          BXRS_NUM(Bit16u, exp);
+          BXRS_NUM(Bit16u, aligment1);
+          BXRS_NUM(Bit16u, aligment2);
+          BXRS_NUM(Bit16u, aligment3); 
+#endif
+        }
+        BXRS_ARRAY_END;
+
+        BXRS_NUM_D(unsigned char, tos, "top-of-stack");
+        BXRS_NUM  (unsigned char, no_update);
+        BXRS_NUM  (unsigned char, rm);
+        BXRS_NUM  (unsigned char, alimit);
+      }
+      BXRS_STRUCT_END;
+#endif
+    }
+    BXRS_UNION_END;
+    BXRS_STRUCT_END;
+    // ------------ end i387 register -------------
+
 
 #if BX_SUPPORT_SSE
 #warning SSE state registration not tested
@@ -1313,7 +1380,7 @@ BX_CPU_C::register_state(bx_param_c *list_p)
       BXRS_NUM(Bit32u, tlb_invalidate);
 #endif
     }
-    BXRS_END;
+    BXRS_STRUCT_END;
 #endif  // #if BX_USE_TLB
 
 
@@ -1373,7 +1440,7 @@ BX_CPU_C::after_restore_state()
 void
 bx_cr0_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_cr0_t, this, "", list_p, 15);
+  BXRS_START(bx_cr0_t, this, list_p, 15);
   {
     BXRS_NUM_D(Bit32u, val32, "32bit value of register");
     
@@ -1406,7 +1473,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
   {
 #   ifdef BX_BIG_ENDIAN
     {
-      BXRS_START(bx_gen_reg_t, this, "General register set", list_p, 5);
+      BXRS_START(bx_gen_reg_t, this, list_p, 5);
       {
         BXRS_UNION_START;
         {
@@ -1442,7 +1509,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
     }
 #   else // #ifdef BX_BIG_ENDIAN
     {
-      BXRS_START(bx_gen_reg_t, BX_CPU_THIS, "General register set", list_p, 5);
+      BXRS_START(bx_gen_reg_t, BX_CPU_THIS, list_p, 5);
       {
         BXRS_UNION_START;
         {
@@ -1482,7 +1549,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
   {
 #   ifdef BX_BIG_ENDIAN
     {
-      BXRS_START(bx_gen_reg_t, this, "General register set", list_p, 5);
+      BXRS_START(bx_gen_reg_t, this, list_p, 5);
       {
         BXRS_UNION_START;
         {
@@ -1516,7 +1583,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
 #   else  // #ifdef BX_BIG_ENDIAN
     {
 
-      BXRS_START(bx_gen_reg_t, this, "General register set", list_p, 5);
+      BXRS_START(bx_gen_reg_t, this, list_p, 5);
       {
         BXRS_UNION_START;
         {
@@ -1555,11 +1622,10 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
   
 }
 
-
 void
 bx_segment_reg_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_segment_reg_t, BX_CPU_THIS, "", list_p, 25);
+  BXRS_START(bx_segment_reg_t, this, list_p, 25);
   {
     BXRS_STRUCT_START(bx_selector_t, selector);
     {
@@ -1664,7 +1730,7 @@ bx_segment_reg_t::register_state(bx_param_c *list_p)
 void 
 bx_regs_msr_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_regs_msr_t, this, "", list_p, 10);
+  BXRS_START(bx_regs_msr_t, this, list_p, 10);
   {
     BXRS_NUM(Bit64u, apicbase);
 #   if BX_SUPPORT_X86_64
@@ -1687,7 +1753,7 @@ bx_regs_msr_t::register_state(bx_param_c *list_p)
 #if BX_SUPPORT_APIC
 bx_local_apic_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_local_apic_c, this, "a local apic", list_p, 20);
+  BXRS_START(bx_local_apic_c, this, list_p, 20);
   {
     // generic apic base class
     BXRS_NUM (Bit32u, base_addr);
@@ -1743,10 +1809,11 @@ Bit64s lazy_flags_save_restore(bx_param_c *param_p, int set, Bit64s val)
 void
 bx_flags_reg_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_flags_reg_t, this, "", list_p, 5);
+  BXRS_START(bx_flags_reg_t, this, list_p, 5);
   {
     BXRS_NUM_H(Bit32u, val32, lazy_flags_save_restore);
     BXRS_NUM(Bit32u, VM_cached);
   }
   BXRS_END;
 }
+

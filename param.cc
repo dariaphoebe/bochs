@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: param.cc,v 1.1.2.6 2003/05/03 15:56:12 bdenney Exp $
+// $Id: param.cc,v 1.1.2.7 2003/11/22 08:07:05 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 
 #ifndef PARAM_STANDALONE
@@ -205,7 +205,8 @@ bx_param_num_c::set (Bit64s newval, bx_bool ignore_handler)
   if ((val.number < min || val.number > max) && max != BX_MAX_BIT64U) {
     char ppath[BX_PARAM_PATH_MAX];
     get_param_path (ppath, BX_PARAM_PATH_MAX);
-    BX_PANIC (("numerical parameter '%s' was set to %lld, which is out of range %lld to %lld", ppath, val.number, min, max));
+#warning is this check appropriate with save/restore?
+    // * BX_PANIC (("numerical parameter '%s' was set to %lld, which is out of range %lld to %lld", ppath, val.number, min, max));
   }
   if (dependent_list != NULL) update_dependents (dependent_list);
 }
@@ -398,7 +399,8 @@ bx_shadow_num_c::set (Bit64s newval, bx_bool ignore_handler)
   if (newval < min || newval > max) {
     char ppath[BX_PARAM_PATH_MAX];
     get_param_path (ppath, BX_PARAM_PATH_MAX);
-    BX_PANIC (("numerical parameter %s was set to %lld, which is out of range %lld to %lld", ppath, newval, min, max));
+#warning is this check approprite for save/restore?
+    //BX_PANIC (("numerical parameter %s was set to %lld, which is out of range %lld to %lld", ppath, newval, min, max));
   }
   switch (varsize) {
     case 8: 
@@ -712,7 +714,8 @@ bx_list_c::add (bx_param_c *param)
   if (!allow_dups && get_by_name (param->get_name()) != NULL) {
     char ppath[BX_PARAM_PATH_MAX];
     get_param_path (ppath, BX_PARAM_PATH_MAX);
-    BX_PANIC (("add param '%s' to bx_list_c '%s': a child with that name already exists", param->get_name (), ppath));
+#warning BJS: do we still want this warning?  does it make sense with save_restore params?
+    //BX_PANIC (("add param '%s' to bx_list_c '%s': a child with that name already exists", param->get_name (), ppath));
     return;
   }
   list[size] = param;
@@ -866,8 +869,21 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
     }
   case BXT_PARAM_BOOL:
     {
-      fprintf (m_ascii_fp, "%s=%s\n", node->get_name(), 
-	       ((bx_param_bool_c*)node)->get()?"true":"false");
+      // boolean get dumped as either 'true' or 'false'
+      if (node->is_shadow_param())
+        {
+          fprintf (m_ascii_fp, "%s=%s\n", node->get_name(), 
+                   ((bx_shadow_bool_c*)node)->get()?"true":"false");
+        }
+      else
+        {
+          if (strcmp(node->get_name(), "present")==0)
+            {
+              printf("%s = %d", ((bx_param_bool_c*)node)->get_name(), ((bx_param_bool_c*)node)->get(1));
+            }
+          fprintf (m_ascii_fp, "%s=%s\n", node->get_name(), 
+                   ((bx_param_bool_c*)node)->get(1/*ignore_handler*/)?"true":"false");
+        }
       break;
     }
   case BXT_PARAM_STRING:
@@ -1104,20 +1120,22 @@ int bx_checkpoint_c::write(const char *checkpoint_name,
 
   // create ascii file name
   ascii_filename = 
-    (char*) malloc(strlen(checkpoint_name)+strlen("/param_tree.txt")+1);
+    (char*) malloc(strlen(checkpoint_name)+strlen(m_state_filename)+2);
   if (ascii_filename)
     {
       strcpy(ascii_filename, checkpoint_name);
-      strcat(ascii_filename, "/param_tree.txt");
+      strcat(ascii_filename, "/");
+      strcat(ascii_filename, m_state_filename);
     }
 
   // create data file name
   data_filename = 
-    (char*) malloc(strlen(checkpoint_name)+strlen("/param_data")+1);
+    (char*) malloc(strlen(checkpoint_name)+strlen(m_data_filename)+2);
   if (data_filename)
     {
       strcpy(data_filename, checkpoint_name);
-      strcat(data_filename, "/param_data");
+      strcat(data_filename, "/");
+      strcat(data_filename, m_data_filename);
     }
 
   if (data_filename == NULL || ascii_filename == NULL)
@@ -1198,20 +1216,22 @@ int bx_checkpoint_c::read(const char *checkpoint_name,
 
   // create ascii file name
   ascii_filename = 
-    (char*) malloc(strlen(checkpoint_name)+strlen("/param_tree.txt")+1);
+    (char*) malloc(strlen(checkpoint_name)+strlen(m_state_filename)+2);
   if (ascii_filename)
     {
       strcpy(ascii_filename, checkpoint_name);
-      strcat(ascii_filename, "/param_tree.txt");
+      strcat(ascii_filename, "/");
+      strcat(ascii_filename, m_state_filename);
     }
 
   // create data file name
   data_filename = 
-    (char*) malloc(strlen(checkpoint_name)+strlen("/param_data")+1);
+    (char*) malloc(strlen(checkpoint_name)+strlen(m_data_filename)+2);
   if (data_filename)
     {
       strcpy(data_filename, checkpoint_name);
-      strcat(data_filename, "/param_data");
+      strcat(data_filename, "/");
+      strcat(data_filename, m_data_filename);
     }
 
   // check for malloc() failures
@@ -1616,6 +1636,11 @@ bx_checkpoint_c::load_param_bool(bx_param_c *parent_p,
         }
       else
         {
+          if (strcmp(param_str, "present")==0)
+            {
+              printf(" ");
+            }
+          
           ((bx_param_bool_c*)param_p)->set(value, 1);
         }
     }
@@ -1781,7 +1806,7 @@ bx_checkpoint_c::load_param_data(bx_param_c *parent_p,
               BX_PANIC(("fatal error when loading checkpoint. " \
                         "value not valid with param %s.\n", param_str));
             }
-
+          
           Bit8u* new_data_p;
           if (((bx_shadow_data_c*)param_p)->get_data_size() == size)
             {
@@ -1837,7 +1862,7 @@ bx_shadow_data_c::bx_shadow_data_c (bx_param_c *parent,
 
 /*---------------------------------------------------------------------------*/
 void
-bx_shadow_data_c::set (void* new_data_ptr, bx_bool ignore_handler=0)
+bx_shadow_data_c::set (void* new_data_ptr, bx_bool ignore_handler)
 {
   // BJS TODO: implement handlers
   (*data) = new_data_ptr;
@@ -1903,3 +1928,6 @@ param_get(const char *ppath, bx_param_c *base)
     return base;
   return param_get2 (ppath, ppath, base);
 }
+
+
+int bx_need_checkpoint = 0;

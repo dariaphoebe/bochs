@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.cc,v 1.21.2.7 2003/04/06 17:29:49 bdenney Exp $
+// $Id: pit82c54.cc,v 1.21.2.8 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -184,7 +184,7 @@ pit_82C54::decrement (counter_type & thisctr) {
 void
 pit_82C54::register_state(bx_param_c *list_p)
 {
-  BXRS_START(pit_82C54, this, desc, list_p, 50);
+  BXRS_START(pit_82C54, this, list_p, 50);
   BXRS_ARRAY_START(struct counter_type, counter, 3)
   {
     //Chip IOs;
@@ -224,39 +224,8 @@ pit_82C54::register_state(bx_param_c *list_p)
   BXRS_NUM(Bit8u, controlword);
   BXRS_NUM(int, seen_problems);
   BXRS_END;
-
-//  BX_REGISTER_LIST(counter_list_p, name, desc, parent_p, 15);  
-//  BX_REGISTER_ARRAY(array_p, i, iname, "counter", "", counter_list_p, 3) 
-//    {
-//      BX_REGISTER_LIST(array_itr_p, iname, "", array_p, 50);
-//        {
-//          BX_REGISTER_BOOL(&(counter[i].GATE             ), "GATE"             , "", array_itr_p);
-//          BX_REGISTER_BOOL(&(counter[i].OUTpin           ), "OUTpin"           , "", array_itr_p);
-//          BX_REGISTER_NUM (&(counter[i].count            ), "count"            , "", array_itr_p);
-//          BX_REGISTER_NUM (&(counter[i].outlatch         ), "outlatch"         , "", array_itr_p);
-//          BX_REGISTER_NUM (&(counter[i].inlatch          ), "inlatch"          , "", array_itr_p);
-//          BX_REGISTER_NUM (&(counter[i].status_latch     ), "status_latch"     , "", array_itr_p);
-//          BX_REGISTER_NUM (&(counter[i].rw_mode          ), "rw_mode"          , "", array_itr_p);
-//          BX_REGISTER_NUM (&(counter[i].mode             ), "mode"             , "", array_itr_p);
-//          BX_REGISTER_BOOL(&(counter[i].bcd_mode         ), "bcd_mode"         , "", array_itr_p);
-//          BX_REGISTER_BOOL(&(counter[i].null_count       ), "null_count"       , "", array_itr_p);
-//          BX_REGISTER_BOOL(&(counter[i].count_LSB_latched), "count_LSB_latched", "", array_itr_p);
-//          BX_REGISTER_BOOL(&(counter[i].count_MSB_latched), "count_MSB_latched", "", array_itr_p);
-//          BX_REGISTER_BOOL(&(counter[i].status_latched   ), "status_latched"   , "", array_itr_p);
-//          BX_REGISTER_NUM (&(counter[i].count_binary     ), "count_binary"     , "", array_itr_p);
-//          BX_REGISTER_BOOL(&(counter[i].triggerGATE      ), "triggerGATE"      , "", array_itr_p);
-//          BX_REGISTER_ENUM(&(counter[i].write_state      ), "write_state"      , "", array_itr_p);
-//          BX_REGISTER_ENUM(&(counter[i].read_state       ), "read_state"       , "", array_itr_p);
-//          BX_REGISTER_BOOL(&(counter[i].count_written    ), "count_written"    , "", array_itr_p);
-//          BX_REGISTER_BOOL(&(counter[i].first_pass       ), "first_pass"       , "", array_itr_p);
-//          BX_REGISTER_BOOL(&(counter[i].state_bit_1      ), "state_bit_1"      , "", array_itr_p);
-//          BX_REGISTER_BOOL(&(counter[i].state_bit_2      ), "state_bit_2"      , "", array_itr_p);
-//          BX_REGISTER_NUM (&(counter[i].next_change_time ), "next_change_time" , "", array_itr_p);
-//        }
-//    }
-//  BX_REGISTER_NUM (&(controlword  ), "controlword"  , "", counter_list_p);
-//  BX_REGISTER_NUM (&(seen_problems), "seen_problems", "", counter_list_p);
 }
+
 
 void
 pit_82C54::before_save_state()

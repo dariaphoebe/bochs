@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.cc,v 1.9.4.3 2003/04/06 17:29:49 bdenney Exp $
+// $Id: pci2isa.cc,v 1.9.4.4 2003/11/22 08:07:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -139,7 +139,7 @@ bx_pci2isa_c::reset(unsigned type)
 void
 bx_pci2isa_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_pci2isa_c, BX_P2I_THIS, "", list_p, 5);
+  BXRS_START(bx_pci2isa_c, BX_P2I_THIS, list_p, 5);
   {
     BXRS_STRUCT(struct s_t, s);
     {
