@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dbg_main.cc,v 1.98.6.2 2003/03/30 08:03:25 bdenney Exp $
+// $Id: dbg_main.cc,v 1.98.6.3 2003/04/04 06:23:43 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -4999,6 +4999,41 @@ bx_dbg_help_command(char* command)
     }
   }
   return;
+}
+
+void
+bx_dbg_save_state (char* checkpoint_name)
+{
+  // skip beginning double quote
+  if (checkpoint_name[0] == '"')
+  checkpoint_name++;
+
+  // null out ending quote
+  int len = strlen(checkpoint_name);
+  if (checkpoint_name[len - 1] == '"')
+  checkpoint_name[len - 1] = '\0';
+
+  fprintf (stderr, "Saving state to checkpoint '%s'\n", checkpoint_name);
+  bool ok = SIM->save_state (checkpoint_name);
+  fprintf (stderr, ok? "Ok.\n" : "Failed.\n");
+
+}
+
+void
+bx_dbg_restore_state (char* checkpoint_name)
+{
+  // skip beginning double quote
+  if (checkpoint_name[0] == '"')
+  checkpoint_name++;
+
+  // null out ending quote
+  int len = strlen(checkpoint_name);
+  if (checkpoint_name[len - 1] == '"')
+  checkpoint_name[len - 1] = '\0';
+
+  fprintf (stderr, "Restoring state from checkpoint '%s'\n", checkpoint_name);
+  bool ok = SIM->restore_state (checkpoint_name);
+  fprintf (stderr, ok? "Ok.\n" : "Failed.\n");
 }
 
 #endif /* if BX_DEBUGGER */

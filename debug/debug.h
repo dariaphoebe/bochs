@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: debug.h,v 1.16.6.1 2003/03/29 01:57:08 slechta Exp $
+// $Id: debug.h,v 1.16.6.2 2003/04/04 06:23:44 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -87,6 +87,8 @@ void bx_dbg_sync_memory(bx_bool set);
 void bx_dbg_sync_cpu(bx_bool set);
 void bx_dbg_fast_forward(Bit32u num);
 void bx_dbg_info_address(Bit32u seg_reg_num, Bit32u offset);
+void bx_dbg_save_state (char *checkpoint_name);
+void bx_dbg_restore_state (char *checkpoint_name);
 #define MAX_CONCURRENT_BPS 5
 extern int timebp_timer;
 extern Bit64u timebp_queue[MAX_CONCURRENT_BPS];
@@ -319,6 +321,8 @@ typedef struct bx_guard_found_t {
 
   void register_state(bx_param_c *list_p)
   {
+#warning FIXME: registration for bx_guard_found_t wont compile
+#if 0
     BXRS_START(struct bx_guard_found_t, this, "", list_p, 10);
   BXRS_NUM   (unsigned long, guard_found);
   BXRS_NUM   (unsigned, iaddr_index);
@@ -329,6 +333,7 @@ typedef struct bx_guard_found_t {
   BXRS_BOOL_D(bx_bool, is_32bit_code, "CS seg size at guard point");
   BXRS_BOOL_D(bx_bool, ctrl_c, "simulator stopped due to Ctrl-C request");
     BXRS_END;
+#endif
   }
 } bx_guard_found_t;
 

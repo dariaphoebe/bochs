@@ -1,6 +1,6 @@
 %{
 /////////////////////////////////////////////////////////////////////////
-// $Id: lexer.l,v 1.10 2002/11/19 05:47:44 bdenney Exp $
+// $Id: lexer.l,v 1.10.6.1 2003/04/04 06:23:45 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 
 #include <stdlib.h>
@@ -122,6 +122,8 @@ ds              { bxlval.sval = strdup(bxtext); return(BX_TOKEN_DS); }
 fs              { bxlval.sval = strdup(bxtext); return(BX_TOKEN_FS); }
 gs              { bxlval.sval = strdup(bxtext); return(BX_TOKEN_GS); }
 force-check     { bxlval.sval = strdup(bxtext); return(BX_TOKEN_ALWAYS_CHECK); }
+save-state      { bxlval.sval = strdup(bxtext); return(BX_TOKEN_SAVE_STATE); }
+restore-state   { bxlval.sval = strdup(bxtext); return(BX_TOKEN_RESTORE_STATE); }
 v2l             { bxlval.sval = strdup(bxtext); return(BX_TOKEN_V2L); }
 help            { bxlval.sval = strdup(bxtext); return(BX_TOKEN_HELP); }
 \"[^\"\n]*\"    { bxlval.sval = strdup(bxtext); return(BX_TOKEN_STRING); }

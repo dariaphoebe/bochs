@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parser.y,v 1.8 2002/11/19 05:47:44 bdenney Exp $
+// $Id: parser.y,v 1.8.6.1 2003/04/04 06:23:46 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 
 %{
@@ -108,6 +108,8 @@ at the end of parser.c.  I don't know any way to ask yacc to put it at the end.
 %token <sval> BX_TOKEN_FS
 %token <sval> BX_TOKEN_GS
 %token <sval> BX_TOKEN_ALWAYS_CHECK
+%token <sval> BX_TOKEN_SAVE_STATE
+%token <sval> BX_TOKEN_RESTORE_STATE
 %token <sval> BX_TOKEN_MATHS
 %token <sval> BX_TOKEN_ADD
 %token <sval> BX_TOKEN_SUB
@@ -162,6 +164,7 @@ command:
     | trace_reg_on_command
     | trace_reg_off_command
     | help_command
+    | save_restore_command
     | 
     | '\n'
       {
@@ -804,6 +807,19 @@ help_command:
          bx_dbg_help_command(0);
          free($1);
          }
+    ;
+
+save_restore_command:
+	BX_TOKEN_SAVE_STATE BX_TOKEN_STRING '\n'
+	    {
+	      bx_dbg_save_state ($2);
+	      free($1); free($2);
+	    }
+	| BX_TOKEN_RESTORE_STATE BX_TOKEN_STRING '\n'
+	    {
+	      bx_dbg_restore_state ($2);
+	      free($1); free($2);
+	    }
     ;
 
 %%
