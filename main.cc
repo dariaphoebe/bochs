@@ -23,7 +23,6 @@
 
 
 #include "bochs.h"
-#define LOG_THIS genlog->
 #include <assert.h>
 #include "state_file.h"
 
@@ -95,7 +94,6 @@ static void parse_bochsrc(void);
 
 // Just for the iofunctions
 
-#undef LOG_THIS
 #define LOG_THIS this->log->
 
 int Allocio=0;
@@ -359,8 +357,8 @@ main(int argc, char *argv[])
   // test for NULL and create the object if necessary, then return it.
   // Ensure that io and genlog get created, by making one reference to
   // each macro right here.  All other code can call them directly.
-//  SAFE_GET_IOFUNC();
- // SAFE_GET_GENLOG();
+  SAFE_GET_IOFUNC();
+  SAFE_GET_GENLOG();
 
 #if BX_DEBUGGER
   // If using the debugger, it will take control and call
@@ -534,16 +532,15 @@ parse_bochsrc(void)
 
   ptr = getenv("HOME");
   if (!ptr) {
-    fprintf(stderr, "could not get environment variable 'HOME'.\n");
-    exit(1);
-    }
+    BX_PANIC(( "could not get environment variable 'HOME'.\n" ));
+  }
 
   strcpy(bochsrc_path, ".bochsrc");
   fd = fopen(bochsrc_path, "r");
 
   if (!fd) {
-    fprintf(stderr, "could not open file '%s', trying home directory.\n",
-      bochsrc_path);
+    BX_DEBUG(( "could not open file '%s', trying home directory.\n",
+      bochsrc_path));
 
     strcpy(bochsrc_path, ptr);
     strcat(bochsrc_path, "/");
@@ -551,7 +548,7 @@ parse_bochsrc(void)
 
     fd = fopen(bochsrc_path, "r");
     if (!fd) {
-      fprintf(stderr, "could not open file '%s'.\n", bochsrc_path);
+      BX_DEBUG(( "could not open file '%s'.\n", bochsrc_path ));
       // no file used, nothing left to do.  This is now valid,
       // as you can pass everything on the command line.
       return;
@@ -568,8 +565,8 @@ parse_bochsrc(void)
   fd = fopen(bochsrc_path, "r");
 
   if (!fd) {
-    fprintf(stderr, "could not open file '%s' in current directory.\n",
-      bochsrc_path);
+    BX_INFO(( "could not open file '%s' in current directory.\n",
+      bochsrc_path ));
     exit(1);
     }
 #endif  // #if (!defined(WIN32) && !defined(macintosh))

@@ -85,7 +85,7 @@ bx_devices_c::bx_devices_c(void)
     }
 
   timer_handle = BX_NULL_TIMER_HANDLE;
-  BX_DEBUG(("Init."));
+  BX_DEBUG(("Init.\n"));
 }
 
 

@@ -27,7 +27,8 @@
 
 
 #include "bochs.h"
-#define LOG_THIS genlog->
+#define LOG_THIS log->
+
 
 
 FILE *state_file::get_handle()
@@ -96,20 +97,31 @@ void state_file::read_check (const char *)
   BX_PANIC(("state_file::read_check()\n"));
 }
 
+void
+state_file::init(void)
+{
+	log = new class logfunctions();
+	log->setprefix("[STAT]");
+	log->settype(GENLOG);
+}
+
+
 state_file::state_file (const char *name, const char *options)
 {
   UNUSED(name);
   UNUSED(options);
-  BX_INFO(( "state_file::state_file()\n" ));
+  init();
+  BX_INFO(( "Init(const char *, const char *).\n" ));
 }
 
 state_file::state_file (FILE *f)
 {
   UNUSED(f);
-  SAFE_GET_GENLOG()->info("state_file::state_file(FILE *)\n");
+  init();
+  BX_INFO(("Init(FILE *).\n"));
 }
 
 state_file::~state_file()
 {
-  BX_INFO(("state_file::~state_file()\n"));
+  BX_INFO(("Exit.\n"));
 }

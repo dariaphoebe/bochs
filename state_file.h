@@ -29,9 +29,11 @@
 #include <stddef.h>
 
 
-class state_file : logfunctions {
+class state_file {
+  void init(void);
 public:
   FILE *file;
+  class logfunctions *log;
 
   FILE *get_handle();
   void write(Bit8u);

@@ -37,7 +37,7 @@ BX_CPU_C::BX_CPU_C(void)
   char cpu[8];
   snprintf(cpu, 8, "[CPU%d]",BX_SIM_ID);
 
-  BX_CPU_THIS_PTR setprefix(cpu);
+  setprefix(cpu);
 
   /* hack for the following fields.  Its easier to decode mod-rm bytes if
      you can assume there's always a base & index register used.  For

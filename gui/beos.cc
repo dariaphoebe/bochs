@@ -989,7 +989,7 @@ bx_gui_c::create_bitmap(const unsigned char *bmap,
   unsigned char *data;
 
   if (bx_bitmap_entries >= BX_MAX_PIXMAPS) {
-    bx_panic("beos: too many pixmaps, increase BX_MAX_PIXMAPS\n");
+    BX_PANIC(("beos: too many pixmaps, increase BX_MAX_PIXMAPS\n"));
     }
 
   bx_bitmaps[bx_bitmap_entries].bmap =
@@ -1005,7 +1005,7 @@ bx_gui_c::create_bitmap(const unsigned char *bmap,
   bx_bitmaps[bx_bitmap_entries].xdim = xdim;
   bx_bitmaps[bx_bitmap_entries].ydim = ydim;
   if (!bx_bitmaps[bx_bitmap_entries].bmap) {
-    bx_panic("beos: could not create bitmap\n");
+    BX_PANIC(("beos: could not create bitmap\n"));
     }
   bx_bitmap_entries++;
   return(bx_bitmap_entries-1); // return index as handle
@@ -1018,7 +1018,7 @@ bx_gui_c::headerbar_bitmap(unsigned bmap_id, unsigned alignment,
   unsigned hb_index;
 
   if ( (bx_headerbar_entries+1) > BX_MAX_HEADERBAR_ENTRIES )
-    bx_panic("beos: too many headerbar entries, increase BX_MAX_HEADERBAR_ENTRIES\n");
+    BX_PANIC(("beos: too many headerbar entries, increase BX_MAX_HEADERBAR_ENTRIES\n"));
 
   bx_headerbar_entries++;
   hb_index = bx_headerbar_entries - 1;
@@ -1117,7 +1117,7 @@ create_vga_font(void)
   for (unsigned c=0; c<256; c++) {
     vgafont[c] = new BBitmap(brect, B_MONOCHROME_1_BIT);
     if (!vgafont[c]) {
-      bx_panic("beos: could not create bitmap\n");
+      BX_PANIC(("beos: could not create bitmap\n"));
       }
 
     bitslength = vgafont[c]->BitsLength();

@@ -369,7 +369,7 @@ BX_CPU_C::jump_protected(BxInstruction_t *i, Bit16u cs_raw, Bit32u disp32)
 
         // gate must be present else #NP(gate selector)
         if (descriptor.p==0) {
-          BX_CPU_THIS_PTR panic("jump_protected: task gate.p == 0\n");
+          BX_PANIC(("jump_protected: task gate.p == 0\n"));
           exception(BX_NP_EXCEPTION, cs_raw & 0xfffc, 0);
           return;
           }
@@ -1006,7 +1006,7 @@ BX_CPU_C::call_protected(BxInstruction_t *i, Bit16u cs_raw, Bit32u disp32)
           return;
           }
 
-        BX_CPU_THIS_PTR panic("call_protected: call gate: should not get here\n");
+        BX_PANIC(("call_protected: call gate: should not get here\n"));
         return;
 
       default:
