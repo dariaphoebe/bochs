@@ -60,7 +60,7 @@ static Bit64u argument_reduction_kernel(Bit64u aSig0, int Exp, Bit64u *zSig0, Bi
 
 Bit64u trig_arg_reduction(floatx80 &a, float_status_t &status)
 {
-    Bit64u aSig0, aSig1, term0, term1, q;
+    Bit64u aSig0, aSig1 = 0, term0, term1, q;
     Bit32s aExp, expDiff;
     int Sign; 
 
@@ -86,19 +86,16 @@ Bit64u trig_arg_reduction(floatx80 &a, float_status_t &status)
         return 0;
     }
     if (aExp == 0) {
-        if ((Bit64u) (aSig0<<1) == 0) 
+        if ((Bit64u) (aSig0<<1) == 0)
             return 0;
 
         float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(aSig0, &aExp, &aSig0);
     }
-    expDiff = aExp - 0x3FFF;
-    aSig1 = 0;
 
+    expDiff = aExp - 0x3FFF;
     if (expDiff >= 63) 
-    {
         return (Bit64u) -1;
-    }
 
     float_raise(status, float_flag_inexact);
 

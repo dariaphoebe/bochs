@@ -81,7 +81,6 @@ void BX_CPU_C::FCHS(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
-
   if (st0_tag == FPU_Tag_Empty)
   {
       BX_CPU_THIS_PTR FPU_stack_underflow(0);
@@ -104,7 +103,6 @@ void BX_CPU_C::FABS(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
-
   if (st0_tag == FPU_Tag_Empty)
   {
       BX_CPU_THIS_PTR FPU_stack_underflow(0);
