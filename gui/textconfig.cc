@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: textconfig.cc,v 1.8.6.3 2003/03/24 01:21:40 bdenney Exp $
+// $Id: textconfig.cc,v 1.8.6.4 2003/03/24 02:21:24 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // This is code for a text-mode configuration interfac.  Note that this file
@@ -334,10 +334,12 @@ static char *runtime_menu_prompt =
 "12. Keyboard paste delay: %d\n"
 "13. Userbutton shortcut: %s\n"
 "14. Instruction tracing: off (doesn't exist yet)\n"
-"15. Continue simulation\n"
-"16. Quit now\n"
+"15. Save state\n"
+"16. Restore state\n"
+"17. Continue simulation\n"
+"18. Quit now\n"
 "\n"
-"Please choose one:  [15] ";
+"Please choose one:  [17] ";
 
 char *menu_prompt_list[BX_CI_N_MENUS] = {
   NULL,
@@ -521,7 +523,7 @@ int bx_config_interface (int menu)
      bx_floppy_options floppyop;
      bx_atadevice_options cdromop;
      build_runtime_options_prompt (runtime_menu_prompt, prompt, 1024);
-     if (ask_uint (prompt, 1, 16, 15, &choice, 10) < 0) return -1;
+     if (ask_uint (prompt, 1, 18, 17, &choice, 10) < 0) return -1;
      switch (choice) {
        case 1: 
          SIM->get_floppy_options (0, &floppyop);
@@ -564,8 +566,10 @@ int bx_config_interface (int menu)
        case 12: askparam (BXPN_KBD_PASTE_DELAY); break;
        case 13: askparam (BXPN_USER_SHORTCUT); break;
        case 14: NOT_IMPLEMENTED (choice); break;
-       case 15: fprintf (stderr, "Continuing simulation\n"); return 0;
-       case 16:
+       case 15: SIM->save_state ("checkpt1"); break;
+       case 16: SIM->restore_state ("checkpt1"); break;
+       case 17: fprintf (stderr, "Continuing simulation\n"); return 0;
+       case 18:
 	 fprintf (stderr, "You chose quit on the configuration interface.\n");
 	 SIM->quit_sim (1);
 	 return -1;

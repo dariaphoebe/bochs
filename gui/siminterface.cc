@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94.4.5 2003/03/24 01:20:53 bdenney Exp $
+// $Id: siminterface.cc,v 1.94.4.6 2003/03/24 02:21:24 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -164,6 +164,9 @@ public:
       bx_gui->set_display_mode (newmode);
   }
   virtual bool test_for_text_console ();
+  // save/restore interface
+  virtual bool save_state (const char *checkpoint_name);
+  virtual bool restore_state (const char *checkpoint_name);
 };
 
 // recursive function to find parameters from the path
@@ -840,6 +843,22 @@ bx_real_sim_c::test_for_text_console ()
   if(!isatty(STDIN_FILENO)) return false;
 #endif
   // default: yes
+  return true;
+}
+
+bool 
+bx_real_sim_c::save_state (const char *checkpoint_name)
+{
+  BX_INFO (("save_state(%s)", checkpoint_name));
+  bx_param_c *root = get_param (".");
+  print_tree (root, 0);
+  return true;
+}
+
+bool 
+bx_real_sim_c::restore_state (const char *checkpoint_name)
+{
+  BX_INFO (("restore_state(%s)", checkpoint_name));
   return true;
 }
 
@@ -1566,14 +1585,22 @@ void print_tree (bx_param_c *node, int level)
 #warning slechta added this suppression for debug... way wish to remove
         if (list->get_size() <= 100) {
           for (i=0; i < list->get_size (); i++) {
-            // should distinguish between real children and 'links'
-            // where the child's parent does not point to me.
-            print_tree (list->get(i), level+1);
+            // distinguish between real children and 'links' where the 
+	    // child's parent ptr does not point to this list.  For links,
+	    // do not descend into the object.
+	    bx_bool is_link = (list != list->get(i)->get_parent ());
+	    if (is_link) {
+	      char pname[BX_PATHNAME_LEN];
+	      list->get(i)->get_param_path (pname, sizeof(pname));
+	      for (int indent=0; indent<level+1; indent++) printf ("  ");
+	      printf ("%s --> link to %s\n", list->get(i)->get_name (), pname);
+	    } else {
+              print_tree (list->get(i), level+1);
+	    }
           }
         }
         else {
-	  for (i=0; i<level; i++)
-	    printf ("  ");
+	  for (int indent=0; indent<level; indent++) printf ("  ");
           printf(".. %d items suppressed ..\n", list->get_size ());
         }
 	break;

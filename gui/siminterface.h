@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.6 2003/03/24 01:21:18 bdenney Exp $
+// $Id: siminterface.h,v 1.99.4.7 2003/03/24 02:21:24 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -1565,6 +1565,9 @@ public:
   // interfaces to use.
   virtual void set_display_mode (disp_mode_t newmode) {}
   virtual bool test_for_text_console () { return true; }
+  // save/restore interface
+  virtual bool save_state (const char *checkpoint_name) {return false;}
+  virtual bool restore_state (const char *checkpoint_name) {return false;}
 };
 
 BOCHSAPI extern bx_simulator_interface_c *SIM;
