@@ -1,4 +1,4 @@
-//  Copyright (C) 2001  MandrakeSoft S.A.
+//  Copyright (C) 2000  MandrakeSoft S.A.
 //
 //    MandrakeSoft S.A.
 //    43, rue d'Aboukir
@@ -490,7 +490,6 @@ typedef struct {
 
 
 typedef enum {
-  APIC_TYPE_NONE,
   APIC_TYPE_IOAPIC,
   APIC_TYPE_LOCAL_APIC
 } bx_apic_type_t;
@@ -540,16 +539,8 @@ class bx_local_apic_c : public bx_generic_apic_c {
   // bit in ISR is set.  The ISR bit is cleared when 
   Bit8u isr[BX_LOCAL_APIC_MAX_INTS];
   Bit32u arb_id, arb_priority, task_priority, log_dest, dest_format, spurious_vec;
-  Bit32u lvt[6];
-#define APIC_LVT_TIMER   0
-#define APIC_LVT_THERMAL 1
-#define APIC_LVT_PERFORM 2
-#define APIC_LVT_LINT0   3
-#define APIC_LVT_LINT1   4
-#define APIC_LVT_ERROR   5
-  Bit32u timer_initial, timer_current, timer_divconf;
-  Boolean timer_active;  // internal state, not accessible from bus
-  Bit32u timer_divide_counter, timer_divide_factor;
+  Bit32u lvt_timer, lvt_thermal, lvt_perf, lvt_lint0, lvt_lint1, lvt_err;
+  Bit32u timer_initial, timer_current, timer_divide;
   Bit32u apic_base_msr;
   Bit32u icr_high, icr_low;
   Bit32u err_status;
@@ -566,7 +557,7 @@ public:
   BX_CPU_C *cpu;
   virtual void hwreset ();
   virtual void init ();
-  BX_CPU_C *get_cpu (Bit8u id);
+  static BX_CPU_C *get_cpu (Bit8u id);
   void set_id (Bit8u newid);   // redefine to set cpu->name
   virtual char *get_name();
   virtual void write (Bit32u addr, Bit32u *data, unsigned len);
@@ -587,8 +578,6 @@ public:
   virtual Bit32u get_delivery_bitmask (Bit8u dest, Bit8u dest_mode);
   Bit8u get_ppr ();
   Bit8u get_apr ();
-  void periodic (Bit32u usec_delta);
-  void set_divide_configuration (Bit32u value);
   };
 
 #define APIC_MAX_ID 16
@@ -601,9 +590,9 @@ extern bx_generic_apic_c *apic_index[APIC_MAX_ID];
 // To distinguish, check BX_IN_CPU_METHOD, which is defined to be 1 at
 // the top of every file in the cpu subdir.
 #ifdef BX_IN_CPU_METHOD
-#  define BX_CPU_THIS_PTR  this->     /* for methods of BX_CPU only */
+#  define BX_CPU_THIS_PTR  this->     /* for cpu/*.cc */
 #else
-#  define BX_CPU_THIS_PTR  BX_CPU[0]->    /* outside of BX_CPU methods */
+#  define BX_CPU_THIS_PTR  BX_CPU[0]->    /* for all others */
 #endif
 #  define BX_SMF
 #  define BX_CPU_C_PREFIX  BX_CPU_C::
@@ -1434,51 +1423,51 @@ public: // for now...
                                  unsigned opa, unsigned opb);
 #endif
 
-  BX_SMF BX_CPP_INLINE void set_CF(Boolean val);
-  BX_SMF BX_CPP_INLINE void set_AF(Boolean val);
-  BX_SMF BX_CPP_INLINE void set_ZF(Boolean val);
-  BX_SMF BX_CPP_INLINE void set_SF(Boolean val);
-  BX_SMF BX_CPP_INLINE void set_OF(Boolean val);
-  BX_SMF BX_CPP_INLINE void set_PF(Boolean val);
-  BX_SMF BX_CPP_INLINE void set_PF_base(Bit8u val);
+  BX_SMF inline void set_CF(Boolean val);
+  BX_SMF inline void set_AF(Boolean val);
+  BX_SMF inline void set_ZF(Boolean val);
+  BX_SMF inline void set_SF(Boolean val);
+  BX_SMF inline void set_OF(Boolean val);
+  BX_SMF inline void set_PF(Boolean val);
+  BX_SMF inline void set_PF_base(Bit8u val);
 
 
-  BX_SMF BX_CPP_INLINE void set_AX(Bit16u ax);
-  BX_SMF BX_CPP_INLINE void set_BX(Bit16u bx);
-  BX_SMF BX_CPP_INLINE void set_CX(Bit16u cx);
-  BX_SMF BX_CPP_INLINE void set_DX(Bit16u dx);
-  BX_SMF BX_CPP_INLINE void set_AL(Bit8u  al);
-  BX_SMF BX_CPP_INLINE void set_AH(Bit8u  ah);
-  BX_SMF BX_CPP_INLINE void set_BL(Bit8u  bl);
-  BX_SMF BX_CPP_INLINE void set_BH(Bit8u  bh);
-  BX_SMF BX_CPP_INLINE void set_CL(Bit8u  cl);
-  BX_SMF BX_CPP_INLINE void set_CH(Bit8u  ch);
-  BX_SMF BX_CPP_INLINE void set_DL(Bit8u  dl);
-  BX_SMF BX_CPP_INLINE void set_DH(Bit8u  dh);
+  BX_SMF inline void set_AX(Bit16u ax);
+  BX_SMF inline void set_BX(Bit16u bx);
+  BX_SMF inline void set_CX(Bit16u cx);
+  BX_SMF inline void set_DX(Bit16u dx);
+  BX_SMF inline void set_AL(Bit8u  al);
+  BX_SMF inline void set_AH(Bit8u  ah);
+  BX_SMF inline void set_BL(Bit8u  bl);
+  BX_SMF inline void set_BH(Bit8u  bh);
+  BX_SMF inline void set_CL(Bit8u  cl);
+  BX_SMF inline void set_CH(Bit8u  ch);
+  BX_SMF inline void set_DL(Bit8u  dl);
+  BX_SMF inline void set_DH(Bit8u  dh);
 
-  BX_SMF BX_CPP_INLINE Bit8u get_AL(void);
-  BX_SMF BX_CPP_INLINE Bit8u get_AH(void);
-  BX_SMF BX_CPP_INLINE Bit8u get_BL(void);
-  BX_SMF BX_CPP_INLINE Bit8u get_BH(void);
-  BX_SMF BX_CPP_INLINE Bit8u get_CL(void);
-  BX_SMF BX_CPP_INLINE Bit8u get_CH(void);
-  BX_SMF BX_CPP_INLINE Bit8u get_DL(void);
-  BX_SMF BX_CPP_INLINE Bit8u get_DH(void);
+  BX_SMF inline Bit8u get_AL(void);
+  BX_SMF inline Bit8u get_AH(void);
+  BX_SMF inline Bit8u get_BL(void);
+  BX_SMF inline Bit8u get_BH(void);
+  BX_SMF inline Bit8u get_CL(void);
+  BX_SMF inline Bit8u get_CH(void);
+  BX_SMF inline Bit8u get_DL(void);
+  BX_SMF inline Bit8u get_DH(void);
 
-  BX_SMF BX_CPP_INLINE Bit16u get_AX(void);
-  BX_SMF BX_CPP_INLINE Bit16u get_BX(void);
-  BX_SMF BX_CPP_INLINE Bit16u get_CX(void);
-  BX_SMF BX_CPP_INLINE Bit16u get_DX(void);
+  BX_SMF inline Bit16u get_AX(void);
+  BX_SMF inline Bit16u get_BX(void);
+  BX_SMF inline Bit16u get_CX(void);
+  BX_SMF inline Bit16u get_DX(void);
 
   // error handling
   BX_SMF void BxError(BxInstruction_t *);
 
 #if BX_CPU_LEVEL >= 2
-  BX_SMF BX_CPP_INLINE Boolean real_mode(void);
+  BX_SMF inline Boolean real_mode(void);
 #endif
 #if BX_CPU_LEVEL >= 3
-  BX_SMF BX_CPP_INLINE Boolean protected_mode(void);
-  BX_SMF BX_CPP_INLINE Boolean v8086_mode(void);
+  BX_SMF inline Boolean protected_mode(void);
+  BX_SMF inline Boolean v8086_mode(void);
 #endif
 #if BX_APIC_SUPPORT
   bx_local_apic_c local_apic;
@@ -1498,106 +1487,106 @@ public: // for now...
 extern BX_CPU_C       *BX_CPU[BX_SMP_PROCESSORS];
 
 #ifdef BX_IN_CPU_METHOD
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_AX(Bit16u ax) { AX = ax; };
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_BX(Bit16u bx) { BX = bx; };
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_CX(Bit16u cx) { CX = cx; };
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_DX(Bit16u dx) { DX = dx; };
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_AL(Bit8u  al) { AL = al; };
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_AH(Bit8u  ah) { AH = ah; };
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_BL(Bit8u  bl) { BL = bl; };
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_BH(Bit8u  bh) { BH = bh; };
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_CL(Bit8u  cl) { CL = cl; };
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_CH(Bit8u  ch) { CH = ch; };
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_DL(Bit8u  dl) { DL = dl; };
-BX_SMF BX_CPP_INLINE void BX_CPU_C_PREFIX set_DH(Bit8u  dh) { DH = dh; };
+BX_SMF inline void BX_CPU_C_PREFIX set_AX(Bit16u ax) { AX = ax; };
+BX_SMF inline void BX_CPU_C_PREFIX set_BX(Bit16u bx) { BX = bx; };
+BX_SMF inline void BX_CPU_C_PREFIX set_CX(Bit16u cx) { CX = cx; };
+BX_SMF inline void BX_CPU_C_PREFIX set_DX(Bit16u dx) { DX = dx; };
+BX_SMF inline void BX_CPU_C_PREFIX set_AL(Bit8u  al) { AL = al; };
+BX_SMF inline void BX_CPU_C_PREFIX set_AH(Bit8u  ah) { AH = ah; };
+BX_SMF inline void BX_CPU_C_PREFIX set_BL(Bit8u  bl) { BL = bl; };
+BX_SMF inline void BX_CPU_C_PREFIX set_BH(Bit8u  bh) { BH = bh; };
+BX_SMF inline void BX_CPU_C_PREFIX set_CL(Bit8u  cl) { CL = cl; };
+BX_SMF inline void BX_CPU_C_PREFIX set_CH(Bit8u  ch) { CH = ch; };
+BX_SMF inline void BX_CPU_C_PREFIX set_DL(Bit8u  dl) { DL = dl; };
+BX_SMF inline void BX_CPU_C_PREFIX set_DH(Bit8u  dh) { DH = dh; };
 
-BX_SMF BX_CPP_INLINE Bit8u BX_CPU_C_PREFIX get_AL(void) { return(AL); };
-BX_SMF BX_CPP_INLINE Bit8u BX_CPU_C_PREFIX get_AH(void) { return(AH); };
-BX_SMF BX_CPP_INLINE Bit8u BX_CPU_C_PREFIX get_BL(void) { return(BL); };
-BX_SMF BX_CPP_INLINE Bit8u BX_CPU_C_PREFIX get_BH(void) { return(BH); };
-BX_SMF BX_CPP_INLINE Bit8u BX_CPU_C_PREFIX get_CL(void) { return(CL); };
-BX_SMF BX_CPP_INLINE Bit8u BX_CPU_C_PREFIX get_CH(void) { return(CH); };
-BX_SMF BX_CPP_INLINE Bit8u BX_CPU_C_PREFIX get_DL(void) { return(DL); };
-BX_SMF BX_CPP_INLINE Bit8u BX_CPU_C_PREFIX get_DH(void) { return(DH); };
+BX_SMF inline Bit8u BX_CPU_C_PREFIX get_AL(void) { return(AL); };
+BX_SMF inline Bit8u BX_CPU_C_PREFIX get_AH(void) { return(AH); };
+BX_SMF inline Bit8u BX_CPU_C_PREFIX get_BL(void) { return(BL); };
+BX_SMF inline Bit8u BX_CPU_C_PREFIX get_BH(void) { return(BH); };
+BX_SMF inline Bit8u BX_CPU_C_PREFIX get_CL(void) { return(CL); };
+BX_SMF inline Bit8u BX_CPU_C_PREFIX get_CH(void) { return(CH); };
+BX_SMF inline Bit8u BX_CPU_C_PREFIX get_DL(void) { return(DL); };
+BX_SMF inline Bit8u BX_CPU_C_PREFIX get_DH(void) { return(DH); };
 
-BX_SMF BX_CPP_INLINE Bit16u BX_CPU_C_PREFIX get_AX(void) { return(AX); };
-BX_SMF BX_CPP_INLINE Bit16u BX_CPU_C_PREFIX get_BX(void) { return(BX); };
-BX_SMF BX_CPP_INLINE Bit16u BX_CPU_C_PREFIX get_CX(void) { return(CX); };
-BX_SMF BX_CPP_INLINE Bit16u BX_CPU_C_PREFIX get_DX(void) { return(DX); };
+BX_SMF inline Bit16u BX_CPU_C_PREFIX get_AX(void) { return(AX); };
+BX_SMF inline Bit16u BX_CPU_C_PREFIX get_BX(void) { return(BX); };
+BX_SMF inline Bit16u BX_CPU_C_PREFIX get_CX(void) { return(CX); };
+BX_SMF inline Bit16u BX_CPU_C_PREFIX get_DX(void) { return(DX); };
 #endif //ifdef BX_IN_CPU_METHOD
 
 
 #if BX_CPU_LEVEL >= 2
-  BX_CPP_INLINE Boolean BX_CPU_C::real_mode(void) { return( !BX_CPU_THIS_PTR cr0.pe ); };
+  inline Boolean BX_CPU_C::real_mode(void) { return( !BX_CPU_THIS_PTR cr0.pe ); };
 #endif
 
 #if BX_CPU_LEVEL == 2
-  BX_CPP_INLINE Boolean BX_CPU_C::protected_mode(void) { return( BX_CPU_THIS_PTR cr0.pe ); };
+  inline Boolean BX_CPU_C::protected_mode(void) { return( BX_CPU_THIS_PTR cr0.pe ); };
 #endif
 
 
 #if BX_CPU_LEVEL >= 3
 #  if BX_SUPPORT_V8086_MODE
-  BX_CPP_INLINE Boolean
+  inline Boolean
 BX_CPU_C::v8086_mode(void) {
   return(BX_CPU_THIS_PTR eflags.vm);
   }
 
-  BX_CPP_INLINE Boolean
+  inline Boolean
 BX_CPU_C::protected_mode(void) {
   return(BX_CPU_THIS_PTR cr0.pe && !BX_CPU_THIS_PTR eflags.vm);
   }
 #  else
-  BX_CPP_INLINE Boolean
+  inline Boolean
 BX_CPU_C::v8086_mode(void) {
   return(0);
   }
 
-  BX_CPP_INLINE Boolean
+  inline Boolean
 BX_CPU_C::protected_mode(void) {
   return(BX_CPU_THIS_PTR cr0.pe);
   }
 #  endif
 #endif
 
-    BX_CPP_INLINE void
+    inline void
 BX_CPU_C::set_CF(Boolean val) {
     BX_CPU_THIS_PTR lf_flags_status &= 0xfffff0;
     BX_CPU_THIS_PTR eflags.cf = val;
     }
 
-    BX_CPP_INLINE void
+    inline void
 BX_CPU_C::set_AF(Boolean val) {
     BX_CPU_THIS_PTR lf_flags_status &= 0xfff0ff;
     BX_CPU_THIS_PTR eflags.af = val;
     }
 
-    BX_CPP_INLINE void
+    inline void
 BX_CPU_C::set_ZF(Boolean val) {
     BX_CPU_THIS_PTR lf_flags_status &= 0xff0fff;
     BX_CPU_THIS_PTR eflags.zf = val;
     }
 
-    BX_CPP_INLINE void
+    inline void
 BX_CPU_C::set_SF(Boolean val) {
     BX_CPU_THIS_PTR lf_flags_status &= 0xf0ffff;
     BX_CPU_THIS_PTR eflags.sf = val;
     }
 
 
-    BX_CPP_INLINE void
+    inline void
 BX_CPU_C::set_OF(Boolean val) {
     BX_CPU_THIS_PTR lf_flags_status &= 0x0fffff;
     BX_CPU_THIS_PTR eflags.of = val;
     }
 
-    BX_CPP_INLINE void
+    inline void
 BX_CPU_C::set_PF(Boolean val) {
     BX_CPU_THIS_PTR lf_flags_status &= 0xffff0f;
     BX_CPU_THIS_PTR lf_pf = val;
     }
 
-    BX_CPP_INLINE void
+    inline void
 BX_CPU_C::set_PF_base(Bit8u val) {
     BX_CPU_THIS_PTR eflags.pf_byte = val;
     BX_CPU_THIS_PTR lf_flags_status = (BX_CPU_THIS_PTR lf_flags_status & 0xffff0f) | BX_LF_MASK_P;
