@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.46 2003/02/13 15:51:22 sshwarts Exp $
+// $Id: init.cc,v 1.46.4.1 2003/03/20 05:16:37 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -168,7 +168,7 @@ cpu_param_handler (bx_param_c *param, int set, Bit64s val)
 
 void BX_CPU_C::init(BX_MEM_C *addrspace)
 {
-  BX_DEBUG(( "Init $Id: init.cc,v 1.46 2003/02/13 15:51:22 sshwarts Exp $"));
+  BX_DEBUG(( "Init $Id: init.cc,v 1.46.4.1 2003/03/20 05:16:37 bdenney Exp $"));
   // BX_CPU_C constructor
   BX_CPU_THIS_PTR set_INTR (0);
 #if BX_SUPPORT_APIC
@@ -328,6 +328,18 @@ void BX_CPU_C::init(BX_MEM_C *addrspace)
   sprintf (name, "CPU %p", this);
 
 #if BX_WITH_WX
+  bx_param_c *param_root = SIM->get_param(".");
+  bx_list_c *cpu_root = new bx_list_c (param_root, "cpu", "");
+  char name[16], descr[16];
+  sprintf (name, "%d", BX_CPU_ID);
+  sprintf (descr, "CPU %d", BX_CPU_ID);
+  bx_list_c *cpu_param = new bx_list_c (cpu_root, name, descr);
+  bx_list_c *general = new bx_list_c (cpu_param, "general", "");
+  bx_list_c *segment = new bx_list_c (cpu_param, "segment", "");
+  bx_list_c *mem_mgmt = new bx_list_c (cpu_param, "mem_mgmt", "");
+  bx_list_c *eflags_root = new bx_list_c (cpu_param, "eflags", "");
+  bx_list_c *control = new bx_list_c (cpu_param, "control", "");
+  bx_list_c *debug = new bx_list_c (cpu_param, "debug", "");
   static bx_bool first_time = 1;
   if (first_time) {
     first_time = 0;
@@ -339,52 +351,54 @@ void BX_CPU_C::init(BX_MEM_C *addrspace)
     const char *fmt32 = "%08X";
     Bit32u oldbase = bx_param_num_c::set_default_base (16);
     const char *oldfmt = bx_param_num_c::set_default_format (fmt32);
-    bx_list_c *list = new bx_list_c (BXP_CPU_PARAMETERS, "CPU State", "", 60);
-#define DEFPARAM_NORMAL(name,field) \
-    list->add (new bx_shadow_num_c (BXP_CPU_##name, #name, "", &(field)))
+#define DEFPARAM_NORMAL(parent,name,field) \
+    new bx_shadow_num_c (parent, #name, "", &(field))
 
 
-      DEFPARAM_NORMAL (EAX, EAX);
-      DEFPARAM_NORMAL (EBX, EBX);
-      DEFPARAM_NORMAL (ECX, ECX);
-      DEFPARAM_NORMAL (EDX, EDX);
-      DEFPARAM_NORMAL (ESP, ESP);
-      DEFPARAM_NORMAL (EBP, EBP);
-      DEFPARAM_NORMAL (ESI, ESI);
-      DEFPARAM_NORMAL (EDI, EDI);
-      DEFPARAM_NORMAL (EIP, EIP);
-      DEFPARAM_NORMAL (DR0, dr0);
-      DEFPARAM_NORMAL (DR1, dr1);
-      DEFPARAM_NORMAL (DR2, dr2);
-      DEFPARAM_NORMAL (DR3, dr3);
-      DEFPARAM_NORMAL (DR6, dr6);
-      DEFPARAM_NORMAL (DR7, dr7);
+      DEFPARAM_NORMAL (general, EAX, EAX);
+      DEFPARAM_NORMAL (general, EBX, EBX);
+      DEFPARAM_NORMAL (general, ECX, ECX);
+      DEFPARAM_NORMAL (general, EDX, EDX);
+      DEFPARAM_NORMAL (general, ESP, ESP);
+      DEFPARAM_NORMAL (general, EBP, EBP);
+      DEFPARAM_NORMAL (general, ESI, ESI);
+      DEFPARAM_NORMAL (general, EDI, EDI);
+      DEFPARAM_NORMAL (general, EIP, EIP);
+      DEFPARAM_NORMAL (debug,   DR0, dr0);
+      DEFPARAM_NORMAL (debug,   DR1, dr1);
+      DEFPARAM_NORMAL (debug,   DR2, dr2);
+      DEFPARAM_NORMAL (debug,   DR3, dr3);
+      DEFPARAM_NORMAL (debug,   DR6, dr6);
+      DEFPARAM_NORMAL (debug,   DR7, dr7);
 #if BX_SUPPORT_X86_64==0
 #if BX_CPU_LEVEL >= 2
-      DEFPARAM_NORMAL (CR0, cr0.val32);
-      DEFPARAM_NORMAL (CR1, cr1);
-      DEFPARAM_NORMAL (CR2, cr2);
-      DEFPARAM_NORMAL (CR3, cr3);
+      DEFPARAM_NORMAL (control, CR0, cr0.val32);
+      DEFPARAM_NORMAL (control, CR1, cr1);
+      DEFPARAM_NORMAL (control, CR2, cr2);
+      DEFPARAM_NORMAL (control, CR3, cr3);
 #endif
 #if BX_CPU_LEVEL >= 4
-      DEFPARAM_NORMAL (CR4, cr4.registerValue);
+      DEFPARAM_NORMAL (control, CR4, cr4.registerValue);
 #endif
 #endif  // #if BX_SUPPORT_X86_64==0
 
     // segment registers require a handler function because they have
     // special get/set requirements.
 #define DEFPARAM_SEG_REG(x) \
-    list->add (param = new bx_param_num_c (BXP_CPU_SEG_##x, \
-      #x, "", 0, 0xffff, 0)); \
+    param = new bx_param_num_c (segment, \
+      #x, "", 0, 0xffff, 0); \
     param->set_handler (cpu_param_handler); \
     param->set_format (fmt16);
 #define DEFPARAM_GLOBAL_SEG_REG(name,field) \
-    list->add (param = new bx_shadow_num_c (BXP_CPU_##name##_BASE,  \
-        #name" base", "", \
-        & BX_CPU_THIS_PTR field.base)); \
-    list->add (param = new bx_shadow_num_c (BXP_CPU_##name##_LIMIT, \
-        #name" limit", "", \
-        & BX_CPU_THIS_PTR field.limit));
+    { \
+      bx_list_c *parent = new bx_list_c (mem_mgmt, #name, ""); \
+      new bx_shadow_num_c (parent,  \
+	  #name" base", "", \
+	  & BX_CPU_THIS_PTR field.base); \
+      new bx_shadow_num_c (parent, \
+	  #name" limit", "", \
+	  & BX_CPU_THIS_PTR field.limit); \
+    }
 
     DEFPARAM_SEG_REG(CS);
     DEFPARAM_SEG_REG(DS);
@@ -399,23 +413,21 @@ void BX_CPU_C::init(BX_MEM_C *addrspace)
 #undef DEFPARAM_SEGREG
 
 #if BX_SUPPORT_X86_64==0
-    list->add (param = new bx_shadow_num_c (BXP_CPU_EFLAGS, "EFLAGS", "",
-        &BX_CPU_THIS_PTR eflags.val32));
+    param = new bx_shadow_num_c (eflags_root, "eflags", "",
+        &BX_CPU_THIS_PTR eflags.val32);
 #endif
 
     // flags implemented in lazy_flags.cc must be done with a handler
     // that calls their get function, to force them to be computed.
 #define DEFPARAM_EFLAG(name) \
-    list->add ( \
-        param = new bx_param_bool_c ( \
-            BXP_CPU_EFLAGS_##name, \
-            #name, "", get_##name())); \
+    param = new bx_param_bool_c ( \
+	eflags_root, \
+	#name, "", get_##name()); \
     param->set_handler (cpu_param_handler);
 #define DEFPARAM_LAZY_EFLAG(name) \
-    list->add ( \
-        param = new bx_param_bool_c ( \
-            BXP_CPU_EFLAGS_##name, \
-            #name, "", get_##name())); \
+    param = new bx_param_bool_c ( \
+	eflags_root, \
+	#name, "", get_##name()); \
     param->set_handler (cpu_param_handler);
 
 #if BX_CPU_LEVEL >= 4
@@ -431,12 +443,10 @@ void BX_CPU_C::init(BX_MEM_C *addrspace)
 #if BX_CPU_LEVEL >= 2
     DEFPARAM_EFLAG(NT);
     // IOPL is a special case because it is 2 bits wide.
-    list->add (
-        param = new bx_shadow_num_c (
-            BXP_CPU_EFLAGS_IOPL,
-            "IOPL", "", 
-            &eflags.val32,
-            12, 13));
+    param = new bx_shadow_num_c (eflags_root,
+	"IOPL", "", 
+	&eflags.val32,
+	12, 13);
     param->set_range (0, 3);
 #if BX_SUPPORT_X86_64==0
     param->set_format ("%d");
