@@ -512,7 +512,7 @@ protected:
 #define APIC_VERSION_ID 0x00170011  // same version as 82093 IOAPIC
 public:
   bx_generic_apic_c ();
-  ~bx_generic_apic_c ();
+  virtual ~bx_generic_apic_c ();
   virtual void init ();
   virtual void hwreset () { }
   Bit32u get_base (void) { return base_addr; }
@@ -571,7 +571,7 @@ class bx_local_apic_c : public bx_generic_apic_c {
 #define APIC_ERR_TX_CHECKSUM     0x01
 public:
   bx_local_apic_c(BX_CPU_C *mycpu);
-  ~bx_local_apic_c(void);
+  virtual ~bx_local_apic_c(void);
   BX_CPU_C *cpu;
   virtual void hwreset ();
   virtual void init ();
