@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit.cc,v 1.14 2002/10/26 03:57:19 bdenney Exp $
+// $Id: pit.cc,v 1.14.6.1 2003/03/20 04:52:53 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -220,6 +220,42 @@ bx_pit_c::init( void )
 
   return(1);
 }
+
+void
+bx_pit_c::register_state(char *name, char *desc, bx_list_c *parent_p)
+{
+  BX_REGISTER_LIST(pit_list_p, name, desc, parent_p, 20);
+  BX_REGISTER_LIST(s_list_p, "s", "", pit_list_p, 20);
+  {
+    BX_REGISTER_ARRAY(array_p, i, iname, "timer", "pit timer array", s_list_p, 3)
+      {
+        BX_REGISTER_LIST(list_p, iname, "", array_p, 20,);
+        {
+          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].mode               ), "mode"               , "", list_p);
+          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].latch_mode         ), "latch_mode"         , "", list_p);
+          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].input_latch_value  ), "input_latch_value"  , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].input_latch_toggle ), "input_latch_toggle" , "", list_p);
+          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].output_latch_value ), "output_latch_value" , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].output_latch_toggle), "output_latch_toggle", "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].output_latch_full  ), "output_latch_full"  , "", list_p);
+          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].counter_max        ), "counter_max"        , "", list_p);
+          BX_REGISTER_NUM (&(BX_PIT_THIS s.timer[i].counter            ), "counter"            , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].bcd_mode           ), "bcd_mode"           , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].active             ), "active"             , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].GATE               ), "GATE"               , "", list_p);
+          BX_REGISTER_BOOL(&(BX_PIT_THIS s.timer[i].OUT                ), "OUT"                , "", list_p);
+        }
+      }
+    BX_REGISTER_NUM (&(BX_PIT_THIS s.speaker_data_on)   , "speaker_data_on"   , "", s_list_p);
+    BX_REGISTER_BOOL(&(BX_PIT_THIS s.refresh_clock_div2), "refresh_clock_div2", "", s_list_p);
+    BX_REGISTER_ARRAY(array2_p, i, iname, "timer_handle", "pit timer_handle array", s_list_p, 3)
+      {
+        BX_REGISTER_NUM(&(BX_PIT_THIS s.timer_handle[i]), iname, "", array2_p);
+      }
+    
+  }
+}
+
 
 void bx_pit_c::reset(unsigned type) {
 }

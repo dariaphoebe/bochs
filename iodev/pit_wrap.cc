@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// $Id: pit_wrap.cc,v 1.48 2003/02/23 22:55:50 cbothamy Exp $
+// $Id: pit_wrap.cc,v 1.48.2.1 2003/03/20 04:52:53 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -246,6 +246,43 @@ bx_pit_c::init( void )
 
   return(1);
 }
+
+
+void 
+bx_pit_c::register_state(char *name, char *desc, bx_list_c *parent_p)
+{
+  BX_REGISTER_LIST(pit_list_p, name, desc, parent_p, 15);
+  {
+    BX_REGISTER_LIST(s_list_p, "s", "", pit_list_p, 50);
+    {
+      // register the pit_82C54 object
+      BX_PIT_THIS s.timer.register_state("timer", "pit_82C54", s_list_p);
+
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.speaker_data_on     ), "specker_data_on"     , "", s_list_p);
+      BX_REGISTER_BOOL(&(BX_PIT_THIS s.refresh_clock_div2  ), "refresh_clock_div2"  , "", s_list_p);
+      
+      BX_REGISTER_ARRAY(array_p, i, index_name, "timer_handle", "", s_list_p, 3) 
+        BX_REGISTER_NUM(&(BX_PIT_THIS s.last_usec/*FIXME:timer_handle*/), index_name, "", array_p);
+
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.last_usec           ), "last_usec"           , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.last_next_event_time), "last_next_event_time", "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.total_ticks         ), "total_ticks"         , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.usec_per_second     ), "usec_per_second"     , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.ticks_per_second    ), "ticks_per_second"    , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.total_sec           ), "total_sec"           , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.last_time           ), "last_time"           , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.last_sec_usec       ), "last_sec_usec"       , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.max_ticks           ), "max_ticks"           , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.stored_delta        ), "stored_delta"        , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.total_usec          ), "total_usec"          , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.use_realtime        ), "use_realtime"        , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.em_last_realtime    ), "em_last_realtime"    , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.last_realtime_delta ), "last_realtime_delta" , "", s_list_p);
+      BX_REGISTER_NUM (&(BX_PIT_THIS s.last_realtime_ticks ), "last_realtime_ticks" , "", s_list_p);
+    }
+  }
+}
+
 
   void
 bx_pit_c::reset(unsigned type)

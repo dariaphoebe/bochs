@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.cc,v 1.21 2003/03/02 23:59:11 cbothamy Exp $
+// $Id: pit82c54.cc,v 1.21.2.1 2003/03/20 04:52:53 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -177,6 +177,39 @@ pit_82C54::decrement (counter_type & thisctr) {
     }
     seen_problems=0;
   }
+
+void
+pit_82C54::register_state(char *name, char *desc, bx_list_c *parent_p)
+{
+  BX_REGISTER_LIST(counter_list_p, name, desc, parent_p, 15);  
+  BX_REGISTER_ARRAY(array_p, i, iname, "counter", "", counter_list_p, 3) 
+    {
+      BX_REGISTER_BOOL(&(counter[i].GATE             ), "GATE"             , "", array_p);
+      BX_REGISTER_BOOL(&(counter[i].OUTpin           ), "OUTpin"           , "", array_p);
+      BX_REGISTER_NUM (&(counter[i].count            ), "count"            , "", array_p);
+      BX_REGISTER_NUM (&(counter[i].outlatch         ), "outlatch"         , "", array_p);
+      BX_REGISTER_NUM (&(counter[i].inlatch          ), "inlatch"          , "", array_p);
+      BX_REGISTER_NUM (&(counter[i].status_latch     ), "status_latch"     , "", array_p);
+      BX_REGISTER_NUM (&(counter[i].rw_mode          ), "rw_mode"          , "", array_p);
+      BX_REGISTER_NUM (&(counter[i].mode             ), "mode"             , "", array_p);
+      BX_REGISTER_BOOL(&(counter[i].bcd_mode         ), "bcd_mode"         , "", array_p);
+      BX_REGISTER_BOOL(&(counter[i].null_count       ), "null_count"       , "", array_p);
+      BX_REGISTER_BOOL(&(counter[i].count_LSB_latched), "count_LSB_latched", "", array_p);
+      BX_REGISTER_BOOL(&(counter[i].count_MSB_latched), "count_MSB_latched", "", array_p);
+      BX_REGISTER_BOOL(&(counter[i].status_latched   ), "status_latched"   , "", array_p);
+      BX_REGISTER_NUM (&(counter[i].count_binary     ), "count_binary"     , "", array_p);
+      BX_REGISTER_BOOL(&(counter[i].triggerGATE      ), "triggerGATE"      , "", array_p);
+      BX_REGISTER_ENUM(&(counter[i].write_state      ), "write_state"      , "", array_p);
+      BX_REGISTER_ENUM(&(counter[i].read_state       ), "read_state"       , "", array_p);
+      BX_REGISTER_BOOL(&(counter[i].count_written    ), "count_written"    , "", array_p);
+      BX_REGISTER_BOOL(&(counter[i].first_pass       ), "first_pass"       , "", array_p);
+      BX_REGISTER_BOOL(&(counter[i].state_bit_1      ), "state_bit_1"      , "", array_p);
+      BX_REGISTER_BOOL(&(counter[i].state_bit_2      ), "state_bit_2"      , "", array_p);
+      BX_REGISTER_NUM (&(counter[i].next_change_time ), "next_change_time" , "", array_p);
+    }
+  BX_REGISTER_NUM (&(controlword  ), "controlword"  , "", counter_list_p);
+  BX_REGISTER_NUM (&(seen_problems), "seen_problems", "", counter_list_p);
+}
 
   pit_82C54::pit_82C54 (void) {
     init();
