@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94.4.1 2003/03/20 05:24:24 bdenney Exp $
+// $Id: siminterface.cc,v 1.94.4.2 2003/03/20 07:01:29 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -51,7 +51,37 @@ public:
   }
   virtual int register_param (bx_id id, bx_param_c *it);
   virtual void reset_all_param ();
-  virtual bx_param_c *get_param (bx_id id);
+
+  // All lookups by ID will be eliminated soon.  They will not work anymore.
+  virtual bx_param_c *get_param (bx_id id) {
+    BX_INFO (("get_param called with id=%d. This method is no longer usable and will be eliminated soon. Replace it with a call to get_param(name).", (int)id));
+    assert (0);
+    return NULL;
+  }
+  virtual bx_param_num_c *get_param_num (bx_id id) {
+    BX_INFO (("get_param_num called with id=%d. This method is no longer usable and will be eliminated soon. Replace it with a call to get_param_num(name).", (int)id));
+    assert (0);
+    return NULL;
+  }
+  virtual bx_param_string_c *get_param_string (bx_id id) {
+    BX_INFO (("get_param_string called with id=%d. This method is no longer usable and will be eliminated soon. Replace it with a call to get_param_string(name).", (int)id));
+    assert (0);
+    return NULL;
+  }
+  virtual bx_param_bool_c *get_param_bool (bx_id id) {
+    BX_INFO (("get_param_bool called with id=%d. This method is no longer usable and will be eliminated soon. Replace it with a call to get_param_bool(name).", (int)id));
+    assert (0);
+    return NULL;
+  }
+  virtual bx_param_enum_c *get_param_enum (bx_id id) {
+    BX_INFO (("get_param_enum called with id=%d. This method is no longer usable and will be eliminated soon. Replace it with a call to get_param_enum(name).", (int)id));
+    BX_ASSERT (0);
+    return NULL;
+  }
+
+
+
+
   virtual bx_param_c *get_param (const char *pname, bx_param_c *base=NULL);
   virtual bx_param_num_c *get_param_num (const char *pname);
   virtual bx_param_string_c *get_param_string (const char *pname);
@@ -135,17 +165,6 @@ public:
   }
   virtual bool test_for_text_console ();
 };
-
-bx_param_c *
-bx_real_sim_c::get_param (bx_id id)
-{
-  BX_ASSERT (id >= BXP_NULL && id < BXP_THIS_IS_THE_LAST);
-  int index = (int)id - BXP_NULL;
-  bx_param_c *retval = param_registry[index];
-  if (!retval) 
-    BX_INFO (("get_param can't find id %u", id));
-  return retval;
-}
 
 // recursive function to find parameters from the path
 static
@@ -775,7 +794,7 @@ bx_real_sim_c::register_configuration_interface (
 int 
 bx_real_sim_c::configuration_interface(const char *ignore, ci_command_t command)
 {
-  bx_param_enum_c *ci_param = SIM->get_param_enum (BXP_SEL_CONFIG_INTERFACE);
+  bx_param_enum_c *ci_param = SIM->get_param_enum ("display.config_interface");
   char *name = ci_param->get_choice (ci_param->get ());
   if (!ci_callback) {
     BX_PANIC (("no configuration interface was loaded"));
