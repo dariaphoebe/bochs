@@ -94,7 +94,6 @@ static int reduce_trig_arg(int expDiff, int &zSign, Bit64u &aSig0, Bit64u &aSig1
 }
 
 static const floatx80 floatx80_one = packFloatx80(0, 0x3fff, BX_CONST64(0x8000000000000000));
-static const float128 float128_one = packFloat128(0, 0x3fff, 0, 0);
 
 #define SIN_ARR_SIZE 9
 #define COS_ARR_SIZE 9
@@ -131,7 +130,7 @@ static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
     float128 x4 = float128_mul(x2, x2, status);
     float128 r1, r2;
 
-    // negative = x2*(a_1 + x4*(a_3 + x4*(a_5+x4*a_7))); 
+    // negative = x2*(a_1 + x4*(a_3 + x4*(a_5+x4*a_7)));
     r1 = float128_mul(x4, carr[7], status);
     r1 = float128_add(r1, carr[5], status);
     r1 = float128_mul(r1, x4, status);
@@ -140,7 +139,7 @@ static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
     r1 = float128_add(r1, carr[1], status);
     r1 = float128_mul(r1, x2, status);
 
-    // positive = x4*(a_2 + x4*(a_4 + x4*(a_6+x4*a_8))); 
+    // positive = x4*(a_2 + x4*(a_4 + x4*(a_6+x4*a_8)));
     r2 = float128_mul(x4, carr[8], status);
     r2 = float128_add(r2, carr[6], status);
     r2 = float128_mul(r2, x4, status);
@@ -151,7 +150,7 @@ static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
 
     r1 = float128_add(r1, r2, status);
     return 
-       float128_add(float128_one, r1, status);
+       float128_add(r1, carr[0], status);
 }
 
 /* 0 <= x <= pi/4 */

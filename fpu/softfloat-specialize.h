@@ -417,9 +417,9 @@ BX_CPP_INLINE int floatx80_is_nan(floatx80 a)
 
 BX_CPP_INLINE int floatx80_is_signaling_nan(floatx80 a)
 {
-    Bit64s aLow = a.fraction & ~BX_CONST64(0x4000000000000000);
+    Bit64u aLow = a.fraction & ~BX_CONST64(0x4000000000000000);
     return ((a.exp & 0x7FFF) == 0x7FFF) &&
-            (Bit64s) (aLow<<1) && (a.fraction == aLow);
+            ((Bit64u) (aLow<<1)) && (a.fraction == aLow);
 }
 
 /*----------------------------------------------------------------------------
