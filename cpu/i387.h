@@ -58,6 +58,7 @@ struct bx_fpu_reg_t {
 
 typedef struct bx_fpu_reg_t FPU_REG;
 
+/* Tag Word */
 #define FPU_Tag_Valid   0x00
 #define FPU_Tag_Zero    0x01
 #define FPU_Tag_Special 0x02
@@ -73,20 +74,7 @@ typedef struct bx_fpu_reg_t FPU_REG;
 #define FPU_TOS                (BX_CPU_THIS_PTR the_i387.tos)
 #endif
 
-/* Special exceptions: */
-#define FPU_EX_Stack_Overflow	(0x0041|SW_C1)	/* stack overflow */
-#define FPU_EX_Stack_Underflow	(0x0041)	/* stack underflow */
-
-/* Exception flags: */
-#define FPU_EX_Precision	(0x0020)  /* loss of precision */
-#define FPU_EX_Underflow	(0x0010)  /* underflow */
-#define FPU_EX_Overflow		(0x0008)  /* overflow */
-#define FPU_EX_Zero_Div		(0x0004)  /* divide by zero */
-#define FPU_EX_Denormal		(0x0002)  /* denormalized operand */
-#define FPU_EX_Invalid		(0x0001)  /* invalid operation */
-
-#define clear_C1() { FPU_PARTIAL_STATUS &= ~FPU_SW_C1; }
-
+/* Status Word */
 #define FPU_SW_Backward		(0x8000)  /* backward compatibility */
 #define FPU_SW_C3	 	(0x4000)  /* condition bit 3 */
 #define FPU_SW_Top		(0x3800)  /* top of stack */
@@ -104,6 +92,21 @@ typedef struct bx_fpu_reg_t FPU_REG;
 
 #define FPU_SW_Exceptions_Mask  (0x027f)  /* status word exceptions bit mask */
 
+/* Special exceptions: */
+#define FPU_EX_Stack_Overflow	(0x0041|FPU_SW_C1) 	/* stack overflow */
+#define FPU_EX_Stack_Underflow	(0x0041)		/* stack underflow */
+
+/* Exception flags: */
+#define FPU_EX_Precision	(0x0020)  /* loss of precision */
+#define FPU_EX_Underflow	(0x0010)  /* underflow */
+#define FPU_EX_Overflow		(0x0008)  /* overflow */
+#define FPU_EX_Zero_Div		(0x0004)  /* divide by zero */
+#define FPU_EX_Denormal		(0x0002)  /* denormalized operand */
+#define FPU_EX_Invalid		(0x0001)  /* invalid operation */
+
+#define clear_C1() { FPU_PARTIAL_STATUS &= ~FPU_SW_C1; }
+
+/* Control Word */
 #define FPU_CW_RC		(0x0C00)  /* rounding control */
 #define FPU_CW_PC		(0x0300)  /* precision control */
 
