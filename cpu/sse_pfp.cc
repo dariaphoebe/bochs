@@ -154,7 +154,7 @@ void BX_CPU_C::CVTSI2SD_VsdEd(bxInstruction_c *i)
 
   softfloat_status_word_t status_word;
   MXCSR_to_softfloat_status_word(status_word, MXCSR);
-  Float32 result;
+  Float64 result;
 
 #if BX_SUPPORT_X86_64 
   if (i->os64L())   /* 64 bit operand size mode */
@@ -345,7 +345,6 @@ void BX_CPU_C::CVTTSD2SI_GdWsd(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareSSE();
 
   Float64 op;
-  Bit32u result;
 
   /* op is a register or memory reference */
   if (i->modC0()) {
@@ -392,7 +391,6 @@ void BX_CPU_C::CVTTSS2SI_GdWss(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareSSE();
 
   Float32 op;
-  Bit32u result;
 
   /* op is a register or memory reference */
   if (i->modC0()) {
@@ -568,7 +566,6 @@ void BX_CPU_C::CVTSS2SI_GdWss(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareSSE();
 
   Float32 op;
-  Bit32u result;
 
   /* op is a register or memory reference */
   if (i->modC0()) {
