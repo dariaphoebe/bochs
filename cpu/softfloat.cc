@@ -1233,10 +1233,10 @@ float32 float32_sqrt(float32 a, float_status_t &status)
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float32_eq(float32 a, float32 b, float_status_t &status)
+int float32_eq(float32 a, float32 b, float_status_t &status)
 {
     if (((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
-            || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
+         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
     {
         if (float32_is_signaling_nan(a) || float32_is_signaling_nan(b)) 
         {
@@ -1254,7 +1254,7 @@ flag float32_eq(float32 a, float32 b, float_status_t &status)
 | Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float32_le(float32 a, float32 b, float_status_t &status)
+int float32_le(float32 a, float32 b, float_status_t &status)
 {
     flag aSign, bSign;
 
@@ -1276,7 +1276,7 @@ flag float32_le(float32 a, float32 b, float_status_t &status)
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float32_lt(float32 a, float32 b, float_status_t &status)
+int float32_lt(float32 a, float32 b, float_status_t &status)
 {
     flag aSign, bSign;
 
@@ -1299,7 +1299,7 @@ flag float32_lt(float32 a, float32 b, float_status_t &status)
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float32_eq_signaling(float32 a, float32 b, float_status_t &status)
+int float32_eq_signaling(float32 a, float32 b, float_status_t &status)
 {
     if (((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
          || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
@@ -1317,14 +1317,14 @@ flag float32_eq_signaling(float32 a, float32 b, float_status_t &status)
 | IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float32_le_quiet(float32 a, float32 b, float_status_t &status)
+int float32_le_quiet(float32 a, float32 b, float_status_t &status)
 {
     flag aSign, bSign;
     Bit16s aExp, bExp;
 
-    if (   ((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
-         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b))
-      ) {
+    if (((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
+         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
+    {
         if (float32_is_signaling_nan(a) || float32_is_signaling_nan(b)) {
             float_raise(status, float_flag_invalid);
         }
@@ -1343,13 +1343,13 @@ flag float32_le_quiet(float32 a, float32 b, float_status_t &status)
 | Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float32_lt_quiet(float32 a, float32 b, float_status_t &status)
+int float32_lt_quiet(float32 a, float32 b, float_status_t &status)
 {
     flag aSign, bSign;
 
-    if (   ((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
-         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b))
-      ) {
+    if (((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
+         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
+    {
         if (float32_is_signaling_nan(a) || float32_is_signaling_nan(b)) {
             float_raise(status, float_flag_invalid);
         }
@@ -1359,6 +1359,24 @@ flag float32_lt_quiet(float32 a, float32 b, float_status_t &status)
     bSign = extractFloat32Sign(b);
     if (aSign != bSign) return aSign && ((Bit32u) ((a | b)<<1) != 0);
     return (a != b) && (aSign ^ (a < b));
+}
+
+/*----------------------------------------------------------------------------
+| The unordered relationship is true when at least one of two source operands
+| being compared is a NaN. Quiet NaNs do not cause an exception.
+*----------------------------------------------------------------------------*/
+
+int float32_unordered(float32 a, float32 b, float_status_t &status)
+{
+    if (((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
+         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
+    {
+        if (float32_is_signaling_nan(a) || float32_is_signaling_nan(b)) {
+            float_raise(status, float_flag_invalid);
+        }
+        return 1;
+    }
+    return 0;
 }
 
 /*----------------------------------------------------------------------------
@@ -2069,7 +2087,7 @@ float64 float64_sqrt(float64 a, float_status_t &status)
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float64_eq(float64 a, float64 b, float_status_t &status)
+int float64_eq(float64 a, float64 b, float_status_t &status)
 {
 
     if (((extractFloat64Exp(a) == 0x7FF) && extractFloat64Frac(a))
@@ -2090,7 +2108,7 @@ flag float64_eq(float64 a, float64 b, float_status_t &status)
 | Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float64_le(float64 a, float64 b, float_status_t &status)
+int float64_le(float64 a, float64 b, float_status_t &status)
 {
     flag aSign, bSign;
 
@@ -2112,7 +2130,7 @@ flag float64_le(float64 a, float64 b, float_status_t &status)
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float64_lt(float64 a, float64 b, float_status_t &status)
+int float64_lt(float64 a, float64 b, float_status_t &status)
 {
     flag aSign, bSign;
 
@@ -2135,7 +2153,7 @@ flag float64_lt(float64 a, float64 b, float_status_t &status)
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float64_eq_signaling(float64 a, float64 b, float_status_t &status)
+int float64_eq_signaling(float64 a, float64 b, float_status_t &status)
 {
 
     if (((extractFloat64Exp(a) == 0x7FF) && extractFloat64Frac(a))
@@ -2154,7 +2172,7 @@ flag float64_eq_signaling(float64 a, float64 b, float_status_t &status)
 | IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float64_le_quiet(float64 a, float64 b, float_status_t &status)
+int float64_le_quiet(float64 a, float64 b, float_status_t &status)
 {
     flag aSign, bSign;
     Bit16s aExp, bExp;
@@ -2181,7 +2199,7 @@ flag float64_le_quiet(float64 a, float64 b, float_status_t &status)
 | Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-flag float64_lt_quiet(float64 a, float64 b, float_status_t &status)
+int float64_lt_quiet(float64 a, float64 b, float_status_t &status)
 {
     flag aSign, bSign;
 
@@ -2198,4 +2216,23 @@ flag float64_lt_quiet(float64 a, float64 b, float_status_t &status)
     bSign = extractFloat64Sign(b);
     if (aSign != bSign) return aSign && ((Bit64u) ((a | b)<<1) != 0);
     return (a != b) && (aSign ^ (a < b));
+}
+
+/*----------------------------------------------------------------------------
+| The unordered relationship is true when at least one of two source operands
+| being compared is a NaN. Quiet NaNs do not cause an exception.
+*----------------------------------------------------------------------------*/
+
+int float64_unordered(float64 a, float64 b, float_status_t &status)
+{
+    if (((extractFloat64Exp(a) == 0x7FF) && extractFloat64Frac(a))
+         || ((extractFloat64Exp(b) == 0x7FF) && extractFloat64Frac(b)))
+    {
+        if (float64_is_signaling_nan(a) || float64_is_signaling_nan(b)) 
+        {
+            float_raise(status, float_flag_invalid);
+        }
+        return 1;
+    }
+    return 0;
 }

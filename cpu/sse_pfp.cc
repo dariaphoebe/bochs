@@ -52,6 +52,22 @@ static void MXCSR_to_softfloat_status_word(softfloat_status_word_t &status, bx_m
   status.underflow_flush_to_zero = 0;  			  // FixMe
 }
 
+/* Comparison predicate for CMPSS/CMPPS instructions */
+static float32_compare compare32[4] = {
+  float32_eq, 
+  float32_lt, 
+  float32_le, 
+  float32_unordered
+};
+
+/* Comparison predicate for CMPSD/CMPPD instructions */
+static float64_compare compare64[4] = {
+  float64_eq, 
+  float64_lt, 
+  float64_le, 
+  float64_unordered
+};
+
 #endif
 
 /* 
@@ -1904,48 +1920,216 @@ void BX_CPU_C::MAXSS_VssWss(bxInstruction_c *i)
 #endif
 }
 
+/* 
+ * Opcode: 0F C2
+ * Compare packed single precision FP values using Ib as comparison predicate.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::CMPPS_VpsWpsIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CMPPS_VpsWpsIb: SSE instruction still not implemented"));
+  BxPackedXmmRegister op1 = BX_READ_XMM_REG(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op2);
+  }
+
+  softfloat_status_word_t status;
+  MXCSR_to_softfloat_status_word(status, MXCSR);
+  int ib = i->Ib();
+
+  if(ib < 4) 
+  {
+    result.xmm32u(0) = 
+        compare32[ib](op1.xmm32u(0), op2.xmm32u(0), status) ? 0xFFFFFFFF : 0;
+    result.xmm32u(1) = 
+        compare32[ib](op1.xmm32u(1), op2.xmm32u(1), status) ? 0xFFFFFFFF : 0;
+    result.xmm32u(2) = 
+        compare32[ib](op1.xmm32u(2), op2.xmm32u(2), status) ? 0xFFFFFFFF : 0;
+    result.xmm32u(3) = 
+        compare32[ib](op1.xmm32u(3), op2.xmm32u(3), status) ? 0xFFFFFFFF : 0;
+  }
+  else if(ib < 8)
+  {
+    ib -= 4;
+
+    result.xmm32u(0) = 
+        compare32[ib](op1.xmm32u(0), op2.xmm32u(0), status) ? 0 : 0xFFFFFFFF;
+    result.xmm32u(1) = 
+        compare32[ib](op1.xmm32u(1), op2.xmm32u(1), status) ? 0 : 0xFFFFFFFF;
+    result.xmm32u(2) = 
+        compare32[ib](op1.xmm32u(2), op2.xmm32u(2), status) ? 0 : 0xFFFFFFFF;
+    result.xmm32u(3) = 
+        compare32[ib](op1.xmm32u(3), op2.xmm32u(3), status) ? 0 : 0xFFFFFFFF;
+  }
+  else {
+    BX_PANIC(("CMPPS_VpsWpsIb: unrecognized predicate %u", ib));
+  }
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
+
 #else
   BX_INFO(("CMPPS_VpsWpsIb: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* 
+ * Opcode: 66 0F C2
+ * Compare packed double precision FP values using Ib as comparison predicate.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::CMPPD_VpdWpdIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CMPPD_VpdWpdIb: SSE2 instruction still not implemented"));
+  BxPackedXmmRegister op1 = BX_READ_XMM_REG(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op2);
+  }
+
+  softfloat_status_word_t status;
+  MXCSR_to_softfloat_status_word(status, MXCSR);
+  int ib = i->Ib();
+
+  if(ib < 4) 
+  {
+    result.xmm64u(0) = compare64[ib](op1.xmm64u(0), op2.xmm64u(0), status) ? 
+       BX_CONST64(0xFFFFFFFFFFFFFFFF) : 0;
+    result.xmm64u(1) = compare64[ib](op1.xmm64u(1), op2.xmm64u(1), status) ? 
+       BX_CONST64(0xFFFFFFFFFFFFFFFF) : 0;
+  }
+  else if(ib < 8)
+  {
+    ib -= 4;
+
+    result.xmm64u(0) = compare64[ib](op1.xmm64u(0), op2.xmm64u(0), status) ? 
+       0 : BX_CONST64(0xFFFFFFFFFFFFFFFF);
+    result.xmm64u(1) = compare64[ib](op1.xmm64u(1), op2.xmm64u(1), status) ? 
+       0 : BX_CONST64(0xFFFFFFFFFFFFFFFF);
+  }
+  else {
+    BX_PANIC(("CMPPS_VpdWpdIb: unrecognized predicate %u", ib));
+  }
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
+
 #else
   BX_INFO(("CMPPD_VpdWpdIb: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* 
+ * Opcode: F2 0F C2
+ * Compare double precision FP values using Ib as comparison predicate.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::CMPSD_VsdWsdIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CMPSD_VsdWsdIb: SSE2 instruction still not implemented"));
+  Float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  int ib = i->Ib();
+
+  if(ib < 4) {
+     if(compare64[ib](op1, op2, status_word)) {
+        result = BX_CONST64(0xFFFFFFFFFFFFFFFF);
+     } else {
+        result = 0;
+     }
+  } else if(ib < 8) {
+     if(compare64[ib-4](op1, op2, status_word)) {
+        result = 0;
+     } else {
+        result = BX_CONST64(0xFFFFFFFFFFFFFFFF);
+     }
+  } else {
+     BX_PANIC(("CMPPS_VsdWsdIb: unrecognized predicate %u", ib));
+  }
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), result);
+
 #else
   BX_INFO(("CMPSD_VsdWsdIb: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* 
+ * Opcode: F3 0F C2
+ * Compare single precision FP values using Ib as comparison predicate.
+ * Possible floating point exceptions: #I, #D
+ */
 void BX_CPU_C::CMPSS_VssWssIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CMPSS_VssWssIb: SSE instruction still not implemented"));
+  Float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), (Bit32u *) &op2);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  int ib = i->Ib();
+
+  if(ib < 4) {
+     if(compare32[ib](op1, op2, status_word)) {
+        result = 0xFFFFFFFF;
+     } else {
+        result = 0;
+     }
+  } else if(ib < 8) {
+     if(compare32[ib-4](op1, op2, status_word)) {
+        result = 0;
+     } else {
+        result = 0xFFFFFFFF;
+     }
+  } else {
+     BX_PANIC(("CMPPS_VssWssIb: unrecognized predicate %u", ib));
+  }
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG_LO_DWORD(i->nnn(), result);
+
 #else
   BX_INFO(("CMPSS_VssWssIb: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);

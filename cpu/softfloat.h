@@ -127,12 +127,16 @@ float32 float32_rem(float32, float32, float_status_t &status);
 float32 float32_max(float32, float32, float_status_t &status); // FixMe
 float32 float32_min(float32, float32, float_status_t &status); // FixMe
 float32 float32_sqrt(float32, float_status_t &status);
+
+typedef int (*float32_compare)(float32, float32, float_status_t &status);
 int float32_eq(float32, float32, float_status_t &status);
 int float32_le(float32, float32, float_status_t &status);
 int float32_lt(float32, float32, float_status_t &status);
 int float32_eq_signaling(float32, float32, float_status_t &status);
 int float32_le_quiet(float32, float32, float_status_t &status);
 int float32_lt_quiet(float32, float32, float_status_t &status);
+int float32_unordered(float32 a, float32 b, float_status_t &status);
+
 int float32_is_signaling_nan(float32);
 
 /*----------------------------------------------------------------------------
@@ -156,10 +160,14 @@ float64 float64_rem(float64, float64, float_status_t &status);
 float64 float64_max(float64, float64, float_status_t &status); // FixMe
 float64 float64_min(float64, float64, float_status_t &status); // FixMe
 float64 float64_sqrt(float64, float_status_t &status);
+
+typedef int (*float64_compare)(float64, float64, float_status_t &status);
 int float64_eq(float64, float64, float_status_t &status);
 int float64_le(float64, float64, float_status_t &status);
 int float64_lt(float64, float64, float_status_t &status);
 int float64_eq_signaling(float64, float64, float_status_t &status);
 int float64_le_quiet(float64, float64, float_status_t &status);
 int float64_lt_quiet(float64, float64, float_status_t &status);
+int float64_unordered(float64 a, float64 b, float_status_t &status);
+
 int float64_is_signaling_nan(float64);
