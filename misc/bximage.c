@@ -1,6 +1,6 @@
 /*
  * misc/bximage.c
- * $Id: bximage.c,v 1.17.8.1 2003/03/26 01:51:37 cbothamy Exp $
+ * $Id: bximage.c,v 1.17.8.2 2003/04/10 17:51:39 cbothamy Exp $
  *
  * Create empty hard disk or floppy disk images for bochs.
  *
@@ -26,21 +26,21 @@
 #include "../iodev/harddrv.h"
 
 char *EOF_ERR = "ERROR: End of input";
-char *rcsid = "$Id: bximage.c,v 1.17.8.1 2003/03/26 01:51:37 cbothamy Exp $";
+char *rcsid = "$Id: bximage.c,v 1.17.8.2 2003/04/10 17:51:39 cbothamy Exp $";
 char *divider = "========================================================================";
 
 /* menu data for choosing floppy/hard disk */
-char *fdhd_menu = "\nDo you want to create a floppy disk image or a hard disk image?\nPlease type hd or fd. [hd] ";
+char *fdhd_menu = "\nDo you want to create a floppy disk image or a hard disk image?\nPlease type hd or fd. ";
 char *fdhd_choices[] = { "fd", "hd" };
 int fdhd_n_choices = 2;
 
 /* menu data for choosing floppy size */
-char *fdsize_menu = "\nChoose the size of floppy disk image to create, in megabytes.\nPlease type 0.36, 0.72, 1.2, 1.44, or 2.88. [1.44] ";
+char *fdsize_menu = "\nChoose the size of floppy disk image to create, in megabytes.\nPlease type 0.36, 0.72, 1.2, 1.44, or 2.88. ";
 char *fdsize_choices[] = { "0.36","0.72","1.2","1.44","2.88" };
 int fdsize_n_choices = 5;
 
 /* menu data for choosing disk mode */
-char *hdmode_menu = "\nWhat kind of image should I create?\nPlease type flat, sparse or growable. [flat] ";
+char *hdmode_menu = "\nWhat kind of image should I create?\nPlease type flat, sparse or growable. ";
                 char *hdmode_choices[] = {"flat", "sparse", "growable" };
 int hdmode_n_choices = 3;
 
@@ -108,6 +108,7 @@ ask_int (char *prompt, int min, int max, int the_default, int *out)
   int illegal;
   while (1) {
     printf ("%s", prompt);
+    printf ("[%d] ", the_default);
     if (!fgets (buffer, sizeof(buffer), stdin))
       return -1;
     clean = clean_string (buffer);
@@ -137,6 +138,7 @@ ask_menu (char *prompt, int n_choices, char *choice[], int the_default, int *out
   *out = -1;
   while (1) {
     printf ("%s", prompt);
+    printf ("[%s] ", choice[the_default]);
     if (!fgets (buffer, sizeof(buffer), stdin))
       return -1;
     clean = clean_string (buffer);
@@ -169,6 +171,7 @@ ask_yn (char *prompt, int the_default, int *out)
   *out = -1;
   while (1) {
     printf ("%s", prompt);
+    printf ("[%s] ", the_default?"yes":"no");
     if (!fgets (buffer, sizeof(buffer), stdin))
       return -1;
     clean = clean_string (buffer);
@@ -192,6 +195,7 @@ ask_string (char *prompt, char *the_default, char *out)
   char *clean;
   out[0] = 0;
   printf ("%s", prompt);
+  printf ("[%s] ", the_default);
   if (!fgets (buffer, sizeof(buffer), stdin))
     return -1;
   clean = clean_string (buffer);
@@ -371,7 +375,7 @@ int make_image (Bit64u sec, char *filename, int (*write_image)(FILE*, Bit64u) )
   fp = fopen (filename, "r");
   if (fp) {
     int confirm;
-    sprintf (buffer, "\nThe disk image '%s' already exists.  Are you sure you want to replace it?\nPlease type yes or no. [no] ", filename);
+    sprintf (buffer, "\nThe disk image '%s' already exists.  Are you sure you want to replace it?\nPlease type yes or no. ", filename);
     if (ask_yn (buffer, 0, &confirm) < 0)
       fatal (EOF_ERR);
     if (!confirm)
@@ -420,7 +424,7 @@ int main()
     if (ask_menu (hdmode_menu, hdmode_n_choices, hdmode_choices, 0, &mode) < 0)
       fatal (EOF_ERR);
 
-    if (ask_int ("\nEnter the hard disk size in megabytes, between 1 and 32255\n[10] ", 1, 32255, 10, &hdsize) < 0)
+    if (ask_int ("\nEnter the hard disk size in megabytes, between 1 and 32255\n", 1, 32255, 10, &hdsize) < 0)
       fatal (EOF_ERR);
     cyl = (int) (hdsize*1024.0*1024.0/16.0/63.0/512.0);
     assert (cyl < 65536);
@@ -431,7 +435,7 @@ int main()
     printf ("  sectors per track=%d\n", spt);
     printf ("  total sectors=%lld\n", sectors);
     printf ("  total size=%.2f megabytes\n", (float)sectors*512.0/1024.0/1024.0);
-    if (ask_string ("\nWhat should I name the image?\n[c.img] ", "c.img", filename) < 0)
+    if (ask_string ("\nWhat should I name the image?\n", "c.img", filename) < 0)
       fatal (EOF_ERR);
 
     sprintf (bochsrc_line, "ata0-master: type=disk, path=\"%s\", mode=%s, cylinders=%d, heads=%d, spt=%d", filename, hdmode_choices[mode], cyl, heads, spt);
@@ -467,7 +471,7 @@ int main()
     printf ("  sectors per track=%d\n", spt);
     printf ("  total sectors=%lld\n", sectors);
     printf ("  total bytes=%lld\n", sectors*512);
-    if (ask_string ("\nWhat should I name the image?\n[a.img] ", "a.img", filename) < 0)
+    if (ask_string ("\nWhat should I name the image?\n", "a.img", filename) < 0)
       fatal (EOF_ERR);
     sprintf (bochsrc_line, "floppya: %s=\"%s\", status=inserted", name, filename);
 
