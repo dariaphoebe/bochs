@@ -1,4 +1,4 @@
-//  Copyright (C) 2001  MandrakeSoft S.A.
+//  Copyright (C) 2000  MandrakeSoft S.A.
 //
 //    MandrakeSoft S.A.
 //    43, rue d'Aboukir
@@ -58,7 +58,6 @@ bx_pc_system_c::bx_pc_system_c(void)
   HLDA = 0;
 
   enable_a20 = 1;
-  //set_INTR (0);
 
 #if BX_CPU_LEVEL < 2
   a20_mask   =    0xfffff;
@@ -102,7 +101,7 @@ bx_pc_system_c::set_HRQ(Boolean val)
 {
   HRQ = val;
   if (val)
-    BX_CPU[0]->async_event = 1;
+    BX_CPU[0].async_event = 1;
   else
     HLDA = 0; // ??? needed?
 }
@@ -129,7 +128,7 @@ bx_pc_system_c::dma_write8(Bit32u phy_addr, unsigned channel)
 
   UNUSED(channel);
   bx_devices.dma_write8(channel, &data_byte);
-  BX_MEM[0]->write_physical(BX_CPU[0], phy_addr, 1, &data_byte);
+  BX_MEM[0].write_physical(phy_addr, 1, &data_byte);
 
   BX_DBG_DMA_REPORT(phy_addr, 1, BX_WRITE, data_byte);
 }
@@ -143,7 +142,7 @@ bx_pc_system_c::dma_read8(Bit32u phy_addr, unsigned channel)
   Bit8u data_byte;
 
   UNUSED(channel);
-  BX_MEM[0]->read_physical(BX_CPU[0], phy_addr, 1, &data_byte);
+  BX_MEM[0].read_physical(phy_addr, 1, &data_byte);
   bx_devices.dma_read8(channel, &data_byte);
 
   BX_DBG_DMA_REPORT(phy_addr, 1, BX_READ, data_byte);
@@ -154,11 +153,8 @@ bx_pc_system_c::dma_read8(Bit32u phy_addr, unsigned channel)
   void
 bx_pc_system_c::set_INTR(Boolean value)
 {
-  if (bx_dbg.interrupts)
-    bx_printf ("pc_system: Setting INTR=%d on bootstrap processor %d\n", (int)value, BX_BOOTSTRAP_PROCESSOR);
-  //INTR = value;
-  int cpu = BX_BOOTSTRAP_PROCESSOR;
-  BX_CPU[cpu]->set_INTR(value);
+  INTR = value;
+  BX_CPU[0].set_INTR(value);
 }
 #endif
 
@@ -438,6 +434,26 @@ bx_pc_system_c::timebp_handler(void* this_ptr)
 }
 #endif // BX_DEBUGGER
 
+
+// (mch) Wait for an event. This routine is broken, but the idea is nice...
+void
+bx_pc_system_c::wait_for_event()
+{
+      Bit64u ticks_left = bx_pc_system.num_cpu_ticks_left;
+      // sec = instr / instr_per_sec
+#ifdef PROVIDE_M_IPS
+      int usecs = (int)(double((Bit64s)ticks_left) / double(m_ips));
+#else
+      int usecs = (int)(double((Bit64s)ticks_left) /
+        double(bx_pc_system.m_ips));
+#endif
+      struct timeval tv;
+      tv.tv_sec = 0;
+      tv.tv_usec = usecs;
+      select(0, NULL, NULL, NULL, &tv);
+      bx_pc_system.num_cpu_ticks_left = 1;
+      BX_TICK1();
+}
 
   Bit64u
 bx_pc_system_c::time_ticks()
