@@ -54,9 +54,6 @@ static void MXCSR_to_softfloat_status_word(softfloat_status_word_t &status, bx_m
 
 #endif
 
-// For SSE instruction set, the first operand is generally a source operand
-// that becomes the destination operand.
-
 /* 
  * Opcode: 0F 2A
  * Possible floating point exceptions: #P
@@ -111,6 +108,8 @@ void BX_CPU_C::CVTPI2PD_VpdQd(bxInstruction_c *i)
  * Convert one 32bit signed integer to one double precision FP
  * Possible floating point exceptions: -
  */
+
+/* FixMe: There is 64 bit version of the instruction. */
 void BX_CPU_C::CVTSI2SD_VsdEd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
@@ -137,6 +136,7 @@ void BX_CPU_C::CVTSI2SD_VsdEd(bxInstruction_c *i)
  * Opcode: F3 0F 2A
  * Possible floating point exceptions: #P
  */
+/* FixMe: There is 64 bit version of the instruction. */
 void BX_CPU_C::CVTSI2SS_VssEd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
@@ -169,6 +169,7 @@ void BX_CPU_C::CVTTPD2PI_PqWpd(bxInstruction_c *i)
  * Opcode: F2 0F 2C
  * Possible floating point exceptions: #I, #P
  */
+/* FixMe: There is 64 bit version of the instruction. */
 void BX_CPU_C::CVTTSD2SI_GdWsd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
@@ -185,6 +186,7 @@ void BX_CPU_C::CVTTSD2SI_GdWsd(bxInstruction_c *i)
  * Opcode: F3 0F 2C
  * Possible floating point exceptions: #I, #P
  */
+/* FixMe: There is 64 bit version of the instruction. */
 void BX_CPU_C::CVTTSS2SI_GdWss(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
@@ -233,6 +235,7 @@ void BX_CPU_C::CVTPD2PI_PqWpd(bxInstruction_c *i)
  * Opcode: F2 0F 2D
  * Possible floating point exceptions: #I, #P
  */
+/* FixMe: There is 64 bit version of the instruction. */
 void BX_CPU_C::CVTSD2SI_GdWsd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
@@ -414,6 +417,7 @@ void BX_CPU_C::CVTPS2PI_PqWps(bxInstruction_c *i)
 #endif
 }
 
+/* FixMe: There is 64 bit version of the instruction. */
 void BX_CPU_C::CVTSS2SI_GdWss(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1

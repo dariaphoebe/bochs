@@ -22,9 +22,6 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-// For SSE instruction set, the first operand is generally a source operand
-// that becomes the destination operand.
-
 /* ********************************************** */
 /* SSE Integer Operations (128bit MMX extensions) */
 /* ********************************************** */

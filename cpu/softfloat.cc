@@ -699,6 +699,7 @@ float64 float32_to_float64(float32 a, float_status_t &status)
     }
     if (aExp == 0) {
         if (aSig == 0) return packFloat64(aSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat32Subnormal(aSig, &aExp, &aSig);
         --aExp;
     }
@@ -988,10 +989,12 @@ float32 float32_mul(float32 a, float32 b, float_status_t &status)
     }
     if (aExp == 0) {
         if (aSig == 0) return packFloat32(zSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat32Subnormal(aSig, &aExp, &aSig);
     }
     if (bExp == 0) {
         if (bSig == 0) return packFloat32(zSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat32Subnormal(bSig, &bExp, &bSig);
     }
     zExp = aExp + bExp - 0x7F;
@@ -1047,10 +1050,12 @@ float32 float32_div(float32 a, float32 b, float_status_t &status)
             float_raise(status, float_flag_divbyzero);
             return packFloat32(zSign, 0xFF, 0);
         }
+        float_raise(status, float_flag_denormal);
         normalizeFloat32Subnormal(bSig, &bExp, &bSig);
     }
     if (aExp == 0) {
         if (aSig == 0) return packFloat32(zSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat32Subnormal(aSig, &aExp, &aSig);
     }
     zExp = aExp - bExp + 0x7D;
@@ -1105,10 +1110,12 @@ float32 float32_rem(float32 a, float32 b, float_status_t &status)
             float_raise(status, float_flag_invalid);
             return float32_default_nan;
         }
+        float_raise(status, float_flag_denormal);
         normalizeFloat32Subnormal(bSig, &bExp, &bSig);
     }
     if (aExp == 0) {
         if (aSig == 0) return a;
+        float_raise(status, float_flag_denormal);
         normalizeFloat32Subnormal(aSig, &aExp, &aSig);
     }
     expDiff = aExp - bExp;
@@ -1195,6 +1202,7 @@ float32 float32_sqrt(float32 a, float_status_t &status)
     }
     if (aExp == 0) {
         if (aSig == 0) return 0;
+        float_raise(status, float_flag_denormal);
         normalizeFloat32Subnormal(aSig, &aExp, &aSig);
     }
     zExp = ((aExp - 0x7F)>>1) + 0x7E;
@@ -1826,10 +1834,12 @@ float64 float64_mul(float64 a, float64 b, float_status_t &status)
     }
     if (aExp == 0) {
         if (aSig == 0) return packFloat64(zSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat64Subnormal(aSig, &aExp, &aSig);
     }
     if (bExp == 0) {
         if (bSig == 0) return packFloat64(zSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat64Subnormal(bSig, &bExp, &bSig);
     }
     zExp = aExp + bExp - 0x3FF;
@@ -1887,10 +1897,12 @@ float64 float64_div(float64 a, float64 b, float_status_t &status)
             float_raise(status, float_flag_divbyzero);
             return packFloat64(zSign, 0x7FF, 0);
         }
+        float_raise(status, float_flag_denormal);
         normalizeFloat64Subnormal(bSig, &bExp, &bSig);
     }
     if (aExp == 0) {
         if (aSig == 0) return packFloat64(zSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat64Subnormal(aSig, &aExp, &aSig);
     }
     zExp = aExp - bExp + 0x3FD;
@@ -1949,10 +1961,12 @@ float64 float64_rem(float64 a, float64 b, float_status_t &status)
             float_raise(status, float_flag_invalid);
             return float64_default_nan;
         }
+        float_raise(status, float_flag_denormal);
         normalizeFloat64Subnormal(bSig, &bExp, &bSig);
     }
     if (aExp == 0) {
         if (aSig == 0) return a;
+        float_raise(status, float_flag_denormal);
         normalizeFloat64Subnormal(aSig, &aExp, &aSig);
     }
     expDiff = aExp - bExp;
@@ -2027,6 +2041,7 @@ float64 float64_sqrt(float64 a, float_status_t &status)
     }
     if (aExp == 0) {
         if (aSig == 0) return 0;
+        float_raise(status, float_flag_denormal);
         normalizeFloat64Subnormal(aSig, &aExp, &aSig);
     }
     zExp = ((aExp - 0x3FF)>>1) + 0x3FE;
