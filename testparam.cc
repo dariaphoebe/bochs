@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: testparam.cc,v 1.1.2.2 2003/03/30 08:07:54 bdenney Exp $
+// $Id: testparam.cc,v 1.1.2.3 2003/03/30 08:20:44 bdenney Exp $
 // bx_param's can now be compiled separately from Bochs
 // This demonstrates parameter registration and save/restore on a very small
 // scale.
@@ -28,17 +28,10 @@ baz
   irq
 */
 
-struct device {
-  int enable;
-  int status;
-  int irq;
-}
-device *foo = new device();
-device *bar = new device();
-device *baz = new device();
-
-void register_params ()
+void register_param1 ()
 {
+  // these parameter constructors show one way of creating the desired
+  // parameter structure.  This uses normal params, not shadow params.
   bx_list_c *foo = new bx_list_c (root, "foo", "device called foo");
   bx_list_c *bar = new bx_list_c (root, "bar", "device called bar");
   bx_list_c *baz = new bx_list_c (root, "baz", "device called baz");
@@ -51,6 +44,45 @@ void register_params ()
   new bx_param_num_c (baz, "enable", "baz enable", 0, 1, 0);
   new bx_param_num_c (baz, "status", "baz status", 0, 1, 0);
   new bx_param_num_c (baz, "irq", "baz irq", 0, 10, 0);
+}
+
+struct device {
+  Bit32u enable;
+  Bit32u status;
+  Bit32u irq;
+};
+device *foo = new device();
+device *bar = new device();
+device *baz = new device();
+
+void register_param2 ()
+{
+  // this function registers shadow parameters that point to the 
+  // three device structures, using Brian's BXRS macros.
+  bx_list_c *foo_list_p = new bx_list_c (root, "foo", "foo device");
+  bx_list_c *bar_list_p = new bx_list_c (root, "bar", "bar device");
+  bx_list_c *baz_list_p = new bx_list_c (root, "baz", "baz device");
+  BXRS_START(device, foo, "foo device", foo_list_p, 5);
+  {
+    BXRS_NUM (Bit32u, enable);
+    BXRS_NUM (Bit32u, status);
+    BXRS_NUM (Bit32u, irq);
+  }
+  BXRS_END;
+  BXRS_START(device, bar, "bar device", bar_list_p, 5);
+  {
+    BXRS_NUM (Bit32u, enable);
+    BXRS_NUM (Bit32u, status);
+    BXRS_NUM (Bit32u, irq);
+  }
+  BXRS_END;
+  BXRS_START(device, baz, "baz device", baz_list_p, 5);
+  {
+    BXRS_NUM (Bit32u, enable);
+    BXRS_NUM (Bit32u, status);
+    BXRS_NUM (Bit32u, irq);
+  }
+  BXRS_END;
 }
 
 void edit_params ()
@@ -133,7 +165,7 @@ int main ()
 {
   bx_init_param ();
   root = bx_param_get_root ();
-  register_params ();
+  register_param1 ();
   menu ();
   return 0;
 }
