@@ -27,6 +27,10 @@ Changes to next release:
     - partial raw serial support on win32 (transmit data)
   - parallel
     - multiple parallel port support added (2 ports now available)
+  - disks
+    - compressed rw disk support
+    - compressed ro disk support with commitable or volatile redolog
+    - fat(12,16,32) virtual disk support (by Peter Tattam)
 
 - System BIOS
     - turn floppy motor off 2 seconds after last read/write/recalibrate command

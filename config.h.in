@@ -194,25 +194,6 @@
 #define BX_USE_NEW_PIT 0
 
 #define BX_USE_SLOWDOWN_TIMER 0
-#define BX_HAVE_SLEEP 0
-#define BX_HAVE_MSLEEP 0
-#define BX_HAVE_USLEEP 0
-#define BX_HAVE_NANOSLEEP 0
-#define BX_HAVE_ABORT 0
-#define BX_HAVE_SOCKLEN_T 0
-#define BX_HAVE_SOCKADDR_IN_SIN_LEN 0
-#define BX_HAVE_GETTIMEOFDAY 0
-#if defined(WIN32)
-#define BX_HAVE_REALTIME_USEC 1
-#else
-#define BX_HAVE_REALTIME_USEC (BX_HAVE_GETTIMEOFDAY)
-#endif
-#define BX_HAVE_MKSTEMP 0
-#define BX_HAVE_SYS_MMAN_H 0
-#define BX_HAVE_XPM_H 0
-#define BX_HAVE_TIMELOCAL 0
-#define BX_HAVE_GMTIME 0
-#define BX_HAVE_MKTIME 0
 
 // This turns on Roland Mainz's idle hack.  Presently it is specific to the X11
 // gui. If people try to enable it elsewhere, give a compile error after the
@@ -308,12 +289,21 @@
 
 #define BX_GDBSTUB 0
 
+// This option enables Peter Tattam's fat virtual disk support
+#define BX_FAT_VIRTUAL_HD_SUPPORT 0
+
+// This option enables an external disk simulator class
+#define BX_EXTERNAL_DISK_SIMULATOR 0
+
+// This option enables Peter Tattam's fat virtual disk support through a DLL
+#define BX_DLL_HD_SUPPORT 0
+
 // This option enables compressed (zlib) hd support
 #define BX_COMPRESSED_HD_SUPPORT 0
 #define BX_HAVE_ZLIB 0
 
 #if BX_COMPRESSED_HD_SUPPORT && !BX_HAVE_ZLIB
-#error You must have zlib to enable compressed hd support
+#error You must have zlib installed to enable compressed hd support
 #endif
 
 // This option defines the number of supported ATA channels.
@@ -814,6 +804,7 @@ typedef
 
 #endif
 
+// check whether host supports functions/struct
 #define BX_HAVE_GETENV 0
 #define BX_HAVE_SETENV 0
 #define BX_HAVE_SELECT 0
@@ -824,6 +815,33 @@ typedef
 #define BX_HAVE_STRDUP 0
 #define BX_HAVE_STRREV 0
 #define BX_HAVE_STRUCT_TIMEVAL 0
+
+#define BX_HAVE_SLEEP 0
+#define BX_HAVE_MSLEEP 0
+#define BX_HAVE_USLEEP 0
+#define BX_HAVE_NANOSLEEP 0
+#define BX_HAVE_ABORT 0
+#define BX_HAVE_SOCKLEN_T 0
+#define BX_HAVE_SOCKADDR_IN_SIN_LEN 0
+#define BX_HAVE_GETTIMEOFDAY 0
+#if defined(WIN32)
+#define BX_HAVE_REALTIME_USEC 1
+#else
+#define BX_HAVE_REALTIME_USEC (BX_HAVE_GETTIMEOFDAY)
+#endif
+#define BX_HAVE_MKSTEMP 0
+#define BX_HAVE_SYS_MMAN_H 0
+#define BX_HAVE_XPM_H 0
+#define BX_HAVE_TIMELOCAL 0
+#define BX_HAVE_GMTIME 0
+#define BX_HAVE_MKTIME 0
+
+#define BX_HAVE_STRUCT_DIRENT 0
+#define BX_HAVE_TYPE_DIR 0
+#define BX_HAVE_OPENDIR 0
+#define BX_HAVE_READDIR 0
+#define BX_HAVE_CLOSEDIR 0
+#define BX_HAVE_REWINDDIR 0
 
 // used in term gui
 #define BX_HAVE_COLOR_SET 0  

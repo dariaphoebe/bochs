@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: osdep.cc,v 1.16 2004/02/08 10:22:29 cbothamy Exp $
+// $Id: osdep.cc,v 1.16.10.1 2004/04/30 17:14:25 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -245,6 +245,7 @@ char *bx_strrev(char *str)
 #if BX_WITH_MACOS
 namespace std{extern "C" {char *mktemp(char *tpl);}}
 #endif
+
 #if !BX_HAVE_MKSTEMP
 int bx_mkstemp(char *tpl)
 {
@@ -256,6 +257,84 @@ int bx_mkstemp(char *tpl)
               , S_IWUSR | S_IRUSR | S_IRGRP | S_IWGRP);
 }
 #endif // !BX_HAVE_MKSTEMP
+
+// The opendir and co functions comes from Synchronet dirwrap.c (lgpl)
+#if !BX_HAVE_OPENDIR
+#if defined(_MSC_VER) || defined(__DMC__)
+DIR* bx_opendir(const char* dirname)
+{
+	DIR*	dir;
+
+	if((dir=(DIR*)calloc(1,sizeof(DIR)))==NULL) {
+		errno=ENOMEM;
+		return(NULL);
+	}
+	sprintf(dir->filespec,"%.*s",sizeof(dir->filespec)-5,dirname);
+	if(*dir->filespec && dir->filespec[strlen(dir->filespec)-1]!='\\')
+		strcat(dir->filespec,"\\");
+	strcat(dir->filespec,"*.*");
+	dir->handle=_findfirst(dir->filespec,&dir->finddata);
+	if(dir->handle==-1) {
+		errno=ENOENT;
+		free(dir);
+		return(NULL);
+	}
+	return(dir);
+}
+#else 
+#error Dont know how to opendir()
+#endif //defined(_MSC_VER) || defined(__DMC__)
+#endif // !BX_HAVE_OPENDIR
+
+#if !BX_HAVE_READDIR
+#if defined(_MSC_VER) || defined(__DMC__)
+struct dirent* bx_readdir(DIR* dir)
+{
+	if(dir==NULL)
+		return(NULL);
+	if(dir->end==TRUE)
+		return(NULL);
+	if(dir->handle==-1)
+		return(NULL);
+	sprintf(dir->dirent.d_name,"%.*s",sizeof(struct dirent)-1,dir->finddata.name);
+	if(_findnext(dir->handle,&dir->finddata)!=0)
+		dir->end=TRUE;
+	return(&dir->dirent);
+}
+#else 
+#error Dont know how to readdir()
+#endif //defined(_MSC_VER) || defined(__DMC__)
+#endif // !BX_HAVE_READDIR
+
+#if !BX_HAVE_CLOSEDIR
+#if defined(_MSC_VER) || defined(__DMC__)
+int bx_closedir (DIR* dir)
+{
+	if(dir==NULL)
+		return(-1);
+	_findclose(dir->handle);
+	free(dir);
+	return(0);
+}
+#else 
+#error Dont know how to closedir()
+#endif //defined(_MSC_VER) || defined(__DMC__)
+#endif // !BX_HAVE_CLOSEDIR
+
+#if !BX_HAVE_REWINDDIR
+#if defined(_MSC_VER) || defined(__DMC__)
+void bx_rewinddir(DIR* dir)
+{
+	if(dir==NULL)
+		return;
+	_findclose(dir->handle);
+	dir->end=FALSE;
+	dir->handle=_findfirst(dir->filespec,&dir->finddata);
+}
+#else 
+#error Dont know how to rewinddir()
+#endif //defined(_MSC_VER) || defined(__DMC__)
+#endif // !BX_HAVE_REWINDDIR
 
 //////////////////////////////////////////////////////////////////////
 // Missing library functions, implemented for MacOS only

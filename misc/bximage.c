@@ -1,6 +1,6 @@
 /*
  * misc/bximage.c
- * $Id: bximage.c,v 1.19 2003/08/01 01:20:00 cbothamy Exp $
+ * $Id: bximage.c,v 1.19.12.1 2004/04/30 17:14:27 cbothamy Exp $
  *
  * Create empty hard disk or floppy disk images for bochs.
  *
@@ -26,7 +26,7 @@
 #include "../iodev/harddrv.h"
 
 char *EOF_ERR = "ERROR: End of input";
-char *rcsid = "$Id: bximage.c,v 1.19 2003/08/01 01:20:00 cbothamy Exp $";
+char *rcsid = "$Id: bximage.c,v 1.19.12.1 2004/04/30 17:14:27 cbothamy Exp $";
 char *divider = "========================================================================";
 
 /* menu data for choosing floppy/hard disk */
@@ -40,9 +40,9 @@ char *fdsize_choices[] = { "0.36","0.72","1.2","1.44","2.88" };
 int fdsize_n_choices = 5;
 
 /* menu data for choosing disk mode */
-char *hdmode_menu = "\nWhat kind of image should I create?\nPlease type flat, sparse or growing. ";
-                char *hdmode_choices[] = {"flat", "sparse", "growing" };
-int hdmode_n_choices = 3;
+char *hdmode_menu = "\nWhat kind of image should I create?\nPlease type flat, sparse, growing or compressed. ";
+                char *hdmode_choices[] = {"flat", "sparse", "growing", "compressed" };
+int hdmode_n_choices = 4;
 
 void myexit (int code)
 {
@@ -239,12 +239,12 @@ void make_redolog_header(redolog_header_t *header, const char* type, Bit64u size
         Bit32u entries, extent_size, bitmap_size;
         Bit64u maxsize;
 
-        // Set standard header values
-        strcpy((char*)header->standard.magic, STANDARD_HEADER_MAGIC);
-        strcpy((char*)header->standard.type, REDOLOG_TYPE);
-        strcpy((char*)header->standard.subtype, type);
-        header->standard.version = htod32(STANDARD_HEADER_VERSION);
-        header->standard.header = htod32(STANDARD_HEADER_SIZE);
+        // Set generic header values
+        strcpy((char*)header->generic.magic, STANDARD_HEADER_MAGIC);
+        strcpy((char*)header->generic.type, REDOLOG_TYPE);
+        strcpy((char*)header->generic.subtype, type);
+        header->generic.version = htod32(STANDARD_HEADER_VERSION);
+        header->generic.header = htod32(STANDARD_HEADER_SIZE);
 
         entries = 512;
         bitmap_size = 1;
@@ -265,6 +265,41 @@ void make_redolog_header(redolog_header_t *header, const char* type, Bit64u size
 
                 if(flip&0x01) bitmap_size *= 2;
                 else entries *= 2;
+        } while (maxsize < size);
+
+        header->specific.disk = htod64(size);
+}
+
+/* Create a suited redolog header */
+void make_compressed_header(compressed_header_t *header, const char* type, Bit64u size)
+{
+        Bit32u entries, extent_size;
+        Bit64u maxsize;
+
+        // Set generic header values
+        strcpy((char*)header->generic.magic, STANDARD_HEADER_MAGIC);
+        strcpy((char*)header->generic.type, COMPRESSED_TYPE);
+        strcpy((char*)header->generic.subtype, type);
+        header->generic.version = htod32(STANDARD_HEADER_VERSION);
+        header->generic.header = htod32(STANDARD_HEADER_SIZE);
+
+        entries = 4 * 1024;
+        extent_size = 16 * 512; // bytes
+
+        // Compute #entries and extent size values
+        do {
+                header->specific.catalog = htod32(entries);
+                header->specific.extent = htod32(extent_size);
+                
+                maxsize = (Bit64u)entries * (Bit64u)extent_size;
+
+                // limit to 64k entries
+                if (entries < (64 * 1024)) {
+                        entries *= 2;
+                }
+                else {
+                        extent_size *= 2;
+                }
         } while (maxsize < size);
 
         header->specific.disk = htod64(size);
@@ -342,7 +377,7 @@ int make_sparse_image(FILE *fp, Bit64u sec)
 int make_growing_image(FILE *fp, Bit64u sec)
 {
         redolog_header_t header;
-        Bit32u i, not_allocated = htod32(REDOLOG_PAGE_NOT_ALLOCATED);
+        Bit32u i, not_allocated = htod32(REDOLOG_EXTENT_NOT_ALLOCATED);
 
         memset(&header, 0, sizeof(header));
         make_redolog_header(&header, REDOLOG_SUBTYPE_GROWING, sec * 512);
@@ -356,6 +391,34 @@ int make_growing_image(FILE *fp, Bit64u sec)
         for (i=0; i<dtoh32(header.specific.catalog); i++)
         {
                 if (fwrite(&not_allocated, sizeof(Bit32u), 1, fp) != 1)
+                {
+                        fclose (fp);
+                        fatal ("ERROR: The disk image is not complete - could not write catalog!");
+                }
+        }
+
+        return 0;
+}
+
+/* produce a growing image file */
+int make_compressed_image(FILE *fp, Bit64u sec)
+{
+        compressed_header_t header;
+        Bit32u i;
+        Bit64u not_allocated = htod64(COMPRESSED_EXTENT_NOT_ALLOCATED);
+
+        memset(&header, 0, sizeof(header));
+        make_compressed_header(&header, COMPRESSED_SUBTYPE_ZLIB, sec * 512);
+
+        if (fwrite(&header, sizeof(header), 1, fp) != 1)
+        {
+                fclose (fp);
+                fatal ("ERROR: The disk image is not complete - could not write header!");
+        }
+
+        for (i=0; i<dtoh32(header.specific.catalog); i++)
+        {
+                if (fwrite(&not_allocated, sizeof(Bit64u), 1, fp) != 1)
                 {
                         fclose (fp);
                         fatal ("ERROR: The disk image is not complete - could not write catalog!");
@@ -446,6 +509,9 @@ int main()
         break;
       case 2:
         write_function=make_growing_image;
+        break;
+      case 3:
+        write_function=make_compressed_image;
         break;
       default:
         write_function=make_flat_image;

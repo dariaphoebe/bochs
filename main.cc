@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.274 2004/04/09 15:34:56 sshwarts Exp $
+// $Id: main.cc,v 1.274.2.1 2004/04/30 17:14:25 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -3201,12 +3201,18 @@ parse_line_formatted(char *context, int num_params, char *params[])
       else if (!strcmp(params[i], "mode=volatile")) {
         bx_options.atadevice[channel][slave].Omode->set (BX_ATA_MODE_VOLATILE);
         }
-//      else if (!strcmp(params[i], "mode=z-undoable")) {
-//        bx_options.atadevice[channel][slave].Omode->set (BX_ATA_MODE_Z_UNDOABLE);
-//        }
-//      else if (!strcmp(params[i], "mode=z-volatile")) {
-//        bx_options.atadevice[channel][slave].Omode->set (BX_ATA_MODE_Z_VOLATILE);
-//        }
+      else if (!strcmp(params[i], "mode=fat-vdisk")) {
+        bx_options.atadevice[channel][slave].Omode->set (BX_ATA_MODE_FAT_VIRTUAL);
+        }
+      else if (!strcmp(params[i], "mode=z-compressed")) {
+        bx_options.atadevice[channel][slave].Omode->set (BX_ATA_MODE_Z_COMPRESSED);
+        }
+      else if (!strcmp(params[i], "mode=z-undoable")) {
+        bx_options.atadevice[channel][slave].Omode->set (BX_ATA_MODE_Z_UNDOABLE);
+        }
+      else if (!strcmp(params[i], "mode=z-volatile")) {
+        bx_options.atadevice[channel][slave].Omode->set (BX_ATA_MODE_Z_VOLATILE);
+        }
       else if (!strncmp(params[i], "path=", 5)) {
         bx_options.atadevice[channel][slave].Opath->set (&params[i][5]);
         }

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: osdep.h,v 1.20 2004/02/08 10:22:29 cbothamy Exp $
+// $Id: osdep.h,v 1.20.10.1 2004/04/30 17:14:25 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -141,6 +141,53 @@ typedef int socklen_t;
 #define mkstemp bx_mkstemp
   extern int bx_mkstemp(char *tpl);
 #endif
+
+#if !BX_HAVE_STRUCT_DIRENT
+#if defined(_MSC_VER) || defined(__DMC__)
+  struct dirent
+  {       
+    char d_name[260];
+  };
+#else
+#error Dont know dirent 
+#endif // defined(_MSC_VER) || defined(__DMC__)
+#endif // !BX_HAVE_STRUCT_DIRENT
+
+#if !BX_HAVE_TYPE_DIR
+#if defined(_MSC_VER) || defined(__DMC__)
+  typedef struct
+  {
+    char                    filespec[260];
+    struct dirent           dirent;
+    long                    handle;
+    struct _finddata_t      finddata;
+    bx_bool                 end;            
+  } DIR;
+#else
+#error Dont know DIR 
+#endif // defined(_MSC_VER) || defined(__DMC__)
+#endif // !BX_HAVE_TYPE_DIR
+
+#if !BX_HAVE_OPENDIR
+#define opendir bx_opendir
+  extern DIR* bx_opendir(const char* dirname);
+#endif // !BX_HAVE_OPENDIR
+
+#if !BX_HAVE_READDIR
+#define readdir bx_readdir
+  extern struct dirent* bx_readdir(DIR* dir);
+#endif // !BX_HAVE_READDIR
+
+#if !BX_HAVE_CLOSEDIR
+#define closedir bx_closedir
+  extern int closedir (DIR* dir);
+#endif // !BX_HAVE_CLOSEDIR
+
+#if !BX_HAVE_REWINDDIR
+#define rewinddir bx_rewinddir
+  extern void rewinddir(DIR* dir);
+#endif // !BX_HAVE_REWINDDIR
+
 
 //////////////////////////////////////////////////////////////////////
 // Missing library functions, implemented for MacOS only

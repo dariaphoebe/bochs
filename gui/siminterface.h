@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.119 2004/02/22 18:51:37 vruppert Exp $
+// $Id: siminterface.h,v 1.119.6.1 2004/04/30 17:14:26 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Before I can describe what this file is for, I have to make the
@@ -1211,19 +1211,21 @@ enum {
 #define BX_ATA_TRANSLATION_AUTO      4
 #define BX_ATA_TRANSLATION_LAST      4
 
-#define BX_ATA_MODE_FLAT        0
-#define BX_ATA_MODE_CONCAT      1
-#define BX_ATA_MODE_EXTDISKSIM  2
-#define BX_ATA_MODE_DLL_HD      3
-#define BX_ATA_MODE_SPARSE      4
-#define BX_ATA_MODE_VMWARE3     5
-#define BX_ATA_MODE_UNDOABLE    6
-#define BX_ATA_MODE_GROWING     7
-#define BX_ATA_MODE_VOLATILE    8
-#define BX_ATA_MODE_LAST        8
-//#define BX_ATA_MODE_Z_UNDOABLE  9
-//#define BX_ATA_MODE_Z_VOLATILE  10
-//#define BX_ATA_MODE_SPLIT       6
+#define BX_ATA_MODE_FLAT         0
+#define BX_ATA_MODE_CONCAT       1
+#define BX_ATA_MODE_EXTDISKSIM   2
+#define BX_ATA_MODE_DLL_HD       3
+#define BX_ATA_MODE_SPARSE       4
+#define BX_ATA_MODE_VMWARE3      5
+#define BX_ATA_MODE_UNDOABLE     6
+#define BX_ATA_MODE_GROWING      7
+#define BX_ATA_MODE_VOLATILE     8
+#define BX_ATA_MODE_Z_COMPRESSED 9
+#define BX_ATA_MODE_Z_UNDOABLE  10
+#define BX_ATA_MODE_Z_VOLATILE  11
+#define BX_ATA_MODE_FAT_VIRTUAL 12
+#define BX_ATA_MODE_LAST        12
+// #define BX_ATA_MODE_SPLIT       6
 
 #define BX_CLOCK_SYNC_NONE     0
 #define BX_CLOCK_SYNC_REALTIME 1

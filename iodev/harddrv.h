@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.25 2004/02/09 18:59:50 vruppert Exp $
+// $Id: harddrv.h,v 1.25.10.1 2004/04/30 17:14:27 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -53,7 +53,7 @@
    Bit8u   subtype[16];
    Bit32u  version;
    Bit32u  header;
- } standard_header_t;
+ } generic_header_t;
 
 #define REDOLOG_TYPE "Redolog"
 #define REDOLOG_SUBTYPE_UNDOABLE "Undoable"
@@ -62,7 +62,7 @@
 // #define REDOLOG_SUBTYPE_Z_UNDOABLE "z-Undoable"
 // #define REDOLOG_SUBTYPE_Z_VOLATILE "z-Volatile"
 
-#define REDOLOG_PAGE_NOT_ALLOCATED (0xffffffff)
+#define REDOLOG_EXTENT_NOT_ALLOCATED (0xffffffff)
 
 #define UNDOABLE_REDOLOG_EXTENSION ".redolog"
 #define UNDOABLE_REDOLOG_EXTENSION_LENGTH (strlen(UNDOABLE_REDOLOG_EXTENSION))
@@ -80,11 +80,41 @@
 
  typedef struct
  {
-   standard_header_t standard;
+   generic_header_t generic;
    redolog_specific_header_t specific;
 
-   Bit8u padding[STANDARD_HEADER_SIZE - (sizeof (standard_header_t) + sizeof (redolog_specific_header_t))];
+   Bit8u padding[STANDARD_HEADER_SIZE - (sizeof (generic_header_t) + sizeof (redolog_specific_header_t))];
  } redolog_header_t;
+
+
+#define COMPRESSED_TYPE "Compressed"
+#define COMPRESSED_SUBTYPE_ZLIB "zlib"
+
+#define COMPRESSED_EXTENT_MAX BX_CONST64(0xffffffffffff)
+#define COMPRESSED_EXTENT_NOT_ALLOCATED BX_CONST64(0xffffffffffff0000)
+#define COMPRESSED_EXTENT_POSITION(x) (((x)&BX_CONST64(0xffffffffffff0000))>>16)
+#define COMPRESSED_EXTENT_IS_ALLOCATED(x) (((x)&BX_CONST64(0xffffffffffff0000))!=(BX_CONST64(0xffffffffffff0000)))
+#define COMPRESSED_EXTENT_SIZE(x) (((x)&0xffff)+1)
+#define COMPRESSED_EXTENT_CATALOG(x,y) (((x)<<16)+((y)-1))
+
+#define COMPRESSED_CATALOG_START (dtoh32(header.generic.header))
+#define COMPRESSED_DATA_START (COMPRESSED_CATALOG_START + (dtoh32(header.specific.catalog) * sizeof(Bit64u)))
+
+ typedef struct
+ {
+   // the fields in the header are kept in little endian
+   Bit32u  catalog;    // #entries in the catalog
+   Bit32u  extent;     // extent uncompressed size in bytes
+   Bit64u  disk;       // disk size in bytes
+ } compressed_specific_header_t;
+
+ typedef struct
+ {
+   generic_header_t generic;
+   compressed_specific_header_t specific;
+
+   Bit8u padding[STANDARD_HEADER_SIZE - (sizeof (generic_header_t) + sizeof (compressed_specific_header_t))];
+ } compressed_header_t;
 
 // htod : convert host to disk (little) endianness
 // dtoh : convert disk (little) to host endianness
@@ -301,11 +331,11 @@ class sparse_image_t : public device_image_t
  sparse_image_t *  parent_image;
 };
 
-#if EXTERNAL_DISK_SIMULATOR
+#if BX_EXTERNAL_DISK_SIMULATOR==1
 #include "external-disk-simulator.h"
 #endif
 
-#if DLL_HD_SUPPORT
+#if BX_DLL_HD_SUPPORT==1
 class dll_image_t : public device_image_t
 {
   public:
@@ -458,11 +488,83 @@ class volatile_image_t : public device_image_t
       char            *redolog_temp;  // Redolog temporary file name
 };
 
+#if BX_FAT_VIRTUAL_HD_SUPPORT==1
+class fat_vdisk_t : public device_image_t
+{
+  public:
+      // Open a image. Returns non-negative if successful.
+      int open (const char* pathname);
+
+      // Close the image.
+      void close ();
+
+      // Position ourselves. Return the resulting offset from the
+      // beginning of the file.
+      off_t lseek (off_t offset, int whence);
+
+      // Read count bytes to the buffer buf. Return the number of
+      // bytes read (count).
+      ssize_t read (void* buf, size_t count);
+
+      // Write count bytes from buf. Return the number of bytes
+      // written (count).
+      ssize_t write (const void* buf, size_t count);
+
+  private:
+      int dummy;
+
+};
+#endif
+
 
 #if BX_COMPRESSED_HD_SUPPORT
 
 #include <zlib.h>
 
+#define COMPRESSED_CACHES 2
+
+// z_compressed image class
+class z_compressed_image_t : public device_image_t
+{
+  public:
+      // Contructor
+      z_compressed_image_t(Bit64u size);
+
+      // Open a image. Returns non-negative if successful.
+      int open (const char* pathname);
+
+      // Close the image.
+      void close ();
+
+      // Position ourselves. Return the resulting offset from the
+      // beginning of the file.
+      off_t lseek (off_t offset, int whence);
+
+      // Read count bytes to the buffer buf. Return the number of
+      // bytes read (count).
+      ssize_t read (void* buf, size_t count);
+
+      // Write count bytes from buf. Return the number of bytes
+      // written (count).
+      ssize_t write (const void* buf, size_t count);
+
+  private:
+      void    print_header();
+      void    flush();
+      Bit64u  size;           
+      int     fd;
+      compressed_header_t header; // header is kept in little-endian format
+      Bit64u  *catalog;
+      Bit64u  extent_next;
+      off_t   offset;
+      Bit8u  *z_buffer;
+      Bit8u  *cache_buffers[COMPRESSED_CACHES];
+      Bit64u  cache_extents[COMPRESSED_CACHES];
+      Bit8u   cache_flag[COMPRESSED_CACHES];
+};
+#define CACHE_FLAG_EMPTY    0
+#define CACHE_FLAG_READ     1
+#define CACHE_FLAG_MODIFIED 2
 
 // Default compressed READ-ONLY image class
 class z_ro_image_t : public device_image_t

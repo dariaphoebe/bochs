@@ -2,7 +2,7 @@ dnl // Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
 AC_INIT(bochs.h)
-AC_REVISION([[$Id: configure.in,v 1.253 2004/04/09 11:52:45 sshwarts Exp $]])
+AC_REVISION([[$Id: configure.in,v 1.253.4.1 2004/04/30 17:14:25 cbothamy Exp $]])
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_HEADER(ltdlconf.h)
 
@@ -80,7 +80,7 @@ esac
 if test "${ADD_FLAGS:+set}" = set; then
       CFLAGS="$CFLAGS $ADD_FLAGS"
       CXXFLAGS="$CXXFLAGS $ADD_FLAGS"
-	  CPPFLAGS="$CPPFLAGS $ADD_FLAGS"
+      CPPFLAGS="$CPPFLAGS $ADD_FLAGS"
 fi
 
 AC_MSG_CHECKING(for standard CFLAGS on this platform)
@@ -155,6 +155,31 @@ AC_CHECK_HEADER(sys/mman.h, AC_DEFINE(BX_HAVE_SYS_MMAN_H))
 AC_CHECK_FUNCS(timelocal, AC_DEFINE(BX_HAVE_TIMELOCAL))
 AC_CHECK_FUNCS(gmtime, AC_DEFINE(BX_HAVE_GMTIME))
 AC_CHECK_FUNCS(mktime, AC_DEFINE(BX_HAVE_MKTIME))
+AC_CHECK_HEADER(zlib.h, [AC_CHECK_LIB(z, gzopen, AC_DEFINE(BX_HAVE_ZLIB,1))] )
+AC_MSG_CHECKING(for DIR)
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <dirent.h>],
+    [DIR * x;], 
+    [
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(BX_HAVE_TYPE_DIR, 1) 
+    ],
+    AC_MSG_RESULT(no))
+AC_MSG_CHECKING(for struct dirent)
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <dirent.h>],
+    [struct dirent * x;], 
+    [
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(BX_HAVE_STRUCT_DIRENT, 1) 
+    ],
+    AC_MSG_RESULT(no))
+
+AC_CHECK_FUNCS(opendir, AC_DEFINE(BX_HAVE_OPENDIR))
+AC_CHECK_FUNCS(readdir, AC_DEFINE(BX_HAVE_READDIR))
+AC_CHECK_FUNCS(closedir, AC_DEFINE(BX_HAVE_CLOSEDIR))
+AC_CHECK_FUNCS(rewinddir, AC_DEFINE(BX_HAVE_REWINDDIR))
+dnl XXXX TO BE CONTINUED
 
 dnl As of autoconf 2.53, the standard largefile test fails for Linux/gcc.
 dnl It does not put the largefiles arguments into CFLAGS, even though Linux/gcc
@@ -393,7 +418,7 @@ fi    # end of if $with_all_libs = yes
 use_config_interface=1
 AC_MSG_CHECKING(for configuration interface)
 AC_ARG_ENABLE(config-interface,
-  [  --enable-config-interface        turns on/off configuration interface],
+  [  --enable-config-interface         turns on/off configuration interface],
   [if test "$enableval" = yes; then
     AC_MSG_RESULT(yes)
 	use_config_interface=1
@@ -690,8 +715,6 @@ AC_ARG_ENABLE(apic,
 AC_SUBST(IOAPIC_OBJS)
 AC_SUBST(APIC_OBJS)
 
-AC_CHECK_HEADER(zlib.h, [AC_CHECK_LIB(z, gzopen, AC_DEFINE(BX_HAVE_ZLIB,1))] )
-
 AC_MSG_CHECKING(for compressed hard disk image support)
 AC_ARG_ENABLE(compressed-hd,
   [  --enable-compressed-hd            allows compressed (zlib) hard disk image],
@@ -704,11 +727,28 @@ AC_ARG_ENABLE(compressed-hd,
     AC_DEFINE(BX_COMPRESSED_HD_SUPPORT, 0)
    fi],
   [
-    AC_MSG_RESULT(yes)
+    AC_MSG_RESULT(no)
     AC_DEFINE(BX_COMPRESSED_HD_SUPPORT, 0)
     ]
   )
 AC_SUBST(BX_COMPRESSED_HD_SUPPORT)
+
+AC_MSG_CHECKING(for Peter Tattam's virtual disk support)
+AC_ARG_ENABLE(fat-virtual-hd,
+  [  --enable-fat-virtual-hd           enable Peter Tattam's fat virtual hard disk support],
+  [if test "$enableval" = yes; then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(BX_FAT_VIRTUAL_HD_SUPPORT, 1)
+   else
+    AC_MSG_RESULT(no)
+    AC_DEFINE(BX_FAT_VIRTUAL_HD_SUPPORT, 0)
+   fi],
+  [
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(BX_FAT_VIRTUAL_HD_SUPPORT, 1)
+    ]
+  )
+AC_SUBST(BX_FAT_VIRTUAL_HD_SUPPORT)
 
 AC_MSG_CHECKING(for NE2000 support)
 AC_ARG_ENABLE(ne2000,

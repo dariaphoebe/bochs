@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: slowdown_timer.cc,v 1.18 2004/02/06 22:28:00 danielg4 Exp $
+// $Id: slowdown_timer.cc,v 1.18.10.1 2004/04/30 17:14:27 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -151,7 +151,8 @@ bx_slowdown_timer_c::handle_timer() {
     sleep(usectosec(s.Q));
 #else
 #error do not know have to sleep
-#endif    //delay(wanttime-totaltime);
+#endif
+    //delay(wanttime-totaltime);
     /*alternatively: delay(Q);
      * This works okay because we share the delay between
      * two time quantums.

@@ -1,5 +1,15 @@
 Notes on preparing a release:
 
+update configure.in 
+-> VERSION="2.1.pre1"
+-> VER_STRING="2.1.pre1"
+-> REL_STRING="Build from CVS snapshot on September 30, 2003"
+
+autoconf
+configure
+
+
+²
 update README (easy)
 update Makefile.in
 update bxversion.h     (configure; make bxversion.h)

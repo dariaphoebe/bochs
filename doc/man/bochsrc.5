@@ -187,7 +187,7 @@ Examples:
 This defines the type and characteristics of all attached ata devices:
    type=       type of attached device [disk|cdrom] 
    path=       path of the image
-   mode=       image mode [flat|concat|external|dll|sparse|vmware3|undoable|growing|volatile], only valid for disks
+   mode=       image mode [flat|concat|sparse|vmware3|undoable|growing|volatile|fat-vdisk|external|dll], only valid for disks
    cylinders=  only valid for disks
    heads=      only valid for disks
    spt=        only valid for disks
@@ -203,7 +203,7 @@ To create a hard disk image, try running bximage.
 It will help you choose the size and then suggest a line that 
 works with it.
 
-In UNIX it is possible to use a raw device as a Bochs hard disk, 
+On UNIX it is possible to use a raw device as a Bochs hard disk, 
 but WE DON'T RECOMMEND IT.
 
 The path, cylinders, heads, and spt are mandatory for type=disk
@@ -212,13 +212,17 @@ The path is mandatory for type=cdrom
 The mode option defines how the disk image is handled. Disks can be defined as:
   - flat : one file flat layout
   - concat : multiple files layout
-  - external : developer's specific, through a C++ class
-  - dll : developer's specific, through a DLL
   - sparse : stackable, commitable, rollbackable 
   - vmware3 : vmware3 disk support
-  - undoable : flat file with commitable redolog
   - growing : growing file
-  - volatile : flat file with volatile redolog
+  - undoable : flat r/o file with commitable redolog
+  - volatile : flat r/o file with volatile redolog
+  - fat-vdisk : fat virtual disk, mapped from a directory, with volatile redolog
+  - z-compressed : compressed r/w file 
+  - z-undoable : compressed r/o file with commitable redolog
+  - z-volatile : compressed r/o file with volatile redolog
+  - external : developer's specific, through a C++ class
+  - dll : developer's specific, through a DLL
 
 The disk translation scheme (implemented in legacy int13 bios functions, and used by
 older operating systems like MS-DOS), can be defined as:

@@ -1,6 +1,6 @@
 /*
  * misc/bximage.c
- * $Id: bxcommit.c,v 1.6 2004/04/28 17:56:47 cbothamy Exp $
+ * $Id: bxcommit.c,v 1.6.2.1 2004/04/30 17:14:27 cbothamy Exp $
  *
  * Commits a redolog file in a flat file for bochs images.
  *
@@ -35,7 +35,7 @@
 #include "../iodev/harddrv.h"
 
 char *EOF_ERR = "ERROR: End of input";
-char *rcsid = "$Id: bxcommit.c,v 1.6 2004/04/28 17:56:47 cbothamy Exp $";
+char *rcsid = "$Id: bxcommit.c,v 1.6.2.1 2004/04/30 17:14:27 cbothamy Exp $";
 char *divider = "========================================================================";
 
 void myexit (int code)
@@ -240,22 +240,22 @@ int commit_redolog (char *flatname, char *redologname )
 
   // Print infos on redlog
   printf("Type='%s', Subtype='%s', Version=%d.%d] Done.", 
-           header.standard.type, header.standard.subtype,
-           dtoh32(header.standard.version)/0x10000, 
-           dtoh32(header.standard.version)%0x10000);
+           header.generic.type, header.generic.subtype,
+           dtoh32(header.generic.version)/0x10000, 
+           dtoh32(header.generic.version)%0x10000);
 
   printf ("\nChecking redolog header: [");
 
-  if (strcmp(header.standard.magic, STANDARD_HEADER_MAGIC) != 0)
+  if (strcmp(header.generic.magic, STANDARD_HEADER_MAGIC) != 0)
      fatal ("\nERROR: bad magic in redolog header!");
 
-  if (strcmp(header.standard.type, REDOLOG_TYPE) != 0)
+  if (strcmp(header.generic.type, REDOLOG_TYPE) != 0)
      fatal ("\nERROR: bad type in redolog header!");
 
-  if (strcmp(header.standard.subtype, REDOLOG_SUBTYPE_UNDOABLE) != 0)
+  if (strcmp(header.generic.subtype, REDOLOG_SUBTYPE_UNDOABLE) != 0)
      fatal ("\nERROR: bad subtype in redolog header!");
 
-  if (header.standard.version != htod32(STANDARD_HEADER_VERSION))
+  if (header.generic.version != htod32(STANDARD_HEADER_VERSION))
      fatal ("\nERROR: bad version in redolog header!");
 
   printf("#entries=%d, bitmap size=%d, exent size = %d] Done.",
@@ -267,7 +267,7 @@ int commit_redolog (char *flatname, char *redologname )
   bitmap = (Bit8u*)malloc(dtoh32(header.specific.bitmap));
   printf ("\nReading Catalog: [");
 
-  lseek(redologfd, dtoh32(header.standard.header), SEEK_SET);
+  lseek(redologfd, dtoh32(header.generic.header), SEEK_SET);
 
   catalog_size = dtoh32(header.specific.catalog) * sizeof(Bit32u);
   if (read(redologfd, catalog, catalog_size)!= catalog_size)
@@ -285,7 +285,7 @@ int commit_redolog (char *flatname, char *redologname )
           printf("\x8\x8\x8\x8\x8%3d%%]", (i+1)*100/dtoh32(header.specific.catalog));
           fflush(stdout);
           
-          if (dtoh32(catalog[i]) != REDOLOG_PAGE_NOT_ALLOCATED) 
+          if (dtoh32(catalog[i]) != REDOLOG_EXTENT_NOT_ALLOCATED) 
           {
                   off_t bitmap_offset;
                   Bit32u bitmap_size, j;
