@@ -31,7 +31,7 @@
 #if BX_SUPPORT_FPU
 static floatx80& floatx80_abs(floatx80 &reg)
 {
-    reg.exp &= 0x8000;
+    reg.exp &= 0x7FFF;
     return reg;   
 }
 

@@ -222,6 +222,7 @@ void BX_CPU_C::FILD_QWORD_INTEGER(bxInstruction_c *i)
 #endif
 }
 
+/* DF /4 */
 void BX_CPU_C::FBLD_PACKED_BCD(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
@@ -262,7 +263,9 @@ void BX_CPU_C::FST_STi(bxInstruction_c *i)
 void BX_CPU_C::FST_SINGLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  float32 save_reg;
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  float32 save_reg = float32_default_nan; /* The masked response */
 
   int pop_stack = (i->b1() & 0x10) >> 1;
 
@@ -270,11 +273,7 @@ void BX_CPU_C::FST_SINGLE_REAL(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-     {
-        save_reg = float32_default_nan;	/* The masked response */
-     }
-     else
+     if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
         return;
   }
   else
@@ -300,7 +299,9 @@ void BX_CPU_C::FST_SINGLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FST_DOUBLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  float64 save_reg;
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  float64 save_reg = float64_default_nan; /* The masked response */
 
   int pop_stack = (i->b1() & 0x10) >> 1;
 
@@ -308,11 +309,7 @@ void BX_CPU_C::FST_DOUBLE_REAL(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-     {
-        save_reg = float64_default_nan;	/* The masked response */
-     }
-     else
+     if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
         return;
   }
   else
@@ -339,17 +336,15 @@ void BX_CPU_C::FST_DOUBLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FSTP_EXTENDED_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  floatx80 save_reg;
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  floatx80 save_reg = Const_QNaN; /* The masked response */
 
   if (IS_TAG_EMPTY(0))
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-     {
-        save_reg = Const_QNaN;	/* The masked response */
-     }
-     else
+     if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
         return;
   }
   else
@@ -368,6 +363,8 @@ void BX_CPU_C::FSTP_EXTENDED_REAL(bxInstruction_c *i)
 void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
   Bit16s save_reg;
 
   int pop_stack = (i->b1() & 0x10) >> 1;
@@ -419,7 +416,9 @@ void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FIST_DWORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  Bit32s save_reg;
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  Bit32s save_reg = 0x80000000U; /* The masked response */
 
   int pop_stack = (i->b1() & 0x10) >> 1;
 
@@ -429,11 +428,7 @@ void BX_CPU_C::FIST_DWORD_INTEGER(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-     {
-        save_reg = 0x80000000; /* The masked response */
-     }
-     else
+     if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
         return;
   }
   else
@@ -459,7 +454,9 @@ void BX_CPU_C::FIST_DWORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FISTP_QWORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  Bit64s save_reg;
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  Bit64s save_reg = BX_CONST64(0x8000000000000000U); /* The masked response */
 
   clear_C1();
 
@@ -467,11 +464,7 @@ void BX_CPU_C::FISTP_QWORD_INTEGER(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-     {
-        save_reg = BX_CONST64(0x8000000000000000); /* The masked response */
-     }
-     else
+     if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
         return;
   }
   else
@@ -507,6 +500,7 @@ void BX_CPU_C::FBSTP_PACKED_BCD(bxInstruction_c *i)
 void BX_CPU_C::FISTTP16(bxInstruction_c *i)
 {
 #if BX_SUPPORT_PNI
+  BX_CPU_THIS_PTR prepareFPU(i);
   Bit16s save_reg;
 
   clear_C1();
@@ -556,7 +550,9 @@ void BX_CPU_C::FISTTP16(bxInstruction_c *i)
 void BX_CPU_C::FISTTP32(bxInstruction_c *i)
 {
 #if BX_SUPPORT_PNI
-  Bit32s save_reg;
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  Bit32s save_reg = 0x80000000U; /* The masked response */
 
   clear_C1();
 
@@ -564,11 +560,7 @@ void BX_CPU_C::FISTTP32(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-     {
-        save_reg = 0x80000000; /* The masked response */
-     }
-     else
+     if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
         return;
   }
   else
@@ -594,7 +586,9 @@ void BX_CPU_C::FISTTP32(bxInstruction_c *i)
 void BX_CPU_C::FISTTP64(bxInstruction_c *i)
 {
 #if BX_SUPPORT_PNI
-  Bit64s save_reg;
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  Bit64s save_reg = BX_CONST64(0x8000000000000000U); /* The masked response */
 
   clear_C1();
 
@@ -602,11 +596,7 @@ void BX_CPU_C::FISTTP64(bxInstruction_c *i)
   {
      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
-     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-     {
-        save_reg = BX_CONST64(0x8000000000000000); /* The masked response */
-     }
-     else
+     if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
         return;
   }
   else

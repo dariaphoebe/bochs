@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: win32.cc,v 1.78 2004/02/16 21:47:08 vruppert Exp $
+// $Id: win32.cc,v 1.78.4.1 2004/03/06 15:25:45 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -59,7 +59,7 @@ IMPLEMENT_GUI_PLUGIN_CODE(win32)
 
 #ifdef __MINGW32__
 #if BX_SHOW_IPS
-#include <windows32/CommonFunctions.h>
+//#include <windows32/CommonFunctions.h>
 #endif
 #endif
 
