@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
 //
-//   Copyright (c) 2002 Stanislav Shwartsman
+//   Copyright (c) 2004 Stanislav Shwartsman
 //          Written by Stanislav Shwartsman <gate at fidonet.org.il>
 //
 //  This library is free software; you can redistribute it and/or

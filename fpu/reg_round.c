@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_round.c                                                              |
- |  $Id: reg_round.c,v 1.8.8.4 2004/04/06 13:41:30 sshwarts Exp $
+ |  $Id: reg_round.c,v 1.8.8.5 2004/04/08 20:40:38 sshwarts Exp $
  |                                                                           |
  | Rounding/truncation/etc for FPU basic arithmetic functions.               |
  |                                                                           |
@@ -59,7 +59,6 @@
 
 #include "fpu_emu.h"
 #include "status_w.h"
-#include "exception.h"
 #include "control_w.h"
 
 /* Flags for FPU_bits_lost */

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.8.9 2004/04/08 19:44:07 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.8.10 2004/04/08 20:40:38 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -12,7 +12,6 @@
  +---------------------------------------------------------------------------*/
 
 #include "fpu_system.h"
-#include "exception.h"
 #include "fpu_emu.h"
 #include "status_w.h"
 #include "control_w.h"

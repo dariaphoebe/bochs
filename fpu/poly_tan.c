@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  poly_tan.c                                                               |
- |  $Id: poly_tan.c,v 1.5.8.1 2004/03/19 17:43:31 sshwarts Exp $
+ |  $Id: poly_tan.c,v 1.5.8.2 2004/04/08 20:40:38 sshwarts Exp $
  |                                                                           |
  | Compute the tan of a FPU_REG, using a polynomial approximation.           |
  |                                                                           |
@@ -11,7 +11,6 @@
  |                                                                           |
  +---------------------------------------------------------------------------*/
 
-#include "exception.h"
 #include "reg_constant.h"
 #include "fpu_emu.h"
 #include "fpu_system.h"

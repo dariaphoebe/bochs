@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_convert.c                                                            |
- |  $Id: reg_convert.c,v 1.5.8.1 2004/03/19 17:43:31 sshwarts Exp $
+ |  $Id: reg_convert.c,v 1.5.8.2 2004/04/08 20:40:38 sshwarts Exp $
  |                                                                           |
  |  Convert register representation.                                         |
  |                                                                           |
@@ -11,7 +11,6 @@
  |                                                                           |
  +---------------------------------------------------------------------------*/
 
-#include "exception.h"
 #include "fpu_emu.h"
 
 

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  div_Xsig.S                                                               |
- |  $Id: div_Xsig.c,v 1.3 2003/10/04 12:32:55 sshwarts Exp $
+ |  $Id: div_Xsig.c,v 1.3.8.1 2004/04/08 20:40:38 sshwarts Exp $
  |                                                                           |
  | Division subroutine for 96 bit quantities                                 |
  |                                                                           |
@@ -26,7 +26,6 @@
  |                                                                           |
  +---------------------------------------------------------------------------*/
 
-#include "exception.h"
 #include "fpu_emu.h"
 #include "poly.h"
 
@@ -181,6 +180,4 @@ void div_Xsig(const Xsig *aa, const Xsig *b, Xsig *dest)
   /* Hey! we're done. */
 
   *dest = result;
-
 }
-

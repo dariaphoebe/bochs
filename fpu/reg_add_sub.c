@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_add_sub.c                                                            |
- |  $Id: reg_add_sub.c,v 1.9.8.2 2004/03/28 20:26:53 sshwarts Exp $
+ |  $Id: reg_add_sub.c,v 1.9.8.3 2004/04/08 20:40:38 sshwarts Exp $
  |                                                                           |
  | Functions to add or subtract two registers and put the result in a third. |
  |                                                                           |
@@ -19,10 +19,10 @@
  | internal error.                                                           |
  +---------------------------------------------------------------------------*/
 
-#include "exception.h"
 #include "reg_constant.h"
 #include "fpu_emu.h"
 #include "control_w.h"
+#include "status_w.h"
 #include "fpu_system.h"
 
 static

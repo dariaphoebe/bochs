@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_u_add.c                                                              |
- |  $Id: reg_u_add.c,v 1.7 2003/10/05 12:26:11 sshwarts Exp $
+ |  $Id: reg_u_add.c,v 1.7.8.1 2004/04/08 20:40:38 sshwarts Exp $
  |                                                                           |
  | Add two valid (TAG_Valid) FPU_REG numbers, of the same sign, and put the  |
  |   result in a destination FPU_REG.                                        |
@@ -23,7 +23,6 @@
  |    Basic checks are performed if PARANOID is defined.
  */
 
-#include "exception.h"
 #include "fpu_emu.h"
 #include "control_w.h"
 

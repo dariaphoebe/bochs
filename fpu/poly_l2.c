@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  poly_l2.c                                                                |
- |  $Id: poly_l2.c,v 1.5.8.1 2004/03/19 17:43:31 sshwarts Exp $
+ |  $Id: poly_l2.c,v 1.5.8.2 2004/04/08 20:40:38 sshwarts Exp $
  |                                                                           |
  | Compute the base 2 log of a FPU_REG, using a polynomial approximation.    |
  |                                                                           |
@@ -12,11 +12,11 @@
  +---------------------------------------------------------------------------*/
 
 
-#include "exception.h"
 #include "reg_constant.h"
 #include "fpu_emu.h"
 #include "fpu_system.h"
 #include "control_w.h"
+#include "status_w.h"
 #include "poly.h"
 
 

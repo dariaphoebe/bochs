@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  status_w.h                                                               |
- |  $Id: status_w.h,v 1.6.8.3 2004/03/20 19:53:32 sshwarts Exp $
+ |  $Id: status_w.h,v 1.6.8.4 2004/04/08 20:40:38 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993                                                   |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -37,5 +37,19 @@
   FPU_partial_status |= (cc) & (SW_C0|SW_C1|SW_C2|SW_C3); } while(0)
 
 #define clear_C1()  { FPU_partial_status &= ~SW_C1; }
+
+/* Special exceptions: */
+#define EX_StackOver	(0x0041|SW_C1)	/* stack overflow */
+#define EX_StackUnder	(0x0041)	/* stack underflow */
+/* Exception flags: */
+#define EX_Precision	(0x0020)	/* loss of precision */
+#define EX_Underflow	(0x0010)	/* underflow */
+#define EX_Overflow	(0x0008)	/* overflow */
+#define EX_ZeroDiv	(0x0004)	/* divide by zero */
+#define EX_Denormal	(0x0002)	/* denormalized operand */
+#define EX_Invalid	(0x0001)	/* invalid operation */
+
+#define PRECISION_LOST_UP    (EX_Precision | SW_C1)
+#define PRECISION_LOST_DOWN  (EX_Precision)
 
 #endif /* _STATUS_H_ */

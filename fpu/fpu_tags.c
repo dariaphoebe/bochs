@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_tags.c                                                               |
- |  $Id: fpu_tags.c,v 1.7.6.2 2004/03/27 20:09:52 sshwarts Exp $
+ |  $Id: fpu_tags.c,v 1.7.6.3 2004/04/08 20:40:38 sshwarts Exp $
  |                                                                           |
  |  Set FPU register tags.                                                   |
  |                                                                           |
@@ -13,7 +13,6 @@
 
 #include "fpu_emu.h"
 #include "fpu_system.h"
-#include "exception.h"
 
 void FPU_pop(void)
 {

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  errors.c                                                                 |
- |  $Id: errors.c,v 1.18.2.5 2004/03/27 20:09:52 sshwarts Exp $
+ |  $Id: errors.c,v 1.18.2.6 2004/04/08 20:40:38 sshwarts Exp $
  |                                                                           |
  |  The error handling functions for wm-FPU-emu                              |
  |                                                                           |
@@ -22,7 +22,6 @@
 
 #include "fpu_emu.h"
 #include "fpu_system.h"
-#include "exception.h"
 #include "status_w.h"
 #include "control_w.h"
 #include "reg_constant.h"
