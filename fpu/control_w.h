@@ -50,6 +50,6 @@
 #define FPU_PR_80_BITS          (0x300)
 
 /* FULL_PRECISION simulates all exceptions masked */
-#define FULL_PRECISION  (FPU_PR_64_BITS | FPU_RC_RND | 0x3f)
+#define FULL_PRECISION  (FPU_PR_80_BITS | FPU_RC_RND | 0x3f)
 
 #endif
