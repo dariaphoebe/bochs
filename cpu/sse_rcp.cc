@@ -687,7 +687,7 @@ static Float32 approximate_rsqrt(Float32 op)
         return convert_to_QNaN(op);
 
     case float_normalized:
-        ;
+        break;
   };
 
   if (sign == 1)

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.160.2.5 2004/03/03 21:20:49 sshwarts Exp $
+// $Id: cpu.h,v 1.160.2.6 2004/03/04 21:07:20 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1872,8 +1872,11 @@ union {
   BX_SMF void FILD_WORD_INTEGER(bxInstruction_c *);
   BX_SMF void FILD_DWORD_INTEGER(bxInstruction_c *);
   BX_SMF void FILD_QWORD_INTEGER(bxInstruction_c *);  
+  BX_SMF void FBLD_PACKED_BCD(bxInstruction_c *);
+
   BX_SMF void FLDENV(bxInstruction_c *);
   BX_SMF void FLDCW(bxInstruction_c *);
+
   BX_SMF void FLD1(bxInstruction_c *); 
   BX_SMF void FLDL2T(bxInstruction_c *);
   BX_SMF void FLDL2E(bxInstruction_c *);
@@ -1881,7 +1884,6 @@ union {
   BX_SMF void FLDLG2(bxInstruction_c *);
   BX_SMF void FLDLN2(bxInstruction_c *);
   BX_SMF void FLDZ(bxInstruction_c *);                        
-  BX_SMF void FBLD_PACKED_BCD(bxInstruction_c *);
 
   // store
   BX_SMF void FST_STi(bxInstruction_c *);
@@ -1891,12 +1893,12 @@ union {
   BX_SMF void FIST_WORD_INTEGER(bxInstruction_c *);
   BX_SMF void FIST_DWORD_INTEGER(bxInstruction_c *);
   BX_SMF void FISTP_QWORD_INTEGER(bxInstruction_c *);
+  BX_SMF void FBSTP_PACKED_BCD(bxInstruction_c *);
   
   BX_SMF void FNSTENV(bxInstruction_c *);
   BX_SMF void FNSTCW(bxInstruction_c *);
   BX_SMF void FNSTSW(bxInstruction_c *);
   BX_SMF void FNSTSW_AX(bxInstruction_c *);
-  BX_SMF void FBSTP_PACKED_BCD(bxInstruction_c *);
 
   BX_SMF void FISTTP16(bxInstruction_c *);
   BX_SMF void FISTTP32(bxInstruction_c *);
@@ -2840,6 +2842,9 @@ union {
   BX_SMF void write_eflags(Bit32u eflags, bx_bool change_IOPL, bx_bool change_IF,
                     bx_bool change_VM, bx_bool change_RF);
   BX_SMF void writeEFlags(Bit32u eflags, Bit32u changeMask) BX_CPP_AttrRegparmN(2); // Newer variant.
+#if BX_SUPPORT_FPU || BX_SUPPORT_SSE >= 1
+  BX_SMF void write_eflags_fpu_compare(int float_relation);
+#endif
   BX_SMF Bit16u read_flags(void);
   BX_SMF Bit32u read_eflags(void);
   BX_SMF Bit32u get_segment_base(unsigned seg);

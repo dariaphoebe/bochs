@@ -150,7 +150,7 @@ struct i387_t
 
 #define clear_C1() { FPU_PARTIAL_STATUS &= ~FPU_SW_C1; }
 
-#define setcc(cc) do { 				\
+#define SETCC(cc) do { 				\
   FPU_PARTIAL_STATUS &= ~(FPU_SW_CC); 		\
   FPU_PARTIAL_STATUS |= (cc) & FPU_SW_CC; 	\
 } while(0);
@@ -288,6 +288,17 @@ BX_CPP_INLINE void i387_structure_t::init()
 }
 
 extern const floatx80 Const_QNaN;
+extern const floatx80 Const_Z;
+extern const floatx80 Const_1;
+extern const floatx80 Const_2;
+extern const floatx80 Const_HALF;
+extern const floatx80 Const_L2T;
+extern const floatx80 Const_L2E;
+extern const floatx80 Const_PI;
+extern const floatx80 Const_PI2;
+extern const floatx80 Const_PI4;
+extern const floatx80 Const_LG2;
+extern const floatx80 Const_LN2;
 
 #endif
 

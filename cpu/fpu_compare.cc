@@ -28,6 +28,53 @@
 #define LOG_THIS BX_CPU_THIS_PTR
 
 
+#if BX_SUPPORT_FPU
+static int status_word_flags_fpu_compare(int float_relation)
+{
+  switch(float_relation) {
+     case float_relation_unordered:
+         return (FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+
+     case float_relation_greater:
+         return (0);
+
+     case float_relation_less:
+         return (FPU_SW_C0);
+
+     case float_relation_equal:
+         return (FPU_SW_C3);
+  }
+
+  return (-1);	// should never get here
+}
+#endif
+
+#if BX_SUPPORT_FPU || BX_SUPPORT_SSE >= 1
+void BX_CPU_C::write_eflags_fpu_compare(int float_relation)
+{
+  switch(float_relation) {
+   case float_relation_unordered:
+      setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
+      break;
+
+   case float_relation_greater:
+      setEFlagsOSZAPC(0);
+      break;
+
+   case float_relation_less:
+      setEFlagsOSZAPC(EFlagsCFMask);
+      break;
+
+   case float_relation_equal:
+      setEFlagsOSZAPC(EFlagsZFMask);
+      break;
+
+   default:
+      BX_PANIC(("write_eflags: unknown floating point compare relation"));
+  }
+}
+#endif
+
 void BX_CPU_C::FCOM_STi(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
@@ -44,7 +91,7 @@ void BX_CPU_C::FCOM_STi(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -59,23 +106,7 @@ void BX_CPU_C::FCOM_STi(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  switch(rc) {
-     case float_relation_unordered:
-         setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
-         break;
-
-     case float_relation_greater:
-         setcc(0);
-         break;
-
-     case float_relation_less:
-         setcc(FPU_SW_C0);
-         break;
-
-     case float_relation_equal:
-         setcc(FPU_SW_C3);
-         break;
-  }
+  SETCC(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -115,23 +146,7 @@ void BX_CPU_C::FCOMI_ST0_STj(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  switch(rc) {
-     case float_relation_unordered:
-         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
-         break;
-
-     case float_relation_greater:
-         setEFlagsOSZAPC(0);
-         break;
-
-     case float_relation_less:
-         setEFlagsOSZAPC(EFlagsCFMask);
-         break;
-
-     case float_relation_equal:
-         setEFlagsOSZAPC(EFlagsZFMask);
-         break;
-  }
+  BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -171,23 +186,7 @@ void BX_CPU_C::FUCOMI_ST0_STj(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  switch(rc) {
-     case float_relation_unordered:
-         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
-         break;
-
-     case float_relation_greater:
-         setEFlagsOSZAPC(0);
-         break;
-
-     case float_relation_less:
-         setEFlagsOSZAPC(EFlagsCFMask);
-         break;
-
-     case float_relation_equal:
-         setEFlagsOSZAPC(EFlagsZFMask);
-         break;
-  }
+  BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -210,7 +209,7 @@ void BX_CPU_C::FUCOM_STi(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -225,23 +224,7 @@ void BX_CPU_C::FUCOM_STi(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  switch(rc) {
-     case float_relation_unordered:
-         setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
-         break;
-
-     case float_relation_greater:
-         setcc(0);
-         break;
-
-     case float_relation_less:
-         setcc(FPU_SW_C0);
-         break;
-
-     case float_relation_equal:
-         setcc(FPU_SW_C3);
-         break;
-  }
+  SETCC(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -266,7 +249,7 @@ void BX_CPU_C::FCOM_SINGLE_REAL(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -285,23 +268,7 @@ void BX_CPU_C::FCOM_SINGLE_REAL(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  switch(rc) {
-     case float_relation_unordered:
-         setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
-         break;
-
-     case float_relation_greater:
-         setcc(0);
-         break;
-
-     case float_relation_less:
-         setcc(FPU_SW_C0);
-         break;
-
-     case float_relation_equal:
-         setcc(FPU_SW_C3);
-         break;
-  }
+  SETCC(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -326,7 +293,7 @@ void BX_CPU_C::FCOM_DOUBLE_REAL(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -345,23 +312,7 @@ void BX_CPU_C::FCOM_DOUBLE_REAL(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  switch(rc) {
-     case float_relation_unordered:
-         setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
-         break;
-
-     case float_relation_greater:
-         setcc(0);
-         break;
-
-     case float_relation_less:
-         setcc(FPU_SW_C0);
-         break;
-
-     case float_relation_equal:
-         setcc(FPU_SW_C3);
-         break;
-  }
+  SETCC(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -386,7 +337,7 @@ void BX_CPU_C::FICOM_WORD_INTEGER(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -405,23 +356,7 @@ void BX_CPU_C::FICOM_WORD_INTEGER(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  switch(rc) {
-     case float_relation_unordered:
-         setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
-         break;
-
-     case float_relation_greater:
-         setcc(0);
-         break;
-
-     case float_relation_less:
-         setcc(FPU_SW_C0);
-         break;
-
-     case float_relation_equal:
-         setcc(FPU_SW_C3);
-         break;
-  }
+  SETCC(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -446,7 +381,7 @@ void BX_CPU_C::FICOM_DWORD_INTEGER(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -465,23 +400,7 @@ void BX_CPU_C::FICOM_DWORD_INTEGER(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  switch(rc) {
-     case float_relation_unordered:
-         setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
-         break;
-
-     case float_relation_greater:
-         setcc(0);
-         break;
-
-     case float_relation_less:
-         setcc(FPU_SW_C0);
-         break;
-
-     case float_relation_equal:
-         setcc(FPU_SW_C3);
-         break;
-  }
+  SETCC(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -505,7 +424,7 @@ void BX_CPU_C::FCOMPP(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
 
           BX_CPU_THIS_PTR the_i387.FPU_pop();
           BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -521,23 +440,7 @@ void BX_CPU_C::FCOMPP(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  switch(rc) {
-     case float_relation_unordered:
-         setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
-         break;
-
-     case float_relation_greater:
-         setcc(0);
-         break;
-
-     case float_relation_less:
-         setcc(FPU_SW_C0);
-         break;
-
-     case float_relation_equal:
-         setcc(FPU_SW_C3);
-         break;
-  }
+  SETCC(status_word_flags_fpu_compare(rc));
 
   BX_CPU_THIS_PTR the_i387.FPU_pop();
   BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -559,7 +462,7 @@ void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
 
           BX_CPU_THIS_PTR the_i387.FPU_pop();
           BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -575,23 +478,7 @@ void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  switch(rc) {
-     case float_relation_unordered:
-         setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
-         break;
-
-     case float_relation_greater:
-         setcc(0);
-         break;
-
-     case float_relation_less:
-         setcc(FPU_SW_C0);
-         break;
-
-     case float_relation_equal:
-         setcc(FPU_SW_C3);
-         break;
-  }
+  SETCC(status_word_flags_fpu_compare(rc));
 
   BX_CPU_THIS_PTR the_i387.FPU_pop();
   BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -617,9 +504,9 @@ void BX_CPU_C::FCMOVB_ST0_STj(bxInstruction_c *i)
 
   floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
 
-  if (get_CF()) {
+  if (get_CF())
      BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
-  }
+ 
 #else
   BX_INFO(("FCMOVB_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
@@ -643,9 +530,9 @@ void BX_CPU_C::FCMOVE_ST0_STj(bxInstruction_c *i)
 
   floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
 
-  if (get_ZF()) {
+  if (get_ZF())
      BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
-  }
+
 #else
   BX_INFO(("FCMOVE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
@@ -669,9 +556,9 @@ void BX_CPU_C::FCMOVBE_ST0_STj(bxInstruction_c *i)
 
   floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
 
-  if (get_CF() || get_ZF()) {
+  if (get_CF() || get_ZF())
      BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
-  }
+
 #else
   BX_INFO(("FCMOVBE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
@@ -695,9 +582,9 @@ void BX_CPU_C::FCMOVU_ST0_STj(bxInstruction_c *i)
 
   floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
 
-  if (get_PF()) {
+  if (get_PF())
      BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
-  }
+
 #else
   BX_INFO(("FCMOVU_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
@@ -721,9 +608,9 @@ void BX_CPU_C::FCMOVNB_ST0_STj(bxInstruction_c *i)
 
   floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
 
-  if (! get_CF()) {
+  if (! get_CF())
      BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
-  }
+
 #else
   BX_INFO(("FCMOVNB_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
@@ -747,9 +634,9 @@ void BX_CPU_C::FCMOVNE_ST0_STj(bxInstruction_c *i)
 
   floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
 
-  if (! get_ZF()) {
+  if (! get_ZF())
      BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
-  }
+
 #else
   BX_INFO(("FCMOVNE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
@@ -773,9 +660,9 @@ void BX_CPU_C::FCMOVNBE_ST0_STj(bxInstruction_c *i)
 
   floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
 
-  if ((!get_CF()) && (!get_ZF())) {
+  if ((!get_CF()) && (!get_ZF()))
      BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
-  }
+
 #else
   BX_INFO(("FCMOVNBE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
@@ -799,22 +686,45 @@ void BX_CPU_C::FCMOVNU_ST0_STj(bxInstruction_c *i)
 
   floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
 
-  if (! get_PF()) {
+  if (! get_PF())
      BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
-  }
+
 #else
   BX_INFO(("FCMOVNU_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* D9 E4 */
 void BX_CPU_C::FTST(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+      BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
+
+      if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
+      {
+          /* the masked response */
+          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+      }
+      return;
+  }
+
+  softfloat_status_word_t status = 
+      FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  int rc = floatx80_compare(BX_READ_FPU_REG(0), Const_Z, status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  SETCC(status_word_flags_fpu_compare(rc));
+#else
   BX_INFO(("FTST: required FPU, configure --enable-fpu"));
 #endif
 }

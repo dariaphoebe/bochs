@@ -1052,25 +1052,7 @@ void BX_CPU_C::UCOMISS_VssWss(bxInstruction_c *i)
 
   int rc = float32_compare_quiet(op1, op2, status_word);
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
-
-  switch(rc) {
-     case float_relation_unordered:
-         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
-         break;
-
-     case float_relation_greater:
-         setEFlagsOSZAPC(0);
-         break;
-
-     case float_relation_less:
-         setEFlagsOSZAPC(EFlagsCFMask);
-         break;
-
-     case float_relation_equal:
-         setEFlagsOSZAPC(EFlagsZFMask);
-         break;
-  }
-
+  BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
 #else
   BX_INFO(("UCOMISS_VssWss: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -1109,25 +1091,7 @@ void BX_CPU_C::UCOMISD_VsdWsd(bxInstruction_c *i)
 
   int rc = float64_compare_quiet(op1, op2, status_word);
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
-
-  switch(rc) {
-     case float_relation_unordered:
-         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
-         break;
-
-     case float_relation_greater:
-         setEFlagsOSZAPC(0);
-         break;
-
-     case float_relation_less:
-         setEFlagsOSZAPC(EFlagsCFMask);
-         break;
-
-     case float_relation_equal:
-         setEFlagsOSZAPC(EFlagsZFMask);
-         break;
-  }
-
+  BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
 #else
   BX_INFO(("UCOMISD_VsdWsd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -1166,25 +1130,7 @@ void BX_CPU_C::COMISS_VpsWps(bxInstruction_c *i)
 
   int rc = float32_compare(op1, op2, status_word);
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
-
-  switch(rc) {
-     case float_relation_unordered:
-         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
-         break;
-
-     case float_relation_greater:
-         setEFlagsOSZAPC(0);
-         break;
-
-     case float_relation_less:
-         setEFlagsOSZAPC(EFlagsCFMask);
-         break;
-
-     case float_relation_equal:
-         setEFlagsOSZAPC(EFlagsZFMask);
-         break;
-  }
-
+  BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
 #else
   BX_INFO(("COMISS_VpsWps: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -1223,25 +1169,7 @@ void BX_CPU_C::COMISD_VpdWpd(bxInstruction_c *i)
 
   int rc = float64_compare(op1, op2, status_word);
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
-
-  switch(rc) {
-     case float_relation_unordered:
-         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
-         break;
-
-     case float_relation_greater:
-         setEFlagsOSZAPC(0);
-         break;
-
-     case float_relation_less:
-         setEFlagsOSZAPC(EFlagsCFMask);
-         break;
-
-     case float_relation_equal:
-         setEFlagsOSZAPC(EFlagsZFMask);
-         break;
-  }
-
+  BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
 #else
   BX_INFO(("COMISD_VpdWpd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
