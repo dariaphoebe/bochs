@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: testparam.cc,v 1.1.2.3 2003/03/30 08:20:44 bdenney Exp $
+// $Id: testparam.cc,v 1.1.2.4 2003/05/03 15:58:45 bdenney Exp $
 // bx_param's can now be compiled separately from Bochs
 // This demonstrates parameter registration and save/restore on a very small
 // scale.
@@ -161,9 +161,61 @@ void menu ()
   }
 }
 
+void test_shadow_range ()
+{
+#define TYPE bx_bool
+#define TYPE_NAME "Bit8u"
+  TYPE byte;
+  int n;
+  bx_shadow_num_c *shadow;
+  int highbit, lowbit;
+  printf ("Enter highbit: ");
+  scanf ("%d", &highbit);
+  printf ("Enter lowbit: ");
+  scanf ("%d", &lowbit);
+  printf ("Enter initial value: ");
+  scanf ("%d", &n);
+  byte = (TYPE) n;
+  shadow = new bx_shadow_num_c (NULL, 
+      "8bit", "shadow byte",
+      &byte,
+      highbit,
+      lowbit);
+  printf ("Testing a %s\n", TYPE_NAME);
+  while (1) {
+    int input;
+    printf ("Raw byte is %d. Param is %d. Enter a number: ", (int)byte, (int)shadow->get ());
+    scanf ("%d", &input);
+    printf ("Setting param to %d\n", input);
+    shadow->set ((TYPE) input);
+    int output = shadow->get ();
+    printf ("Now param is %d\n", output);
+    if (input != output) {
+      printf ("Mismatch!!\n");
+    }
+  }
+}
+
+void test_bool()
+{
+  bx_bool actual = 0;
+  bx_param_bool_c *param;
+  param = new bx_shadow_bool_c (NULL, "name", "desc", &actual, 0);
+  int n;
+  while (1) {
+    printf ("param is %d\n", (int)param->get ());
+    printf ("enter new: ");
+    scanf ("%d", &n);
+    param->set (n);
+  }
+}
+
 int main ()
 {
   bx_init_param ();
+  //test_bool();
+  //return 0;
+  //test_shadow_range ();
   root = bx_param_get_root ();
   register_param1 ();
   menu ();
