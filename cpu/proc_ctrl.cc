@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: proc_ctrl.cc,v 1.68.2.1 2003/04/29 10:48:40 sshwarts Exp $
+// $Id: proc_ctrl.cc,v 1.68.2.2 2003/05/12 12:10:45 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1657,28 +1657,27 @@ BX_CPU_C::SetCR4(Bit32u val_32)
   allowMask |= (1<<5);
 #endif
 
-#if BX_SUPPORT_SSE != 0
+#if BX_SUPPORT_SSE
   allowMask |= (1<<9);   /* OSFXSR */
+  allowMask |= (1<<10);  /* OSXMMECPT */
 #endif
 
 #if BX_SUPPORT_X86_64
-  allowMask |= (1<<9);   /* OSFXSR */
-  allowMask |= (1<<10);
   //  need to GPF #0 if LME=1 and PAE=0
-  if (   (BX_CPU_THIS_PTR msr.lme)
+  if ((BX_CPU_THIS_PTR msr.lme)
       && (!(val_32 >> 5) & 1)
-      && (BX_CPU_THIS_PTR cr4.get_PAE())
-      ) {
+      && (BX_CPU_THIS_PTR cr4.get_PAE())) 
+  {
     exception(BX_GP_EXCEPTION, 0, 0);
-    }
+  }
 #endif
 
   // Need to GPF if trying to set undefined bits.
   if (val_32 & ~allowMask) {
-    BX_INFO(("#GP(0): SetCR4: Write of 0x%08x not supported (allowMask=0x%x).",
+    BX_INFO(("#GP(0): SetCR4: Write of 0x%08x not supported (allowMask=0x%x)",
              val_32, allowMask));
     exception(BX_GP_EXCEPTION, 0, 0);
-    }
+  }
   val_32 &= allowMask; // Screen out unsupported bits. (not needed, for good measure)
   BX_CPU_THIS_PTR cr4.setRegister(val_32);
   pagingCR4Changed(oldCR4, BX_CPU_THIS_PTR cr4.getRegister());
