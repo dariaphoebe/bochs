@@ -1,3 +1,7 @@
+#ifndef YYERRCODE
+#define YYERRCODE 256
+#endif
+
 #define BX_TOKEN_CONTINUE 257
 #define BX_TOKEN_STEPN 258
 #define BX_TOKEN_NEXT_STEP 259
@@ -79,15 +83,17 @@
 #define BX_TOKEN_FS 335
 #define BX_TOKEN_GS 336
 #define BX_TOKEN_ALWAYS_CHECK 337
-#define BX_TOKEN_MATHS 338
-#define BX_TOKEN_ADD 339
-#define BX_TOKEN_SUB 340
-#define BX_TOKEN_MUL 341
-#define BX_TOKEN_DIV 342
-#define BX_TOKEN_V2L 343
-#define BX_TOKEN_TRACEREGON 344
-#define BX_TOKEN_TRACEREGOFF 345
-#define BX_TOKEN_HELP 346
+#define BX_TOKEN_SAVE_STATE 338
+#define BX_TOKEN_RESTORE_STATE 339
+#define BX_TOKEN_MATHS 340
+#define BX_TOKEN_ADD 341
+#define BX_TOKEN_SUB 342
+#define BX_TOKEN_MUL 343
+#define BX_TOKEN_DIV 344
+#define BX_TOKEN_V2L 345
+#define BX_TOKEN_TRACEREGON 346
+#define BX_TOKEN_TRACEREGOFF 347
+#define BX_TOKEN_HELP 348
 typedef union {
   char    *sval;
   Bit32u   uval;
