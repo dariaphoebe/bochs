@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: param.cc,v 1.1.2.3 2003/04/04 03:46:04 slechta Exp $
+// $Id: param.cc,v 1.1.2.4 2003/04/04 04:57:41 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 
 #ifndef PARAM_STANDALONE
@@ -254,13 +254,9 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     Bit8u lowbit)
 : bx_param_num_c (parent, name, description, BX_MIN_BIT64S, BX_MAX_BIT64S, *ptr_to_real_val)
 {
-  this->varsize = 16;
-  this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
-  this->mask = (this->mask << 1) | 0x1;
-  //printf("0x%llx\n", (Bit64u) mask);
+  this->varsize = 64;
   val.p64bit = ptr_to_real_val;
-  this->is_shadow = 1;
+  init (highbit, lowbit);
 }
 
 // Unsigned 64 bit
@@ -272,13 +268,9 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     Bit8u lowbit)
 : bx_param_num_c (parent, name, description, BX_MIN_BIT64U, BX_MAX_BIT64U, *ptr_to_real_val)
 {
-  this->varsize = 16;
-  this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
-  this->mask = (this->mask << 1) | 0x1;
-  //printf("0x%llx\n", (Bit64u) mask);
+  this->varsize = 64;
   val.p64bit = (Bit64s*) ptr_to_real_val;
-  this->is_shadow = 1;
+  init (highbit, lowbit);
 }
 
 // Signed 32 bit
@@ -290,13 +282,9 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     Bit8u lowbit)
 : bx_param_num_c (parent, name, description, (Bit32s)BX_MIN_BIT32S, (Bit32s)BX_MAX_BIT32S, *ptr_to_real_val)
 {
-  this->varsize = 16;
-  this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
-  this->mask = (this->mask << 1) | 0x1;
-  //printf("0x%llx\n", (Bit64u) mask);
+  this->varsize = 32;
   val.p32bit = ptr_to_real_val;
-  this->is_shadow = 1;	
+  init (highbit, lowbit);
 }
 
 // Unsigned 32 bit
@@ -309,12 +297,8 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
 : bx_param_num_c (parent, name, description, BX_MIN_BIT32U, BX_MAX_BIT32U, *ptr_to_real_val)
 {
   this->varsize = 32;
-  this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
-  this->mask = (this->mask << 1) | 0x1;
-  //printf("0x%llx\n", (Bit64u) mask);
   val.p32bit = (Bit32s*) ptr_to_real_val;
-  this->is_shadow = 1;
+  init (highbit, lowbit);
 }
 
 // Signed 16 bit
@@ -327,12 +311,8 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
 : bx_param_num_c (parent, name, description, BX_MIN_BIT16S, BX_MAX_BIT16S, *ptr_to_real_val)
 {
   this->varsize = 16;
-  this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
-  this->mask = (this->mask << 1) | 0x1;
-  //printf("0x%llx\n", (Bit64u) mask);
   val.p16bit = ptr_to_real_val;
-  this->is_shadow = 1;
+  init (highbit, lowbit);
 }
 
 // Unsigned 16 bit
@@ -345,12 +325,8 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
 : bx_param_num_c (parent, name, description, BX_MIN_BIT16U, BX_MAX_BIT16U, *ptr_to_real_val)
 {
   this->varsize = 16;
-  this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
-  this->mask = (this->mask << 1) | 0x1;
-  //printf("0x%llx\n", (Bit64u) mask);
   val.p16bit = (Bit16s*) ptr_to_real_val;
-  this->is_shadow = 1;
+  init (highbit, lowbit);
 }
 
 // Signed 8 bit
@@ -362,13 +338,9 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     Bit8u lowbit)
 : bx_param_num_c (parent, name, description, BX_MIN_BIT8S, BX_MAX_BIT8S, *ptr_to_real_val)
 {
-  this->varsize = 16;
-  this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
-  this->mask = (this->mask << 1) | 0x1;
-  //printf("0x%llx\n", (Bit64u) mask);
+  this->varsize = 8;
   val.p8bit = ptr_to_real_val;
-  this->is_shadow = 1;
+  init (highbit, lowbit);
 }
 
 // Unsigned 8 bit
@@ -381,11 +353,20 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
 : bx_param_num_c (parent, name, description, BX_MIN_BIT8U, BX_MAX_BIT8U, *ptr_to_real_val)
 {
   this->varsize = 8;
-  this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
-  this->mask = (this->mask << 1) | 0x1;
-  //printf("0x%llx\n", (Bit64u) mask);
   val.p8bit = (Bit8s*) ptr_to_real_val;
+  init (highbit, lowbit);
+}
+
+void
+bx_shadow_num_c::init (int highbit, int lowbit)
+{
+  BX_ASSERT (highbit >= 0 && highbit < varsize);
+  BX_ASSERT (lowbit  >= 0 && lowbit  < varsize);
+  BX_ASSERT (highbit >= lowbit);
+  this->lowbit = lowbit;
+  mask = (1 << (highbit - lowbit)) - 1;
+  mask = (mask << 1) | 0x1;
+  //printf("0x%llx\n", (Bit64u) mask);
   this->is_shadow = 1;
 }
 
@@ -414,30 +395,30 @@ void
 bx_shadow_num_c::set (Bit64s newval, bx_bool ignore_handler)
 {
   Bit64u tmp = 0;
-  if ((newval < min || newval > max) && max != BX_MAX_BIT64U) {
+  if (newval < min || newval > max) {
     char ppath[BX_PARAM_PATH_MAX];
     get_param_path (ppath, BX_PARAM_PATH_MAX);
     BX_PANIC (("numerical parameter %s was set to %lld, which is out of range %lld to %lld", ppath, newval, min, max));
   }
   switch (varsize) {
     case 8: 
-      tmp = (*(val.p8bit) >> lowbit) & mask;
-      tmp |= (newval & mask) << lowbit;
+      tmp = (*(val.p8bit)) & ~(mask << lowbit);  // clear relevant bits
+      tmp |= (newval & mask) << lowbit;          // turn on new bits
       *(val.p8bit) = tmp;
       break;
     case 16:
-      tmp = (*(val.p16bit) >> lowbit) & mask;
-      tmp |= (newval & mask) << lowbit;
+      tmp = (*(val.p16bit)) & ~(mask << lowbit);  // clear relevant bits
+      tmp |= (newval & mask) << lowbit;           // turn on new bits
       *(val.p16bit) = tmp;
       break;
     case 32:
-      tmp = (*(val.p32bit) >> lowbit) & mask;
-      tmp |= (newval & mask) << lowbit;
+      tmp = (*(val.p32bit)) & ~(mask << lowbit);  // clear relevant bits
+      tmp |= (newval & mask) << lowbit;           // turn on new bits
       *(val.p32bit) = tmp;
       break;
     case 64:
-      tmp = (*(val.p64bit) >> lowbit) & mask;
-      tmp |= (newval & mask) << lowbit;
+      tmp = (*(val.p64bit)) & ~(mask << lowbit);  // clear relevant bits
+      tmp |= (newval & mask) << lowbit;           // turn on new bits
       *(val.p64bit) = tmp;
       break;
     default: 
@@ -1084,6 +1065,7 @@ int bx_checkpoint_c::write(const char *checkpoint_name,
   char *ascii_filename = NULL;
   char *data_filename = NULL;
 
+#ifndef PARAM_STANDALONE
   // BJS TODO: FIXME:
   BX_CPU(0)->set_CF(BX_CPU(0)->get_CF());
   BX_CPU(0)->set_AF(BX_CPU(0)->get_AF());
@@ -1092,6 +1074,7 @@ int bx_checkpoint_c::write(const char *checkpoint_name,
   BX_CPU(0)->set_OF(BX_CPU(0)->get_OF());
   BX_CPU(0)->set_PF(BX_CPU(0)->get_PF());
   BX_CPU(0)->invalidate_prefetch_q();
+#endif
 
   // before we open new files using, make sure any old handles are closed
   if (m_ascii_fp) 
@@ -1203,6 +1186,7 @@ int bx_checkpoint_c::read(const char *checkpoint_name,
   char *ascii_filename = NULL;
   char *data_filename = NULL;
 
+#ifndef PARAM_STANDALONE
   // BJS TODO: FIXME:
   BX_CPU(0)->set_CF(BX_CPU(0)->get_CF());
   BX_CPU(0)->set_AF(BX_CPU(0)->get_AF());
@@ -1211,6 +1195,7 @@ int bx_checkpoint_c::read(const char *checkpoint_name,
   BX_CPU(0)->set_OF(BX_CPU(0)->get_OF());
   BX_CPU(0)->set_PF(BX_CPU(0)->get_PF());
   BX_CPU(0)->invalidate_prefetch_q();
+#endif
 
   // before we open new files using, make sure any old handles are closed
   if (m_ascii_fp) 

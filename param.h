@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: param.h,v 1.1.2.3 2003/04/04 03:46:05 slechta Exp $
+// $Id: param.h,v 1.1.2.4 2003/04/04 04:57:41 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 
 // support for compiling param.cc without Bochs
@@ -32,19 +32,19 @@ class logfunctions {};
 #define BX_MAX_BIT64U ( (Bit64u) -1           )
 #define BX_MIN_BIT64U ( 0                     )
 #define BX_MAX_BIT64S ( ((Bit64u) -1) >> 1    )
-#define BX_MIN_BIT64S ( -(((Bit64u) -1) >> 1) )
+#define BX_MIN_BIT64S ( ~(BX_MAX_BIT64S)      )
 #define BX_MAX_BIT32U ( (Bit32u) -1           )
 #define BX_MIN_BIT32U ( 0                     )
 #define BX_MAX_BIT32S ( ((Bit32u) -1) >> 1    )
-#define BX_MIN_BIT32S ( -(((Bit32u) -1) >> 1) )
+#define BX_MIN_BIT32S ( ~(BX_MAX_BIT32S)      )
 #define BX_MAX_BIT16U ( (Bit16u) -1           )
 #define BX_MIN_BIT16U ( 0                     )
 #define BX_MAX_BIT16S ( ((Bit16u) -1) >> 1    )
-#define BX_MIN_BIT16S ( -(((Bit16u) -1) >> 1) )
+#define BX_MIN_BIT16S ( ~(BX_MAX_BIT16S)      )
 #define BX_MAX_BIT8U  ( (Bit8u) -1            )
 #define BX_MIN_BIT8U  ( 0                     )
 #define BX_MAX_BIT8S  ( ((Bit8u) -1) >> 1     )
-#define BX_MIN_BIT8S  ( -(((Bit8u) -1) >> 1)  )
+#define BX_MIN_BIT8S  ( ~(BX_MAX_BIT8S)       )
 
 
 
@@ -211,6 +211,7 @@ class BOCHSAPI bx_shadow_num_c : public bx_param_num_c {
   Bit8u varsize;   // must be 64, 32, 16, or 8
   Bit8u lowbit;   // range of bits associated with this param
   Bit64u mask;     // mask is ANDed with value before it is returned from get
+  void init (int highbit, int lowbit);
 public:
   bx_shadow_num_c (bx_param_c *parent,
       char *name,
