@@ -94,7 +94,7 @@ void float_raise(float_status_t &statusstatus, int);
 | Software IEC/IEEE integer-to-floating-point conversion routines.
 *----------------------------------------------------------------------------*/
 float32 int32_to_float32(Bit32s, float_status_t &status);
-float64 int32_to_float64(Bit32s, float_status_t &status);
+float64 int32_to_float64(Bit32s);
 float32 int64_to_float32(Bit64s, float_status_t &status);
 float64 int64_to_float64(Bit64s, float_status_t &status);
 
@@ -116,6 +116,8 @@ float32 float32_sub(float32, float32, float_status_t &status);
 float32 float32_mul(float32, float32, float_status_t &status);
 float32 float32_div(float32, float32, float_status_t &status);
 float32 float32_rem(float32, float32, float_status_t &status);
+float32 float32_max(float32, float32, float_status_t &status); // FixMe
+float32 float32_min(float32, float32, float_status_t &status); // FixMe
 float32 float32_sqrt(float32, float_status_t &status);
 int float32_eq(float32, float32, float_status_t &status);
 int float32_le(float32, float32, float_status_t &status);
@@ -143,6 +145,8 @@ float64 float64_sub(float64, float64, float_status_t &status);
 float64 float64_mul(float64, float64, float_status_t &status);
 float64 float64_div(float64, float64, float_status_t &status);
 float64 float64_rem(float64, float64, float_status_t &status);
+float64 float64_max(float64, float64, float_status_t &status); // FixMe
+float64 float64_min(float64, float64, float_status_t &status); // FixMe
 float64 float64_sqrt(float64, float_status_t &status);
 int float64_eq(float64, float64, float_status_t &status);
 int float64_le(float64, float64, float_status_t &status);
