@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.97.4.2 2003/04/10 17:50:34 cbothamy Exp $
+// $Id: harddrv.cc,v 1.97.4.3 2003/04/11 00:16:08 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -157,7 +157,7 @@ bx_hard_drive_c::init(void)
   Bit8u channel;
   char  string[5];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.4.2 2003/04/10 17:50:34 cbothamy Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.4.3 2003/04/11 00:16:08 cbothamy Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
@@ -4175,9 +4175,14 @@ redolog_t::open (const char* filename, const char *type, Bit64u size)
                return -1;
         }
 
-        if (strcmp((char*)header.standard.type, type) != 0)
+        if (strcmp((char*)header.standard.type, REDOLOG_TYPE) != 0)
         {
                BX_PANIC(("redolog : Bad header type")); 
+               return -1;
+        }
+        if (strcmp((char*)header.standard.subtype, type) != 0)
+        {
+               BX_PANIC(("redolog : Bad header subtype")); 
                return -1;
         }
 
