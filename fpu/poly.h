@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  poly.h                                                                   |
- |  $Id: poly.h,v 1.7.6.2 2004/03/19 17:43:31 sshwarts Exp $
+ |  $Id: poly.h,v 1.7.6.3 2004/03/27 17:36:14 sshwarts Exp $
  |                                                                           |
  |  Header file for the FPU-emu poly*.c source files.                        |
  |                                                                           |
@@ -82,24 +82,13 @@ asmlinkage void div_Xsig(const Xsig *x1, const Xsig *x2, Xsig *dest);
 
 /* Multiply two fixed-point 32 bit numbers, producing a 32 bit result.
    The answer is the ms word of the product.  */
-BX_C_INLINE
-u32 mul_32_32(const u32 arg1, const u32 arg2)
+BX_C_INLINE u32 mul_32_32(const u32 arg1, const u32 arg2)
 {
-/* Some versions of gcc make it difficult to stop eax from being clobbered.
-   Merely specifying that it is used doesn't work...
- */
-  int retval;
-  asm volatile ("mull %2; movl %%edx,%%eax" \
-		:"=a" (retval) \
-		:"0" (arg1), "g" (arg2) \
-		:"dx");
-  return retval;
+  return (((u64)arg1) * arg2) >> 32;
 }
 
-
 /* Add the 12 byte Xsig x2 to Xsig dest, with no checks for overflow. */
-BX_C_INLINE
-void add_Xsig_Xsig(Xsig *dest, const Xsig *x2)
+BX_C_INLINE void add_Xsig_Xsig(Xsig *dest, const Xsig *x2)
 {
   dest->lsw += x2->lsw;
   if ( dest->lsw < x2->lsw )
@@ -118,8 +107,7 @@ void add_Xsig_Xsig(Xsig *dest, const Xsig *x2)
 
 
 /* Add the 12 byte Xsig x2 to Xsig dest, adjust exp if overflow occurs. */
-BX_C_INLINE
-void add_two_Xsig(Xsig *dest, const Xsig *x2, s32 *exp)
+BX_C_INLINE void add_two_Xsig(Xsig *dest, const Xsig *x2, s32 *exp)
 {
   int ovfl = 0;
 
@@ -157,7 +145,6 @@ void add_two_Xsig(Xsig *dest, const Xsig *x2, s32 *exp)
       dest->msw |= 0x80000000;
     }
 }
-
 
 /* Negate the 12 byte Xsig */
 BX_C_INLINE void negate_Xsig(Xsig *x)

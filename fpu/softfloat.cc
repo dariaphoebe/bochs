@@ -2070,6 +2070,13 @@ Bit32s floatx80_to_int32(floatx80 a, float_status_t &status)
     Bit32s aExp = extractFloatx80Exp(a);
     int aSign = extractFloatx80Sign(a);
 
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a))
+    {
+        float_raise(status, float_flag_invalid);
+        return int32_indefinite;
+    }
+
     if ((aExp == 0x7FFF) && (Bit64u) (aSig<<1)) aSign = 0;
     int shiftCount = 0x4037 - aExp;
     if (shiftCount <= 0) shiftCount = 1;
@@ -2092,6 +2099,13 @@ Bit32s floatx80_to_int32_round_to_zero(floatx80 a, float_status_t &status)
     Bit64u aSig, savedASig;
     Bit32s z;
     int shiftCount;
+
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a))
+    {
+        float_raise(status, float_flag_invalid);
+        return int32_indefinite;
+    }
 
     aSig = extractFloatx80Frac(a);
     aExp = extractFloatx80Exp(a);
@@ -2136,6 +2150,13 @@ Bit64s floatx80_to_int64(floatx80 a, float_status_t &status)
     Bit32s aExp;
     Bit64u aSig, aSigExtra;
 
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a))
+    {
+        float_raise(status, float_flag_invalid);
+        return int64_indefinite;
+    }
+
     aSig = extractFloatx80Frac(a);
     aExp = extractFloatx80Exp(a);
     int aSign = extractFloatx80Sign(a);
@@ -2173,6 +2194,13 @@ Bit64s floatx80_to_int64_round_to_zero(floatx80 a, float_status_t &status)
     Bit64u aSig;
     Bit64s z;
 
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a))
+    {
+        float_raise(status, float_flag_invalid);
+        return int64_indefinite;
+    }
+
     aSig = extractFloatx80Frac(a);
     aExp = extractFloatx80Exp(a);
     aSign = extractFloatx80Sign(a);
@@ -2209,6 +2237,13 @@ float32 floatx80_to_float32(floatx80 a, float_status_t &status)
     Bit32s aExp = extractFloatx80Exp(a);
     int aSign = extractFloatx80Sign(a);
 
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a))
+    {
+        float_raise(status, float_flag_invalid);
+        return float32_default_nan;
+    }
+
     if (aExp == 0x7FFF) {
         if ((Bit64u) (aSig<<1))
             return commonNaNToFloat32(floatx80ToCommonNaN(a, status));
@@ -2231,6 +2266,13 @@ float64 floatx80_to_float64(floatx80 a, float_status_t &status)
 {
     Bit32s aExp;
     Bit64u aSig, zSig;
+
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a))
+    {
+        float_raise(status, float_flag_invalid);
+        return float64_default_nan;
+    }
 
     aSig = extractFloatx80Frac(a);
     aExp = extractFloatx80Exp(a);
@@ -2261,6 +2303,13 @@ floatx80 floatx80_round_to_int(floatx80 a, float_status_t &status)
     Bit64u lastBitMask, roundBitsMask;
     Bit8u roundingMode;
     floatx80 z;
+
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a))
+    {
+        float_raise(status, float_flag_invalid);
+        return floatx80_default_nan;
+    }
 
     aExp = extractFloatx80Exp(a);
     if (0x403E <= aExp) {
@@ -2330,6 +2379,13 @@ static floatx80 addFloatx80Sigs(floatx80 a, floatx80 b, int zSign, float_status_
     Bit64u aSig, bSig, zSig0, zSig1;
     Bit32s expDiff;
 
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
+    {
+        float_raise(status, float_flag_invalid);
+        return floatx80_default_nan;
+    }
+
     aSig = extractFloatx80Frac(a);
     aExp = extractFloatx80Exp(a);
     bSig = extractFloatx80Frac(b);
@@ -2395,7 +2451,13 @@ static floatx80 subFloatx80Sigs(floatx80 a, floatx80 b, int zSign, float_status_
     Bit32s aExp, bExp, zExp;
     Bit64u aSig, bSig, zSig0, zSig1;
     Bit32s expDiff;
-    floatx80 z;
+
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
+    {
+        float_raise(status, float_flag_invalid);
+        return floatx80_default_nan;
+    }
 
     aSig = extractFloatx80Frac(a);
     aExp = extractFloatx80Exp(a);
@@ -2410,9 +2472,7 @@ static floatx80 subFloatx80Sigs(floatx80 a, floatx80 b, int zSign, float_status_
             return propagateFloatx80NaN(a, b, status);
         }
         float_raise(status, float_flag_invalid);
-        z.fraction = floatx80_default_nan_fraction;
-        z.exp = floatx80_default_nan_exp;
-        return z;
+        return floatx80_default_nan;
     }
     if (aExp == 0) {
         aExp = 1;
@@ -2495,7 +2555,13 @@ floatx80 floatx80_mul(floatx80 a, floatx80 b, float_status_t &status)
     int aSign, bSign, zSign;
     Bit32s aExp, bExp, zExp;
     Bit64u aSig, bSig, zSig0, zSig1;
-    floatx80 z;
+
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
+    {
+        float_raise(status, float_flag_invalid);
+        return floatx80_default_nan;
+    }
 
     aSig = extractFloatx80Frac(a);
     aExp = extractFloatx80Exp(a);
@@ -2520,9 +2586,7 @@ floatx80 floatx80_mul(floatx80 a, floatx80 b, float_status_t &status)
         if ((aExp | aSig) == 0) {
  invalid:
             float_raise(status, float_flag_invalid);
-            z.fraction = floatx80_default_nan_fraction;
-            z.exp = floatx80_default_nan_exp;
-            return z;
+            return floatx80_default_nan;
         }
         if (aSig && (aExp == 0)) float_raise(status, float_flag_denormal);
         return packFloatx80(zSign, 0x7FFF, BX_CONST64(0x8000000000000000));
@@ -2560,7 +2624,13 @@ floatx80 floatx80_div(floatx80 a, floatx80 b, float_status_t &status)
     Bit32s aExp, bExp, zExp;
     Bit64u aSig, bSig, zSig0, zSig1;
     Bit64u rem0, rem1, rem2, term0, term1, term2;
-    floatx80 z;
+
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
+    {
+        float_raise(status, float_flag_invalid);
+        return floatx80_default_nan;
+    }
 
     aSig = extractFloatx80Frac(a);
     aExp = extractFloatx80Exp(a);
@@ -2589,9 +2659,7 @@ floatx80 floatx80_div(floatx80 a, floatx80 b, float_status_t &status)
             if ((aExp | aSig) == 0) {
  invalid:
                 float_raise(status, float_flag_invalid);
-                z.fraction = floatx80_default_nan_fraction;
-                z.exp = floatx80_default_nan_exp;
-                return z;
+                return floatx80_default_nan;
             }
             float_raise(status, float_flag_divbyzero);
             return packFloatx80(zSign, 0x7FFF, BX_CONST64(0x8000000000000000));
@@ -2644,7 +2712,13 @@ floatx80 floatx80_sqrt(floatx80 a, float_status_t &status)
     Bit32s aExp, zExp;
     Bit64u aSig0, aSig1, zSig0, zSig1, doubleZSig0;
     Bit64u rem0, rem1, rem2, rem3, term0, term1, term2, term3;
-    floatx80 z;
+
+    // handle unsupported extended double-precision floating encodings
+    if (floatx80_is_unsupported(a))
+    {
+        float_raise(status, float_flag_invalid);
+        return floatx80_default_nan;
+    }
 
     aSig0 = extractFloatx80Frac(a);
     aExp = extractFloatx80Exp(a);
@@ -2658,9 +2732,7 @@ floatx80 floatx80_sqrt(floatx80 a, float_status_t &status)
         if ((aExp | aSig0) == 0) return a;
  invalid:
         float_raise(status, float_flag_invalid);
-        z.fraction = floatx80_default_nan_fraction;
-        z.exp = floatx80_default_nan_exp;
-        return z;
+        return floatx80_default_nan;
     }
     if (aExp == 0) {
         if (aSig0 == 0) return packFloatx80(0, 0, 0);

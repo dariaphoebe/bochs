@@ -23,12 +23,6 @@ these four paragraphs for those parts of this code that are retained.
  *            Stanislav Shwartsman (gate@fidonet.org.il)
  * ==========================================================================*/ 
 
-/*============================================================================
- * Unlike original softfloat library code, the functions included in this
- * source package  fully handle unsupported encodings for extended double
- * precision floating point values.
- * ==========================================================================*/ 
-
 #ifndef SOFTFLOATX80_EXTENSIONS_H
 #define SOFTFLOATX80_EXTENSIONS_H
 

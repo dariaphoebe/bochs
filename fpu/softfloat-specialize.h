@@ -521,6 +521,12 @@ BX_CPP_INLINE floatx80 propagateFloatx80NaN(floatx80 a, floatx80 b, float_status
     }
 }
 
+/*----------------------------------------------------------------------------
+| The pattern for a default generated extended double-precision NaN.
+*----------------------------------------------------------------------------*/
+static const floatx80 floatx80_default_nan = 
+    packFloatx80(0, floatx80_default_nan_exp, floatx80_default_nan_fraction);
+
 #endif	/* FLOATX80 */
 
 #endif

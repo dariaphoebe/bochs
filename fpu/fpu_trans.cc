@@ -218,7 +218,6 @@ void BX_CPU_C::FXTRACT(bxInstruction_c *i)
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 a = BX_READ_FPU_REG(0);
-  /* floatx80_extract successfully handle unsupported encodings */
   floatx80 b = floatx80_extract(a, status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))

@@ -87,18 +87,6 @@ void BX_CPU_C::FPU_stack_underflow(int stnr, int pop_stack)
   BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 }
 
-void BX_CPU_C::FPU_handle_unsupported(int stnr, int pop_stack)
-{
-  if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
-  {
-     BX_WRITE_FPU_REGISTER_AND_TAG(Const_QNaN, FPU_Tag_Special, stnr);
-     if (pop_stack) 
-          BX_CPU_THIS_PTR the_i387.FPU_pop();
-  }
-
-  BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
-}
-
 softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word)
 {
   softfloat_status_word_t status;
@@ -149,12 +137,6 @@ void BX_CPU_C::FADD_ST0_STj(bxInstruction_c *i)
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = BX_READ_FPU_REG(i->rm());
 
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
-
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -187,12 +169,6 @@ void BX_CPU_C::FADD_STi_ST0(bxInstruction_c *i)
   floatx80 a = BX_READ_FPU_REG(i->rm());
   floatx80 b = BX_READ_FPU_REG(0);
 
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(i->rm(), pop_stack);
-     return;
-  }
-
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -224,18 +200,12 @@ void BX_CPU_C::FADD_SINGLE_REAL(bxInstruction_c *i)
 
   float32 load_reg;
   read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 a = BX_READ_FPU_REG(0);
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_add(a, float32_to_floatx80(load_reg, status), status);
+  floatx80 result = floatx80_add(BX_READ_FPU_REG(0), 
+		float32_to_floatx80(load_reg, status), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -261,18 +231,12 @@ void BX_CPU_C::FADD_DOUBLE_REAL(bxInstruction_c *i)
 
   float64 load_reg;
   read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 a = BX_READ_FPU_REG(0);
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_add(a, float64_to_floatx80(load_reg, status), status);
+  floatx80 result = floatx80_add(BX_READ_FPU_REG(0), 
+		float64_to_floatx80(load_reg, status), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -301,12 +265,6 @@ void BX_CPU_C::FIADD_WORD_INTEGER(bxInstruction_c *i)
 
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = int32_to_floatx80((Bit32s)(load_reg));
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
@@ -341,12 +299,6 @@ void BX_CPU_C::FIADD_DWORD_INTEGER(bxInstruction_c *i)
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = int32_to_floatx80(load_reg);
 
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
-
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -376,12 +328,6 @@ void BX_CPU_C::FMUL_ST0_STj(bxInstruction_c *i)
 
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = BX_READ_FPU_REG(i->rm());
-
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
@@ -415,12 +361,6 @@ void BX_CPU_C::FMUL_STi_ST0(bxInstruction_c *i)
   floatx80 a = BX_READ_FPU_REG(i->rm());
   floatx80 b = BX_READ_FPU_REG(0);
 
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(i->rm(), pop_stack);
-     return;
-  }
-
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -452,18 +392,12 @@ void BX_CPU_C::FMUL_SINGLE_REAL(bxInstruction_c *i)
 
   float32 load_reg;
   read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 a = BX_READ_FPU_REG(0);
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_mul(a, float32_to_floatx80(load_reg, status), status);
+  floatx80 result = floatx80_mul(BX_READ_FPU_REG(0), 
+		float32_to_floatx80(load_reg, status), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -489,18 +423,12 @@ void BX_CPU_C::FMUL_DOUBLE_REAL(bxInstruction_c *i)
 
   float64 load_reg;
   read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 a = BX_READ_FPU_REG(0);
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_mul(a, float64_to_floatx80(load_reg, status), status);
+  floatx80 result = floatx80_mul(BX_READ_FPU_REG(0), 
+		float64_to_floatx80(load_reg, status), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -529,12 +457,6 @@ void BX_CPU_C::FIMUL_WORD_INTEGER(bxInstruction_c *i)
 
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = int32_to_floatx80((Bit32s)(load_reg));
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
@@ -569,12 +491,6 @@ void BX_CPU_C::FIMUL_DWORD_INTEGER(bxInstruction_c *i)
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = int32_to_floatx80(load_reg);
 
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
-
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -605,12 +521,6 @@ void BX_CPU_C::FSUB_ST0_STj(bxInstruction_c *i)
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = BX_READ_FPU_REG(i->rm());
 
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
-
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -640,12 +550,6 @@ void BX_CPU_C::FSUBR_ST0_STj(bxInstruction_c *i)
 
   floatx80 a = BX_READ_FPU_REG(i->rm());
   floatx80 b = BX_READ_FPU_REG(0);
-
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
@@ -678,12 +582,6 @@ void BX_CPU_C::FSUB_STi_ST0(bxInstruction_c *i)
 
   floatx80 a = BX_READ_FPU_REG(i->rm());
   floatx80 b = BX_READ_FPU_REG(0);
-
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(i->rm(), pop_stack);
-     return;
-  }
 
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
@@ -720,12 +618,6 @@ void BX_CPU_C::FSUBR_STi_ST0(bxInstruction_c *i)
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = BX_READ_FPU_REG(i->rm());
 
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(i->rm(), pop_stack);
-     return;
-  }
-
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -758,18 +650,12 @@ void BX_CPU_C::FSUB_SINGLE_REAL(bxInstruction_c *i)
 
   float32 load_reg;
   read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 a = BX_READ_FPU_REG(0);
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_sub(a, float32_to_floatx80(load_reg, status), status);
+  floatx80 result = floatx80_sub(BX_READ_FPU_REG(0), 
+		float32_to_floatx80(load_reg, status), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -795,18 +681,12 @@ void BX_CPU_C::FSUBR_SINGLE_REAL(bxInstruction_c *i)
 
   float32 load_reg;
   read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 b = BX_READ_FPU_REG(0);
-
-  /* a could not produce unsupported */
-  if (floatx80_is_unsupported(b)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_sub(float32_to_floatx80(load_reg, status), b, status);
+  floatx80 result = floatx80_sub(float32_to_floatx80(load_reg, status), 
+		BX_READ_FPU_REG(0), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -832,18 +712,12 @@ void BX_CPU_C::FSUB_DOUBLE_REAL(bxInstruction_c *i)
 
   float64 load_reg;
   read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 a = BX_READ_FPU_REG(0);
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_sub(a, float64_to_floatx80(load_reg, status), status);
+  floatx80 result = floatx80_sub(BX_READ_FPU_REG(0), 
+		float64_to_floatx80(load_reg, status), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -869,18 +743,12 @@ void BX_CPU_C::FSUBR_DOUBLE_REAL(bxInstruction_c *i)
 
   float64 load_reg;
   read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 b = BX_READ_FPU_REG(0);
-
-  /* a could not produce unsupported */
-  if (floatx80_is_unsupported(b)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_sub(float64_to_floatx80(load_reg, status), b, status);
+  floatx80 result = floatx80_sub(float64_to_floatx80(load_reg, status), 
+		BX_READ_FPU_REG(0), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -909,13 +777,6 @@ void BX_CPU_C::FISUB_WORD_INTEGER(bxInstruction_c *i)
 
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = int32_to_floatx80((Bit32s)(load_reg));
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
@@ -950,12 +811,6 @@ void BX_CPU_C::FISUBR_WORD_INTEGER(bxInstruction_c *i)
   floatx80 a = int32_to_floatx80((Bit32s)(load_reg));
   floatx80 b = BX_READ_FPU_REG(0);
 
-  /* a could not produce unsupported */
-  if (floatx80_is_unsupported(b)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
-
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -988,13 +843,6 @@ void BX_CPU_C::FISUB_DWORD_INTEGER(bxInstruction_c *i)
 
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = int32_to_floatx80(load_reg);
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
@@ -1030,12 +878,6 @@ void BX_CPU_C::FISUBR_DWORD_INTEGER(bxInstruction_c *i)
   floatx80 a = int32_to_floatx80(load_reg);
   floatx80 b = BX_READ_FPU_REG(0);
 
-  /* a could not produce unsupported */
-  if (floatx80_is_unsupported(b)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
-
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -1066,12 +908,6 @@ void BX_CPU_C::FDIV_ST0_STj(bxInstruction_c *i)
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = BX_READ_FPU_REG(i->rm());
 
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
-
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -1101,12 +937,6 @@ void BX_CPU_C::FDIVR_ST0_STj(bxInstruction_c *i)
 
   floatx80 a = BX_READ_FPU_REG(i->rm());
   floatx80 b = BX_READ_FPU_REG(0);
-
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
@@ -1139,12 +969,6 @@ void BX_CPU_C::FDIV_STi_ST0(bxInstruction_c *i)
 
   floatx80 a = BX_READ_FPU_REG(i->rm());
   floatx80 b = BX_READ_FPU_REG(0);
-
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(i->rm(), pop_stack);
-     return;
-  }
 
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
@@ -1180,12 +1004,6 @@ void BX_CPU_C::FDIVR_STi_ST0(bxInstruction_c *i)
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = BX_READ_FPU_REG(i->rm());
 
-  if (floatx80_is_unsupported(a) || floatx80_is_unsupported(b))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(i->rm(), pop_stack);
-     return;
-  }
-
   softfloat_status_word_t status = 
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -1217,19 +1035,12 @@ void BX_CPU_C::FDIV_SINGLE_REAL(bxInstruction_c *i)
 
   float32 load_reg;
   read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 a = BX_READ_FPU_REG(0);
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_div(a, float32_to_floatx80(load_reg, status), status);
+  floatx80 result = floatx80_div(BX_READ_FPU_REG(0), 
+		float32_to_floatx80(load_reg, status), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -1255,18 +1066,12 @@ void BX_CPU_C::FDIVR_SINGLE_REAL(bxInstruction_c *i)
 
   float32 load_reg;
   read_virtual_dword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 b = BX_READ_FPU_REG(0);
-
-  /* a could not produce unsupported */
-  if (floatx80_is_unsupported(b)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_div(float32_to_floatx80(load_reg, status), b, status);
+  floatx80 result = floatx80_div(float32_to_floatx80(load_reg, status), 
+		BX_READ_FPU_REG(0), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -1292,19 +1097,12 @@ void BX_CPU_C::FDIV_DOUBLE_REAL(bxInstruction_c *i)
 
   float64 load_reg;
   read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 a = BX_READ_FPU_REG(0);
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_div(a, float64_to_floatx80(load_reg, status), status);
+  floatx80 result = floatx80_div(BX_READ_FPU_REG(0), 
+		float64_to_floatx80(load_reg, status), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -1330,18 +1128,12 @@ void BX_CPU_C::FDIVR_DOUBLE_REAL(bxInstruction_c *i)
 
   float64 load_reg;
   read_virtual_qword(i->seg(), RMAddr(i), &load_reg);
-  floatx80 b = BX_READ_FPU_REG(0);
-
-  /* a could not produce unsupported */
-  if (floatx80_is_unsupported(b)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_div(float64_to_floatx80(load_reg, status), b, status);
+  floatx80 result = floatx80_div(float64_to_floatx80(load_reg, status), 
+		BX_READ_FPU_REG(0), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -1370,13 +1162,6 @@ void BX_CPU_C::FIDIV_WORD_INTEGER(bxInstruction_c *i)
 
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = int32_to_floatx80((Bit32s)(load_reg));
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a))
-  {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
@@ -1411,12 +1196,6 @@ void BX_CPU_C::FIDIVR_WORD_INTEGER(bxInstruction_c *i)
   floatx80 a = int32_to_floatx80((Bit32s)(load_reg));
   floatx80 b = BX_READ_FPU_REG(0);
 
-  /* a could not produce unsupported */
-  if (floatx80_is_unsupported(b)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
-
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -1449,12 +1228,6 @@ void BX_CPU_C::FIDIV_DWORD_INTEGER(bxInstruction_c *i)
 
   floatx80 a = BX_READ_FPU_REG(0);
   floatx80 b = int32_to_floatx80(load_reg);
-
-  /* b could not produce unsupported */
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
 
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
@@ -1489,12 +1262,6 @@ void BX_CPU_C::FIDIVR_DWORD_INTEGER(bxInstruction_c *i)
   floatx80 a = int32_to_floatx80(load_reg);
   floatx80 b = BX_READ_FPU_REG(0);
 
-  /* a could not produce unsupported */
-  if (floatx80_is_unsupported(b)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
-
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
@@ -1521,17 +1288,10 @@ void BX_CPU_C::FSQRT(bxInstruction_c *i)
      return;
   }
 
-  floatx80 a = BX_READ_FPU_REG(0);
-
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
-
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_sqrt(a, status);
+  floatx80 result = floatx80_sqrt(BX_READ_FPU_REG(0), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -1555,17 +1315,10 @@ void BX_CPU_C::FRNDINT(bxInstruction_c *i)
      return;
   }
 
-  floatx80 a = BX_READ_FPU_REG(0);
-
-  if (floatx80_is_unsupported(a)) {
-     BX_CPU_THIS_PTR FPU_handle_unsupported(0);
-     return;
-  }
-
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  floatx80 result = floatx80_round_to_int(a, status);
+  floatx80 result = floatx80_round_to_int(BX_READ_FPU_REG(0), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
