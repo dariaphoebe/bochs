@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.23.8.6 2004/06/01 21:05:14 sshwarts Exp $
+ |  $Id: fpu_emu.h,v 1.23.8.7 2004/06/05 14:50:55 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -26,7 +26,6 @@
 #define EXP_BIAS	(0)
 #define EXP_OVER	(0x4000)    /* smallest invalid large exponent */
 #define	EXP_UNDER	(-0x3fff)   /* largest invalid small exponent */
-#define EXP_WAY_UNDER   (-0x6000)   /* Below the smallest denormal, but still a 16 bit nr */
 
 #define EXTENDED_Ebias (0x3fff)
 
@@ -38,7 +37,6 @@
 #define TW_Denormal      4      /* De-normal */
 #define TW_Infinity	 5 	/* + or - infinity */
 #define	TW_NaN		 6      /* Not a Number */
-#define	TW_Unsupported	 7 	/* Not supported by an 80486 */
 
 #define TAG_Valid	 0 	/* valid */
 #define TAG_Zero	 1 	/* zero */
@@ -72,9 +70,7 @@
 
 #define getsign(a) (signbyte(a) & 0x80)
 #define setsign(a,b) { if (b) signbyte(a) |= 0x80; else signbyte(a) &= 0x7f; }
-#define changesign(a) { signbyte(a) ^= 0x80; }
 #define signpositive(a) ( (signbyte(a) & 0x80) == 0 )
-#define signnegative(a) (signbyte(a) & 0x80)
 
 BX_C_INLINE void reg_copy(FPU_REG const *x, FPU_REG *y)
 {
@@ -89,10 +85,6 @@ BX_C_INLINE void reg_copy(FPU_REG const *x, FPU_REG *y)
 #define stdexp(x)           { (x)->exp += EXTENDED_Ebias; }
 
 /*----- Prototypes for functions written in assembler -----*/
-asmlinkage int FPU_normalize_nuo(FPU_REG *x, int bias);
-asmlinkage int FPU_u_mul(FPU_REG const *arg1, FPU_REG const *arg2,
-			 FPU_REG *answ, u16 control_w, u_char sign,
-			 s32 expon);
 asmlinkage u32 FPU_shrx(void *l, u32 x);
 asmlinkage u32 FPU_shrxs(void *v, u32 x);
 asmlinkage int FPU_round(FPU_REG *arg, u32 extent,

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_convert.c                                                            |
- |  $Id: reg_convert.c,v 1.5.10.1 2004/04/09 12:29:50 sshwarts Exp $
+ |  $Id: reg_convert.c,v 1.5.10.2 2004/06/05 14:50:55 sshwarts Exp $
  |                                                                           |
  |  Convert register representation.                                         |
  |                                                                           |
@@ -13,9 +13,37 @@
 
 #include "fpu_emu.h"
 
+static int FPU_normalize_nuo(FPU_REG *x, int bias)
+{
+  if (! (x->sigh & 0x80000000))
+    {
+      if (x->sigh == 0)
+	{
+	  if (x->sigl == 0)
+	    {
+	      x->exp = 0;
+	      return TAG_Zero;
+	    }
+	  x->sigh = x->sigl;
+	  x->sigl = 0;
+	  x->exp -= 32;
+	}
+      while (!(x->sigh & 0x80000000))
+	{
+	  x->sigh <<= 1;
+	  if (x->sigl & 0x80000000)
+	    x->sigh |= 1;
+	  x->sigl <<= 1;
+	  x->exp --;
+	}
+    }
 
-int  BX_CPP_AttrRegparmN(2)
-FPU_to_exp16(FPU_REG const *a, FPU_REG *x)
+  x->exp += bias;
+
+  return TAG_Valid;
+}
+
+int  BX_CPP_AttrRegparmN(2) FPU_to_exp16(FPU_REG const *a, FPU_REG *x)
 {
   int sign = getsign(a);
 

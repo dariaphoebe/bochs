@@ -35,8 +35,6 @@
 extern "C"
 {
   void fpatan (FPU_REG *st0_ptr, Bit8u st0_tag);
-  void fyl2xp1(FPU_REG *st0_ptr, Bit8u st0_tag);
-  void fyl2x  (FPU_REG *st0_ptr, Bit8u st0_tag);
 }
 
 extern void FPU_initalize_i387(struct i387_t *the_i387);
@@ -57,22 +55,6 @@ void BX_CPU_C::FPATAN(bxInstruction_c *i)
 #endif
 }
 
-void BX_CPU_C::FYL2XP1(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  clear_C1();
-
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
-
-  fyl2xp1(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
-#else
-  BX_INFO(("FYL2XP1: required FPU, configure --enable-fpu"));
-#endif
-}
-
 /* D9 F0 */
 void BX_CPU_C::F2XM1(bxInstruction_c *i)
 {
@@ -88,7 +70,7 @@ void BX_CPU_C::F2XM1(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word() | FPU_PR_80_BITS);
 
   floatx80 result = f2xm1(BX_READ_FPU_REG(0), status);
 
@@ -101,6 +83,7 @@ void BX_CPU_C::F2XM1(bxInstruction_c *i)
 #endif
 }
 
+/* D9 F1 */
 void BX_CPU_C::FYL2X(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
@@ -108,10 +91,22 @@ void BX_CPU_C::FYL2X(bxInstruction_c *i)
 
   clear_C1();
 
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(1))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0, 1);
+     return;
+  }
 
-  fyl2x(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+  softfloat_status_word_t status = 
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word() | FPU_PR_80_BITS);
+
+  floatx80 result = fyl2x(BX_READ_FPU_REG(0), BX_READ_FPU_REG(1), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_CPU_THIS_PTR the_i387.FPU_pop();
+  BX_WRITE_FPU_REG(result, 0);
 #else
   BX_INFO(("FYL2X: required FPU, configure --enable-fpu"));
 #endif
@@ -142,7 +137,7 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word() | FPU_PR_80_BITS);
 
   floatx80 y = BX_READ_FPU_REG(0);
   if (ftan(y, status) == -1)
@@ -229,7 +224,7 @@ void BX_CPU_C::FPREM1(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word() | FPU_PR_80_BITS);
 
   Bit64u quotient;
 
@@ -272,7 +267,7 @@ void BX_CPU_C::FPREM(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word() | FPU_PR_80_BITS);
 
   Bit64u quotient;
 
@@ -297,6 +292,35 @@ void BX_CPU_C::FPREM(bxInstruction_c *i)
   BX_WRITE_FPU_REG(result, 0);
 #else
   BX_INFO(("FPREM: required FPU, configure --enable-fpu"));
+#endif
+}
+
+/* D9 F9 */
+void BX_CPU_C::FYL2XP1(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(1))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0, 1);
+     return;
+  }
+
+  softfloat_status_word_t status = 
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word() | FPU_PR_80_BITS);
+
+  floatx80 result = fyl2xp1(BX_READ_FPU_REG(0), BX_READ_FPU_REG(1), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_CPU_THIS_PTR the_i387.FPU_pop();
+  BX_WRITE_FPU_REG(result, 0);
+#else
+  BX_INFO(("FYL2XP1: required FPU, configure --enable-fpu"));
 #endif
 }
 
@@ -325,7 +349,7 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word() | FPU_PR_80_BITS);
 
   floatx80 y = BX_READ_FPU_REG(0);
   floatx80 sin_y, cos_y;
@@ -390,7 +414,7 @@ void BX_CPU_C::FSIN(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word() | FPU_PR_80_BITS);
 
   floatx80 y = BX_READ_FPU_REG(0);
   if (fsin(y, status) == -1)
@@ -424,7 +448,7 @@ void BX_CPU_C::FCOS(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word() | FPU_PR_80_BITS);
 
   floatx80 y = BX_READ_FPU_REG(0);
   if (fcos(y, status) == -1)

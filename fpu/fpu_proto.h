@@ -40,7 +40,6 @@ asmlinkage void FPU_internal(int n);
 extern int real_2op_NaN(FPU_REG const *b, u_char tagb, int deststnr,
 			FPU_REG const *defaultNaN);
 extern int arith_invalid(int deststnr);
-extern int FPU_divide_by_zero(int deststnr, u_char sign);
 extern void set_precision_flag_up(void);
 extern void set_precision_flag_down(void);
 extern int denormal_operand(void);
@@ -62,12 +61,6 @@ extern void FPU_copy_to_reg0(FPU_REG const *r, u_char tag) BX_CPP_AttrRegparmN(2
 /* poly_atan.c */
 extern void poly_atan(FPU_REG *st0_ptr, u_char st0_tag, FPU_REG *st1_ptr,
 		      u_char st1_tag);
-/* poly_l2.c */
-extern void poly_l2(FPU_REG *st0_ptr, FPU_REG *st1_ptr, u_char st1_sign);
-extern int poly_l2p1(u_char s0, u_char s1, FPU_REG *r0, FPU_REG *r1,
-		     FPU_REG *d);
-/* reg_mul.c */
-extern int FPU_mul(FPU_REG const *b, u_char tagb, int deststnr, int control_w);
 /* reg_convert.c */
 extern int FPU_to_exp16(FPU_REG const *a, FPU_REG *x) BX_CPP_AttrRegparmN(2);
 

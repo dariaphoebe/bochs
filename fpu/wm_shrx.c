@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  wm_shrx.c                                                                |
- |  $Id: wm_shrx.c,v 1.2 2001/10/06 03:53:46 bdenney Exp $
+ |  $Id: wm_shrx.c,v 1.2.34.1 2004/06/05 14:50:55 sshwarts Exp $
  |                                                                           |
  | 64 bit right shift functions                                              |
  |                                                                           |
@@ -69,9 +69,7 @@ unsigned FPU_shrx(void *arg1, u32 arg2)
   (*(u64 *)arg1) >>= arg2;
 
   return x;
-
 }
-
 
 /*---------------------------------------------------------------------------+
  |   unsigned FPU_shrxs(void *arg1, unsigned arg2)                           |
@@ -147,6 +145,4 @@ unsigned FPU_shrxs(void *arg1, u32 arg2)
     x |= 1;
 
   return x;
-
 }
-

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_round.c                                                              |
- |  $Id: reg_round.c,v 1.8.10.1 2004/04/09 12:29:50 sshwarts Exp $
+ |  $Id: reg_round.c,v 1.8.10.2 2004/06/05 14:50:55 sshwarts Exp $
  |                                                                           |
  | Rounding/truncation/etc for FPU basic arithmetic functions.               |
  |                                                                           |
@@ -68,7 +68,6 @@
 /* Flags for FPU_denormal */
 #define	DENORMAL	1
 #define	UNMASKED_UNDERFLOW 2
-
 
 static int round_up_64(FPU_REG *x)
 {
