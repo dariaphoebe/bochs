@@ -121,13 +121,18 @@ typedef struct bx_fpu_reg_t FPU_REG;
 //
 struct i387_t 
 {
-    Bit32u cwd;		 // control word
-    Bit32u swd;		 // status word
-    Bit32u twd;		 // tag word
+    Bit32u cwd; 	// control word
+    Bit32u swd; 	// status word
+    Bit32u twd;		// tag word
     Bit32u fip;
     Bit32u fcs;
-    Bit32u foo;
+    Bit32u foo; 	// last instruction opcode
     Bit32u fos;
+
+    bx_address fip_;
+    Bit16u fcs_;
+    Bit16u fds_;
+    bx_address fos_;
 
     unsigned char tos;
     unsigned char no_update;

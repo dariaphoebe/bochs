@@ -27,6 +27,8 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
+
+/* D9 D0 */
 void BX_CPU_C::FNOP(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU

@@ -58,6 +58,21 @@ void BX_CPU_C::FNSTENV(bxInstruction_c *i)
 #endif
 }
 
+/* D9 /5 */
+void BX_CPU_C::FLDCW(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR FPU_check_pending_exceptions();
+  Bit16u swd;
+  read_virtual_word(i->seg(), RMAddr(i), &swd);
+  FPU_PARTIAL_STATUS = swd;
+  FPU_TOS = (swd >> 11) & 0x07;
+#else
+  BX_INFO(("FLDCW: required FPU, configure --enable-fpu"));
+#endif
+}
+
 /* D9 /7 */
 void BX_CPU_C::FNSTCW(bxInstruction_c *i)
 {
@@ -104,12 +119,17 @@ void BX_CPU_C::FNSAVE(bxInstruction_c *i)
 #endif
 }
 
+/* 9B E2 */
 void BX_CPU_C::FNCLEX(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU();
 
-  fpu_execute(i);
+  FPU_PARTIAL_STATUS &= ~(FPU_SW_Backward|FPU_SW_Summary|FPU_SW_Stack_Fault|FPU_SW_Precision|
+		   FPU_SW_Underflow|FPU_SW_Overflow|FPU_SW_Zero_Div|FPU_SW_Denormal_Op|
+		   FPU_SW_Invalid);
+
+  // do not update last fpu instruction pointer
 #else
   BX_INFO(("FNCLEX: required FPU, configure --enable-fpu"));
 #endif
@@ -146,17 +166,6 @@ void BX_CPU_C::FLDENV(bxInstruction_c *i)
   fpu_execute(i);
 #else
   BX_INFO(("FLDENV: required FPU, configure --enable-fpu"));
-#endif
-}
-
-void BX_CPU_C::FLDCW(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
-
-  fpu_execute(i);
-#else
-  BX_INFO(("FLDCW: required FPU, configure --enable-fpu"));
 #endif
 }
 

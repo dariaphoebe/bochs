@@ -27,6 +27,11 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
+///////////////////////////////////////////////////////
+/// TODO: Handle FPU last instruction and data pointers 
+///////////////////////////////////////////////////////
+
+
 #if BX_SUPPORT_FPU
 
 #include "softfloat.h"
