@@ -1058,7 +1058,7 @@ elif test "$with_win32" = yes; then
   AC_DEFINE(BX_WITH_WIN32, 1)
   GUI_OBJS='$(GUI_OBJS_WIN32)'
   case $target in
-    *-windows*)
+    *-pc-windows*)
        GUI_LINK_OPTS='$(GUI_LINK_OPTS_WIN32_VCPP)'  # native libs for win gui
        ;;
     *-cygwin*)
@@ -1092,11 +1092,11 @@ else
 fi
 
 # modify settings based on target platform
-case $target in
-  *-macos)
+case "$target" in
+  *-macos*)
     AC_DEFINE(BX_HAVE_STRDUP, 0)
     ;;
-  *-pc-windows)
+  *-pc-windows*)
     INSTALL_TARGET='install_win32'
     CC="cl"
     CXX="$CC"
