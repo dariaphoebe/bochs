@@ -1,4 +1,4 @@
-//  Copyright (C) 2001  MandrakeSoft S.A.
+//  Copyright (C) 2000  MandrakeSoft S.A.
 //
 //    MandrakeSoft S.A.
 //    43, rue d'Aboukir
@@ -33,7 +33,7 @@
 #if BX_PROVIDE_CPU_MEMORY
 
   void
-BX_MEM_C::write_physical(BX_CPU_C *cpu, Bit32u addr, unsigned len, void *data)
+BX_MEM_C::write_physical(Bit32u addr, unsigned len, void *data)
 {
   Bit8u *data_ptr;
   Bit32u a20addr;
@@ -41,6 +41,8 @@ BX_MEM_C::write_physical(BX_CPU_C *cpu, Bit32u addr, unsigned len, void *data)
 
   a20addr = A20ADDR(addr);
   BX_INSTR_PHY_WRITE(a20addr, len);
+  if ((addr & 0xfee00000) == 0xfee00000)
+    bx_printf ("write_physical to APIC address %08x\n", addr);
 
 #if BX_DEBUGGER
   // (mch) Check for physical write break points, TODO
@@ -217,13 +219,12 @@ inc_one:
 #endif
 
 #if BX_APIC_SUPPORT
-    bx_generic_apic_c *local_apic = &cpu->local_apic;
-    bx_generic_apic_c *ioapic = bx_devices.ioapic;
-    if (local_apic->is_selected (a20addr, len)) {
-      local_apic->write (a20addr, (Bit32u *)data, len);
-      return;
-    } else if (ioapic->is_selected (a20addr, len)) {
-      ioapic->write (a20addr, (Bit32u *)data, len);
+#warning CPU# hardcoded to 0
+    bx_apic_c *apic = &BX_CPU[0]->local_apic;
+    if ((a20addr & ~0xfff) == (apic->get_base ())) {
+      if ((addr & 0xf != 0) || (len != 4))
+        bx_printf ("warning: misaligned or wrong-size APIC write");
+      apic->write_handler (addr, (Bit32u *)data, len);
       return;
     }
     else 
@@ -249,7 +250,7 @@ inc_one:
 
 
   void
-BX_MEM_C::read_physical(BX_CPU_C *cpu, Bit32u addr, unsigned len, void *data)
+BX_MEM_C::read_physical(Bit32u addr, unsigned len, void *data)
 {
   Bit8u *data_ptr;
   Bit32u a20addr;
@@ -257,6 +258,8 @@ BX_MEM_C::read_physical(BX_CPU_C *cpu, Bit32u addr, unsigned len, void *data)
 
   a20addr = A20ADDR(addr);
   BX_INSTR_PHY_READ(a20addr, len);
+  if ((addr & 0xfee00000) == 0xfee00000)
+    bx_printf ("read_physical from APIC address %08x\n", addr);
 
 #if BX_DEBUGGER
   // (mch) Check for physical read break points, TODO
@@ -411,13 +414,24 @@ inc_one:
 #endif
 
 #if BX_APIC_SUPPORT
-    bx_generic_apic_c *local_apic = &cpu->local_apic;
-    bx_generic_apic_c *ioapic = bx_devices.ioapic;
-    if (local_apic->is_selected (addr, len)) {
-      local_apic->read (addr, data, len);
-      return;
-    } else if (ioapic->is_selected (addr, len)) {
-      ioapic->read (addr, data, len);
+#warning always CPU=0
+    bx_apic_c *apic = &BX_CPU[0]->local_apic;
+    if ((a20addr & ~0xfff) == (apic->get_base ())) {
+      Bit32u value;
+      apic->read_handler (addr, &value, 4);
+      if ((addr & ~0xf) != ((addr+len-1) & ~0xf))
+        bx_panic ("APIC read spans 32-bit boundary");
+      Bit8u bytes[4];
+      bytes[0] = value & 0xff;
+      bytes[1] = (value >> 8) & 0xff;
+      bytes[2] = (value >> 16) & 0xff;
+      bytes[3] = (value >> 24) & 0xff;
+      Bit8u *p1 = bytes+(addr&3);
+      Bit8u *p2 = (Bit8u *)data;
+      for (int i=0; i<len; i++) {
+        bx_printf ("Copying byte %02x\n", (unsigned int) *p1);
+        *p2++ = *p1++;
+      }
       return;
     }
 #endif
