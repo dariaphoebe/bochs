@@ -56,7 +56,7 @@ FPU_FLAGS = -DUSE_WITH_CPU_SIM $(PARANOID) $(DEBUG)
 FPU_GLUE_OBJ = wmFPUemu_glue.o ferr.o fpu.o fpu_arith.o fpu_compare.o \
                fpu_const.o fpu_load_store.o fpu_misc.o fpu_trans.o \
                fprem.o fsincos.o softfloat.o softfloatx80.o \
-               softfloat-round-pack.o poly_eval.o
+               softfloat-round-pack.o
 
 # From 'C' language sources:
 C_OBJS = errors.o fpu_tags.o fpu_trig.o \
@@ -146,8 +146,6 @@ wm_shrx.o: wm_shrx.c fpu_emu.h linkage.h fpu_system.h ../config.h \
 fprem.o: fprem.@CPP_SUFFIX@ softfloatx80.h softfloat.h ../config.h \
   softfloat-specialize.h softfloat-round-pack.h softfloat-macros.h
 fsincos.o: fsincos.@CPP_SUFFIX@ softfloatx80.h softfloat.h ../config.h \
-  softfloat-specialize.h softfloat-round-pack.h softfloat-macros.h
-poly_eval.o: poly_eval.@CPP_SUFFIX@ softfloatx80.h softfloat.h ../config.h \
   softfloat-specialize.h softfloat-round-pack.h softfloat-macros.h
 ferr.o: ferr.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h ../bx_debug/debug.h \
   ../bxversion.h ../gui/siminterface.h ../state_file.h ../cpu/cpu.h \

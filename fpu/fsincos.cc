@@ -19,7 +19,7 @@ these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
 // Pentium CPU uses only 68-bit precision M_PI approximation
-// #define BETTER_THAN_PENTIUM
+#define BETTER_THAN_PENTIUM
 
 /*============================================================================
  * Written for Bochs (x86 achitecture simulator) by
@@ -272,7 +272,10 @@ int fsincos(floatx80 a, floatx80 *sin_a, floatx80 *cos_a, float_status_t &status
         q = reduce_trig_arg(expDiff, zSign, aSig0, aSig1);
     }
 
-reduction_completed:
+    /* **************************** */
+    /* argument reduction completed */
+    /* **************************** */
+
     /* using float128 for approximation */
     float128 r = normalizeRoundAndPackFloat128(0, zExp-0x10, aSig0, aSig1, status);
 
@@ -361,7 +364,10 @@ int ftan(floatx80 &a, float_status_t &status)
         q = reduce_trig_arg(expDiff, zSign, aSig0, aSig1);
     }
 
-reduction_completed:
+    /* **************************** */
+    /* argument reduction completed */
+    /* **************************** */
+
     /* using float128 for approximation */
     float128 r = normalizeRoundAndPackFloat128(0, zExp-0x10, aSig0, aSig1, status);
 

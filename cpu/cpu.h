@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.161.4.2 2004/04/09 15:53:34 sshwarts Exp $
+// $Id: cpu.h,v 1.161.4.3 2004/05/29 19:59:51 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1976,6 +1976,7 @@ union {
   BX_SMF void FCOM_DOUBLE_REAL(bxInstruction_c *);
   BX_SMF void FICOM_WORD_INTEGER(bxInstruction_c *);
   BX_SMF void FICOM_DWORD_INTEGER(bxInstruction_c *);
+//BX_SMF void FCMOV_ST0_STj(bxInstruction_c *);
 
   BX_SMF void FCOMPP(bxInstruction_c *);  
   BX_SMF void FUCOMPP(bxInstruction_c *);
@@ -2351,7 +2352,6 @@ union {
   BX_SMF void CMOV_GwEw(bxInstruction_c *);
 
   BX_SMF void ADD_EwGw(bxInstruction_c *);
-
   BX_SMF void ADD_GwEEw(bxInstruction_c *);
   BX_SMF void ADD_GwEGw(bxInstruction_c *);
 
@@ -2415,7 +2415,6 @@ union {
   BX_SMF void OR_EqGq(bxInstruction_c *);
   BX_SMF void OR_GqEq(bxInstruction_c *);
   BX_SMF void OR_RAXId(bxInstruction_c *);
-
 
   BX_SMF void ADC_EqGq(bxInstruction_c *);
   BX_SMF void ADC_GqEq(bxInstruction_c *);
@@ -2483,7 +2482,6 @@ union {
   BX_SMF void JCC_Jq(bxInstruction_c *);
 
   BX_SMF void SHLD_EqGq(bxInstruction_c *);
-
   BX_SMF void SHRD_EqGq(bxInstruction_c *);
 
   BX_SMF void IMUL_GqEq(bxInstruction_c *);
