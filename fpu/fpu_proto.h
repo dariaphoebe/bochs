@@ -42,13 +42,11 @@ extern int real_2op_NaN(FPU_REG const *b, u_char tagb, int deststnr,
 			FPU_REG const *defaultNaN);
 extern int arith_invalid(int deststnr);
 extern int FPU_divide_by_zero(int deststnr, u_char sign);
-extern int set_precision_flag(int flags);
 extern void set_precision_flag_up(void);
 extern void set_precision_flag_down(void);
 extern int denormal_operand(void);
 extern int arith_round_overflow(FPU_REG *dest, Bit8u sign);
 extern int arith_underflow(FPU_REG *dest);
-extern void FPU_stack_overflow(void);
 extern void FPU_stack_underflow(void);
 extern void FPU_stack_underflow_pop(int i);
 /* fpu_tags.c */

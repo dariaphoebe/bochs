@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  errors.c                                                                 |
- |  $Id: errors.c,v 1.18.4.4 2004/05/25 18:38:33 sshwarts Exp $
+ |  $Id: errors.c,v 1.18.4.5 2004/05/25 18:45:43 sshwarts Exp $
  |                                                                           |
  |  The error handling functions for wm-FPU-emu                              |
  |                                                                           |
@@ -289,24 +289,6 @@ asmlinkage int FPU_divide_by_zero(int deststnr, u_char sign)
   return (!(FPU_control_word & FPU_CW_Zero_Div) ? FPU_Exception : 0) | tag;
 }
 
-
-/* This may be called often, so keep it lean */
-int set_precision_flag(int flags)
-{
-  if (FPU_control_word & FPU_CW_Precision)
-    {
-      FPU_partial_status &= ~(SW_C1 & flags);
-      FPU_partial_status |= flags;   /* The masked response */
-      return 0;
-    }
-  else
-    {
-      EXCEPTION(flags);
-      return 1;
-    }
-}
-
-
 /* This may be called often, so keep it lean */
 asmlinkage void set_precision_flag_up(void)
 {
@@ -456,20 +438,6 @@ asmlinkage int arith_underflow(FPU_REG *dest)
   return tag;
 }
 
-
-void FPU_stack_overflow(void)
-{
- if (FPU_control_word & FPU_CW_Invalid)
-    {
-      /* The masked response */
-      FPU_tos--;
-      FPU_copy_to_reg0(&CONST_QNaN, TAG_Special);
-    }
-
-  EXCEPTION(EX_StackOver);
-}
-
-
 void FPU_stack_underflow(void)
 {
  if (FPU_control_word & FPU_CW_Invalid)
@@ -480,7 +448,6 @@ void FPU_stack_underflow(void)
 
   EXCEPTION(EX_StackUnder);
 }
-
 
 void FPU_stack_underflow_pop(int i)
 {
