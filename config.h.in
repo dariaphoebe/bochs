@@ -208,7 +208,8 @@
 #define BX_USE_VGA_SMF  1  // VGA
 #define BX_USE_SB16_SMF 1  // Sound (SB 16)
 #define BX_USE_DEV_SMF  1  // System Devices (port92)
-#define BX_USE_PCI_SMF  0  // PCI
+#define BX_USE_PCI_SMF  1  // PCI
+#define BX_USE_NE2K_SMF 1  // NE2K
 
 #define BX_SUPPORT_SB16 0
 
@@ -521,5 +522,8 @@ typedef unsigned int Boolean;
    // low-level CDROM.
 #  define LOWLEVEL_CDROM cdrom_interface
 #endif
+
+// NE2K network emulation
+#define BX_NE2K_SUPPORT 0
 
 #endif  // _BX_CONFIG_H
