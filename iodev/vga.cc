@@ -1,4 +1,4 @@
-//  Copyright (C) 2001  MandrakeSoft S.A.
+//  Copyright (C) 2000  MandrakeSoft S.A.
 //
 //    MandrakeSoft S.A.
 //    43, rue d'Aboukir
@@ -439,10 +439,6 @@ bx_vga_c::read(Bit32u address, unsigned io_len)
       RETURN(0);
       break;
 
-    case 0x03c3: /* VGA Enable Register */
-      RETURN(1);
-      break;
-
     case 0x03c4: /* Sequencer Index Register */
       RETURN(BX_VGA_THIS s.sequencer.index);
       break;
@@ -592,6 +588,7 @@ if (BX_VGA_THIS s.graphics_ctrl.odd_even ||
       break;
 
     case 0x03b4: /* CRTC Index Register (monochrome emulation modes) */
+    case 0x03c3: /* VGA enable */
     case 0x03c7: /* */
     case 0x03c8: /* */
     default:
