@@ -24,8 +24,6 @@
 
 #if BX_SUPPORT_3DNOW
 
-#include "softfloat.h"
-
 static void prepare_softfloat_status_word
 	(softfloat_status_word_t &status, int rounding_mode)
 {

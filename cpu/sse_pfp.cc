@@ -24,8 +24,6 @@
 
 #if BX_SUPPORT_SSE
 
-#include "softfloat.h"
-
 void BX_CPU_C::check_exceptionsSSE(int exceptions_flags)
 {
   int unmasked = ~(MXCSR.get_exceptions_masks()) & exceptions_flags;

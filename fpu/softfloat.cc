@@ -486,9 +486,8 @@ float64 int64_to_float64(Bit64s a, float_status_t &status)
 | `a' to the 32-bit two's complement integer format.  The conversion is
 | performed according to the IEC/IEEE Standard for Binary Floating-Point
 | Arithmetic - which means in particular that the conversion is rounded
-| according to the current rounding mode.  If `a' is a NaN, the largest
-| positive integer is returned.  Otherwise, if the conversion overflows, the
-| largest integer with the same sign as `a' is returned.
+| according to the current rounding mode.  If `a' is a NaN or the 
+| conversion overflows the integer indefinite value is returned.
 *----------------------------------------------------------------------------*/
 
 Bit32s float32_to_int32(float32 a, float_status_t &status)
@@ -577,9 +576,9 @@ Bit64s float32_to_int64(float32 a, float_status_t &status)
 | Returns the result of converting the single-precision floating-point value
 | `a' to the 64-bit two's complement integer format.  The conversion is
 | performed according to the IEC/IEEE Standard for Binary Floating-Point
-| Arithmetic, except that the conversion is always rounded toward zero. If
-| `a' is a NaN or the conversion overflows, the integer indefinite value is 
-| returned.
+| Arithmetic, except that the conversion is always rounded toward zero.
+| If `a' is a NaN or the conversion overflows, the integer indefinite
+| value is returned.
 *----------------------------------------------------------------------------*/
 
 Bit64s float32_to_int64_round_to_zero(float32 a, float_status_t &status)
@@ -1369,9 +1368,8 @@ int float32_compare_quiet(float32 a, float32 b, float_status_t &status)
 | `a' to the 32-bit two's complement integer format.  The conversion is
 | performed according to the IEC/IEEE Standard for Binary Floating-Point
 | Arithmetic - which means in particular that the conversion is rounded
-| according to the current rounding mode.  If `a' is a NaN, the largest
-| positive integer is returned.  Otherwise, if the conversion overflows, the
-| largest integer with the same sign as `a' is returned.
+| according to the current rounding mode. If `a' is a NaN or the 
+| conversion overflows, the integer indefinite value is returned.
 *----------------------------------------------------------------------------*/
 
 Bit32s float64_to_int32(float64 a, float_status_t &status)
@@ -2299,23 +2297,25 @@ float_class_t floatx80_class(floatx80 a)
    Bit64u aSig = extractFloatx80Frac(a);
    int   aSign = extractFloatx80Sign(a);
 
-   if(aExp == 0x7fff) {
-       if (((Bit64u) (aSig>>63)) == 0)	// report unsupported as NaN
-           return float_NaN;
+   if(aExp == 0) {
+       if (aSig == 0)
+           return float_zero;
 
+       /* denormal or pseudo-denormal */
+       return float_denormal;
+   }
+
+   /* valid numbers have the MS bit set */
+   if (!(aSig & BX_CONST64(0x8000000000000000)))
+       return float_NaN; /* report unsupported as NaNs */
+
+   if(aExp == 0x7fff) {
        if (((Bit64u) (aSig<< 1)) == 0)
            return (aSign) ? float_negative_inf : float_positive_inf;
 
        return float_NaN;
    }
     
-   if(aExp == 0) {
-       if (aSig == 0)
-           return float_zero;
-
-       return float_denormal;
-   }
-
    return float_normalized;
 }
 
@@ -3061,6 +3061,7 @@ floatx80 floatx80_mul(floatx80 a, floatx80 b, float_status_t &status)
             return propagateFloatx80NaN(a, b, status);
         }
         if ((bExp | bSig) == 0) goto invalid;
+        if (bSig && (bExp == 0)) float_raise(status, float_flag_denormal);
         return packFloatx80(zSign, 0x7FFF, BX_CONST64(0x8000000000000000));
     }
     if (bExp == 0x7FFF) {
@@ -3072,6 +3073,7 @@ floatx80 floatx80_mul(floatx80 a, floatx80 b, float_status_t &status)
             z.exp = floatx80_default_nan_exp;
             return z;
         }
+        if (aSig && (aExp == 0)) float_raise(status, float_flag_denormal);
         return packFloatx80(zSign, 0x7FFF, BX_CONST64(0x8000000000000000));
     }
     if (aExp == 0) {
@@ -3123,10 +3125,12 @@ floatx80 floatx80_div(floatx80 a, floatx80 b, float_status_t &status)
             if ((Bit64u) (bSig<<1)) return propagateFloatx80NaN(a, b, status);
             goto invalid;
         }
+        if (bSig && (bExp == 0)) float_raise(status, float_flag_denormal);
         return packFloatx80(zSign, 0x7FFF, BX_CONST64(0x8000000000000000));
     }
     if (bExp == 0x7FFF) {
         if ((Bit64u) (bSig<<1)) return propagateFloatx80NaN(a, b, status);
+        if (aSig && (aExp == 0)) float_raise(status, float_flag_denormal);
         return packFloatx80(zSign, 0, 0);
     }
     if (bExp == 0) {

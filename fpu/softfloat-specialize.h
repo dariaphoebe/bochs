@@ -431,6 +431,16 @@ BX_CPP_INLINE int floatx80_is_signaling_nan(floatx80 a)
 }
 
 /*----------------------------------------------------------------------------
+| Returns 1 if the extended double-precision floating-point value `a' is an
+| unsupported; otherwise returns 0.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE int floatx80_is_unsupported(floatx80 a)
+{
+    return ((a.exp != 0) && !(a.fraction & BX_CONST64(0x8000000000000000)));
+}
+
+/*----------------------------------------------------------------------------
 | Returns the result of converting the extended double-precision floating-
 | point NaN `a' to the canonical NaN format.  If `a' is a signaling NaN, the
 | invalid exception is raised.

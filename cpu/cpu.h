@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.161.2.3 2004/03/19 13:14:50 sshwarts Exp $
+// $Id: cpu.h,v 1.161.2.4 2004/03/25 22:07:32 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1180,7 +1180,7 @@ typedef struct {
 class BX_MEM_C;
 
 #if BX_SUPPORT_FPU || BX_SUPPORT_MMX
-#include "cpu/softfloat.h"
+#include "fpu/softfloat.h"
 #include "cpu/i387.h"
 #endif
 

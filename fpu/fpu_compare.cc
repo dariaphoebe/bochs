@@ -762,8 +762,9 @@ void BX_CPU_C::FXAM(bxInstruction_c *i)
            break;
        
         case float_NaN:
-           if (! (reg.fraction & BX_CONST64(0x8000000000000000))) {
-               SETCC(FPU_SW_C1); // unsupported handled as NaNs
+           // unsupported handled as NaNs
+           if (floatx80_is_unsupported(reg)) {
+               SETCC(FPU_SW_C1); 
            } else {
                SETCC(FPU_SW_C1|FPU_SW_C0);
            }
