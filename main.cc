@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.4 2003/03/24 01:14:09 bdenney Exp $
+// $Id: main.cc,v 1.223.4.5 2003/03/24 04:19:15 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -627,8 +627,9 @@ void bx_init_options ()
       // set up top level menu for ATA[i] controller configuration.  This list
       // controls what will appear on the ATA configure dialog.  It now
       // requests the USE_TAB_WINDOW display, which is implemented in wx.
-      sprintf (name, "Configure ATA%d", channel);
-      ata_menu[channel] = new bx_list_c (menu_root, strdup(name), "", 4);
+      sprintf (name, "ata%d", channel);
+      sprintf (descr, "Configure ATA%d", channel);
+      ata_menu[channel] = new bx_list_c (menu_root, strdup(name), strdup(descr), 4);
       ata_menu[channel]->add (ata[channel]);
       ata_menu[channel]->add (bx_options.atadevice[channel][0].Omenu);
       ata_menu[channel]->add (bx_options.atadevice[channel][1].Omenu);
