@@ -135,6 +135,7 @@ struct i387_t
 #ifdef __cplusplus
 
 #define clear_C1() { FPU_PARTIAL_STATUS &= ~FPU_SW_C1; }
+#define clear_C2() { FPU_PARTIAL_STATUS &= ~FPU_SW_C2; }
 
 #define SETCC(cc) do { 				\
   FPU_PARTIAL_STATUS &= ~(FPU_SW_CC); 		\

@@ -55,95 +55,6 @@ static const float128 float128_default_nan = { float128_default_nan_lo, float128
 #endif
 
 /*----------------------------------------------------------------------------
-| Returns the least-significant 64 fraction bits of the quadruple-precision
-| floating-point value `a'.
-*----------------------------------------------------------------------------*/
-
-BX_CPP_INLINE Bit64u extractFloat128Frac1(float128 a)
-{
-    return a.lo;
-}
-
-/*----------------------------------------------------------------------------
-| Returns the most-significant 48 fraction bits of the quadruple-precision
-| floating-point value `a'.
-*----------------------------------------------------------------------------*/
-
-BX_CPP_INLINE Bit64u extractFloat128Frac0(float128 a)
-{
-    return a.hi & BX_CONST64(0x0000FFFFFFFFFFFF);
-}
-
-/*----------------------------------------------------------------------------
-| Returns the exponent bits of the quadruple-precision floating-point value
-| `a'.
-*----------------------------------------------------------------------------*/
-
-BX_CPP_INLINE Bit32s extractFloat128Exp(float128 a)
-{
-    return (a.hi>>48) & 0x7FFF;
-}
-
-/*----------------------------------------------------------------------------
-| Returns the sign bit of the quadruple-precision floating-point value `a'.
-*----------------------------------------------------------------------------*/
-
-BX_CPP_INLINE int extractFloat128Sign(float128 a)
-{
-    return a.hi >> 63;
-}
-
-/*----------------------------------------------------------------------------
-| Returns 1 if the quadruple-precision floating-point value `a' is a NaN;
-| otherwise returns 0.
-*----------------------------------------------------------------------------*/
-
-BX_CPP_INLINE int float128_is_nan(float128 a)
-{
-    return (BX_CONST64(0xFFFE000000000000) <= (Bit64u) (a.hi<<1))
-        && (a.lo || (a.hi & BX_CONST64(0x0000FFFFFFFFFFFF)));
-}
-
-/*----------------------------------------------------------------------------
-| Returns 1 if the quadruple-precision floating-point value `a' is a
-| signaling NaN; otherwise returns 0.
-*----------------------------------------------------------------------------*/
-
-BX_CPP_INLINE int float128_is_signaling_nan(float128 a)
-{
-    return (((a.hi>>47) & 0xFFFF) == 0xFFFE)
-        && (a.lo || (a.hi & BX_CONST64(0x00007FFFFFFFFFFF)));
-}
-
-/*----------------------------------------------------------------------------
-| Returns the result of converting the quadruple-precision floating-point NaN
-| `a' to the canonical NaN format.  If `a' is a signaling NaN, the invalid
-| exception is raised.
-*----------------------------------------------------------------------------*/
-
-BX_CPP_INLINE commonNaNT float128ToCommonNaN(float128 a, float_status_t &status)
-{
-    commonNaNT z;
-    if (float128_is_signaling_nan(a)) float_raise(status, float_flag_invalid);
-    z.sign = a.hi>>63;
-    shortShift128Left(a.hi, a.lo, 16, &z.hi, &z.lo);
-    return z;
-}
-
-/*----------------------------------------------------------------------------
-| Returns the result of converting the canonical NaN `a' to the quadruple-
-| precision floating-point format.
-*----------------------------------------------------------------------------*/
-
-BX_CPP_INLINE float128 commonNaNToFloat128(commonNaNT a)
-{
-    float128 z;
-    shift128Right(a.hi, a.lo, 16, &z.hi, &z.lo);
-    z.hi |= (((Bit64u) a.sign)<<63) | BX_CONST64(0x7FFF800000000000);
-    return z;
-}
-
-/*----------------------------------------------------------------------------
 | Takes two quadruple-precision floating-point values `a' and `b', one of
 | which is a NaN, and returns the appropriate NaN result.  If either `a' or
 | `b' is a signaling NaN, the invalid exception is raised.
@@ -173,6 +84,34 @@ static float128 propagateFloat128NaN(float128 a, float128 b, float_status_t &sta
     else {
         return b;
     }
+}
+
+/*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point NaN
+| `a' to the canonical NaN format.  If `a' is a signaling NaN, the invalid
+| exception is raised.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE commonNaNT float128ToCommonNaN(float128 a, float_status_t &status)
+{
+    commonNaNT z;
+    if (float128_is_signaling_nan(a)) float_raise(status, float_flag_invalid);
+    z.sign = a.hi>>63;
+    shortShift128Left(a.hi, a.lo, 16, &z.hi, &z.lo);
+    return z;
+}
+
+/*----------------------------------------------------------------------------
+| Returns the result of converting the canonical NaN `a' to the quadruple-
+| precision floating-point format.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE float128 commonNaNToFloat128(commonNaNT a)
+{
+    float128 z;
+    shift128Right(a.hi, a.lo, 16, &z.hi, &z.lo);
+    z.hi |= (((Bit64u) a.sign)<<63) | BX_CONST64(0x7FFF800000000000);
+    return z;
 }
 
 /*----------------------------------------------------------------------------
@@ -213,27 +152,6 @@ static void
         shortShift128Left(aSig0, aSig1, shiftCount, zSig0Ptr, zSig1Ptr);
         *zExpPtr = 1 - shiftCount;
     }
-}
-
-/*----------------------------------------------------------------------------
-| Packs the sign `zSign', the exponent `zExp', and the significand formed
-| by the concatenation of `zSig0' and `zSig1' into a quadruple-precision
-| floating-point value, returning the result.  After being shifted into the
-| proper positions, the three fields `zSign', `zExp', and `zSig0' are simply
-| added together to form the most significant 32 bits of the result.  This
-| means that any integer portion of `zSig0' will be added into the exponent.
-| Since a properly normalized significand will have an integer portion equal
-| to 1, the `zExp' input should be 1 less than the desired result exponent
-| whenever `zSig0' and `zSig1' concatenated form a complete, normalized
-| significand.
-*----------------------------------------------------------------------------*/
-
-BX_CPP_INLINE float128 packFloat128(int zSign, Bit32s zExp, Bit64u zSig0, Bit64u zSig1)
-{
-    float128 z;
-    z.lo = zSig1;
-    z.hi = (((Bit64u) zSign)<<63) + (((Bit64u) zExp)<<48) + zSig0;
-    return z;
 }
 
 /*----------------------------------------------------------------------------

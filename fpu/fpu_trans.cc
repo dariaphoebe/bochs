@@ -33,10 +33,6 @@
 
 extern "C"
 {
-  void fsin   (FPU_REG *st0_ptr, Bit8u st0_tag);
-  void fcos   (FPU_REG *st0_ptr, Bit8u st0_tag);
-  void fsincos(FPU_REG *st0_ptr, Bit8u st0_tag);
-  void fptan  (FPU_REG *st0_ptr, Bit8u st0_tag);
   void fpatan (FPU_REG *st0_ptr, Bit8u st0_tag);
   void fyl2xp1(FPU_REG *st0_ptr, Bit8u st0_tag);
   void f2xm1  (FPU_REG *st0_ptr, Bit8u st0_tag);
@@ -44,70 +40,6 @@ extern "C"
 }
 
 extern void FPU_initalize_i387(struct i387_t *the_i387);
-
-void BX_CPU_C::FSIN(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  clear_C1();
-
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
-
-  fsin(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
-#else
-  BX_INFO(("FSIN: required FPU, configure --enable-fpu"));
-#endif
-}
-
-void BX_CPU_C::FCOS(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  clear_C1();
-
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
-
-  fcos(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
-#else
-  BX_INFO(("FCOS: required FPU, configure --enable-fpu"));
-#endif
-}
-
-void BX_CPU_C::FSINCOS(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  clear_C1();
-
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
-
-  fsincos(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
-#else
-  BX_INFO(("FSINCOS: required FPU, configure --enable-fpu"));
-#endif
-}
-
-void BX_CPU_C::FPTAN(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  clear_C1();
-
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
-
-  fptan(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
-#else
-  BX_INFO(("FPTAN: required FPU, configure --enable-fpu"));
-#endif
-}
 
 void BX_CPU_C::FPATAN(bxInstruction_c *i)
 {

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_system.h                                                             |
- |  $Id: fpu_system.h,v 1.21.8.1 2004/04/09 12:29:49 sshwarts Exp $
+ |  $Id: fpu_system.h,v 1.21.8.2 2004/05/23 18:33:48 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1994,1997                                              |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -58,13 +58,5 @@ extern struct i387_t *current_i387;
 #define FPU_tos                 (i387.tos)
 
 #define FPU_register_base       ((u_char *) FPU_registers)
-
-/*
- * Change a pointer to an int, with type conversions that make it legal.
- * First make it a void pointer, then convert to an integer of the same
- * size as the pointer.  Otherwise, on machines with 64-bit pointers, 
- * compilers complain when you typecast a 64-bit pointer into a 32-bit integer.
- */
-#define PTR2INT(x)   ((bx_ptr_equiv_t)(void *)(x))
 
 #endif

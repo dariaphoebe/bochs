@@ -73,14 +73,6 @@ extern void poly_atan(FPU_REG *st0_ptr, u_char st0_tag, FPU_REG *st1_ptr,
 extern void poly_l2(FPU_REG *st0_ptr, FPU_REG *st1_ptr, u_char st1_sign);
 extern int poly_l2p1(u_char s0, u_char s1, FPU_REG *r0, FPU_REG *r1,
 		     FPU_REG *d);
-/* poly_sin.c */
-extern void poly_sine(FPU_REG *st0_ptr);
-extern void poly_cos(FPU_REG *st0_ptr);
-/* poly_tan.c */
-extern void poly_tan(FPU_REG *st0_ptr, int flag);
-/* reg_add_sub.c */
-extern int FPU_add(FPU_REG const *b, u_char tagb, int destrnr, u16 control_w);
-extern int FPU_sub(int flags, FPU_REG *rm, u16 control_w);
 /* reg_mul.c */
 extern int FPU_mul(FPU_REG const *b, u_char tagb, int deststnr, int control_w);
 /* reg_convert.c */

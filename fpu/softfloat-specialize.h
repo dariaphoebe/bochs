@@ -27,8 +27,8 @@ the work is derivative, and (2) the source code includes prominent notice with
 these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
-#ifndef SOFTFLOAT_SPECIALIZE_H
-#define SOFTFLOAT_SPECIALIZE_H
+#ifndef _SOFTFLOAT_SPECIALIZE_H_
+#define _SOFTFLOAT_SPECIALIZE_H_
 
 /*============================================================================
  * Adapted for Bochs (x86 achitecture simulator) by
@@ -517,6 +517,94 @@ BX_CPP_INLINE floatx80 propagateFloatx80NaN(floatx80 a, floatx80 b, float_status
 static const floatx80 floatx80_default_nan = 
     packFloatx80(0, floatx80_default_nan_exp, floatx80_default_nan_fraction);
 
-#endif	/* FLOATX80 */
+#endif /* FLOATX80 */
+
+#ifdef FLOAT128
+
+#define float128_exp extractFloat128Exp
+
+/*----------------------------------------------------------------------------
+| Returns the least-significant 64 fraction bits of the quadruple-precision
+| floating-point value `a'.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE Bit64u extractFloat128Frac1(float128 a)
+{
+    return a.lo;
+}
+
+/*----------------------------------------------------------------------------
+| Returns the most-significant 48 fraction bits of the quadruple-precision
+| floating-point value `a'.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE Bit64u extractFloat128Frac0(float128 a)
+{
+    return a.hi & BX_CONST64(0x0000FFFFFFFFFFFF);
+}
+
+/*----------------------------------------------------------------------------
+| Returns the exponent bits of the quadruple-precision floating-point value
+| `a'.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE Bit32s extractFloat128Exp(float128 a)
+{
+    return (a.hi>>48) & 0x7FFF;
+}
+
+/*----------------------------------------------------------------------------
+| Returns the sign bit of the quadruple-precision floating-point value `a'.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE int extractFloat128Sign(float128 a)
+{
+    return a.hi >> 63;
+}
+
+/*----------------------------------------------------------------------------
+| Packs the sign `zSign', the exponent `zExp', and the significand formed
+| by the concatenation of `zSig0' and `zSig1' into a quadruple-precision
+| floating-point value, returning the result.  After being shifted into the
+| proper positions, the three fields `zSign', `zExp', and `zSig0' are simply
+| added together to form the most significant 32 bits of the result.  This
+| means that any integer portion of `zSig0' will be added into the exponent.
+| Since a properly normalized significand will have an integer portion equal
+| to 1, the `zExp' input should be 1 less than the desired result exponent
+| whenever `zSig0' and `zSig1' concatenated form a complete, normalized
+| significand.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE float128 packFloat128(int zSign, Bit32s zExp, Bit64u zSig0, Bit64u zSig1)
+{
+    float128 z;
+    z.lo = zSig1;
+    z.hi = (((Bit64u) zSign)<<63) + (((Bit64u) zExp)<<48) + zSig0;
+    return z;
+}
+
+/*----------------------------------------------------------------------------
+| Returns 1 if the quadruple-precision floating-point value `a' is a NaN;
+| otherwise returns 0.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE int float128_is_nan(float128 a)
+{
+    return (BX_CONST64(0xFFFE000000000000) <= (Bit64u) (a.hi<<1))
+        && (a.lo || (a.hi & BX_CONST64(0x0000FFFFFFFFFFFF)));
+}
+
+/*----------------------------------------------------------------------------
+| Returns 1 if the quadruple-precision floating-point value `a' is a
+| signaling NaN; otherwise returns 0.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE int float128_is_signaling_nan(float128 a)
+{
+    return (((a.hi>>47) & 0xFFFF) == 0xFFFE)
+        && (a.lo || (a.hi & BX_CONST64(0x00007FFFFFFFFFFF)));
+}
+
+#endif /* FLOAT128 */
 
 #endif
