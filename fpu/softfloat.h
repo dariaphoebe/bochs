@@ -58,14 +58,6 @@ typedef enum {
 } float_class_t;
 
 /*----------------------------------------------------------------------------
-| Software IEC/IEEE floating-point underflow tininess-detection mode.
-*----------------------------------------------------------------------------*/
-enum {
-    float_tininess_after_rounding  = 0,
-    float_tininess_before_rounding = 1
-};
-
-/*----------------------------------------------------------------------------
 | Software IEC/IEEE floating-point NaN operands handling mode.
 *----------------------------------------------------------------------------*/
 enum float_nan_handling_mode_t {
@@ -112,8 +104,8 @@ struct float_status_t
 {
 #ifdef FLOATX80
     int float_rounding_precision;	/* floatx80 only */
+    int float_precision_lost_up;	/* floatx80 only */
 #endif
-    int float_detect_tininess;
     int float_rounding_mode;
     int float_exception_flags;
     int float_nan_handling_mode;

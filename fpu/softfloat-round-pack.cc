@@ -204,10 +204,7 @@ float32 roundAndPackFloat32(int zSign, Bit16s zExp, Bit32u zSig, float_status_t 
             return packFloat32(zSign, 0xFF, 0) - (roundIncrement == 0);
         }
         if (zExp < 0) {
-            int isTiny =
-                   (status.float_detect_tininess == float_tininess_before_rounding)
-                || (zExp < -1)
-                || (zSig + roundIncrement < 0x80000000);
+            int isTiny = (zExp < -1) || (zSig + roundIncrement < 0x80000000);
             shift32RightJamming(zSig, -zExp, &zSig);
             zExp = 0;
             roundBits = zSig & roundMask;
@@ -307,10 +304,7 @@ float64 roundAndPackFloat64(int zSign, Bit16s zExp, Bit64u zSig, float_status_t 
             return packFloat64(zSign, 0x7FF, 0) - (roundIncrement == 0);
         }
         if (zExp < 0) {
-            int isTiny =
-                   (status.float_detect_tininess == float_tininess_before_rounding)
-                || (zExp < -1)
-                || (zSig + roundIncrement < BX_CONST64(0x8000000000000000));
+            int isTiny = (zExp < -1) || (zSig + roundIncrement < BX_CONST64(0x8000000000000000));
             shift64RightJamming(zSig, -zExp, &zSig);
             zExp = 0;
             roundBits = zSig & 0x3FF;
@@ -424,10 +418,7 @@ floatx80 roundAndPackFloatx80(int roundingPrecision,
             goto overflow;
         }
         if (zExp <= 0) {
-            int isTiny =
-                   (status.float_detect_tininess == float_tininess_before_rounding)
-                || (zExp < 0)
-                || (zSig0 <= zSig0 + roundIncrement);
+            int isTiny = (zExp < 0) || (zSig0 <= zSig0 + roundIncrement);
             shift64RightJamming(zSig0, 1 - zExp, &zSig0);
             zExp = 0;
             roundBits = zSig0 & roundMask;
@@ -486,10 +477,7 @@ floatx80 roundAndPackFloatx80(int roundingPrecision,
             return packFloatx80(zSign, 0x7FFF, BX_CONST64(0x8000000000000000));
         }
         if (zExp <= 0) {
-            int isTiny =
-                   (status.float_detect_tininess == float_tininess_before_rounding)
-                || (zExp < 0)
-                || ! increment
+            int isTiny = (zExp < 0) || (! increment)
                 || (zSig0 < BX_CONST64(0xFFFFFFFFFFFFFFFF));
             shift64ExtraRightJamming(zSig0, zSig1, 1 - zExp, &zSig0, &zSig1);
             zExp = 0;

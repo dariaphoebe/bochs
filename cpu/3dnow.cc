@@ -27,11 +27,11 @@
 static void prepare_softfloat_status_word
 	(softfloat_status_word_t &status, int rounding_mode)
 {
-  status.float_detect_tininess = float_tininess_after_rounding;
   status.float_exception_flags = 0; // clear exceptions before execution
   status.float_nan_handling_mode = float_first_operand_nan;
   status.float_rounding_mode = rounding_mode;
   status.flush_underflow_to_zero = 0;
+  status.float_precision_lost_up = 0;
 }
 
 void BX_CPU_C::PFPNACC_PqQq(bxInstruction_c *i)

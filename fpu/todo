@@ -10,6 +10,71 @@ TODO:
 
 4. Set SW_C1 according to PRECISION_UP or PRECISION_DOWN conditions
 
-5. Mode float_tininess_before_rounding is deprecated, remove from 
-   softfloat code
+FSINCOS algorithm:
+-----------------
 
+enum function
+{
+	SIN = 1, 
+	COS,
+	SINCOS
+};
+
+clear_C1();
+clear_C2();
+
+// sin(-x) = -sin(x) s.t. the could consider only positive x
+// cos( x) =  cos(x) s.t. the could consider only positive x
+
+x = abs(x);
+
+if (x == 0.0)
+{
+	sin = 0.0;
+	cos = 1.0
+	return;
+}
+
+//				 	-68
+// check x which are too small (|x| < 2   )
+if (x < pow(2.0, -68.0))
+{
+	// FSIN could be approximated by x   for small x
+	// FCOS could be approximated by 1.0 for small x
+	set_precision_bit();
+	sin = x;
+	cos = 1.0;
+	return;
+}
+
+if (x >= pow(2.0, +63.0))
+{
+    // set the C2 bit (reduction incomplete)
+    set_C2_bit ();
+    return;
+}
+
+//
+// evaluate the remainder of x by PI/2: |x| = quotient*PI/2 + r
+// 	r = ieee754_remainder (y, PI/2);
+// the remainder the got in range [-PI/4,PI/4)
+//
+
+if (x > threshold)
+{
+	//
+	// using the formulas:
+	// ------------------
+	// sin(a+b) = sin(a)*cos(b) + sin(b)*cos(a)
+	// cos(a+b) = sin(a)*sin(b) + cos(a)*cos(b)
+	//
+	// x = a + b
+	//
+	// sin(a), cos(a) could be received using precalculated tables
+	// sin(b), cos(b) calculated using low-degree polynom approximation
+	//
+}
+else
+{
+	// low degree polynom approximation
+}

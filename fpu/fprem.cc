@@ -106,7 +106,7 @@ static floatx80 do_fprem(floatx80 a, floatx80 b, Bit64u &q, int rounding_mode, f
 
         if (expDiff < 0) {
             if (expDiff < -1)
-                return (a.fraction & BX_CONST64(0x8000000000000000)) ? 
+               return (a.fraction & BX_CONST64(0x8000000000000000)) ? 
                     packFloatx80(aSign, aExp, aSig0) : a;
             shift128Right(aSig0, 0, 1, &aSig0, &aSig1);
             expDiff = 0;
@@ -116,9 +116,10 @@ static floatx80 do_fprem(floatx80 a, floatx80 b, Bit64u &q, int rounding_mode, f
             q = remainder_kernel(aSig0, bSig, expDiff, &aSig0, &aSig1);
         }
         else {
-            q = (bSig <= aSig0);
-            if (q) 
-              aSig0 -= bSig;
+            if (bSig <= aSig0) {
+               aSig0 -= bSig;
+               q = 1;
+            }
         }
 
         if (rounding_mode == float_round_nearest_even)
@@ -128,14 +129,14 @@ static floatx80 do_fprem(floatx80 a, floatx80 b, Bit64u &q, int rounding_mode, f
 
             if (! lt128(aSig0, aSig1, term0, term1))
             {
-                int lt = lt128(term0, term1, aSig0, aSig1);
-                int eq = eq128(aSig0, aSig1, term0, term1);
+               int lt = lt128(term0, term1, aSig0, aSig1);
+               int eq = eq128(aSig0, aSig1, term0, term1);
                 
-		if ((eq && (q & 1)) || lt) {
-		    aSign = !aSign;
-		    ++q;
-		}
-		if (lt) sub128(bSig, 0, aSig0, aSig1, &aSig0, &aSig1);
+               if ((eq && (q & 1)) || lt) {
+                  aSign = !aSign;
+                 ++q;
+               }
+               if (lt) sub128(bSig, 0, aSig0, aSig1, &aSig0, &aSig1);
             }
         }
     }
