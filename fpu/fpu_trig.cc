@@ -24,8 +24,6 @@
 
 #define FLOAT128
 
-//#include <iostream.h>
-
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
@@ -34,9 +32,28 @@
 #include "softfloatx80.h"
 #endif
 
+/// !!!!!
+/*
+
+#include <iostream.h>
+
+static void print(const char *s, const floatx80 &r)
+{
+        long double *a = (long double *)(&r);
+	printf("%s: %04lx.%08lx%08lx -> ", s, (Bit32u)r.exp, (Bit32u)(r.fraction >> 32), (Bit32u)(r.fraction & 0xFFFFFFFF));
+	cout << *a << endl;
+}
+*/
+/// !!!!!
+
 #define EXP_BIAS 0x3FFF
 
-extern floatx80 trig_arg_reduction(floatx80 a, Bit64u &q, float_status_t &status);
+extern void trig_arg_reduction(floatx80 &a, Bit64u &q, float_status_t &status);
+
+BX_CPP_INLINE int is_pseudo_denormal(floatx80 a)
+{
+   return (floatx80_exp(a) == 0) && (floatx80_fraction(a) != 0);
+}
 
 #if BX_SUPPORT_FPU
 static const floatx80 floatx80_one = packFloatx80(0, 0x3fff, BX_CONST64(0x8000000000000000));
@@ -167,16 +184,15 @@ void BX_CPU_C::FSIN(bxInstruction_c *i)
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   Bit64u quotient;
+  floatx80 y = BX_READ_FPU_REG(0);
 
-  floatx80 x = BX_READ_FPU_REG(0);
-  if (floatx80_exp(x) >= EXP_BIAS + 63)
+  /* reduce trigonometric function argument */
+  trig_arg_reduction(y, quotient, status);
+  if (quotient == -1)
   {
       FPU_PARTIAL_STATUS |= FPU_SW_C2;
       return;
   }
-
-  /* reduce trigonometric function argument */
-  floatx80 y = trig_arg_reduction(x, quotient, status);
 
   clear_C2();
 
@@ -186,6 +202,11 @@ void BX_CPU_C::FSIN(bxInstruction_c *i)
           BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
 
       return;
+  }
+
+  if (is_pseudo_denormal(y))
+  {
+      float_raise(status, float_flag_underflow);
   }
 
   if (handle_small_argument(y, quotient))
@@ -225,18 +246,17 @@ void BX_CPU_C::FCOS(bxInstruction_c *i)
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   Bit64u quotient;
+  floatx80 y = BX_READ_FPU_REG(0);
 
-  floatx80 x = BX_READ_FPU_REG(0);
-  if (floatx80_exp(x) >= EXP_BIAS + 63)
+  /* reduce trigonometric function argument */
+  trig_arg_reduction(y, quotient, status);
+  if (quotient == -1)
   {
       FPU_PARTIAL_STATUS |= FPU_SW_C2;
       return;
   }
 
-  /* reduce trigonometric function argument */
-  floatx80 y = trig_arg_reduction(x, quotient, status);
   ++ quotient;
-
   clear_C2();
 
   if (floatx80_is_nan(y))
@@ -293,16 +313,15 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   Bit64u quotient;
+  floatx80 y = BX_READ_FPU_REG(0);
 
-  floatx80 x = BX_READ_FPU_REG(0);
-  if (floatx80_exp(x) >= EXP_BIAS + 63)
+  /* reduce trigonometric function argument */
+  trig_arg_reduction(y, quotient, status);
+  if (quotient == -1)
   {
       FPU_PARTIAL_STATUS |= FPU_SW_C2;
       return;
   }
-
-  /* reduce trigonometric function argument */
-  floatx80 y = trig_arg_reduction(x, quotient, status);
 
   clear_C2();
 
@@ -316,6 +335,11 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
       }
 
       return;
+  }
+
+  if (is_pseudo_denormal(y))
+  {
+      float_raise(status, float_flag_underflow);
   }
 
   floatx80 siny = y, cosy = y;
@@ -369,16 +393,15 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
 	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   Bit64u quotient;
+  floatx80 y = BX_READ_FPU_REG(0);
 
-  floatx80 x = BX_READ_FPU_REG(0);
-  if (floatx80_exp(x) >= EXP_BIAS + 63)
+  /* reduce trigonometric function argument */
+  trig_arg_reduction(y, quotient, status);
+  if (quotient == -1)
   {
       FPU_PARTIAL_STATUS |= FPU_SW_C2;
       return;
   }
-
-  /* reduce trigonometric function argument */
-  floatx80 y = trig_arg_reduction(x, quotient, status);
 
   clear_C2();
 
@@ -392,6 +415,11 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
       }
 
       return;
+  }
+
+  if (is_pseudo_denormal(y))
+  {
+      float_raise(status, float_flag_underflow);
   }
 
   if (handle_small_argument(y, quotient))

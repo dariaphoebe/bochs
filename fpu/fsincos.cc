@@ -50,33 +50,38 @@ static Bit64u argument_reduction_kernel(Bit64u aSig0, int Exp, Bit64u *zSig0, Bi
     return q;
 }
 
-floatx80 trig_arg_reduction(floatx80 a, Bit64u &q, float_status_t &status)
+void trig_arg_reduction(floatx80 &a, Bit64u &q, float_status_t &status)
 {
     Bit64u aSig0, aSig1, term0, term1;
-    Bit32s aExp, expDiff, zExp;
-    int aSign; 
+    Bit32s aExp, expDiff;
+    int Sign; 
     q = 0;
 
     // handle unsupported extended double-precision floating encodings
-    if (floatx80_is_unsupported(a))
+    if (floatx80_is_unsupported(a)) 
     {
-        float_raise(status, float_flag_invalid);
-        return floatx80_default_nan;
+        goto invalid;
     }
 
     aSig0 = extractFloatx80Frac(a);
     aExp = extractFloatx80Exp(a);
-    aSign = extractFloatx80Sign(a);
+    Sign = extractFloatx80Sign(a);
 
     if (aExp == 0x7FFF) {
-        if ((Bit64u) (aSig0<<1)) 
-            return propagateFloatx80NaN(a, status);
+        if ((Bit64u) (aSig0<<1)) {
+            a = propagateFloatx80NaN(a, status);
+            return;
+        }
 
+    invalid:
         float_raise(status, float_flag_invalid);
-        return floatx80_default_nan;
+        a = floatx80_default_nan;
+        return;
     }
     if (aExp == 0) {
-        if ((Bit64u) (aSig0<<1) == 0) return a;
+        if ((Bit64u) (aSig0<<1) == 0) 
+            return;
+
         float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(aSig0, &aExp, &aSig0);
     }
@@ -86,43 +91,42 @@ floatx80 trig_arg_reduction(floatx80 a, Bit64u &q, float_status_t &status)
     if (expDiff >= 63) 
     {
         q = (Bit64u) -1;
+        return;
+    }
+
+    if (expDiff < 0) {
+        if (expDiff < -1)
+        {
+           if (a.fraction & BX_CONST64(0x8000000000000000))
+               a = packFloatx80(Sign, aExp, aSig0);
+           return;
+        }
+        shift128Right(aSig0, 0, 1, &aSig0, &aSig1);
+        expDiff = 0;
+    }
+
+    if (expDiff > 0) {
+        q = argument_reduction_kernel(aSig0, expDiff, &aSig0, &aSig1);
     }
     else {
-        zExp = 0x3FFF;
-
-        if (expDiff < 0) {
-            if (expDiff < -1)
-            {
-               return (a.fraction & BX_CONST64(0x8000000000000000)) ? 
-                    packFloatx80(aSign, aExp, aSig0) : a;
-            }
-            shift128Right(aSig0, 0, 1, &aSig0, &aSig1);
-            expDiff = 0;
-        }
-
-        if (expDiff > 0) {
-            q = argument_reduction_kernel(aSig0, expDiff, &aSig0, &aSig1);
-        }
-        else {
-            if (Hi <= aSig0) {
-               aSig0 -= Hi;
-               q = 1;
-            }
-        }
-
-        shift128Right(Hi, Lo, 1, &term0, &term1);
-        if (! lt128(aSig0, aSig1, term0, term1))
-        {
-            int lt = lt128(term0, term1, aSig0, aSig1);
-            int eq = eq128(aSig0, aSig1, term0, term1);
-                
-            if ((eq && (q & 1)) || lt) {
-               aSign = !aSign;
-               ++q;
-            }
-            if (lt) sub128(Hi, Lo, aSig0, aSig1, &aSig0, &aSig1);
+        if (Hi <= aSig0) {
+            aSig0 -= Hi;
+            q = 1;
         }
     }
 
-    return normalizeRoundAndPackFloatx80(80, aSign, zExp, aSig0, aSig1, status);
+    shift128Right(Hi, Lo, 1, &term0, &term1);
+    if (! lt128(aSig0, aSig1, term0, term1))
+    {
+        int lt = lt128(term0, term1, aSig0, aSig1);
+        int eq = eq128(aSig0, aSig1, term0, term1);
+              
+        if ((eq && (q & 1)) || lt) {
+            Sign = !Sign;
+            ++q;
+        }
+        if (lt) sub128(Hi, Lo, aSig0, aSig1, &aSig0, &aSig1);
+    }
+
+    a = normalizeRoundAndPackFloatx80(80, Sign, 0x3FFF, aSig0, aSig1, status);
 }
