@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
 //
-//   Copyright (c) 2002 Stanislav Shwartsman
+//   Copyright (c) 2003 Stanislav Shwartsman
 //          Written by Stanislav Shwartsman <gate@fidonet.org.il>
 //
 //  This library is free software; you can redistribute it and/or
@@ -22,11 +22,11 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-#include "softfloat.h"
-#include "softfloat-specialize.h"
-
 
 #if BX_SUPPORT_SSE
+
+#include "softfloat.h"
+#include "softfloat-specialize.h"
 
 BX_CPP_INLINE Float32 convert_to_QNaN(Float32 op)
 {

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.159 2004/02/11 23:47:55 cbothamy Exp $
+// $Id: cpu.h,v 1.159.2.1 2004/02/13 21:25:09 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1175,6 +1175,7 @@ class BX_MEM_C;
 
 #if BX_SUPPORT_FPU || BX_SUPPORT_MMX
 #include "cpu/i387.h"
+#include "cpu/softfloat.h"
 #endif
 
 #include "cpu/xmm.h"
@@ -1293,7 +1294,7 @@ union {
 #endif
 
 #if BX_SUPPORT_FPU || BX_SUPPORT_MMX
-  i387_t the_i387;
+  i387_structure_t the_i387;
 #endif
 
 #if BX_SUPPORT_SSE
@@ -1913,7 +1914,7 @@ union {
   // add
   BX_SMF void FADD_ST0_STj(bxInstruction_c *);
   BX_SMF void FADD_STi_ST0(bxInstruction_c *);
-  BX_SMF void FADDP_STi_ST0(bxInstruction_c *);
+
   BX_SMF void FADD_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FADD_DOUBLE_REAL(bxInstruction_c *);
   BX_SMF void FIADD_WORD_INTEGER(bxInstruction_c *);
@@ -1922,7 +1923,7 @@ union {
   // mul
   BX_SMF void FMUL_ST0_STj(bxInstruction_c *);
   BX_SMF void FMUL_STi_ST0(bxInstruction_c *);
-  BX_SMF void FMULP_STi_ST0(bxInstruction_c *);
+
   BX_SMF void FMUL_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FMUL_DOUBLE_REAL(bxInstruction_c *);
   BX_SMF void FIMUL_WORD_INTEGER (bxInstruction_c *);
@@ -1933,8 +1934,6 @@ union {
   BX_SMF void FSUBR_ST0_STj(bxInstruction_c *);
   BX_SMF void FSUB_STi_ST0(bxInstruction_c *);
   BX_SMF void FSUBR_STi_ST0(bxInstruction_c *);
-  BX_SMF void FSUBP_STi_ST0(bxInstruction_c *);
-  BX_SMF void FSUBRP_STi_ST0(bxInstruction_c *);
 
   BX_SMF void FSUB_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FSUBR_SINGLE_REAL(bxInstruction_c *);
@@ -1950,8 +1949,6 @@ union {
   BX_SMF void FDIVR_ST0_STj(bxInstruction_c *);
   BX_SMF void FDIV_STi_ST0(bxInstruction_c *);
   BX_SMF void FDIVR_STi_ST0(bxInstruction_c *);
-  BX_SMF void FDIVP_STi_ST0(bxInstruction_c *);
-  BX_SMF void FDIVRP_STi_ST0(bxInstruction_c *);
 
   BX_SMF void FDIV_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FDIVR_SINGLE_REAL(bxInstruction_c *);
@@ -2087,6 +2084,10 @@ union {
   BX_SMF void prepareFPU(void);
   BX_SMF void FPU_check_pending_exceptions(void);
   BX_SMF void print_state_FPU(void);
+  BX_SMF void FPU_stack_underflow(int stnr, int pop_stack = 0);
+  BX_SMF void FPU_exception(int exception);
+  BX_SMF softfloat_status_word_t FPU_pre_exception_handling(void);
+  BX_SMF void FPU_post_exception_handling(const softfloat_status_word_t &status);
 #endif
 
 #if BX_SUPPORT_MMX || BX_SUPPORT_SSE
