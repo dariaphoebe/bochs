@@ -46,6 +46,7 @@ static Bit64u argument_reduction_kernel(Bit64u aSig0, int Exp, Bit64u *zSig0, Bi
         --q;
         add192(*zSig1, *zSig0, term2, 0, Hi, Lo, zSig1, zSig0, &term2);
     }
+    *zSig1 = term2;
     return q;
 }
 
