@@ -6,3 +6,4 @@ config.h
 config.log
 config.status
 install-x11-fonts
+bochsout.txt
