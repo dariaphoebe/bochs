@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: textconfig.cc,v 1.8.6.2 2003/03/20 07:01:51 bdenney Exp $
+// $Id: textconfig.cc,v 1.8.6.3 2003/03/24 01:21:40 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // This is code for a text-mode configuration interfac.  Note that this file
@@ -24,6 +24,29 @@ extern "C" {
 #include "textconfig.h"
 #include "siminterface.h"
 #include "extplugin.h"
+
+#define BXPN_ATA0_MASTER                 "ata.0.master"
+#define BXPN_ATA0_MASTER_BIOSDETECT      "ata.0.master.biosdetect"
+#define BXPN_ATA0_MASTER_MODEL           "ata.0.master.model"
+#define BXPN_ATA0_MASTER_TYPE            "ata.0.master.type"
+#define BXPN_DEBUGGER_LOG_FILENAME       "debugger.log_path"
+#define BXPN_FLOPPYA                     "floppy.0"
+#define BXPN_FLOPPYB                     "floppy.1"
+#define BXPN_IPS                         "time.ips"
+#define BXPN_KBD_PASTE_DELAY             "keyboard.paste_delay"
+#define BXPN_LOG_FILENAME                "log.path"
+#define BXPN_LOG_PREFIX                  "log.prefix"
+#define BXPN_MENU_DISK                   "menu.disk"
+#define BXPN_MENU_INTERFACE              "menu.interface"
+#define BXPN_MENU_MEMORY                 "menu.memory"
+#define BXPN_MENU_MISC                   "menu.misc"
+#define BXPN_MENU_SERIAL_PARALLEL        "menu.serial_parallel"
+#define BXPN_MOUSE_ENABLED               "keyboard.enable_mouse"
+#define BXPN_NE2K                        "ne2k"
+#define BXPN_SB16                        "sb16"
+#define BXPN_USER_SHORTCUT               "keyboard.user_shortcut"
+#define BXPN_VGA_UPDATE_INTERVAL         "time.vga_update_interval"
+
 
 #define CI_PATH_LENGTH 512
 
@@ -339,7 +362,7 @@ void build_runtime_options_prompt (char *format, char *buf, int size)
 {
   bx_floppy_options floppyop;
   bx_atadevice_options cdromop;
-/*  bx_param_num_c *ips = SIM->get_param_num (BXP_IPS); */
+/*  bx_param_num_c *ips = SIM->get_param_num (BXPN_IPS); */
   char buffer[6][128];
   for (int i=0; i<2; i++) {
     SIM->get_floppy_options (i, &floppyop);
@@ -367,10 +390,10 @@ void build_runtime_options_prompt (char *format, char *buf, int size)
   snprintf (buf, size, format, buffer[0], buffer[1], buffer[2], 
       buffer[3], buffer[4], buffer[5],
       /* ips->get (), */
-      SIM->get_param_num (BXP_VGA_UPDATE_INTERVAL)->get (), 
-      SIM->get_param_num (BXP_MOUSE_ENABLED)->get () ? "enabled" : "disabled",
-      SIM->get_param_num (BXP_KBD_PASTE_DELAY)->get (),
-      SIM->get_param_string (BXP_USER_SHORTCUT)->getptr ());
+      SIM->get_param_num (BXPN_VGA_UPDATE_INTERVAL)->get (), 
+      SIM->get_param_num (BXPN_MOUSE_ENABLED)->get () ? "enabled" : "disabled",
+      SIM->get_param_num (BXPN_KBD_PASTE_DELAY)->get (),
+      SIM->get_param_string (BXPN_USER_SHORTCUT)->getptr ());
 }
 
 int do_menu (bx_list_c *menu) {
@@ -397,17 +420,9 @@ int do_menu (const char *pname) {
   return do_menu ((bx_list_c *)menu);
 }
 
-int do_menu (bx_id id) {
-  bx_param_c *menu = SIM->get_param (id);
-  assert (menu != NULL);
-  assert (menu->is_type (BXT_LIST));
-  return do_menu ((bx_list_c *)menu);
-}
-
-
-void askparam (bx_id id)
+void askparam (const char *pname)
 {
-  bx_param_c *param = SIM->get_param (id);
+  bx_param_c *param = SIM->get_param (pname);
   param->text_ask (stdin, stderr);
 }
 
@@ -485,18 +500,18 @@ int bx_config_interface (int menu)
        if (ask_uint (prompt, 0, 12, 0, &choice, 10) < 0) return -1;
        switch (choice) {
 	 case 0: return 0;
-	 case 1: askparam (BXP_LOG_FILENAME); break;
-	 case 2: askparam (BXP_LOG_PREFIX); break;
-	 case 3: askparam (BXP_DEBUGGER_LOG_FILENAME); break;
+	 case 1: askparam (BXPN_LOG_FILENAME); break;
+	 case 2: askparam (BXPN_LOG_PREFIX); break;
+	 case 3: askparam (BXPN_DEBUGGER_LOG_FILENAME); break;
 	 case 4: bx_log_options (0); break;
 	 case 5: bx_log_options (1); break;
-	 case 6: do_menu (BXP_MENU_MEMORY); break;
-	 case 7: do_menu (BXP_MENU_INTERFACE); break;
-	 case 8: do_menu (BXP_MENU_DISK); break;
-	 case 9: do_menu (BXP_MENU_SERIAL_PARALLEL); break;
-	 case 10: do_menu (BXP_SB16); break;
-	 case 11: do_menu (BXP_NE2K); break;
-	 case 12: do_menu (BXP_MENU_MISC); break;
+	 case 6: do_menu (BXPN_MENU_MEMORY); break;
+	 case 7: do_menu (BXPN_MENU_INTERFACE); break;
+	 case 8: do_menu (BXPN_MENU_DISK); break;
+	 case 9: do_menu (BXPN_MENU_SERIAL_PARALLEL); break;
+	 case 10: do_menu (BXPN_SB16); break;
+	 case 11: do_menu (BXPN_NE2K); break;
+	 case 12: do_menu (BXPN_MENU_MISC); break;
 	 default: BAD_OPTION(menu, choice);
        }
      }
@@ -510,35 +525,44 @@ int bx_config_interface (int menu)
      switch (choice) {
        case 1: 
          SIM->get_floppy_options (0, &floppyop);
-	 if (floppyop.Odevtype->get () != BX_FLOPPY_NONE) do_menu (BXP_FLOPPYA);
+	 if (floppyop.Odevtype->get () != BX_FLOPPY_NONE) do_menu (BXPN_FLOPPYA);
 	 break;
        case 2:
          SIM->get_floppy_options (1, &floppyop);
-	 if (floppyop.Odevtype->get () != BX_FLOPPY_NONE) do_menu (BXP_FLOPPYB);
+	 if (floppyop.Odevtype->get () != BX_FLOPPY_NONE) do_menu (BXPN_FLOPPYB);
 	 break;
        case 3:
        case 4:
        case 5:
        case 6:
+#warning test changing cdrom path at runtime
 	 int device;
          if (SIM->get_cdrom_options (choice - 3, &cdromop, &device) && cdromop.Opresent->get ()) {
 	   // disable type selection
-	   SIM->get_param((bx_id)(BXP_ATA0_MASTER_TYPE + device))->set_enabled(0);
-	   SIM->get_param((bx_id)(BXP_ATA0_MASTER_MODEL + device))->set_enabled(0);
-	   SIM->get_param((bx_id)(BXP_ATA0_MASTER_BIOSDETECT + device))->set_enabled(0);
-           do_menu ((bx_id)(BXP_ATA0_MASTER + device));
+	   char devnum[8];
+	   sprintf (devnum, "%d", device);
+	   bx_list_c *ata = (bx_list_c *)SIM->get_param ("ata");
+	   assert (ata != NULL);
+	   bx_list_c *atanum = (bx_list_c *)ata->get_by_name (devnum);
+	   assert (atanum != NULL);
+	   atanum->get_by_name ("type")->set_enabled(0);
+	   atanum->get_by_name ("model")->set_enabled(0);
+	   atanum->get_by_name ("biosdetect")->set_enabled(0);
+	   bx_list_c *master = (bx_list_c *)atanum->get_by_name ("master");
+	   assert (master != NULL);
+           do_menu (master);
            }
 	 break;
        case 7: // not implemented yet because I would have to mess with
 	       // resetting timers and pits and everything on the fly.
-               // askparam (BXP_IPS);
+               // askparam (BXPN_IPS);
 	       break;
        case 8: bx_log_options (0); break;
        case 9: bx_log_options (1); break;
-       case 10: askparam (BXP_VGA_UPDATE_INTERVAL); break;
-       case 11: askparam (BXP_MOUSE_ENABLED); break;
-       case 12: askparam (BXP_KBD_PASTE_DELAY); break;
-       case 13: askparam (BXP_USER_SHORTCUT); break;
+       case 10: askparam (BXPN_VGA_UPDATE_INTERVAL); break;
+       case 11: askparam (BXPN_MOUSE_ENABLED); break;
+       case 12: askparam (BXPN_KBD_PASTE_DELAY); break;
+       case 13: askparam (BXPN_USER_SHORTCUT); break;
        case 14: NOT_IMPLEMENTED (choice); break;
        case 15: fprintf (stderr, "Continuing simulation\n"); return 0;
        case 16:
