@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.cc,v 1.76.2.1 2003/03/29 01:57:06 slechta Exp $
+// $Id: cpu.cc,v 1.76.2.2 2003/03/29 15:56:55 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -29,11 +29,6 @@
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
-
-#if BX_USE_CPU_SMF
-#define this (BX_CPU(0))
-#endif
-
 
 #if BX_SIM_ID == 0   // only need to define once
 // This array defines a look-up table for the even parity-ness
@@ -176,7 +171,7 @@ BX_CPU_C::cpu_loop(Bit32s max_instr_count)
 
 #if BX_EXTERNAL_DEBUGGER
   if (regs.debug_state != debug_run) {
-    bx_external_debugger(this);
+    bx_external_debugger(BX_CPU_THIS);
   }
 #endif
 
@@ -763,7 +758,7 @@ BX_CPU_C::prefetch(void)
   BX_CPU_THIS_PTR eipPageWindowSize = 4096; // FIXME:
   BX_CPU_THIS_PTR pAddrA20Page = pAddr & 0xfffff000;
   BX_CPU_THIS_PTR eipFetchPtr =
-      BX_CPU_THIS_PTR mem->getHostMemAddr(this, BX_CPU_THIS_PTR pAddrA20Page,
+      BX_CPU_THIS_PTR mem->getHostMemAddr(BX_CPU_THIS, BX_CPU_THIS_PTR pAddrA20Page,
                                           BX_READ);
 
   // Sanity checks
@@ -878,7 +873,7 @@ BX_CPU_C::ask (int level, const char *prefix, const char *fmt, va_list ap)
   vsprintf (buf1, fmt, ap);
   printf ("%s %s\n", prefix, buf1);
   trap_debugger(1);
-  //this->logfunctions::ask(level,prefix,fmt,ap);
+  //BX_CPU_THIS->logfunctions::ask(level,prefix,fmt,ap);
 }
 
   void
@@ -886,7 +881,7 @@ BX_CPU_C::trap_debugger (bx_bool callnow)
 {
   regs.debug_state = debug_step;
   if (callnow) {
-    bx_external_debugger(this);
+    bx_external_debugger(BX_CPU_THIS);
   }
 }
 
@@ -1070,7 +1065,7 @@ BX_CPU_C::dbg_take_dma(void)
 void
 BX_CPU_C::register_state(bx_param_c *list_p)
 {
-  BXRS_START(BX_CPU_C, this, "", list_p, 100);
+  BXRS_START(BX_CPU_C, BX_CPU_THIS, "", list_p, 100);
   {
     BXRS_ARRAY_ENUM(char, name, 64);
     
@@ -1342,6 +1337,7 @@ BX_CPU_C::register_state(bx_param_c *list_p)
 #endif
 
 
+#warning TESTME bbd: test compile in SMP mode to test apic.cc changes
 #if BX_SUPPORT_APIC
 #warning local_apic state registration not implemented
     // BJS TODO: implement state registration of bx_local_apic_c local_apic
@@ -1355,7 +1351,7 @@ BX_CPU_C::register_state(bx_param_c *list_p)
 void
 bx_cr0_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_cr0_t, this, "", list_p, 15);
+  BXRS_START(bx_cr0_t, BX_CPU_THIS, "", list_p, 15);
   {
     BXRS_NUM_D(Bit32u, val32, "32bit value of register");
     
@@ -1388,7 +1384,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
   {
 #   ifdef BX_BIG_ENDIAN
     {
-      BXRS_START(bx_gen_reg_t, this, "General register set", list_p, 5);
+      BXRS_START(bx_gen_reg_t, BX_CPU_THIS, "General register set", list_p, 5);
       {
         BXRS_UNION_START;
         {
@@ -1424,7 +1420,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
     }
 #   else // #ifdef BX_BIG_ENDIAN
     {
-      BXRS_START(bx_gen_reg_t, this, "General register set", list_p, 5);
+      BXRS_START(bx_gen_reg_t, BX_CPU_THIS, "General register set", list_p, 5);
       {
         BXRS_UNION_START;
         {
@@ -1464,7 +1460,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
   {
 #   ifdef BX_BIG_ENDIAN
     {
-      BXRS_START(bx_gen_reg_t, this, "General register set", list_p, 5);
+      BXRS_START(bx_gen_reg_t, BX_CPU_THIS, "General register set", list_p, 5);
       {
         BXRS_UNION_START;
         {
@@ -1497,7 +1493,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
     }
 #   else  // #ifdef BX_BIG_ENDIAN
     {
-      BXRS_START(bx_gen_reg_t, this, "General register set", list_p, 5);
+      BXRS_START(bx_gen_reg_t, BX_CPU_THIS, "General register set", list_p, 5);
       {
         BXRS_UNION_START;
         {
@@ -1539,7 +1535,7 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
 void
 bx_segment_reg_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_segment_reg_t, this, "", list_p, 25);
+  BXRS_START(bx_segment_reg_t, BX_CPU_THIS, "", list_p, 25);
   {
     BXRS_STRUCT_START(bx_selector_t, selector);
     {
@@ -1644,7 +1640,7 @@ bx_segment_reg_t::register_state(bx_param_c *list_p)
 void 
 bx_regs_msr_t::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_regs_msr_t, this, "", list_p, 10);
+  BXRS_START(bx_regs_msr_t, BX_CPU_THIS, "", list_p, 10);
   {
     BXRS_NUM(Bit64u, apicbase);
 #   if BX_SUPPORT_X86_64

@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: apic.cc,v 1.30 2003/01/22 21:43:34 cbothamy Exp $
+// $Id: apic.cc,v 1.30.4.1 2003/03/29 15:56:55 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
 #if BX_SUPPORT_APIC
 
-#define LOG_THIS this->
+#define LOG_THIS BX_CPU_THIS_PTR
 
 bx_generic_apic_c *apic_index[APIC_MAX_ID];
 
@@ -53,7 +53,7 @@ void bx_generic_apic_c::set_id (Bit8u newid) {
   // update apic_index
   if (id != APIC_UNKNOWN_ID) {
     BX_ASSERT (id < APIC_MAX_ID);
-    if (apic_index[id] != this)
+    if (apic_index[id] != BX_CPU_THIS)
       BX_PANIC(("inconsistent APIC id table"));
     apic_index[id] = NULL;
   }
@@ -61,7 +61,7 @@ void bx_generic_apic_c::set_id (Bit8u newid) {
   if (id != APIC_UNKNOWN_ID) {
     if (apic_index[id] != NULL)
       BX_PANIC(("duplicate APIC id assigned"));
-    apic_index[id] = this;
+    apic_index[id] = BX_CPU_THIS;
   }
 }
 
@@ -327,7 +327,7 @@ bx_local_apic_c::init ()
 
   // KPL
   // Register a non-active timer for use when the timer is started.
-  timer_handle = bx_pc_system.register_timer_ticks(this,
+  timer_handle = bx_pc_system.register_timer_ticks(BX_CPU_THIS,
             BX_CPU(0)->local_apic.periodic_smf, 0, 0, 0, "lapic");
 }
 

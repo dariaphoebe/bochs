@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: stack64.cc,v 1.11 2003/03/17 00:41:01 cbothamy Exp $
+// $Id: stack64.cc,v 1.11.2.1 2003/03/29 15:56:57 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -33,11 +33,6 @@
 #define LOG_THIS BX_CPU_THIS_PTR
 
 #if BX_SUPPORT_X86_64
-
-#if BX_USE_CPU_SMF
-#define this (BX_CPU(0))
-#endif
-
 
   void
 BX_CPU_C::POP_Eq(bxInstruction_c *i)

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: stack32.cc,v 1.17 2003/03/17 00:41:01 cbothamy Exp $
+// $Id: stack32.cc,v 1.17.2.1 2003/03/29 15:56:56 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -31,11 +31,6 @@
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
-
-#if BX_USE_CPU_SMF
-#define this (BX_CPU(0))
-#endif
-
 
 #if BX_SUPPORT_X86_64==0
 // Make life easier for merging 64&32-bit code.
