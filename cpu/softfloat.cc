@@ -488,7 +488,7 @@ float64 int32_to_float64(Bit32s a)
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-float32 Bit64s_to_float32(Bit64s a, float_status_t &status)
+float32 int64_to_float32(Bit64s a, float_status_t &status)
 {
     flag zSign;
     Bit64u absA;
@@ -520,7 +520,7 @@ float32 Bit64s_to_float32(Bit64s a, float_status_t &status)
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-float64 Bit64s_to_float64(Bit64s a, float_status_t &status)
+float64 int64_to_float64(Bit64s a, float_status_t &status)
 {
     flag zSign;
 

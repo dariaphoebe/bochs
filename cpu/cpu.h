@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.137.2.6 2003/05/02 12:34:50 sshwarts Exp $
+// $Id: cpu.h,v 1.137.2.7 2003/05/08 16:57:41 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -2074,11 +2074,11 @@ union {
 
 #if BX_SUPPORT_3DNOW
   BX_SMF void PFPNACC_PqQq(bxInstruction_c *i);
+  BX_SMF void PI2FW_PqQq(bxInstruction_c *i);
   BX_SMF void PI2FD_PqQq(bxInstruction_c *i);
   BX_SMF void PF2IW_PqQq(bxInstruction_c *i);
   BX_SMF void PF2ID_PqQq(bxInstruction_c *i);
   BX_SMF void PFNACC_PqQq(bxInstruction_c *i);
-  BX_SMF void PFPNACC_PqQq(bxInstruction_c *i);
   BX_SMF void PFCMPGE_PqQq(bxInstruction_c *i);
   BX_SMF void PFMIN_PqQq(bxInstruction_c *i);
   BX_SMF void PFRCP_PqQq(bxInstruction_c *i);

@@ -29,6 +29,11 @@ void BX_CPU_C::PFPNACC_PqQq(bxInstruction_c *i)
   BX_PANIC(("PFPNACC_PqQq: 3DNow! instruction still not implemented"));
 }
 
+void BX_CPU_C::PI2FW_PqQq(bxInstruction_c *i)
+{
+  BX_PANIC(("PI2FW_PqQq: 3DNow! instruction still not implemented"));
+}
+
 void BX_CPU_C::PI2FD_PqQq(bxInstruction_c *i)
 {
   BX_PANIC(("PI2FD_PqQq: 3DNow! instruction still not implemented"));
@@ -47,11 +52,6 @@ void BX_CPU_C::PF2ID_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PFNACC_PqQq(bxInstruction_c *i)
 {
   BX_PANIC(("PFNACC_PqQq: 3DNow! instruction still not implemented"));
-}
-
-void BX_CPU_C::PFPNACC_PqQq(bxInstruction_c *i)
-{
-  BX_PANIC(("PFPNACC_PqQq: 3DNow! instruction still not implemented"));
 }
 
 void BX_CPU_C::PFCMPGE_PqQq(bxInstruction_c *i)
