@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// $Id: pit_wrap.cc,v 1.48.2.1 2003/03/20 04:52:53 slechta Exp $
+// $Id: pit_wrap.cc,v 1.48.2.2 2003/03/20 05:56:26 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -249,7 +249,7 @@ bx_pit_c::init( void )
 
 
 void 
-bx_pit_c::register_state(char *name, char *desc, bx_list_c *parent_p)
+bx_pit_c::register_state(char *name, char *desc, bx_param_c *parent_p)
 {
   BX_REGISTER_LIST(pit_list_p, name, desc, parent_p, 15);
   {

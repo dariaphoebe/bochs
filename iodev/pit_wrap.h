@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit_wrap.h,v 1.16.6.1 2003/03/20 04:52:53 slechta Exp $
+// $Id: pit_wrap.h,v 1.16.6.2 2003/03/20 05:56:26 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -50,7 +50,7 @@ public:
   bx_pit_c( void );
   ~bx_pit_c( void );
   BX_PIT_SMF int init( void );
-  BX_PIT_SMF void register_state(char *name, char *desc, bx_list_c *parent_p);
+  BX_PIT_SMF void register_state(char *name, char *desc, bx_param_c *parent_p);
   BX_PIT_SMF void reset( unsigned type);
   BX_PIT_SMF bx_bool periodic( Bit32u   usec_delta );
 

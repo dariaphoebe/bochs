@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.cc,v 1.21.2.1 2003/03/20 04:52:53 slechta Exp $
+// $Id: pit82c54.cc,v 1.21.2.2 2003/03/20 05:56:26 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -179,7 +179,7 @@ pit_82C54::decrement (counter_type & thisctr) {
   }
 
 void
-pit_82C54::register_state(char *name, char *desc, bx_list_c *parent_p)
+pit_82C54::register_state(char *name, char *desc, bx_param_c *parent_p)
 {
   BX_REGISTER_LIST(counter_list_p, name, desc, parent_p, 15);  
   BX_REGISTER_ARRAY(array_p, i, iname, "counter", "", counter_list_p, 3) 

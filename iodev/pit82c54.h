@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.h,v 1.12.2.1 2003/03/20 04:52:53 slechta Exp $
+// $Id: pit82c54.h,v 1.12.2.2 2003/03/20 05:56:26 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -110,7 +110,7 @@ private:
 
 public:
   void init (void);
-  void register_state(char *name, char *desc, bx_list_c *parent_p);
+  void register_state(char *name, char *desc, bx_param_c *parent_p);
   void reset (unsigned type);
   pit_82C54 (void);
 
