@@ -35,7 +35,7 @@ these four paragraphs for those parts of this code that are retained.
 /*
  * Still to be fixed:
  * -----------------
- * 1. Denormals support for add/sub/compare operations
+ * 1. Denormals support for add/sub/compare/convert operations
  * 2. DAZ (denormals-are-zeroes) feature support
  * 3. Flush underflow to zero feature support
  * 4. Floating point min/max instructions similar to Intel definition

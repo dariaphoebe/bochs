@@ -1240,15 +1240,25 @@ float32 float32_sqrt(float32 a, float_status_t &status)
 
 int float32_eq(float32 a, float32 b, float_status_t &status)
 {
-    if (((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
-         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
+    Bit16s aExp = extractFloat32Exp(a);
+    Bit16s bExp = extractFloat32Exp(b);
+    Bit32u aSig = extractFloat32Frac(a);
+    Bit32u bSig = extractFloat32Frac(b);
+
+    if (((aExp == 0xFF) && aSig) || ((bExp == 0xFF) && bSig))
     {
-        if (float32_is_signaling_nan(a) || float32_is_signaling_nan(b)) 
+        if (float32_is_signaling_nan(a) || float32_is_signaling_nan(b))
         {
             float_raise(status, float_flag_invalid);
         }
         return 0;
     }
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
     return (a == b) || ((Bit32u) ((a | b)<<1) == 0);
 }
 
@@ -1261,16 +1271,23 @@ int float32_eq(float32 a, float32 b, float_status_t &status)
 
 int float32_le(float32 a, float32 b, float_status_t &status)
 {
-    flag aSign, bSign;
+    Bit16s aExp = extractFloat32Exp(a);
+    Bit16s bExp = extractFloat32Exp(b);
+    Bit32u aSig = extractFloat32Frac(a);
+    Bit32u bSig = extractFloat32Frac(b);
 
-    if (((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
-         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
-    {
+    if (((aExp == 0xFF) && aSig) || ((bExp == 0xFF) && bSig)) {
         float_raise(status, float_flag_invalid);
         return 0;
     }
-    aSign = extractFloat32Sign(a);
-    bSign = extractFloat32Sign(b);
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    flag aSign = extractFloat32Sign(a);
+    flag bSign = extractFloat32Sign(b);
     if (aSign != bSign) return aSign || ((Bit32u) ((a | b)<<1) == 0);
     return (a == b) || (aSign ^ (a < b));
 }
@@ -1283,16 +1300,23 @@ int float32_le(float32 a, float32 b, float_status_t &status)
 
 int float32_lt(float32 a, float32 b, float_status_t &status)
 {
-    flag aSign, bSign;
+    Bit16s aExp = extractFloat32Exp(a);
+    Bit16s bExp = extractFloat32Exp(b);
+    Bit32u aSig = extractFloat32Frac(a);
+    Bit32u bSig = extractFloat32Frac(b);
 
-    if (((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
-         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
-    {
+    if (((aExp == 0xFF) && aSig) || ((bExp == 0xFF) && bSig)) {
         float_raise(status, float_flag_invalid);
         return 0;
     }
-    aSign = extractFloat32Sign(a);
-    bSign = extractFloat32Sign(b);
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    flag aSign = extractFloat32Sign(a);
+    flag bSign = extractFloat32Sign(b);
     if (aSign != bSign) return aSign && ((Bit32u) ((a | b)<<1) != 0);
     return (a != b) && (aSign ^ (a < b));
 }
@@ -1306,12 +1330,21 @@ int float32_lt(float32 a, float32 b, float_status_t &status)
 
 int float32_eq_signaling(float32 a, float32 b, float_status_t &status)
 {
-    if (((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
-         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
-    {
+    Bit16s aExp = extractFloat32Exp(a);
+    Bit16s bExp = extractFloat32Exp(b);
+    Bit32u aSig = extractFloat32Frac(a);
+    Bit32u bSig = extractFloat32Frac(b);
+
+    if (((aExp == 0xFF) && aSig) || ((bExp == 0xFF) && bSig)) {
         float_raise(status, float_flag_invalid);
         return 0;
     }
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
     return (a == b) || ((Bit32u) ((a | b)<<1) == 0);
 }
 
@@ -1324,19 +1357,27 @@ int float32_eq_signaling(float32 a, float32 b, float_status_t &status)
 
 int float32_le_quiet(float32 a, float32 b, float_status_t &status)
 {
-    flag aSign, bSign;
-    Bit16s aExp, bExp;
+    Bit16s aExp = extractFloat32Exp(a);
+    Bit16s bExp = extractFloat32Exp(b);
+    Bit32u aSig = extractFloat32Frac(a);
+    Bit32u bSig = extractFloat32Frac(b);
 
-    if (((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
-         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
+    if (((aExp == 0xFF) && aSig) || ((bExp == 0xFF) && bSig))
     {
-        if (float32_is_signaling_nan(a) || float32_is_signaling_nan(b)) {
+        if (float32_is_signaling_nan(a) || float32_is_signaling_nan(b))
+        {
             float_raise(status, float_flag_invalid);
         }
         return 0;
     }
-    aSign = extractFloat32Sign(a);
-    bSign = extractFloat32Sign(b);
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    flag aSign = extractFloat32Sign(a);
+    flag bSign = extractFloat32Sign(b);
     if (aSign != bSign) return aSign || ((Bit32u) ((a | b)<<1) == 0);
     return (a == b) || (aSign ^ (a < b));
 }
@@ -1350,18 +1391,27 @@ int float32_le_quiet(float32 a, float32 b, float_status_t &status)
 
 int float32_lt_quiet(float32 a, float32 b, float_status_t &status)
 {
-    flag aSign, bSign;
+    Bit16s aExp = extractFloat32Exp(a);
+    Bit16s bExp = extractFloat32Exp(b);
+    Bit32u aSig = extractFloat32Frac(a);
+    Bit32u bSig = extractFloat32Frac(b);
 
-    if (((extractFloat32Exp(a) == 0xFF) && extractFloat32Frac(a))
-         || ((extractFloat32Exp(b) == 0xFF) && extractFloat32Frac(b)))
+    if (((aExp == 0xFF) && aSig) || ((bExp == 0xFF) && bSig))
     {
-        if (float32_is_signaling_nan(a) || float32_is_signaling_nan(b)) {
+        if (float32_is_signaling_nan(a) || float32_is_signaling_nan(b))
+        {
             float_raise(status, float_flag_invalid);
         }
         return 0;
     }
-    aSign = extractFloat32Sign(a);
-    bSign = extractFloat32Sign(b);
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    flag aSign = extractFloat32Sign(a);
+    flag bSign = extractFloat32Sign(b);
     if (aSign != bSign) return aSign && ((Bit32u) ((a | b)<<1) != 0);
     return (a != b) && (aSign ^ (a < b));
 }
@@ -2094,15 +2144,25 @@ float64 float64_sqrt(float64 a, float_status_t &status)
 
 int float64_eq(float64 a, float64 b, float_status_t &status)
 {
+    Bit16s aExp = extractFloat64Exp(a);
+    Bit16s bExp = extractFloat64Exp(b);
+    Bit64u aSig = extractFloat64Frac(a);
+    Bit64u bSig = extractFloat64Frac(b);
 
-    if (((extractFloat64Exp(a) == 0x7FF) && extractFloat64Frac(a))
-         || ((extractFloat64Exp(b) == 0x7FF) && extractFloat64Frac(b)))
+    if (((aExp == 0x7FF) && aSig) || ((bExp == 0x7FF) && bSig))
     {
-        if (float64_is_signaling_nan(a) || float64_is_signaling_nan(b)) {
+        if (float64_is_signaling_nan(a) || float64_is_signaling_nan(b))
+        {
             float_raise(status, float_flag_invalid);
         }
         return 0;
     }
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
     return (a == b) || ((Bit64u) ((a | b)<<1) == 0);
 }
 
@@ -2115,16 +2175,23 @@ int float64_eq(float64 a, float64 b, float_status_t &status)
 
 int float64_le(float64 a, float64 b, float_status_t &status)
 {
-    flag aSign, bSign;
+    Bit16s aExp = extractFloat64Exp(a);
+    Bit16s bExp = extractFloat64Exp(b);
+    Bit64u aSig = extractFloat64Frac(a);
+    Bit64u bSig = extractFloat64Frac(b);
 
-    if (((extractFloat64Exp(a) == 0x7FF) && extractFloat64Frac(a))
-         || ((extractFloat64Exp(b) == 0x7FF) && extractFloat64Frac(b)))
-    {
+    if (((aExp == 0x7FF) && aSig) || ((bExp == 0x7FF) && bSig)) {
         float_raise(status, float_flag_invalid);
         return 0;
     }
-    aSign = extractFloat64Sign(a);
-    bSign = extractFloat64Sign(b);
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    flag aSign = extractFloat64Sign(a);
+    flag bSign = extractFloat64Sign(b);
     if (aSign != bSign) return aSign || ((Bit64u) ((a | b)<<1) == 0);
     return (a == b) || (aSign ^ (a < b));
 }
@@ -2137,16 +2204,23 @@ int float64_le(float64 a, float64 b, float_status_t &status)
 
 int float64_lt(float64 a, float64 b, float_status_t &status)
 {
-    flag aSign, bSign;
+    Bit16s aExp = extractFloat64Exp(a);
+    Bit16s bExp = extractFloat64Exp(b);
+    Bit64u aSig = extractFloat64Frac(a);
+    Bit64u bSig = extractFloat64Frac(b);
 
-    if (((extractFloat64Exp(a) == 0x7FF) && extractFloat64Frac(a))
-         || ((extractFloat64Exp(b) == 0x7FF) && extractFloat64Frac(b))) 
-    {
+    if (((aExp == 0x7FF) && aSig) || ((bExp == 0x7FF) && bSig)) {
         float_raise(status, float_flag_invalid);
         return 0;
     }
-    aSign = extractFloat64Sign(a);
-    bSign = extractFloat64Sign(b);
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    flag aSign = extractFloat64Sign(a);
+    flag bSign = extractFloat64Sign(b);
     if (aSign != bSign) return aSign && ((Bit64u) ((a | b)<<1) != 0);
     return (a != b) && (aSign ^ (a < b));
 }
@@ -2160,13 +2234,21 @@ int float64_lt(float64 a, float64 b, float_status_t &status)
 
 int float64_eq_signaling(float64 a, float64 b, float_status_t &status)
 {
+    Bit16s aExp = extractFloat64Exp(a);
+    Bit16s bExp = extractFloat64Exp(b);
+    Bit64u aSig = extractFloat64Frac(a);
+    Bit64u bSig = extractFloat64Frac(b);
 
-    if (((extractFloat64Exp(a) == 0x7FF) && extractFloat64Frac(a))
-         || ((extractFloat64Exp(b) == 0x7FF) && extractFloat64Frac(b)))
-    {
+    if (((aExp == 0x7FF) && aSig) || ((bExp == 0x7FF) && bSig)) {
         float_raise(status, float_flag_invalid);
         return 0;
     }
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
     return (a == b) || ((Bit64u) ((a | b)<<1) == 0);
 }
 
@@ -2179,20 +2261,27 @@ int float64_eq_signaling(float64 a, float64 b, float_status_t &status)
 
 int float64_le_quiet(float64 a, float64 b, float_status_t &status)
 {
-    flag aSign, bSign;
-    Bit16s aExp, bExp;
+    Bit16s aExp = extractFloat64Exp(a);
+    Bit16s bExp = extractFloat64Exp(b);
+    Bit64u aSig = extractFloat64Frac(a);
+    Bit64u bSig = extractFloat64Frac(b);
 
-    if (((extractFloat64Exp(a) == 0x7FF) && extractFloat64Frac(a))
-         || ((extractFloat64Exp(b) == 0x7FF) && extractFloat64Frac(b)))
+    if (((aExp == 0x7FF) && aSig) || ((bExp == 0x7FF) && bSig))
     {
-        if (float64_is_signaling_nan(a) || float64_is_signaling_nan(b)) 
+        if (float64_is_signaling_nan(a) || float64_is_signaling_nan(b))
         {
             float_raise(status, float_flag_invalid);
         }
         return 0;
     }
-    aSign = extractFloat64Sign(a);
-    bSign = extractFloat64Sign(b);
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    flag aSign = extractFloat64Sign(a);
+    flag bSign = extractFloat64Sign(b);
     if (aSign != bSign) return aSign || ((Bit64u) ((a | b)<<1) == 0);
     return (a == b) || (aSign ^ (a < b));
 }
@@ -2206,19 +2295,27 @@ int float64_le_quiet(float64 a, float64 b, float_status_t &status)
 
 int float64_lt_quiet(float64 a, float64 b, float_status_t &status)
 {
-    flag aSign, bSign;
+    Bit16s aExp = extractFloat64Exp(a);
+    Bit16s bExp = extractFloat64Exp(b);
+    Bit64u aSig = extractFloat64Frac(a);
+    Bit64u bSig = extractFloat64Frac(b);
 
-    if (((extractFloat64Exp(a) == 0x7FF) && extractFloat64Frac(a))
-         || ((extractFloat64Exp(b) == 0x7FF) && extractFloat64Frac(b)))
+    if (((aExp == 0x7FF) && aSig) || ((bExp == 0x7FF) && bSig))
     {
-        if (float64_is_signaling_nan(a) || float64_is_signaling_nan(b)) 
+        if (float64_is_signaling_nan(a) || float64_is_signaling_nan(b))
         {
             float_raise(status, float_flag_invalid);
         }
         return 0;
     }
-    aSign = extractFloat64Sign(a);
-    bSign = extractFloat64Sign(b);
+
+    /* check for subnormal operands */
+    if (((aExp == 0) && aSig) || ((bExp == 0) && bSig)) {
+        float_raise(status, float_flag_denormal);
+    }
+
+    flag aSign = extractFloat64Sign(a);
+    flag bSign = extractFloat64Sign(b);
     if (aSign != bSign) return aSign && ((Bit64u) ((a | b)<<1) != 0);
     return (a != b) && (aSign ^ (a < b));
 }

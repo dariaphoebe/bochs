@@ -47,7 +47,7 @@ BX_CPP_INLINE void float_raise(float_status_t &status, int flags)
 }
 
 /*----------------------------------------------------------------------------
-| Returns current floating point rounding mode specified by status word
+| Returns current floating point rounding mode specified by status word.
 *----------------------------------------------------------------------------*/
 
 BX_CPP_INLINE int get_float_rounding_mode(float_status_t &status)
@@ -78,6 +78,7 @@ BX_CPP_INLINE int get_DAZ(float_status_t &status)
 /*----------------------------------------------------------------------------
 | Internal canonical NaN format.
 *----------------------------------------------------------------------------*/
+
 typedef struct {
     flag sign;
     Bit64u hi, lo;
