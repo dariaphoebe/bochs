@@ -389,7 +389,11 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
   if (handle_small_argument(y, quotient))
   {   
       if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      {
           BX_WRITE_FPU_REG(y, 0);
+          BX_CPU_THIS_PTR the_i387.FPU_push();
+          BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_one, FPU_Tag_Valid, 0);
+      }
 
       return;
   }

@@ -111,7 +111,11 @@ Bit64u trig_arg_reduction(floatx80 &a, int function, float_status_t &status)
     float_raise(status, float_flag_inexact);
 
     if (expDiff < 0) {
-        if (expDiff < -1) return 0;
+        if (expDiff < -1) 
+        {
+            a = packFloatx80(Sign, aExp, aSig0);
+            return 0;
+        }
         shift128Right(aSig0, 0, 1, &aSig0, &aSig1);
         expDiff = 0;
     }
@@ -124,6 +128,7 @@ Bit64u trig_arg_reduction(floatx80 &a, int function, float_status_t &status)
             aSig0 -= Hi;
             q = 1;
         }
+        else q = 0;
     }
 
     shift128Right(Hi, Lo, 1, &term0, &term1);
