@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// $Id: pit_wrap.cc,v 1.48.2.4 2003/03/21 20:49:02 slechta Exp $
+// $Id: pit_wrap.cc,v 1.48.2.5 2003/03/27 02:05:21 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -255,7 +255,8 @@ bx_pit_c::register_state(char *name, char *desc, bx_param_c *parent_p)
   BXRS_STRUCT_START(struct s_type, s)
   {
     //((pit_82C54*)&(((_ireg_this_t*)_ireg_this)->timer))->register_state("timer", "", _ireg_cur_list_p);
-    BXRS_OBJ      (pit_82C54, timer       );
+#warning call to BXRS_OBJ disabled by BBD
+    //BXRS_OBJ      (pit_82C54, timer       );
     BXRS_NUM      (Bit8u  , speaker_data_on        );
     BXRS_BOOL     (bx_bool, refresh_clock_div2     );
     BXRS_ARRAY_NUM(int    , timer_handle, 3        );
