@@ -1,4 +1,4 @@
-$Id: PARAM_TREE.txt,v 1.1.2.12 2003/04/06 14:16:52 bdenney Exp $
+$Id: PARAM_TREE.txt,v 1.1.2.13 2003/04/06 17:30:19 bdenney Exp $
 
 This file has become the to-do list for the save/restore branch.
 The CVS branch is called BRANCH_SAVE_RESTORE.
@@ -423,3 +423,55 @@ debugger
   running             BXP_DEBUG_RUNNING,
   log_path            BXP_DEBUGGER_LOG_FILENAME,
 
+
+
+Class Inheritance of Device Models
+
+logfunctions
+- bx_devmodel_c
+  - bx_keyb_stub_c
+    - bx_keyb_c                ADDED BEFORE/AFTER
+  - bx_hard_drive_stub_c
+    - bx_hard_drive_c          ADDED BEFORE/AFTER
+  - bx_floppy_stub_c
+    - bx_floppy_c              ADDED BEFORE/AFTER
+  - bx_cmos_stub_c
+    - bx_cmos_c                ADDED BEFORE/AFTER
+  - bx_dma_stub_c
+    - bx_dma_c                 ADDED BEFORE/AFTER
+  - bx_pic_stub_c
+    - bx_pic_c                 ADDED BEFORE/AFTER
+  - bx_vga_stub_c
+    - bx_vga_c                 ADDED BEFORE/AFTER
+  - bx_pci_stub_c
+    - bx_pci_c                 ADDED BEFORE/AFTER
+  - bx_ne2k_stub_c
+    - bx_ne2k_c                ADDED BEFORE/AFTER
+  - bx_parallel_c              ADDED BEFORE/AFTER
+  - bx_serial_c                ADDED BEFORE/AFTER
+  - bx_pci2isa_c               ADDED BEFORE/AFTER
+  - bx_pciusb_c                ADDED BEFORE/AFTER
+  - bx_pcivga_c                ADDED BEFORE/AFTER
+  - bx_biosdev_c               ADDED BEFORE/AFTER
+  - bx_extfpuirq_c            no register_state
+  - bx_sb16_c                 no register_state
+  - bx_unmapped_c              ADDED BEFORE/AFTER
+  - bx_pit_c                   ADDED BEFORE/AFTER
+  - pit_82C54                  ADDED BEFORE/AFTER
+  - bx_iodebug_c              no register_state
+- bx_generic_apic_c
+  - bx_local_apic_c           no register_state
+  - bx_ioapic_c                ADDED BEFORE/AFTER
+- cdrom_interface
+- bx_g2h_c                    no register_state
+- bx_sound_output
+  - bx_sound_linux_c
+  - bx_sound_window_c
+- serial_raw
+- bx_virt_timer_c
+- bx_cpu_c
+
+bx_devmodel_c was introduced with plugins.  Plugins use the stub classes
+as a placeholder until the plugin is loaded.
+
+Probably all devices should inherit from bx_devmodel_c.
