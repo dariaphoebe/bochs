@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.19.2.3 2003/03/28 09:26:06 slechta Exp $
+// $Id: harddrv.h,v 1.19.2.4 2003/04/04 03:46:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -279,9 +279,11 @@ struct atapi_t
 
 #if BX_USE_HD_SMF
 #  define BX_HD_SMF  static
-#  define BX_HD_THIS theHardDrive->
+#  define BX_HD_THIS_PTR theHardDrive->
+#  define BX_HD_THIS (theHardDrive)
 #else
 #  define BX_HD_SMF
+#  define BX_HD_THIS_PTR this->
 #  define BX_HD_THIS this->
 #endif
 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.h,v 1.14.2.2 2003/03/28 09:26:03 slechta Exp $
+// $Id: dma.h,v 1.14.2.3 2003/04/04 03:46:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -31,10 +31,12 @@
 
 #if BX_USE_DMA_SMF
 #  define BX_DMA_SMF  static
-#  define BX_DMA_THIS theDmaDevice->
+#  define BX_DMA_THIS_PTR theDmaDevice->
+#  define BX_DMA_THIS theDmaDevice
 #else
 #  define BX_DMA_SMF
-#  define BX_DMA_THIS this->
+#  define BX_DMA_THIS_PTR this->
+#  define BX_DMA_THIS this
 #endif
 
 

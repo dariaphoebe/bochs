@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.h,v 1.4.6.1 2003/03/28 09:26:08 slechta Exp $
+// $Id: pci2isa.h,v 1.4.6.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -27,10 +27,12 @@
 
 #if BX_USE_P2I_SMF
 #  define BX_P2I_SMF  static
-#  define BX_P2I_THIS thePci2IsaBridge->
+#  define BX_P2I_THIS_PTR thePci2IsaBridge->
+#  define BX_P2I_THIS thePci2IsaBridge
 #else
 #  define BX_P2I_SMF
-#  define BX_P2I_THIS this->
+#  define BX_P2I_THIS_PTR this->
+#  define BX_P2I_THIS this
 #endif
 
 

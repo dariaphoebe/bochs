@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cmos.cc,v 1.36.4.2 2003/03/28 09:26:01 slechta Exp $
+// $Id: cmos.cc,v 1.36.4.3 2003/04/04 03:46:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -109,27 +109,27 @@ bx_cmos_c::~bx_cmos_c(void)
   void
 bx_cmos_c::init(void)
 {
-  BX_DEBUG(("Init $Id: cmos.cc,v 1.36.4.2 2003/03/28 09:26:01 slechta Exp $"));
+  BX_DEBUG(("Init $Id: cmos.cc,v 1.36.4.3 2003/04/04 03:46:06 slechta Exp $"));
   // CMOS RAM & RTC
 
-  DEV_register_ioread_handler(this, read_handler, 0x0070, "CMOS RAM", 7);
-  DEV_register_ioread_handler(this, read_handler, 0x0071, "CMOS RAM", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0070, "CMOS RAM", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0071, "CMOS RAM", 7);
+  DEV_register_ioread_handler (BX_CMOS_THIS, read_handler, 0x0070, "CMOS RAM", 7);
+  DEV_register_ioread_handler (BX_CMOS_THIS, read_handler, 0x0071, "CMOS RAM", 7);
+  DEV_register_iowrite_handler(BX_CMOS_THIS, write_handler, 0x0070, "CMOS RAM", 7);
+  DEV_register_iowrite_handler(BX_CMOS_THIS, write_handler, 0x0071, "CMOS RAM", 7);
   DEV_register_irq(8, "CMOS RTC"); 
-  if (BX_CMOS_THIS s.periodic_timer_index == BX_NULL_TIMER_HANDLE) {
-    BX_CMOS_THIS s.periodic_timer_index =
-      DEV_register_timer(this, periodic_timer_handler,
+  if (BX_CMOS_THIS_PTR s.periodic_timer_index == BX_NULL_TIMER_HANDLE) {
+    BX_CMOS_THIS_PTR s.periodic_timer_index =
+      DEV_register_timer(BX_CMOS_THIS, periodic_timer_handler,
         1000000, 1,0, "cmos"); // continuous, not-active
   }
-  if (BX_CMOS_THIS s.one_second_timer_index == BX_NULL_TIMER_HANDLE) {
-    BX_CMOS_THIS s.one_second_timer_index =
-      DEV_register_timer(this, one_second_timer_handler,
+  if (BX_CMOS_THIS_PTR s.one_second_timer_index == BX_NULL_TIMER_HANDLE) {
+    BX_CMOS_THIS_PTR s.one_second_timer_index =
+      DEV_register_timer(BX_CMOS_THIS, one_second_timer_handler,
         1000000, 1,0, "cmos"); // continuous, not-active
   }
-  if (BX_CMOS_THIS s.uip_timer_index == BX_NULL_TIMER_HANDLE) {
-    BX_CMOS_THIS s.uip_timer_index =
-      DEV_register_timer(this, uip_timer_handler,
+  if (BX_CMOS_THIS_PTR s.uip_timer_index == BX_NULL_TIMER_HANDLE) {
+    BX_CMOS_THIS_PTR s.uip_timer_index =
+      DEV_register_timer(BX_CMOS_THIS, uip_timer_handler,
         244, 0, 0, "cmos"); // one-shot, not-active
   }
 
@@ -137,26 +137,26 @@ bx_cmos_c::init(void)
   // ??? this will not be correct for using an image file.
   // perhaps take values in CMOS and work backwards to find
   // s.timeval from values read in.
-  BX_CMOS_THIS s.timeval = time(NULL);
+  BX_CMOS_THIS_PTR s.timeval = time(NULL);
 #else
-  BX_CMOS_THIS s.timeval = BX_USE_SPECIFIED_TIME0;
+  BX_CMOS_THIS_PTR s.timeval = BX_USE_SPECIFIED_TIME0;
 #endif
 
   if (bx_options.cmos.Otime0->get () == 1)
-       BX_CMOS_THIS s.timeval = time(NULL);
+       BX_CMOS_THIS_PTR s.timeval = time(NULL);
   else if (bx_options.cmos.Otime0->get () != 0)
-       BX_CMOS_THIS s.timeval = bx_options.cmos.Otime0->get ();
+       BX_CMOS_THIS_PTR s.timeval = bx_options.cmos.Otime0->get ();
 
   char *tmptime;
-  while( (tmptime =  strdup(ctime(&(BX_CMOS_THIS s.timeval)))) == NULL) {
+  while( (tmptime =  strdup(ctime(&(BX_CMOS_THIS_PTR s.timeval)))) == NULL) {
     BX_PANIC(("Out of memory."));
   }
   tmptime[strlen(tmptime)-1]='\0';
 
-  BX_INFO(("Setting initial clock to: %s (time0=%u)", tmptime, (Bit32u)BX_CMOS_THIS s.timeval));
+  BX_INFO(("Setting initial clock to: %s (time0=%u)", tmptime, (Bit32u)BX_CMOS_THIS_PTR s.timeval));
 
   update_clock();
-  BX_CMOS_THIS s.timeval_change = 0;
+  BX_CMOS_THIS_PTR s.timeval_change = 0;
 
   // load CMOS from image file if requested.
   if (bx_options.cmos.OcmosImage->get ()) {
@@ -181,7 +181,7 @@ bx_cmos_c::init(void)
       BX_PANIC(("CMOS: image file not same size as BX_NUM_CMOS_REGS."));
       }
 
-    ret = ::read(fd, (bx_ptr_t) BX_CMOS_THIS s.reg, BX_NUM_CMOS_REGS);
+    ret = ::read(fd, (bx_ptr_t) BX_CMOS_THIS_PTR s.reg, BX_NUM_CMOS_REGS);
     if (ret != BX_NUM_CMOS_REGS) {
       BX_PANIC(("CMOS: error reading cmos file."));
       }
@@ -191,19 +191,19 @@ bx_cmos_c::init(void)
     }
   else {
     // CMOS values generated
-    BX_CMOS_THIS s.reg[REG_STAT_A] = 0x26;
-    BX_CMOS_THIS s.reg[REG_STAT_B] = 0x02;
-    BX_CMOS_THIS s.reg[REG_STAT_C] = 0x00;
-    BX_CMOS_THIS s.reg[REG_STAT_D] = 0x80;
+    BX_CMOS_THIS_PTR s.reg[REG_STAT_A] = 0x26;
+    BX_CMOS_THIS_PTR s.reg[REG_STAT_B] = 0x02;
+    BX_CMOS_THIS_PTR s.reg[REG_STAT_C] = 0x00;
+    BX_CMOS_THIS_PTR s.reg[REG_STAT_D] = 0x80;
 #if BX_SUPPORT_FPU == 1
-    BX_CMOS_THIS s.reg[REG_EQUIPMENT_BYTE] |= 0x02;
+    BX_CMOS_THIS_PTR s.reg[REG_EQUIPMENT_BYTE] |= 0x02;
 #endif
     }
 }
 
 void bx_cmos_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_cmos_c, this, "cmos", list_p, 10);
+  BXRS_START(bx_cmos_c, BX_CMOS_THIS, "cmos", list_p, 10);
   {
     BXRS_STRUCT_START(struct s_t, s); 
     {
@@ -224,22 +224,22 @@ void bx_cmos_c::register_state(bx_param_c *list_p)
   void
 bx_cmos_c::reset(unsigned type)
 {
-  BX_CMOS_THIS s.cmos_mem_address = 0;
+  BX_CMOS_THIS_PTR s.cmos_mem_address = 0;
 
   // RESET affects the following registers:
   //  CRA: no effects
   //  CRB: bits 4,5,6 forced to 0
   //  CRC: bits 4,5,6,7 forced to 0
   //  CRD: no effects
-  BX_CMOS_THIS s.reg[REG_STAT_B] &= 0x8f;
-  BX_CMOS_THIS s.reg[REG_STAT_C] = 0;
+  BX_CMOS_THIS_PTR s.reg[REG_STAT_B] &= 0x8f;
+  BX_CMOS_THIS_PTR s.reg[REG_STAT_C] = 0;
 
   // One second timer for updating clock & alarm functions
-  bx_pc_system.activate_timer(BX_CMOS_THIS s.one_second_timer_index,
+  bx_pc_system.activate_timer(BX_CMOS_THIS_PTR s.one_second_timer_index,
                          1000000, 1);
 
   // handle periodic interrupt rate select
-  BX_CMOS_THIS CRA_change();
+  BX_CMOS_THIS_PTR CRA_change();
 }
 
   void
@@ -248,25 +248,25 @@ bx_cmos_c::CRA_change(void)
   unsigned nibble;
 
   // Periodic Interrupt timer
-  nibble = BX_CMOS_THIS s.reg[REG_STAT_A] & 0x0f;
+  nibble = BX_CMOS_THIS_PTR s.reg[REG_STAT_A] & 0x0f;
   if (nibble == 0) {
     // No Periodic Interrupt Rate when 0, deactivate timer
-    bx_pc_system.deactivate_timer(BX_CMOS_THIS s.periodic_timer_index);
-    BX_CMOS_THIS s.periodic_interval_usec = (Bit32u) -1; // max value
+    bx_pc_system.deactivate_timer(BX_CMOS_THIS_PTR s.periodic_timer_index);
+    BX_CMOS_THIS_PTR s.periodic_interval_usec = (Bit32u) -1; // max value
     }
   else {
     // values 0001b and 0010b are the same as 1000b and 1001b
     if (nibble <= 2)
       nibble += 7;
-    BX_CMOS_THIS s.periodic_interval_usec = (unsigned) (1000000.0L /
+    BX_CMOS_THIS_PTR s.periodic_interval_usec = (unsigned) (1000000.0L /
      (32768.0L / (1 << (nibble - 1))));
 
     // if Periodic Interrupt Enable bit set, activate timer
-    if ( BX_CMOS_THIS s.reg[REG_STAT_B] & 0x40 )
-      bx_pc_system.activate_timer(BX_CMOS_THIS s.periodic_timer_index,
-     BX_CMOS_THIS s.periodic_interval_usec, 1);
+    if ( BX_CMOS_THIS_PTR s.reg[REG_STAT_B] & 0x40 )
+      bx_pc_system.activate_timer(BX_CMOS_THIS_PTR s.periodic_timer_index,
+     BX_CMOS_THIS_PTR s.periodic_interval_usec, 1);
     else
-      bx_pc_system.deactivate_timer(BX_CMOS_THIS s.periodic_timer_index);
+      bx_pc_system.deactivate_timer(BX_CMOS_THIS_PTR s.periodic_timer_index);
     }
 }
 
@@ -297,26 +297,26 @@ bx_cmos_c::read(Bit32u address, unsigned io_len)
 
   if (bx_dbg.cmos)
     BX_INFO(("CMOS read of CMOS register 0x%02x",
-      (unsigned) BX_CMOS_THIS s.cmos_mem_address));
+      (unsigned) BX_CMOS_THIS_PTR s.cmos_mem_address));
 
 
   switch (address) {
     case 0x0070:
       BX_INFO(("read of index port 0x70. returning 0xff"));
       // Volker says his boxes return 0xff
-      //ret8 = BX_CMOS_THIS s.cmos_mem_address;
+      //ret8 = BX_CMOS_THIS_PTR s.cmos_mem_address;
       return(0xff);
       break;
     case 0x0071:
-      if (BX_CMOS_THIS s.cmos_mem_address >= BX_NUM_CMOS_REGS) {
+      if (BX_CMOS_THIS_PTR s.cmos_mem_address >= BX_NUM_CMOS_REGS) {
      BX_PANIC(("unsupported cmos io read, register(0x%02x)!",
-       (unsigned) BX_CMOS_THIS s.cmos_mem_address));
+       (unsigned) BX_CMOS_THIS_PTR s.cmos_mem_address));
      }
 
-      ret8 = BX_CMOS_THIS s.reg[BX_CMOS_THIS s.cmos_mem_address];
+      ret8 = BX_CMOS_THIS_PTR s.reg[BX_CMOS_THIS_PTR s.cmos_mem_address];
       // all bits of Register C are cleared after a read occurs.
-      if (BX_CMOS_THIS s.cmos_mem_address == REG_STAT_C) {
-        BX_CMOS_THIS s.reg[REG_STAT_C] = 0x00;
+      if (BX_CMOS_THIS_PTR s.cmos_mem_address == REG_STAT_C) {
+        BX_CMOS_THIS_PTR s.reg[REG_STAT_C] = 0x00;
         DEV_pic_lower_irq(8);
         }
       return(ret8);
@@ -362,25 +362,25 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
   switch (address) {
     case 0x0070:
 #if (BX_NUM_CMOS_REGS == 64)
-      BX_CMOS_THIS s.cmos_mem_address = value & 0x3F;
+      BX_CMOS_THIS_PTR s.cmos_mem_address = value & 0x3F;
 #else
-      BX_CMOS_THIS s.cmos_mem_address = value & 0x7F;
+      BX_CMOS_THIS_PTR s.cmos_mem_address = value & 0x7F;
 #endif
       break;
 
     case 0x0071:
-      if (BX_CMOS_THIS s.cmos_mem_address >= BX_NUM_CMOS_REGS) {
+      if (BX_CMOS_THIS_PTR s.cmos_mem_address >= BX_NUM_CMOS_REGS) {
      BX_PANIC(("unsupported cmos io write, register(0x%02x) = 0x%02x !",
-       (unsigned) BX_CMOS_THIS s.cmos_mem_address, (unsigned) value));
+       (unsigned) BX_CMOS_THIS_PTR s.cmos_mem_address, (unsigned) value));
      return;
      }
-      switch (BX_CMOS_THIS s.cmos_mem_address) {
+      switch (BX_CMOS_THIS_PTR s.cmos_mem_address) {
      case REG_SEC_ALARM:             // seconds alarm
      case REG_MIN_ALARM:             // minutes alarm
      case REG_HOUR_ALARM:            // hours alarm
-       BX_CMOS_THIS s.reg[BX_CMOS_THIS s.cmos_mem_address] = value;
-       BX_DEBUG(("alarm time changed to %02x:%02x:%02x", BX_CMOS_THIS s.reg[REG_HOUR_ALARM],
-                 BX_CMOS_THIS s.reg[REG_MIN_ALARM], BX_CMOS_THIS s.reg[REG_SEC_ALARM]));
+       BX_CMOS_THIS_PTR s.reg[BX_CMOS_THIS_PTR s.cmos_mem_address] = value;
+       BX_DEBUG(("alarm time changed to %02x:%02x:%02x", BX_CMOS_THIS_PTR s.reg[REG_HOUR_ALARM],
+                 BX_CMOS_THIS_PTR s.reg[REG_MIN_ALARM], BX_CMOS_THIS_PTR s.reg[REG_SEC_ALARM]));
        return;
        break;
 
@@ -394,13 +394,13 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
      case REG_IBM_CENTURY_BYTE:      // century
      case REG_IBM_PS2_CENTURY_BYTE:  // century (PS/2)
        //BX_INFO(("write reg 0x%02x: value = 0x%02x",
-       //    (unsigned) BX_CMOS_THIS s.cmos_mem_address, (unsigned) value);
-       BX_CMOS_THIS s.reg[BX_CMOS_THIS s.cmos_mem_address] = value;
-       if (BX_CMOS_THIS s.cmos_mem_address == REG_IBM_PS2_CENTURY_BYTE) {
-         BX_CMOS_THIS s.reg[REG_IBM_CENTURY_BYTE] = value;
+       //    (unsigned) BX_CMOS_THIS_PTR s.cmos_mem_address, (unsigned) value);
+       BX_CMOS_THIS_PTR s.reg[BX_CMOS_THIS_PTR s.cmos_mem_address] = value;
+       if (BX_CMOS_THIS_PTR s.cmos_mem_address == REG_IBM_PS2_CENTURY_BYTE) {
+         BX_CMOS_THIS_PTR s.reg[REG_IBM_CENTURY_BYTE] = value;
        }
-       if (BX_CMOS_THIS s.reg[REG_STAT_B] & 0x80) {
-         BX_CMOS_THIS s.timeval_change = 1;
+       if (BX_CMOS_THIS_PTR s.reg[REG_STAT_B] & 0x80) {
+         BX_CMOS_THIS_PTR s.timeval_change = 1;
        } else {
          update_timeval();
        }
@@ -444,9 +444,9 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
        if (dcc != 0x02) {
        BX_PANIC(("CRA: divider chain control 0x%02x", dcc));
        }
-       BX_CMOS_THIS s.reg[REG_STAT_A] &= 0x80;
-       BX_CMOS_THIS s.reg[REG_STAT_A] |= (value & 0x7f);
-       BX_CMOS_THIS CRA_change();
+       BX_CMOS_THIS_PTR s.reg[REG_STAT_A] &= 0x80;
+       BX_CMOS_THIS_PTR s.reg[REG_STAT_A] |= (value & 0x7f);
+       BX_CMOS_THIS_PTR CRA_change();
        return;
        break;
 
@@ -488,28 +488,28 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
        value &= 0xef;
 
        unsigned prev_CRB;
-       prev_CRB = BX_CMOS_THIS s.reg[REG_STAT_B];
-       BX_CMOS_THIS s.reg[REG_STAT_B] = value;
+       prev_CRB = BX_CMOS_THIS_PTR s.reg[REG_STAT_B];
+       BX_CMOS_THIS_PTR s.reg[REG_STAT_B] = value;
        if ( (prev_CRB & 0x40) != (value & 0x40) ) {
        // Periodic Interrupt Enabled changed
        if (prev_CRB & 0x40) {
          // transition from 1 to 0, deactivate timer
          bx_pc_system.deactivate_timer(
-           BX_CMOS_THIS s.periodic_timer_index);
+           BX_CMOS_THIS_PTR s.periodic_timer_index);
          }
        else {
          // transition from 0 to 1
          // if rate select is not 0, activate timer
-         if ( (BX_CMOS_THIS s.reg[REG_STAT_A] & 0x0f) != 0 ) {
+         if ( (BX_CMOS_THIS_PTR s.reg[REG_STAT_A] & 0x0f) != 0 ) {
            bx_pc_system.activate_timer(
-             BX_CMOS_THIS s.periodic_timer_index,
-             BX_CMOS_THIS s.periodic_interval_usec, 1);
+             BX_CMOS_THIS_PTR s.periodic_timer_index,
+             BX_CMOS_THIS_PTR s.periodic_interval_usec, 1);
            }
          }
        }
-       if ( (prev_CRB >= 0x80) && (value < 0x80) && BX_CMOS_THIS s.timeval_change) {
+       if ( (prev_CRB >= 0x80) && (value < 0x80) && BX_CMOS_THIS_PTR s.timeval_change) {
          update_timeval();
-         BX_CMOS_THIS s.timeval_change = 0;
+         BX_CMOS_THIS_PTR s.timeval_change = 0;
        }
        return;
        break;
@@ -517,7 +517,7 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
      case REG_STAT_C: // Control Register C
      case REG_STAT_D: // Control Register D
        BX_ERROR(("write to control register 0x%02x (read-only)",
-              BX_CMOS_THIS s.cmos_mem_address));
+              BX_CMOS_THIS_PTR s.cmos_mem_address));
        break;
 
      case REG_DIAGNOSTIC_STATUS:
@@ -585,11 +585,11 @@ bx_cmos_c::write(Bit32u address, Bit32u value, unsigned io_len)
 
      default:
        BX_DEBUG(("write reg 0x%02x: value = 0x%02x",
-       (unsigned) BX_CMOS_THIS s.cmos_mem_address, (unsigned) value));
+       (unsigned) BX_CMOS_THIS_PTR s.cmos_mem_address, (unsigned) value));
        break;
      }
 
-      BX_CMOS_THIS s.reg[BX_CMOS_THIS s.cmos_mem_address] = value;
+      BX_CMOS_THIS_PTR s.reg[BX_CMOS_THIS_PTR s.cmos_mem_address] = value;
       break;
     }
 }
@@ -603,10 +603,10 @@ bx_cmos_c::checksum_cmos(void)
 
   sum = 0;
   for (i=0x10; i<=0x2d; i++) {
-    sum += BX_CMOS_THIS s.reg[i];
+    sum += BX_CMOS_THIS_PTR s.reg[i];
     }
-  BX_CMOS_THIS s.reg[REG_CSUM_HIGH] = (sum >> 8) & 0xff; /* checksum high */
-  BX_CMOS_THIS s.reg[REG_CSUM_LOW] = (sum & 0xff);      /* checksum low */
+  BX_CMOS_THIS_PTR s.reg[REG_CSUM_HIGH] = (sum >> 8) & 0xff; /* checksum high */
+  BX_CMOS_THIS_PTR s.reg[REG_CSUM_LOW] = (sum & 0xff);      /* checksum low */
 }
 
   void
@@ -622,8 +622,8 @@ bx_cmos_c::periodic_timer()
 {
   // if periodic interrupts are enabled, trip IRQ 8, and
   // update status register C
-  if (BX_CMOS_THIS s.reg[REG_STAT_B] & 0x40) {
-    BX_CMOS_THIS s.reg[REG_STAT_C] |= 0xc0; // Interrupt Request, Periodic Int
+  if (BX_CMOS_THIS_PTR s.reg[REG_STAT_B] & 0x40) {
+    BX_CMOS_THIS_PTR s.reg[REG_STAT_C] |= 0xc0; // Interrupt Request, Periodic Int
     DEV_pic_raise_irq(8);
     }
 }
@@ -640,17 +640,17 @@ bx_cmos_c::one_second_timer_handler(void *this_ptr)
 bx_cmos_c::one_second_timer()
 {
   // update internal time/date buffer
-  BX_CMOS_THIS s.timeval++;
+  BX_CMOS_THIS_PTR s.timeval++;
 
   // Dont update CMOS user copy of time/date if CRB bit7 is 1
   // Nothing else do to
-  if (BX_CMOS_THIS s.reg[REG_STAT_B] & 0x80)
+  if (BX_CMOS_THIS_PTR s.reg[REG_STAT_B] & 0x80)
     return;
 
-  BX_CMOS_THIS s.reg[REG_STAT_A] |= 0x80; // set UIP bit
+  BX_CMOS_THIS_PTR s.reg[REG_STAT_A] |= 0x80; // set UIP bit
 
   // UIP timer for updating clock & alarm functions
-  bx_pc_system.activate_timer(BX_CMOS_THIS s.uip_timer_index,
+  bx_pc_system.activate_timer(BX_CMOS_THIS_PTR s.uip_timer_index,
                          244, 0);
 }
 
@@ -669,36 +669,36 @@ bx_cmos_c::uip_timer()
 
   // if update interrupts are enabled, trip IRQ 8, and
   // update status register C
-  if (BX_CMOS_THIS s.reg[REG_STAT_B] & 0x10) {
-    BX_CMOS_THIS s.reg[REG_STAT_C] |= 0x90; // Interrupt Request, Update Ended
+  if (BX_CMOS_THIS_PTR s.reg[REG_STAT_B] & 0x10) {
+    BX_CMOS_THIS_PTR s.reg[REG_STAT_C] |= 0x90; // Interrupt Request, Update Ended
     DEV_pic_raise_irq(8);
     }
 
   // compare CMOS user copy of time/date to alarm time/date here
-  if (BX_CMOS_THIS s.reg[REG_STAT_B] & 0x20) {
+  if (BX_CMOS_THIS_PTR s.reg[REG_STAT_B] & 0x20) {
     // Alarm interrupts enabled
     bx_bool alarm_match = 1;
-    if ( (BX_CMOS_THIS s.reg[REG_SEC_ALARM] & 0xc0) != 0xc0 ) {
+    if ( (BX_CMOS_THIS_PTR s.reg[REG_SEC_ALARM] & 0xc0) != 0xc0 ) {
       // seconds alarm not in dont care mode
-      if (BX_CMOS_THIS s.reg[REG_SEC] != BX_CMOS_THIS s.reg[REG_SEC_ALARM])
+      if (BX_CMOS_THIS_PTR s.reg[REG_SEC] != BX_CMOS_THIS_PTR s.reg[REG_SEC_ALARM])
      alarm_match = 0;
       }
-    if ( (BX_CMOS_THIS s.reg[REG_MIN_ALARM] & 0xc0) != 0xc0 ) {
+    if ( (BX_CMOS_THIS_PTR s.reg[REG_MIN_ALARM] & 0xc0) != 0xc0 ) {
       // minutes alarm not in dont care mode
-      if (BX_CMOS_THIS s.reg[REG_MIN] != BX_CMOS_THIS s.reg[REG_MIN_ALARM])
+      if (BX_CMOS_THIS_PTR s.reg[REG_MIN] != BX_CMOS_THIS_PTR s.reg[REG_MIN_ALARM])
      alarm_match = 0;
       }
-    if ( (BX_CMOS_THIS s.reg[REG_HOUR_ALARM] & 0xc0) != 0xc0 ) {
+    if ( (BX_CMOS_THIS_PTR s.reg[REG_HOUR_ALARM] & 0xc0) != 0xc0 ) {
       // hours alarm not in dont care mode
-      if (BX_CMOS_THIS s.reg[REG_HOUR] != BX_CMOS_THIS s.reg[REG_HOUR_ALARM])
+      if (BX_CMOS_THIS_PTR s.reg[REG_HOUR] != BX_CMOS_THIS_PTR s.reg[REG_HOUR_ALARM])
      alarm_match = 0;
       }
     if (alarm_match) {
-      BX_CMOS_THIS s.reg[REG_STAT_C] |= 0xa0; // Interrupt Request, Alarm Int
+      BX_CMOS_THIS_PTR s.reg[REG_STAT_C] |= 0xa0; // Interrupt Request, Alarm Int
       DEV_pic_raise_irq(8);
       }
     }
-  BX_CMOS_THIS s.reg[REG_STAT_A] &= 0x7f; // clear UIP bit
+  BX_CMOS_THIS_PTR s.reg[REG_STAT_A] &= 0x7f; // clear UIP bit
 }
 
 
@@ -709,51 +709,51 @@ bx_cmos_c::update_clock()
   unsigned year, month, day, century;
   Bit8u val_bcd;
 
-  time_calendar = localtime(& BX_CMOS_THIS s.timeval);
+  time_calendar = localtime(& BX_CMOS_THIS_PTR s.timeval);
 
   // update seconds
   val_bcd =
      ((time_calendar->tm_sec  / 10) << 4) |
      (time_calendar->tm_sec % 10);
-  BX_CMOS_THIS s.reg[REG_SEC] = val_bcd;
+  BX_CMOS_THIS_PTR s.reg[REG_SEC] = val_bcd;
 
   // update minutes
   val_bcd =
      ((time_calendar->tm_min  / 10) << 4) |
      (time_calendar->tm_min % 10);
-  BX_CMOS_THIS s.reg[REG_MIN] = val_bcd;
+  BX_CMOS_THIS_PTR s.reg[REG_MIN] = val_bcd;
 
   // update hours
   val_bcd =
      ((time_calendar->tm_hour  / 10) << 4) |
      (time_calendar->tm_hour % 10);
-  BX_CMOS_THIS s.reg[REG_HOUR] = val_bcd;
+  BX_CMOS_THIS_PTR s.reg[REG_HOUR] = val_bcd;
 
   // update day of the week
   day = time_calendar->tm_wday + 1; // 0..6 to 1..7
-  BX_CMOS_THIS s.reg[REG_WEEK_DAY] = ((day / 10) << 4) | (day % 10);
+  BX_CMOS_THIS_PTR s.reg[REG_WEEK_DAY] = ((day / 10) << 4) | (day % 10);
 
   // update day of the month
   day = time_calendar->tm_mday;
-  BX_CMOS_THIS s.reg[REG_MONTH_DAY] = ((day / 10) << 4) | (day % 10);
+  BX_CMOS_THIS_PTR s.reg[REG_MONTH_DAY] = ((day / 10) << 4) | (day % 10);
 
   // update month
   month   = time_calendar->tm_mon + 1;
-  BX_CMOS_THIS s.reg[REG_MONTH] = ((month / 10) << 4) | (month % 10);
+  BX_CMOS_THIS_PTR s.reg[REG_MONTH] = ((month / 10) << 4) | (month % 10);
 
   // update year
   year = time_calendar->tm_year % 100;
-  BX_CMOS_THIS s.reg[REG_YEAR] = ((year  / 10) << 4) | (year % 10);
+  BX_CMOS_THIS_PTR s.reg[REG_YEAR] = ((year  / 10) << 4) | (year % 10);
 
   // update century
   century = (time_calendar->tm_year / 100) + 19;
-  BX_CMOS_THIS s.reg[REG_IBM_CENTURY_BYTE] = 
+  BX_CMOS_THIS_PTR s.reg[REG_IBM_CENTURY_BYTE] = 
     ((century  / 10) << 4) | (century % 10);
 
   // Raul Hudea pointed out that some bioses also use reg 0x37 for the 
   // century byte.  Tony Heller says this is critical in getting WinXP to run.
-  BX_CMOS_THIS s.reg[REG_IBM_PS2_CENTURY_BYTE] = 
-    BX_CMOS_THIS s.reg[REG_IBM_CENTURY_BYTE];
+  BX_CMOS_THIS_PTR s.reg[REG_IBM_PS2_CENTURY_BYTE] = 
+    BX_CMOS_THIS_PTR s.reg[REG_IBM_CENTURY_BYTE];
 }
 
   void
@@ -764,43 +764,43 @@ bx_cmos_c::update_timeval()
 
   // update seconds
   val_bin =
-     ((BX_CMOS_THIS s.reg[REG_SEC] >> 4) * 10) +
-     (BX_CMOS_THIS s.reg[REG_SEC] & 0x0f);
+     ((BX_CMOS_THIS_PTR s.reg[REG_SEC] >> 4) * 10) +
+     (BX_CMOS_THIS_PTR s.reg[REG_SEC] & 0x0f);
   time_calendar.tm_sec = val_bin;
 
   // update minutes
   val_bin =
-     ((BX_CMOS_THIS s.reg[REG_MIN] >> 4) * 10) +
-     (BX_CMOS_THIS s.reg[REG_MIN] & 0x0f);
+     ((BX_CMOS_THIS_PTR s.reg[REG_MIN] >> 4) * 10) +
+     (BX_CMOS_THIS_PTR s.reg[REG_MIN] & 0x0f);
   time_calendar.tm_min = val_bin;
 
   // update hours
   val_bin =
-     ((BX_CMOS_THIS s.reg[REG_HOUR] >> 4) * 10) +
-     (BX_CMOS_THIS s.reg[REG_HOUR] & 0x0f);
+     ((BX_CMOS_THIS_PTR s.reg[REG_HOUR] >> 4) * 10) +
+     (BX_CMOS_THIS_PTR s.reg[REG_HOUR] & 0x0f);
   time_calendar.tm_hour = val_bin;
 
   // update day of the month
   val_bin =
-     ((BX_CMOS_THIS s.reg[REG_MONTH_DAY] >> 4) * 10) +
-     (BX_CMOS_THIS s.reg[REG_MONTH_DAY] & 0x0f);
+     ((BX_CMOS_THIS_PTR s.reg[REG_MONTH_DAY] >> 4) * 10) +
+     (BX_CMOS_THIS_PTR s.reg[REG_MONTH_DAY] & 0x0f);
   time_calendar.tm_mday = val_bin;
 
   // update month
   val_bin =
-     ((BX_CMOS_THIS s.reg[REG_MONTH] >> 4) * 10) +
-     (BX_CMOS_THIS s.reg[REG_MONTH] & 0x0f);
+     ((BX_CMOS_THIS_PTR s.reg[REG_MONTH] >> 4) * 10) +
+     (BX_CMOS_THIS_PTR s.reg[REG_MONTH] & 0x0f);
   time_calendar.tm_mon = val_bin - 1;
 
   // update year
   val_bin =
-     ((BX_CMOS_THIS s.reg[REG_IBM_CENTURY_BYTE] >> 4) * 10) +
-     (BX_CMOS_THIS s.reg[REG_IBM_CENTURY_BYTE] & 0x0f);
+     ((BX_CMOS_THIS_PTR s.reg[REG_IBM_CENTURY_BYTE] >> 4) * 10) +
+     (BX_CMOS_THIS_PTR s.reg[REG_IBM_CENTURY_BYTE] & 0x0f);
   val_bin = (val_bin - 19) * 100;
   val_bin +=
-     (((BX_CMOS_THIS s.reg[REG_YEAR] >> 4) * 10) +
-     (BX_CMOS_THIS s.reg[REG_YEAR] & 0x0f));
+     (((BX_CMOS_THIS_PTR s.reg[REG_YEAR] >> 4) * 10) +
+     (BX_CMOS_THIS_PTR s.reg[REG_YEAR] & 0x0f));
   time_calendar.tm_year = val_bin;
 
-  BX_CMOS_THIS s.timeval = mktime(& time_calendar);
+  BX_CMOS_THIS_PTR s.timeval = mktime(& time_calendar);
 }

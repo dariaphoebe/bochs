@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: param.cc,v 1.1.2.2 2003/04/04 03:18:02 bdenney Exp $
+// $Id: param.cc,v 1.1.2.3 2003/04/04 03:46:04 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 
 #ifndef PARAM_STANDALONE
@@ -148,7 +148,8 @@ bx_param_num_c::bx_param_num_c (bx_param_c *parent,
   set (initial_val);
 }
 
-Bit32u bx_param_num_c::default_base = 10;
+#warning slechta changed the default base to 10 for debugging
+Bit32u bx_param_num_c::default_base = 16;
 
 Bit32u bx_param_num_c::set_default_base (Bit32u val) {
   Bit32u old = default_base;
@@ -176,9 +177,9 @@ void bx_param_num_c::set_dependent_list (bx_list_c *l) {
 }
 
 Bit64s 
-bx_param_num_c::get64 ()
+bx_param_num_c::get64 (bx_bool ignore_handler)
 {
-  if (handler) {
+  if (!ignore_handler && handler) {
     // the handler can decide what value to return and/or do some side effect
     return (*handler)(this, 0, val.number);
   } else {
@@ -256,6 +257,8 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->varsize = 16;
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = (this->mask << 1) | 0x1;
+  //printf("0x%llx\n", (Bit64u) mask);
   val.p64bit = ptr_to_real_val;
   this->is_shadow = 1;
 }
@@ -272,6 +275,8 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->varsize = 16;
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = (this->mask << 1) | 0x1;
+  //printf("0x%llx\n", (Bit64u) mask);
   val.p64bit = (Bit64s*) ptr_to_real_val;
   this->is_shadow = 1;
 }
@@ -288,6 +293,8 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->varsize = 16;
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = (this->mask << 1) | 0x1;
+  //printf("0x%llx\n", (Bit64u) mask);
   val.p32bit = ptr_to_real_val;
   this->is_shadow = 1;	
 }
@@ -304,6 +311,8 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->varsize = 32;
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = (this->mask << 1) | 0x1;
+  //printf("0x%llx\n", (Bit64u) mask);
   val.p32bit = (Bit32s*) ptr_to_real_val;
   this->is_shadow = 1;
 }
@@ -320,6 +329,8 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->varsize = 16;
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = (this->mask << 1) | 0x1;
+  //printf("0x%llx\n", (Bit64u) mask);
   val.p16bit = ptr_to_real_val;
   this->is_shadow = 1;
 }
@@ -336,6 +347,8 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->varsize = 16;
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = (this->mask << 1) | 0x1;
+  //printf("0x%llx\n", (Bit64u) mask);
   val.p16bit = (Bit16s*) ptr_to_real_val;
   this->is_shadow = 1;
 }
@@ -352,6 +365,8 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->varsize = 16;
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = (this->mask << 1) | 0x1;
+  //printf("0x%llx\n", (Bit64u) mask);
   val.p8bit = ptr_to_real_val;
   this->is_shadow = 1;
 }
@@ -368,22 +383,25 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
   this->varsize = 8;
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = (this->mask << 1) | 0x1;
+  //printf("0x%llx\n", (Bit64u) mask);
   val.p8bit = (Bit8s*) ptr_to_real_val;
   this->is_shadow = 1;
 }
 
 Bit64s
-bx_shadow_num_c::get64 () {
+bx_shadow_num_c::get64 (bx_bool ignore_handler) {
   Bit64u current = 0;
   switch (varsize) {
-    case 8: current = *(val.p8bit);  break;
+    case 8: current = *(val.p8bit);
+      break;
     case 16: current = *(val.p16bit);  break;
     case 32: current = *(val.p32bit);  break;
     case 64: current = *(val.p64bit);  break;
     default: BX_PANIC(("unsupported varsize %d", varsize));
   }
   current = (current >> lowbit) & mask;
-  if (handler) {
+  if (!ignore_handler && handler) {
     // the handler can decide what value to return and/or do some side effect
     return (*handler)(this, 0, current) & mask;
   } else {
@@ -460,8 +478,8 @@ bx_shadow_bool_c::bx_shadow_bool_c (bx_param_c *parent,
 }
 
 Bit64s
-bx_shadow_bool_c::get64 () {
-  if (handler) {
+bx_shadow_bool_c::get64 (bx_bool ignore_handler) {
+  if (!ignore_handler && handler) {
     // the handler can decide what value to return and/or do some side effect
     Bit64s ret = (*handler)(this, 0, (Bit64s) *(val.pbool));
     return (ret>>bitnum) & 1;
@@ -589,13 +607,13 @@ bx_param_string_c::set_handler (param_string_event_handler handler)
 }
 
 Bit32s
-bx_param_string_c::get (char *buf, int len)
+bx_param_string_c::get (char *buf, int len, bx_bool ignore_handler)
 {
   if (options->get () & RAW_BYTES)
     memcpy (buf, val, len);
   else
     strncpy (buf, val, len);
-  if (handler) {
+  if (!ignore_handler && handler) {
     // the handler can choose to replace the value in val/len.  Also its
     // return value is passed back as the return value of get.
     (*handler)(this, 0, buf, len);
@@ -763,10 +781,12 @@ void param_print_tree (bx_param_c *node, int level)
       }
       break;
     case BXT_PARAM_BOOL:
-      printf ("%s = %s  (boolean)\n", node->get_name(), ((bx_param_bool_c*)node)->get()?"true":"false");
+      printf ("%s = %s  (boolean)\n", node->get_name(), 
+              ((bx_param_bool_c*)node)->get()?"true":"false");
       break;
     case BXT_PARAM_STRING:
-      printf ("%s = '%s'  (string)\n", node->get_name(), ((bx_param_string_c*)node)->getptr());
+      printf ("%s = '%s'  (string)\n", node->get_name(), 
+              ((bx_param_string_c*)node)->getptr());
       break;
     case BXT_LIST:
       {
@@ -832,38 +852,54 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
   switch (node->get_type()) {
   case BXT_PARAM_NUM:
     {
+      if (strcmp(node->get_name(), "last_usec")==0) {
+        printf(" ");
+      }
+
       // number parameters get dumped as either hex or decimal based upon the 
       // 'base' field of the param
       if (node->is_shadow_param())
-        {
-          bx_param_num_c *num = (bx_param_num_c *) node;
-          int base = num->get_base ();
-          BX_ASSERT (base==10 || base==16);
-          fprintf (m_ascii_fp, "%s=", node->get_name ());
-          if (base==10)
-            fprintf (m_ascii_fp, "%d\n", num->get ());
-          else
-            fprintf (m_ascii_fp, "0x%x\n", num->get ());
-          break;
-        }
-      else
         {
           bx_shadow_num_c *num = (bx_shadow_num_c *) node;
           int base = num->get_base ();
           BX_ASSERT (base==10 || base==16);
           fprintf (m_ascii_fp, "%s=", node->get_name ());
           if (base==10)
-            fprintf (m_ascii_fp, "%d\n", num->get ());
+            fprintf (m_ascii_fp, "%ull\n", (Bit64u)num->get64 ());
           else
-            fprintf (m_ascii_fp, "0x%x\n", num->get ());
+            fprintf (m_ascii_fp, "0x%llx\n", (Bit64u)num->get64 ());
+          break;
+        }
+      else
+        {
+          bx_param_num_c *num = (bx_param_num_c *) node;
+          int base = num->get_base ();
+          BX_ASSERT (base==10 || base==16);
+          fprintf (m_ascii_fp, "%s=", node->get_name ());
+          if (base==10)
+            fprintf (m_ascii_fp, "%ull\n", (Bit64u)num->get64 (1/*ignore_handler*/));
+          else
+            fprintf (m_ascii_fp, "0x%llx\n", (Bit64u)num->get64 (1/*ignore_handler*/));
           break;
         }
     }
   case BXT_PARAM_BOOL:
     {
       // boolean get dumped as either 'true' or 'false'
-      fprintf (m_ascii_fp, "%s=%s\n", node->get_name(), 
-               ((bx_param_bool_c*)node)->get()?"true":"false");
+      if (node->is_shadow_param())
+        {
+          fprintf (m_ascii_fp, "%s=%s\n", node->get_name(), 
+                   ((bx_shadow_bool_c*)node)->get()?"true":"false");
+        }
+      else
+        {
+          if (strcmp(node->get_name(), "present")==0)
+            {
+              printf("%s = %d", node->get_name(), ((bx_param_bool_c*)node)->get(1));
+            }
+          fprintf (m_ascii_fp, "%s=%s\n", node->get_name(), 
+                   ((bx_param_bool_c*)node)->get(1/*ignore_handler*/)?"true":"false");
+        }
       break;
     }
   case BXT_PARAM_STRING:
@@ -876,6 +912,7 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
     {
       if (node->is_shadow_param() == 0)
         {
+          // BJS FIXME: no param data!
           BX_PANIC(("bx_param_data_c is not implemented!"));
         }
       else 
@@ -923,10 +960,11 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
     }
   case BXT_PARAM_ENUM:
     {
+      // BJS FIXME: no shadow enums!
       bx_param_enum_c *e = (bx_param_enum_c*) node;
-      int val = e->get ();
-      fprintf (m_ascii_fp, "%s=<enum>0x%x\n", e->get_name (), val); 
-      break;
+      fprintf (m_ascii_fp, "%s=<enum>0x%llx\n", e->get_name (), 
+               (Bit64u)e->get64(1/*ignore_handler*/)); 
+          break;
     }
   case BXT_PARAM:
     {
@@ -1046,6 +1084,15 @@ int bx_checkpoint_c::write(const char *checkpoint_name,
   char *ascii_filename = NULL;
   char *data_filename = NULL;
 
+  // BJS TODO: FIXME:
+  BX_CPU(0)->set_CF(BX_CPU(0)->get_CF());
+  BX_CPU(0)->set_AF(BX_CPU(0)->get_AF());
+  BX_CPU(0)->set_ZF(BX_CPU(0)->get_ZF());
+  BX_CPU(0)->set_SF(BX_CPU(0)->get_SF());
+  BX_CPU(0)->set_OF(BX_CPU(0)->get_OF());
+  BX_CPU(0)->set_PF(BX_CPU(0)->get_PF());
+  BX_CPU(0)->invalidate_prefetch_q();
+
   // before we open new files using, make sure any old handles are closed
   if (m_ascii_fp) 
     {
@@ -1155,6 +1202,15 @@ int bx_checkpoint_c::read(const char *checkpoint_name,
 {
   char *ascii_filename = NULL;
   char *data_filename = NULL;
+
+  // BJS TODO: FIXME:
+  BX_CPU(0)->set_CF(BX_CPU(0)->get_CF());
+  BX_CPU(0)->set_AF(BX_CPU(0)->get_AF());
+  BX_CPU(0)->set_ZF(BX_CPU(0)->get_ZF());
+  BX_CPU(0)->set_SF(BX_CPU(0)->get_SF());
+  BX_CPU(0)->set_OF(BX_CPU(0)->get_OF());
+  BX_CPU(0)->set_PF(BX_CPU(0)->get_PF());
+  BX_CPU(0)->invalidate_prefetch_q();
 
   // before we open new files using, make sure any old handles are closed
   if (m_ascii_fp) 
@@ -1414,7 +1470,11 @@ bx_checkpoint_c::load_param_hex_num(bx_param_c *parent_p,
                 
       // convert the hex string to a long int
       char *str_ptr;
-      long int value = strtol(value_str, &str_ptr, 0);
+      if (strcmp(param_str, "count")==0) 
+        {
+          printf(" ");
+        }
+      Bit64u value = strtoull(value_str, &str_ptr, 0);
       if (*str_ptr != '\0')
         {
           BX_PANIC(("fatal error when loading checkpoint. " \
@@ -1465,7 +1525,7 @@ bx_checkpoint_c::load_param_dec_num(bx_param_c *parent_p,
           
       // convert the hex string to a long int
       char *str_ptr;
-      long int value = strtol(value_str, &str_ptr, 0);
+      Bit64u value = strtoull(value_str, &str_ptr, 0);
       if (*str_ptr != '\0')
         {
           BX_PANIC(("error when loading checkpoint. " \
@@ -1480,6 +1540,7 @@ bx_checkpoint_c::load_param_dec_num(bx_param_c *parent_p,
       // actual loading of new value into location pointed to by shadow
       if (param_p->is_shadow_param())
         {
+          
           ((bx_shadow_num_c*)param_p)->set(value);
         }
       else 
@@ -1546,6 +1607,11 @@ bx_checkpoint_c::load_param_bool(bx_param_c *parent_p,
   for (int i=0; i<level; i++) printf(" ");
   printf("boolean param = %s, value = %s\n", param_str, value_str);
 #endif // #if CHKPT_DEBUG
+
+  if (strcmp(param_str, "present")==0)
+    {
+      printf("%s.%s = %s", qualified_path_str, param_str, value_str);
+    }
 
   bx_param_c *param_p = parent_p->get_by_name(param_str);
   if (param_p == NULL)
@@ -1660,7 +1726,12 @@ bx_checkpoint_c::load_param_enum(bx_param_c *parent_p,
           
       // convert the hex string to a long int
       char *str_ptr;
-      long int value = strtol(value_str, &str_ptr, 0);
+      Bit64u value = strtoull(value_str, &str_ptr, 0);
+      if (*str_ptr != '\0')
+        {
+          BX_PANIC(("error when loading checkpoint. " \
+                   "value not valid with param %s.\n", param_str));
+        }
 
 #if CHKPT_DEBUG
       for (int i=0; i<level; i++) printf(" ");
@@ -1711,7 +1782,7 @@ bx_checkpoint_c::load_param_data(bx_param_c *parent_p,
                 
       // convert the hex string to a long int
       char *str_ptr;
-      long int value = strtol(value_str, &str_ptr, 0);
+      Bit64u value = strtoull(value_str, &str_ptr, 0);
       if (*str_ptr != '\0')
         {
           BX_PANIC(("fatal error when loading checkpoint. " \
@@ -1728,7 +1799,7 @@ bx_checkpoint_c::load_param_data(bx_param_c *parent_p,
         {
           char *size_str = read_next_value();
           char *str_ptr;
-          long int size = strtol(size_str, &str_ptr, 0);
+          Bit64u size = strtoull(size_str, &str_ptr, 0);
           if (*str_ptr != '\0')
             {
               BX_PANIC(("fatal error when loading checkpoint. " \
@@ -1742,6 +1813,7 @@ bx_checkpoint_c::load_param_data(bx_param_c *parent_p,
             }
           else
             {
+              // BJS TODO: TESTME
               free(((bx_shadow_data_c*)param_p)->get());
               new_data_p = (Bit8u*) malloc(size);
               BX_ASSERT((new_data_p != NULL));
@@ -1754,7 +1826,7 @@ bx_checkpoint_c::load_param_data(bx_param_c *parent_p,
               BX_PANIC(("fatal error when loading checkpoint. " \
                         "value not valid with param %s.\n", param_str));
             }
-
+          
           if (fread(new_data_p, sizeof(Bit8u), size, m_data_fp) != size)
             {
               BX_PANIC(("fatal error when loading checkpoint. " \
@@ -1795,7 +1867,7 @@ bx_shadow_data_c::set (void* new_data_ptr, bx_bool ignore_handler=0)
 }
 
 void*
-bx_shadow_data_c::get()
+bx_shadow_data_c::get(bx_bool ignore_handler)
 {
   return (*data);
 }

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: serial.cc,v 1.32.6.1 2003/03/28 09:26:09 slechta Exp $
+// $Id: serial.cc,v 1.32.6.2 2003/04/04 03:46:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -169,93 +169,93 @@ bx_serial_c::init(void)
    */
   for (unsigned i=0; i<BX_SERIAL_CONFDEV; i++) {
     /* internal state */
-    BX_SER_THIS s[i].rx_empty = 1;
-    BX_SER_THIS s[i].tx_empty = 1;
-    BX_SER_THIS s[i].ls_ipending = 0;
-    BX_SER_THIS s[i].ms_ipending = 0;
-    BX_SER_THIS s[i].rx_ipending = 0;
-    BX_SER_THIS s[i].tx_ipending = 0;
-    BX_SER_THIS s[i].ls_interrupt = 0;
-    BX_SER_THIS s[i].ms_interrupt = 0;
-    BX_SER_THIS s[i].rx_interrupt = 0;
-    BX_SER_THIS s[i].tx_interrupt = 0;
+    BX_SER_THIS_PTR s[i].rx_empty = 1;
+    BX_SER_THIS_PTR s[i].tx_empty = 1;
+    BX_SER_THIS_PTR s[i].ls_ipending = 0;
+    BX_SER_THIS_PTR s[i].ms_ipending = 0;
+    BX_SER_THIS_PTR s[i].rx_ipending = 0;
+    BX_SER_THIS_PTR s[i].tx_ipending = 0;
+    BX_SER_THIS_PTR s[i].ls_interrupt = 0;
+    BX_SER_THIS_PTR s[i].ms_interrupt = 0;
+    BX_SER_THIS_PTR s[i].rx_interrupt = 0;
+    BX_SER_THIS_PTR s[i].tx_interrupt = 0;
 
-    if (BX_SER_THIS s[i].tx_timer_index == BX_NULL_TIMER_HANDLE) {
-      BX_SER_THIS s[i].tx_timer_index =
-	bx_pc_system.register_timer(this, tx_timer_handler, 0,
+    if (BX_SER_THIS_PTR s[i].tx_timer_index == BX_NULL_TIMER_HANDLE) {
+      BX_SER_THIS_PTR s[i].tx_timer_index =
+	bx_pc_system.register_timer(BX_SER_THIS, tx_timer_handler, 0,
 				    0,0, "serial.tx"); // one-shot, inactive
     }
 
-    if (BX_SER_THIS s[i].rx_timer_index == BX_NULL_TIMER_HANDLE) {
-      BX_SER_THIS s[i].rx_timer_index =
-	bx_pc_system.register_timer(this, rx_timer_handler, 0,
+    if (BX_SER_THIS_PTR s[i].rx_timer_index == BX_NULL_TIMER_HANDLE) {
+      BX_SER_THIS_PTR s[i].rx_timer_index =
+	bx_pc_system.register_timer(BX_SER_THIS, rx_timer_handler, 0,
 				    0,0, "serial.rx"); // one-shot, inactive
     }
-    BX_SER_THIS s[i].rx_pollstate = BX_SER_RXIDLE;
+    BX_SER_THIS_PTR s[i].rx_pollstate = BX_SER_RXIDLE;
 
     /* int enable: b0000 0000 */
-    BX_SER_THIS s[i].int_enable.rxdata_enable = 0;
-    BX_SER_THIS s[i].int_enable.txhold_enable = 0;
-    BX_SER_THIS s[i].int_enable.rxlstat_enable = 0;
-    BX_SER_THIS s[i].int_enable.modstat_enable = 0;
+    BX_SER_THIS_PTR s[i].int_enable.rxdata_enable = 0;
+    BX_SER_THIS_PTR s[i].int_enable.txhold_enable = 0;
+    BX_SER_THIS_PTR s[i].int_enable.rxlstat_enable = 0;
+    BX_SER_THIS_PTR s[i].int_enable.modstat_enable = 0;
 
     /* int ID: b0000 0001 */
-    BX_SER_THIS s[i].int_ident.ipending = 1;
-    BX_SER_THIS s[i].int_ident.int_ID = 0;
-    BX_SER_THIS s[i].int_ident.fifo_enabled = 0;
+    BX_SER_THIS_PTR s[i].int_ident.ipending = 1;
+    BX_SER_THIS_PTR s[i].int_ident.int_ID = 0;
+    BX_SER_THIS_PTR s[i].int_ident.fifo_enabled = 0;
 
     /* FIFO control: b0000 0000 */
-    BX_SER_THIS s[i].fifo_cntl.enable = 0;
-    BX_SER_THIS s[i].fifo_cntl.rxreset = 0;
-    BX_SER_THIS s[i].fifo_cntl.txreset = 0;
-    BX_SER_THIS s[i].fifo_cntl.dmamode = 0;
-    BX_SER_THIS s[i].fifo_cntl.rxtrigger = 0;
+    BX_SER_THIS_PTR s[i].fifo_cntl.enable = 0;
+    BX_SER_THIS_PTR s[i].fifo_cntl.rxreset = 0;
+    BX_SER_THIS_PTR s[i].fifo_cntl.txreset = 0;
+    BX_SER_THIS_PTR s[i].fifo_cntl.dmamode = 0;
+    BX_SER_THIS_PTR s[i].fifo_cntl.rxtrigger = 0;
 
     /* Line Control reg: b0000 0000 */
-    BX_SER_THIS s[i].line_cntl.wordlen_sel = 0;
-    BX_SER_THIS s[i].line_cntl.stopbits = 0;
-    BX_SER_THIS s[i].line_cntl.parity_enable = 0;
-    BX_SER_THIS s[i].line_cntl.evenparity_sel = 0;
-    BX_SER_THIS s[i].line_cntl.stick_parity = 0;
-    BX_SER_THIS s[i].line_cntl.break_cntl = 0;
-    BX_SER_THIS s[i].line_cntl.dlab = 0;
+    BX_SER_THIS_PTR s[i].line_cntl.wordlen_sel = 0;
+    BX_SER_THIS_PTR s[i].line_cntl.stopbits = 0;
+    BX_SER_THIS_PTR s[i].line_cntl.parity_enable = 0;
+    BX_SER_THIS_PTR s[i].line_cntl.evenparity_sel = 0;
+    BX_SER_THIS_PTR s[i].line_cntl.stick_parity = 0;
+    BX_SER_THIS_PTR s[i].line_cntl.break_cntl = 0;
+    BX_SER_THIS_PTR s[i].line_cntl.dlab = 0;
 
     /* Modem Control reg: b0000 0000 */
-    BX_SER_THIS s[i].modem_cntl.dtr = 0;
-    BX_SER_THIS s[i].modem_cntl.rts = 0;
-    BX_SER_THIS s[i].modem_cntl.out1 = 0;
-    BX_SER_THIS s[i].modem_cntl.out2 = 0;
-    BX_SER_THIS s[i].modem_cntl.local_loopback = 0;
+    BX_SER_THIS_PTR s[i].modem_cntl.dtr = 0;
+    BX_SER_THIS_PTR s[i].modem_cntl.rts = 0;
+    BX_SER_THIS_PTR s[i].modem_cntl.out1 = 0;
+    BX_SER_THIS_PTR s[i].modem_cntl.out2 = 0;
+    BX_SER_THIS_PTR s[i].modem_cntl.local_loopback = 0;
 
     /* Line Status register: b0110 0000 */
-    BX_SER_THIS s[i].line_status.rxdata_ready = 0;
-    BX_SER_THIS s[i].line_status.overrun_error = 0;
-    BX_SER_THIS s[i].line_status.parity_error = 0;
-    BX_SER_THIS s[i].line_status.framing_error = 0;
-    BX_SER_THIS s[i].line_status.break_int = 0;
-    BX_SER_THIS s[i].line_status.txhold_empty = 1;
-    BX_SER_THIS s[i].line_status.txtransm_empty = 1;
-    BX_SER_THIS s[i].line_status.fifo_error = 0;
+    BX_SER_THIS_PTR s[i].line_status.rxdata_ready = 0;
+    BX_SER_THIS_PTR s[i].line_status.overrun_error = 0;
+    BX_SER_THIS_PTR s[i].line_status.parity_error = 0;
+    BX_SER_THIS_PTR s[i].line_status.framing_error = 0;
+    BX_SER_THIS_PTR s[i].line_status.break_int = 0;
+    BX_SER_THIS_PTR s[i].line_status.txhold_empty = 1;
+    BX_SER_THIS_PTR s[i].line_status.txtransm_empty = 1;
+    BX_SER_THIS_PTR s[i].line_status.fifo_error = 0;
 
     /* Modem Status register: bXXXX 0000 */
-    BX_SER_THIS s[i].modem_status.delta_cts = 0;
-    BX_SER_THIS s[i].modem_status.delta_dsr = 0;
-    BX_SER_THIS s[i].modem_status.ri_trailedge = 0;
-    BX_SER_THIS s[i].modem_status.delta_dcd = 0;
-    BX_SER_THIS s[i].modem_status.cts = 0;
-    BX_SER_THIS s[i].modem_status.dsr = 0;
-    BX_SER_THIS s[i].modem_status.ri = 0;
-    BX_SER_THIS s[i].modem_status.dcd = 0;
+    BX_SER_THIS_PTR s[i].modem_status.delta_cts = 0;
+    BX_SER_THIS_PTR s[i].modem_status.delta_dsr = 0;
+    BX_SER_THIS_PTR s[i].modem_status.ri_trailedge = 0;
+    BX_SER_THIS_PTR s[i].modem_status.delta_dcd = 0;
+    BX_SER_THIS_PTR s[i].modem_status.cts = 0;
+    BX_SER_THIS_PTR s[i].modem_status.dsr = 0;
+    BX_SER_THIS_PTR s[i].modem_status.ri = 0;
+    BX_SER_THIS_PTR s[i].modem_status.dcd = 0;
 
-    BX_SER_THIS s[i].scratch = 0;      /* scratch register */
-    BX_SER_THIS s[i].divisor_lsb = 0;  /* divisor-lsb register */
-    BX_SER_THIS s[i].divisor_msb = 0;  /* divisor-msb register */
+    BX_SER_THIS_PTR s[i].scratch = 0;      /* scratch register */
+    BX_SER_THIS_PTR s[i].divisor_lsb = 0;  /* divisor-lsb register */
+    BX_SER_THIS_PTR s[i].divisor_msb = 0;  /* divisor-msb register */
   }
 
   for (unsigned addr=0x03F8; addr<=0x03FF; addr++) {
 	BX_DEBUG(("register read/write: 0x%04x",addr));
-    DEV_register_ioread_handler(this, read_handler, addr, "Serial Port 1", 7);
-    DEV_register_iowrite_handler(this, write_handler, addr, "Serial Port 1", 7);
+    DEV_register_ioread_handler(BX_SER_THIS, read_handler, addr, "Serial Port 1", 7);
+    DEV_register_iowrite_handler(BX_SER_THIS, write_handler, addr, "Serial Port 1", 7);
     }
 
   BX_INFO(( "com1 at 0x3f8/8 irq 4" ));
@@ -265,7 +265,7 @@ bx_serial_c::init(void)
 void
 bx_serial_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_serial_c, this, "serial port devices", list_p, 1);
+  BXRS_START(bx_serial_c, BX_SER_THIS, "serial port devices", list_p, 1);
   BXRS_ARRAY_OBJ(bx_serial_t, s, BX_SERIAL_MAXDEV); 
   BXRS_END;
 }  
@@ -308,32 +308,32 @@ bx_serial_c::read(Bit32u address, unsigned io_len)
 
   switch (address) {
     case 0x03F8: /* receive buffer, or divisor latch LSB if DLAB set */
-      if (BX_SER_THIS s[0].line_cntl.dlab) {
-        val = BX_SER_THIS s[0].divisor_lsb;
+      if (BX_SER_THIS_PTR s[0].line_cntl.dlab) {
+        val = BX_SER_THIS_PTR s[0].divisor_lsb;
       } else {
-        val = BX_SER_THIS s[0].rxbuffer;
-        BX_SER_THIS s[0].line_status.rxdata_ready = 0;
-        BX_SER_THIS s[0].rx_empty = 1;
+        val = BX_SER_THIS_PTR s[0].rxbuffer;
+        BX_SER_THIS_PTR s[0].line_status.rxdata_ready = 0;
+        BX_SER_THIS_PTR s[0].rx_empty = 1;
 
         /* If there are no more ints pending, clear the irq */
-        if ((BX_SER_THIS s[0].tx_interrupt == 0) &&
-            (BX_SER_THIS s[0].ls_interrupt == 0) &&
-            (BX_SER_THIS s[0].ms_interrupt == 0)) {
+        if ((BX_SER_THIS_PTR s[0].tx_interrupt == 0) &&
+            (BX_SER_THIS_PTR s[0].ls_interrupt == 0) &&
+            (BX_SER_THIS_PTR s[0].ms_interrupt == 0)) {
           DEV_pic_lower_irq(4);
         }
-        BX_SER_THIS s[0].rx_interrupt = 0;
-        BX_SER_THIS s[0].rx_ipending = 0;
+        BX_SER_THIS_PTR s[0].rx_interrupt = 0;
+        BX_SER_THIS_PTR s[0].rx_ipending = 0;
       }
       break;
 
     case 0x03F9: /* interrupt enable register, or div. latch MSB */
-      if (BX_SER_THIS s[0].line_cntl.dlab) {
-        val = BX_SER_THIS s[0].divisor_msb;
+      if (BX_SER_THIS_PTR s[0].line_cntl.dlab) {
+        val = BX_SER_THIS_PTR s[0].divisor_msb;
       } else {
-        val = BX_SER_THIS s[0].int_enable.rxdata_enable |
-              (BX_SER_THIS s[0].int_enable.txhold_enable  << 1) |
-              (BX_SER_THIS s[0].int_enable.rxlstat_enable << 2) |
-              (BX_SER_THIS s[0].int_enable.modstat_enable << 3);
+        val = BX_SER_THIS_PTR s[0].int_enable.rxdata_enable |
+              (BX_SER_THIS_PTR s[0].int_enable.txhold_enable  << 1) |
+              (BX_SER_THIS_PTR s[0].int_enable.rxlstat_enable << 2) |
+              (BX_SER_THIS_PTR s[0].int_enable.modstat_enable << 3);
       }
       break;
 
@@ -341,102 +341,102 @@ bx_serial_c::read(Bit32u address, unsigned io_len)
       /*
        * Set the interrupt ID based on interrupt source
        */
-      if (BX_SER_THIS s[0].ls_interrupt) {
-        BX_SER_THIS s[0].int_ident.int_ID = 0x3;
-        BX_SER_THIS s[0].int_ident.ipending = 0;
-      } else if (BX_SER_THIS s[0].rx_interrupt) {
-        BX_SER_THIS s[0].int_ident.int_ID = 0x2;
-        BX_SER_THIS s[0].int_ident.ipending = 0;
-      } else if (BX_SER_THIS s[0].tx_interrupt) {
-        BX_SER_THIS s[0].int_ident.int_ID = 0x1;
-        BX_SER_THIS s[0].int_ident.ipending = 0;
-      } else if (BX_SER_THIS s[0].ms_interrupt) {
-        BX_SER_THIS s[0].int_ident.int_ID = 0x0;
-        BX_SER_THIS s[0].int_ident.ipending = 0;
+      if (BX_SER_THIS_PTR s[0].ls_interrupt) {
+        BX_SER_THIS_PTR s[0].int_ident.int_ID = 0x3;
+        BX_SER_THIS_PTR s[0].int_ident.ipending = 0;
+      } else if (BX_SER_THIS_PTR s[0].rx_interrupt) {
+        BX_SER_THIS_PTR s[0].int_ident.int_ID = 0x2;
+        BX_SER_THIS_PTR s[0].int_ident.ipending = 0;
+      } else if (BX_SER_THIS_PTR s[0].tx_interrupt) {
+        BX_SER_THIS_PTR s[0].int_ident.int_ID = 0x1;
+        BX_SER_THIS_PTR s[0].int_ident.ipending = 0;
+      } else if (BX_SER_THIS_PTR s[0].ms_interrupt) {
+        BX_SER_THIS_PTR s[0].int_ident.int_ID = 0x0;
+        BX_SER_THIS_PTR s[0].int_ident.ipending = 0;
       } else {
-        BX_SER_THIS s[0].int_ident.int_ID = 0x0;
-        BX_SER_THIS s[0].int_ident.ipending = 1;
+        BX_SER_THIS_PTR s[0].int_ident.int_ID = 0x0;
+        BX_SER_THIS_PTR s[0].int_ident.ipending = 1;
       }
 
       /* If there are no more ints pending, clear the irq */
-      if ((BX_SER_THIS s[0].rx_interrupt == 0) &&
-          (BX_SER_THIS s[0].ls_interrupt == 0) &&
-          (BX_SER_THIS s[0].ms_interrupt == 0)) {
+      if ((BX_SER_THIS_PTR s[0].rx_interrupt == 0) &&
+          (BX_SER_THIS_PTR s[0].ls_interrupt == 0) &&
+          (BX_SER_THIS_PTR s[0].ms_interrupt == 0)) {
         DEV_pic_lower_irq(4);
       }
 
-      BX_SER_THIS s[0].tx_interrupt = 0;
-      BX_SER_THIS s[0].tx_ipending = 0;
+      BX_SER_THIS_PTR s[0].tx_interrupt = 0;
+      BX_SER_THIS_PTR s[0].tx_ipending = 0;
 
-      val = BX_SER_THIS s[0].int_ident.ipending  |
-            (BX_SER_THIS s[0].int_ident.int_ID << 1) |
-            (BX_SER_THIS s[0].int_ident.fifo_enabled << 6);
+      val = BX_SER_THIS_PTR s[0].int_ident.ipending  |
+            (BX_SER_THIS_PTR s[0].int_ident.int_ID << 1) |
+            (BX_SER_THIS_PTR s[0].int_ident.fifo_enabled << 6);
       break;
 
     case 0x03FB: /* Line control register */
-      val = BX_SER_THIS s[0].line_cntl.wordlen_sel       |
-	(BX_SER_THIS s[0].line_cntl.stopbits       << 2) |
-	(BX_SER_THIS s[0].line_cntl.parity_enable  << 3) |
-	(BX_SER_THIS s[0].line_cntl.evenparity_sel << 4) |
-	(BX_SER_THIS s[0].line_cntl.stick_parity   << 5) |
-	(BX_SER_THIS s[0].line_cntl.break_cntl     << 6) |
-	(BX_SER_THIS s[0].line_cntl.dlab           << 7);
+      val = BX_SER_THIS_PTR s[0].line_cntl.wordlen_sel       |
+	(BX_SER_THIS_PTR s[0].line_cntl.stopbits       << 2) |
+	(BX_SER_THIS_PTR s[0].line_cntl.parity_enable  << 3) |
+	(BX_SER_THIS_PTR s[0].line_cntl.evenparity_sel << 4) |
+	(BX_SER_THIS_PTR s[0].line_cntl.stick_parity   << 5) |
+	(BX_SER_THIS_PTR s[0].line_cntl.break_cntl     << 6) |
+	(BX_SER_THIS_PTR s[0].line_cntl.dlab           << 7);
       break;
 
     case 0x03FC: /* MODEM control register */
-      val = BX_SER_THIS s[0].modem_cntl.dtr |
-            (BX_SER_THIS s[0].modem_cntl.rts << 1) |
-            (BX_SER_THIS s[0].modem_cntl.out1 << 2) |
-            (BX_SER_THIS s[0].modem_cntl.out2 << 3) |
-            (BX_SER_THIS s[0].modem_cntl.local_loopback << 4);
+      val = BX_SER_THIS_PTR s[0].modem_cntl.dtr |
+            (BX_SER_THIS_PTR s[0].modem_cntl.rts << 1) |
+            (BX_SER_THIS_PTR s[0].modem_cntl.out1 << 2) |
+            (BX_SER_THIS_PTR s[0].modem_cntl.out2 << 3) |
+            (BX_SER_THIS_PTR s[0].modem_cntl.local_loopback << 4);
       break;
 
     case 0x03FD: /* Line status register */
-      val = BX_SER_THIS s[0].line_status.rxdata_ready     |
-	(BX_SER_THIS s[0].line_status.overrun_error  << 1) |
-	(BX_SER_THIS s[0].line_status.parity_error   << 2) |
-	(BX_SER_THIS s[0].line_status.framing_error  << 3) |
-	(BX_SER_THIS s[0].line_status.break_int      << 4) |
-	(BX_SER_THIS s[0].line_status.txhold_empty   << 5) |
-	(BX_SER_THIS s[0].line_status.txtransm_empty << 6) |
-	(BX_SER_THIS s[0].line_status.fifo_error     << 7);
-      BX_SER_THIS s[0].line_status.overrun_error = 0;
-      BX_SER_THIS s[0].line_status.break_int = 0;
+      val = BX_SER_THIS_PTR s[0].line_status.rxdata_ready     |
+	(BX_SER_THIS_PTR s[0].line_status.overrun_error  << 1) |
+	(BX_SER_THIS_PTR s[0].line_status.parity_error   << 2) |
+	(BX_SER_THIS_PTR s[0].line_status.framing_error  << 3) |
+	(BX_SER_THIS_PTR s[0].line_status.break_int      << 4) |
+	(BX_SER_THIS_PTR s[0].line_status.txhold_empty   << 5) |
+	(BX_SER_THIS_PTR s[0].line_status.txtransm_empty << 6) |
+	(BX_SER_THIS_PTR s[0].line_status.fifo_error     << 7);
+      BX_SER_THIS_PTR s[0].line_status.overrun_error = 0;
+      BX_SER_THIS_PTR s[0].line_status.break_int = 0;
       /* If there are no more ints pending, clear the irq */
-      if ((BX_SER_THIS s[0].rx_interrupt == 0) &&
-          (BX_SER_THIS s[0].tx_interrupt == 0) &&
-          (BX_SER_THIS s[0].ms_interrupt == 0)) {
+      if ((BX_SER_THIS_PTR s[0].rx_interrupt == 0) &&
+          (BX_SER_THIS_PTR s[0].tx_interrupt == 0) &&
+          (BX_SER_THIS_PTR s[0].ms_interrupt == 0)) {
         DEV_pic_lower_irq(4);
       }
-      BX_SER_THIS s[0].ls_interrupt = 0;
-      BX_SER_THIS s[0].ls_ipending = 0;
+      BX_SER_THIS_PTR s[0].ls_interrupt = 0;
+      BX_SER_THIS_PTR s[0].ls_ipending = 0;
       break;
 
     case 0x03FE: /* MODEM status register */
-      val = BX_SER_THIS s[0].modem_status.delta_cts       |
-	(BX_SER_THIS s[0].modem_status.delta_dsr    << 1) |
-	(BX_SER_THIS s[0].modem_status.ri_trailedge << 2) |
-	(BX_SER_THIS s[0].modem_status.delta_dcd    << 3) |
-	(BX_SER_THIS s[0].modem_status.cts          << 4) |
-	(BX_SER_THIS s[0].modem_status.dsr          << 5) |
-	(BX_SER_THIS s[0].modem_status.ri           << 6) |
-	(BX_SER_THIS s[0].modem_status.dcd          << 7);
-      BX_SER_THIS s[0].modem_status.delta_cts = 0;
-      BX_SER_THIS s[0].modem_status.delta_dsr = 0;
-      BX_SER_THIS s[0].modem_status.ri_trailedge = 0;
-      BX_SER_THIS s[0].modem_status.delta_dcd = 0;
+      val = BX_SER_THIS_PTR s[0].modem_status.delta_cts       |
+	(BX_SER_THIS_PTR s[0].modem_status.delta_dsr    << 1) |
+	(BX_SER_THIS_PTR s[0].modem_status.ri_trailedge << 2) |
+	(BX_SER_THIS_PTR s[0].modem_status.delta_dcd    << 3) |
+	(BX_SER_THIS_PTR s[0].modem_status.cts          << 4) |
+	(BX_SER_THIS_PTR s[0].modem_status.dsr          << 5) |
+	(BX_SER_THIS_PTR s[0].modem_status.ri           << 6) |
+	(BX_SER_THIS_PTR s[0].modem_status.dcd          << 7);
+      BX_SER_THIS_PTR s[0].modem_status.delta_cts = 0;
+      BX_SER_THIS_PTR s[0].modem_status.delta_dsr = 0;
+      BX_SER_THIS_PTR s[0].modem_status.ri_trailedge = 0;
+      BX_SER_THIS_PTR s[0].modem_status.delta_dcd = 0;
       /* If there are no more ints pending, clear the irq */
-      if ((BX_SER_THIS s[0].rx_interrupt == 0) &&
-          (BX_SER_THIS s[0].tx_interrupt == 0) &&
-          (BX_SER_THIS s[0].ls_interrupt == 0)) {
+      if ((BX_SER_THIS_PTR s[0].rx_interrupt == 0) &&
+          (BX_SER_THIS_PTR s[0].tx_interrupt == 0) &&
+          (BX_SER_THIS_PTR s[0].ls_interrupt == 0)) {
         DEV_pic_lower_irq(4);
       }
-      BX_SER_THIS s[0].ms_interrupt = 0;
-      BX_SER_THIS s[0].ms_ipending = 0;
+      BX_SER_THIS_PTR s[0].ms_interrupt = 0;
+      BX_SER_THIS_PTR s[0].ms_ipending = 0;
       break;
 
     case 0x03FF: /* scratch register */
-      val = BX_SER_THIS s[0].scratch;
+      val = BX_SER_THIS_PTR s[0].scratch;
       break;
 
     default:
@@ -484,34 +484,34 @@ bx_serial_c::write(Bit32u address, Bit32u value, unsigned io_len)
 
   switch (address) {
     case 0x03F8: /* transmit buffer, or divisor latch LSB if DLAB set */
-      if (BX_SER_THIS s[0].line_cntl.dlab) {
-	BX_SER_THIS s[0].divisor_lsb = value;
+      if (BX_SER_THIS_PTR s[0].line_cntl.dlab) {
+	BX_SER_THIS_PTR s[0].divisor_lsb = value;
 
 	if (value != 0) {
-	  BX_SER_THIS s[0].baudrate = (int) (BX_PC_CLOCK_XTL /
-			  (16 * ((BX_SER_THIS s[0].divisor_msb << 8) |
-				 BX_SER_THIS s[0].divisor_lsb)));
+	  BX_SER_THIS_PTR s[0].baudrate = (int) (BX_PC_CLOCK_XTL /
+			  (16 * ((BX_SER_THIS_PTR s[0].divisor_msb << 8) |
+				 BX_SER_THIS_PTR s[0].divisor_lsb)));
 #if USE_RAW_SERIAL
-	  BX_SER_THIS raw->set_baudrate(BX_SER_THIS s[0].baudrate);
+	  BX_SER_THIS_PTR raw->set_baudrate(BX_SER_THIS_PTR s[0].baudrate);
 #endif // USE_RAW_SERIAL
 	}
       } else {
-        if (BX_SER_THIS s[0].tx_empty) {
-          BX_SER_THIS s[0].tx_empty = 0;
-          BX_SER_THIS s[0].line_status.txtransm_empty = 0;
-          BX_SER_THIS s[0].line_status.txhold_empty = 0;
+        if (BX_SER_THIS_PTR s[0].tx_empty) {
+          BX_SER_THIS_PTR s[0].tx_empty = 0;
+          BX_SER_THIS_PTR s[0].line_status.txtransm_empty = 0;
+          BX_SER_THIS_PTR s[0].line_status.txhold_empty = 0;
           /* If there are no more ints pending, clear the irq */
-          if ((BX_SER_THIS s[0].rx_interrupt == 0) &&
-              (BX_SER_THIS s[0].ls_interrupt == 0) &&
-              (BX_SER_THIS s[0].ms_interrupt == 0)) {
+          if ((BX_SER_THIS_PTR s[0].rx_interrupt == 0) &&
+              (BX_SER_THIS_PTR s[0].ls_interrupt == 0) &&
+              (BX_SER_THIS_PTR s[0].ms_interrupt == 0)) {
             DEV_pic_lower_irq(4);
           }
-          BX_SER_THIS s[0].tx_interrupt = 0;
-          BX_SER_THIS s[0].tx_ipending = 0;
-          Bit8u bitmask = 0xff >> (3 - BX_SER_THIS s[0].line_cntl.wordlen_sel);
-          BX_SER_THIS s[0].txbuffer = value & bitmask;
-          bx_pc_system.activate_timer(BX_SER_THIS s[0].tx_timer_index,
-                                      (int) (1000000.0 / (BX_SER_THIS s[0].baudrate / 8)),
+          BX_SER_THIS_PTR s[0].tx_interrupt = 0;
+          BX_SER_THIS_PTR s[0].tx_ipending = 0;
+          Bit8u bitmask = 0xff >> (3 - BX_SER_THIS_PTR s[0].line_cntl.wordlen_sel);
+          BX_SER_THIS_PTR s[0].txbuffer = value & bitmask;
+          bx_pc_system.activate_timer(BX_SER_THIS_PTR s[0].tx_timer_index,
+                                      (int) (1000000.0 / (BX_SER_THIS_PTR s[0].baudrate / 8)),
                                       0); /* not continuous */
         } else {
           BX_ERROR(("write to tx hold register when not empty"));
@@ -520,43 +520,43 @@ bx_serial_c::write(Bit32u address, Bit32u value, unsigned io_len)
       break;
 
     case 0x03F9: /* interrupt enable register, or div. latch MSB */
-      if (BX_SER_THIS s[0].line_cntl.dlab) {
-	BX_SER_THIS s[0].divisor_msb = value;
+      if (BX_SER_THIS_PTR s[0].line_cntl.dlab) {
+	BX_SER_THIS_PTR s[0].divisor_msb = value;
 
-	if (BX_SER_THIS s[0].divisor_msb != 0 && value != 0) {
-	  BX_SER_THIS s[0].baudrate = (int) (BX_PC_CLOCK_XTL /
-		       (16 * ((BX_SER_THIS s[0].divisor_msb << 8) |
-			      BX_SER_THIS s[0].divisor_lsb)));
+	if (BX_SER_THIS_PTR s[0].divisor_msb != 0 && value != 0) {
+	  BX_SER_THIS_PTR s[0].baudrate = (int) (BX_PC_CLOCK_XTL /
+		       (16 * ((BX_SER_THIS_PTR s[0].divisor_msb << 8) |
+			      BX_SER_THIS_PTR s[0].divisor_lsb)));
 #if USE_RAW_SERIAL
-	  BX_SER_THIS raw->set_baudrate(BX_SER_THIS s[0].baudrate);
+	  BX_SER_THIS_PTR raw->set_baudrate(BX_SER_THIS_PTR s[0].baudrate);
 #endif // USE_RAW_SERIAL
 	}
       } else {
-	BX_SER_THIS s[0].int_enable.rxdata_enable  = value & 0x01;
-	BX_SER_THIS s[0].int_enable.txhold_enable  = (value & 0x02) >> 1;
-	BX_SER_THIS s[0].int_enable.rxlstat_enable = (value & 0x04) >> 2;
-	BX_SER_THIS s[0].int_enable.modstat_enable = (value & 0x08) >> 3;
-        if ((BX_SER_THIS s[0].ms_ipending == 1) &&
-            (BX_SER_THIS s[0].int_enable.modstat_enable == 1)) {
-          BX_SER_THIS s[0].ms_interrupt = 1;
-          BX_SER_THIS s[0].ms_ipending = 0;
+	BX_SER_THIS_PTR s[0].int_enable.rxdata_enable  = value & 0x01;
+	BX_SER_THIS_PTR s[0].int_enable.txhold_enable  = (value & 0x02) >> 1;
+	BX_SER_THIS_PTR s[0].int_enable.rxlstat_enable = (value & 0x04) >> 2;
+	BX_SER_THIS_PTR s[0].int_enable.modstat_enable = (value & 0x08) >> 3;
+        if ((BX_SER_THIS_PTR s[0].ms_ipending == 1) &&
+            (BX_SER_THIS_PTR s[0].int_enable.modstat_enable == 1)) {
+          BX_SER_THIS_PTR s[0].ms_interrupt = 1;
+          BX_SER_THIS_PTR s[0].ms_ipending = 0;
           gen_int = 1;
         }
-        if ((BX_SER_THIS s[0].tx_ipending == 1) &&
-            (BX_SER_THIS s[0].int_enable.txhold_enable == 1)) {
-          BX_SER_THIS s[0].tx_interrupt = 1;
-          BX_SER_THIS s[0].tx_ipending = 0;
+        if ((BX_SER_THIS_PTR s[0].tx_ipending == 1) &&
+            (BX_SER_THIS_PTR s[0].int_enable.txhold_enable == 1)) {
+          BX_SER_THIS_PTR s[0].tx_interrupt = 1;
+          BX_SER_THIS_PTR s[0].tx_ipending = 0;
           gen_int = 1;
         }
-        if ((BX_SER_THIS s[0].rx_ipending == 1) &&
-            (BX_SER_THIS s[0].int_enable.rxdata_enable == 1)) {
-          BX_SER_THIS s[0].rx_interrupt = 1;
-          BX_SER_THIS s[0].rx_ipending = 0;
+        if ((BX_SER_THIS_PTR s[0].rx_ipending == 1) &&
+            (BX_SER_THIS_PTR s[0].int_enable.rxdata_enable == 1)) {
+          BX_SER_THIS_PTR s[0].rx_interrupt = 1;
+          BX_SER_THIS_PTR s[0].rx_ipending = 0;
           gen_int = 1;
-        if ((BX_SER_THIS s[0].ls_ipending == 1) &&
-            (BX_SER_THIS s[0].int_enable.rxlstat_enable == 1)) {
-          BX_SER_THIS s[0].ls_interrupt = 1;
-          BX_SER_THIS s[0].ls_ipending = 0;
+        if ((BX_SER_THIS_PTR s[0].ls_ipending == 1) &&
+            (BX_SER_THIS_PTR s[0].int_enable.rxlstat_enable == 1)) {
+          BX_SER_THIS_PTR s[0].ls_interrupt = 1;
+          BX_SER_THIS_PTR s[0].ls_ipending = 0;
           gen_int = 1;
         }
         }
@@ -577,99 +577,99 @@ bx_serial_c::write(Bit32u address, Bit32u value, unsigned io_len)
       }
 #endif // !USE_RAW_SERIAL
 #if USE_RAW_SERIAL
-      if (BX_SER_THIS s[0].line_cntl.wordlen_sel != (value & 0x3)) {
-	    BX_SER_THIS raw->set_data_bits((value & 0x3) + 5);
+      if (BX_SER_THIS_PTR s[0].line_cntl.wordlen_sel != (value & 0x3)) {
+	    BX_SER_THIS_PTR raw->set_data_bits((value & 0x3) + 5);
       }
-      if (BX_SER_THIS s[0].line_cntl.stopbits != (value & 0x4) >> 2) {
-	    BX_SER_THIS raw->set_stop_bits((value & 0x4 >> 2) ? 2 : 1);
+      if (BX_SER_THIS_PTR s[0].line_cntl.stopbits != (value & 0x4) >> 2) {
+	    BX_SER_THIS_PTR raw->set_stop_bits((value & 0x4 >> 2) ? 2 : 1);
       }
-      if (BX_SER_THIS s[0].line_cntl.parity_enable != (value & 0x8) >> 3 ||
-	  BX_SER_THIS s[0].line_cntl.evenparity_sel != (value & 0x10) >> 4 ||
-	  BX_SER_THIS s[0].line_cntl.stick_parity != (value & 0x20) >> 5) {
+      if (BX_SER_THIS_PTR s[0].line_cntl.parity_enable != (value & 0x8) >> 3 ||
+	  BX_SER_THIS_PTR s[0].line_cntl.evenparity_sel != (value & 0x10) >> 4 ||
+	  BX_SER_THIS_PTR s[0].line_cntl.stick_parity != (value & 0x20) >> 5) {
 	    if (((value & 0x20) >> 5) &&
 		((value & 0x8) >> 3))
 		  BX_PANIC(("sticky parity set and parity enabled"));
-	    BX_SER_THIS raw->set_parity_mode(((value & 0x8) >> 3),
+	    BX_SER_THIS_PTR raw->set_parity_mode(((value & 0x8) >> 3),
 					     ((value & 0x10) >> 4) ? P_EVEN : P_ODD);
       }
-      if (BX_SER_THIS s[0].line_cntl.break_cntl && !((value & 0x40) >> 6)) {
-	    BX_SER_THIS raw->transmit(C_BREAK);
+      if (BX_SER_THIS_PTR s[0].line_cntl.break_cntl && !((value & 0x40) >> 6)) {
+	    BX_SER_THIS_PTR raw->transmit(C_BREAK);
       }
 #endif // USE_RAW_SERIAL
 
-      BX_SER_THIS s[0].line_cntl.wordlen_sel = value & 0x3;
+      BX_SER_THIS_PTR s[0].line_cntl.wordlen_sel = value & 0x3;
       /* These are ignored, but set them up so they can be read back */
-      BX_SER_THIS s[0].line_cntl.stopbits = (value & 0x4) >> 2;
-      BX_SER_THIS s[0].line_cntl.parity_enable = (value & 0x8) >> 3;
-      BX_SER_THIS s[0].line_cntl.evenparity_sel = (value & 0x10) >> 4;
-      BX_SER_THIS s[0].line_cntl.stick_parity = (value & 0x20) >> 5;
-      BX_SER_THIS s[0].line_cntl.break_cntl = (value & 0x40) >> 6;
+      BX_SER_THIS_PTR s[0].line_cntl.stopbits = (value & 0x4) >> 2;
+      BX_SER_THIS_PTR s[0].line_cntl.parity_enable = (value & 0x8) >> 3;
+      BX_SER_THIS_PTR s[0].line_cntl.evenparity_sel = (value & 0x10) >> 4;
+      BX_SER_THIS_PTR s[0].line_cntl.stick_parity = (value & 0x20) >> 5;
+      BX_SER_THIS_PTR s[0].line_cntl.break_cntl = (value & 0x40) >> 6;
       /* used when doing future writes */
-      if (BX_SER_THIS s[0].line_cntl.dlab &&
+      if (BX_SER_THIS_PTR s[0].line_cntl.dlab &&
 	  !((value & 0x80) >> 7)) {
 	// Start the receive polling process if not already started
 	// and there is a valid baudrate. Poll every 4 bit times
-	if (BX_SER_THIS s[0].rx_pollstate == BX_SER_RXIDLE &&
-	    BX_SER_THIS s[0].baudrate != 0) {
-	  BX_SER_THIS s[0].rx_pollstate = BX_SER_RXPOLL;
-	  bx_pc_system.activate_timer(BX_SER_THIS s[0].rx_timer_index,
-		      (int) (1000000.0 / (BX_SER_THIS s[0].baudrate / 4)),
+	if (BX_SER_THIS_PTR s[0].rx_pollstate == BX_SER_RXIDLE &&
+	    BX_SER_THIS_PTR s[0].baudrate != 0) {
+	  BX_SER_THIS_PTR s[0].rx_pollstate = BX_SER_RXPOLL;
+	  bx_pc_system.activate_timer(BX_SER_THIS_PTR s[0].rx_timer_index,
+		      (int) (1000000.0 / (BX_SER_THIS_PTR s[0].baudrate / 4)),
 				      0); /* not continuous */
 	}
-	BX_DEBUG(("baud rate set - %d", BX_SER_THIS s[0].baudrate));
+	BX_DEBUG(("baud rate set - %d", BX_SER_THIS_PTR s[0].baudrate));
       }
-      BX_SER_THIS s[0].line_cntl.dlab = (value & 0x80) >> 7;
+      BX_SER_THIS_PTR s[0].line_cntl.dlab = (value & 0x80) >> 7;
       break;
 
     case 0x03FC: /* MODEM control register */
       if ((value & 0x01) == 0) {
 #if USE_RAW_SERIAL
-	BX_SER_THIS raw->send_hangup();
+	BX_SER_THIS_PTR raw->send_hangup();
 #endif
       }
 
-      BX_SER_THIS s[0].modem_cntl.dtr  = value & 0x01;
-      BX_SER_THIS s[0].modem_cntl.rts  = (value & 0x02) >> 1;
-      BX_SER_THIS s[0].modem_cntl.out1 = (value & 0x04) >> 2;
-      BX_SER_THIS s[0].modem_cntl.out2 = (value & 0x08) >> 3;
-      BX_SER_THIS s[0].modem_cntl.local_loopback = (value & 0x10) >> 4;
+      BX_SER_THIS_PTR s[0].modem_cntl.dtr  = value & 0x01;
+      BX_SER_THIS_PTR s[0].modem_cntl.rts  = (value & 0x02) >> 1;
+      BX_SER_THIS_PTR s[0].modem_cntl.out1 = (value & 0x04) >> 2;
+      BX_SER_THIS_PTR s[0].modem_cntl.out2 = (value & 0x08) >> 3;
+      BX_SER_THIS_PTR s[0].modem_cntl.local_loopback = (value & 0x10) >> 4;
 
-      if (BX_SER_THIS s[0].modem_cntl.local_loopback) {
-        prev_cts = BX_SER_THIS s[0].modem_status.cts;
-        prev_dsr = BX_SER_THIS s[0].modem_status.dsr;
-        prev_ri  = BX_SER_THIS s[0].modem_status.ri;
-        prev_dcd = BX_SER_THIS s[0].modem_status.dcd;
-        BX_SER_THIS s[0].modem_status.cts = BX_SER_THIS s[0].modem_cntl.rts;
-        BX_SER_THIS s[0].modem_status.dsr = BX_SER_THIS s[0].modem_cntl.dtr;
-        BX_SER_THIS s[0].modem_status.ri  = BX_SER_THIS s[0].modem_cntl.out1;
-        BX_SER_THIS s[0].modem_status.dcd = BX_SER_THIS s[0].modem_cntl.out2;
-        if (BX_SER_THIS s[0].modem_status.cts != prev_cts) {
-          BX_SER_THIS s[0].modem_status.delta_cts = 1;
-          BX_SER_THIS s[0].ms_ipending = 1;
+      if (BX_SER_THIS_PTR s[0].modem_cntl.local_loopback) {
+        prev_cts = BX_SER_THIS_PTR s[0].modem_status.cts;
+        prev_dsr = BX_SER_THIS_PTR s[0].modem_status.dsr;
+        prev_ri  = BX_SER_THIS_PTR s[0].modem_status.ri;
+        prev_dcd = BX_SER_THIS_PTR s[0].modem_status.dcd;
+        BX_SER_THIS_PTR s[0].modem_status.cts = BX_SER_THIS_PTR s[0].modem_cntl.rts;
+        BX_SER_THIS_PTR s[0].modem_status.dsr = BX_SER_THIS_PTR s[0].modem_cntl.dtr;
+        BX_SER_THIS_PTR s[0].modem_status.ri  = BX_SER_THIS_PTR s[0].modem_cntl.out1;
+        BX_SER_THIS_PTR s[0].modem_status.dcd = BX_SER_THIS_PTR s[0].modem_cntl.out2;
+        if (BX_SER_THIS_PTR s[0].modem_status.cts != prev_cts) {
+          BX_SER_THIS_PTR s[0].modem_status.delta_cts = 1;
+          BX_SER_THIS_PTR s[0].ms_ipending = 1;
         }
-        if (BX_SER_THIS s[0].modem_status.dsr != prev_dsr) {
-          BX_SER_THIS s[0].modem_status.delta_dsr = 1;
-          BX_SER_THIS s[0].ms_ipending = 1;
+        if (BX_SER_THIS_PTR s[0].modem_status.dsr != prev_dsr) {
+          BX_SER_THIS_PTR s[0].modem_status.delta_dsr = 1;
+          BX_SER_THIS_PTR s[0].ms_ipending = 1;
         }
-        if (BX_SER_THIS s[0].modem_status.ri != prev_ri)
-          BX_SER_THIS s[0].ms_ipending = 1;
-        if ((BX_SER_THIS s[0].modem_status.ri == 0) && (prev_ri == 1))
-          BX_SER_THIS s[0].modem_status.ri_trailedge = 1;
-        if (BX_SER_THIS s[0].modem_status.dcd != prev_dcd) {
-          BX_SER_THIS s[0].modem_status.delta_dcd = 1;
-          BX_SER_THIS s[0].ms_ipending = 1;
+        if (BX_SER_THIS_PTR s[0].modem_status.ri != prev_ri)
+          BX_SER_THIS_PTR s[0].ms_ipending = 1;
+        if ((BX_SER_THIS_PTR s[0].modem_status.ri == 0) && (prev_ri == 1))
+          BX_SER_THIS_PTR s[0].modem_status.ri_trailedge = 1;
+        if (BX_SER_THIS_PTR s[0].modem_status.dcd != prev_dcd) {
+          BX_SER_THIS_PTR s[0].modem_status.delta_dcd = 1;
+          BX_SER_THIS_PTR s[0].ms_ipending = 1;
         }
-        if ((BX_SER_THIS s[0].ms_ipending == 1) &&
-            (BX_SER_THIS s[0].int_enable.modstat_enable == 1)) {
-          BX_SER_THIS s[0].ms_interrupt = 1;
-          BX_SER_THIS s[0].ms_ipending = 0;
+        if ((BX_SER_THIS_PTR s[0].ms_ipending == 1) &&
+            (BX_SER_THIS_PTR s[0].int_enable.modstat_enable == 1)) {
+          BX_SER_THIS_PTR s[0].ms_interrupt = 1;
+          BX_SER_THIS_PTR s[0].ms_ipending = 0;
         }
       } else {
         /* set these to 0 for the time being */
-        BX_SER_THIS s[0].modem_status.cts = 0;
-        BX_SER_THIS s[0].modem_status.dsr = 0;
-        BX_SER_THIS s[0].modem_status.ri  = 0;
-        BX_SER_THIS s[0].modem_status.dcd = 0;
+        BX_SER_THIS_PTR s[0].modem_status.cts = 0;
+        BX_SER_THIS_PTR s[0].modem_status.dsr = 0;
+        BX_SER_THIS_PTR s[0].modem_status.ri  = 0;
+        BX_SER_THIS_PTR s[0].modem_status.dcd = 0;
       }
       break;
 
@@ -682,7 +682,7 @@ bx_serial_c::write(Bit32u address, Bit32u value, unsigned io_len)
       break;
 
     case 0x03FF: /* scratch register */
-      BX_SER_THIS s[0].scratch = value;
+      BX_SER_THIS_PTR s[0].scratch = value;
       break;
 
     default:
@@ -706,47 +706,47 @@ bx_serial_c::tx_timer(void)
 {
   int gen_int = 0;
 
-  BX_SER_THIS s[0].tx_empty = 1;
-  BX_SER_THIS s[0].line_status.txtransm_empty = 1;
-  BX_SER_THIS s[0].line_status.txhold_empty = 1;
-  if (BX_SER_THIS s[0].int_enable.txhold_enable) {
+  BX_SER_THIS_PTR s[0].tx_empty = 1;
+  BX_SER_THIS_PTR s[0].line_status.txtransm_empty = 1;
+  BX_SER_THIS_PTR s[0].line_status.txhold_empty = 1;
+  if (BX_SER_THIS_PTR s[0].int_enable.txhold_enable) {
     gen_int = 1;
-    BX_SER_THIS s[0].tx_interrupt = 1;
+    BX_SER_THIS_PTR s[0].tx_interrupt = 1;
   } else {
-    BX_SER_THIS s[0].tx_ipending = 1;
+    BX_SER_THIS_PTR s[0].tx_ipending = 1;
   }
 
-  if (BX_SER_THIS s[0].modem_cntl.local_loopback) {
-    if (BX_SER_THIS s[0].rx_empty == 0)
-      BX_SER_THIS s[0].line_status.overrun_error = 1;
-    BX_SER_THIS s[0].rxbuffer = BX_SER_THIS s[0].txbuffer;
-    BX_SER_THIS s[0].line_status.rxdata_ready = 1;
-    BX_SER_THIS s[0].rx_empty = 0;
-    if (BX_SER_THIS s[0].modem_cntl.out2) {
-      if (BX_SER_THIS s[0].int_enable.rxdata_enable) {
+  if (BX_SER_THIS_PTR s[0].modem_cntl.local_loopback) {
+    if (BX_SER_THIS_PTR s[0].rx_empty == 0)
+      BX_SER_THIS_PTR s[0].line_status.overrun_error = 1;
+    BX_SER_THIS_PTR s[0].rxbuffer = BX_SER_THIS_PTR s[0].txbuffer;
+    BX_SER_THIS_PTR s[0].line_status.rxdata_ready = 1;
+    BX_SER_THIS_PTR s[0].rx_empty = 0;
+    if (BX_SER_THIS_PTR s[0].modem_cntl.out2) {
+      if (BX_SER_THIS_PTR s[0].int_enable.rxdata_enable) {
         gen_int = 1;
-        BX_SER_THIS s[0].rx_interrupt = 1;
+        BX_SER_THIS_PTR s[0].rx_interrupt = 1;
       } else {
-        BX_SER_THIS s[0].rx_ipending = 1;
+        BX_SER_THIS_PTR s[0].rx_ipending = 1;
       }
-      if (BX_SER_THIS s[0].int_enable.rxlstat_enable) {
+      if (BX_SER_THIS_PTR s[0].int_enable.rxlstat_enable) {
         gen_int = 1;
-        BX_SER_THIS s[0].ls_interrupt = 1;
+        BX_SER_THIS_PTR s[0].ls_interrupt = 1;
       } else {
-        BX_SER_THIS s[0].ls_ipending = 1;
+        BX_SER_THIS_PTR s[0].ls_ipending = 1;
       }
     }
   } else {
 #if defined (USE_TTY_HACK)
-    tty(tty_id, 0, & BX_SER_THIS s[0].txbuffer);
+    tty(tty_id, 0, & BX_SER_THIS_PTR s[0].txbuffer);
 #elif USE_RAW_SERIAL
-    if (!BX_SER_THIS raw->ready_transmit())
+    if (!BX_SER_THIS_PTR raw->ready_transmit())
 	  BX_PANIC(("Not ready to transmit"));
-    BX_SER_THIS raw->transmit(BX_SER_THIS s[0].txbuffer);
+    BX_SER_THIS_PTR raw->transmit(BX_SER_THIS_PTR s[0].txbuffer);
 #endif
 #if defined(SERIAL_ENABLE)
-    BX_DEBUG(("write: '%c'", BX_SER_THIS s[0].txbuffer));
-    if (tty_id >= 0) write(tty_id, (bx_ptr_t) & BX_SER_THIS s[0].txbuffer, 1);
+    BX_DEBUG(("write: '%c'", BX_SER_THIS_PTR s[0].txbuffer));
+    if (tty_id >= 0) write(tty_id, (bx_ptr_t) & BX_SER_THIS_PTR s[0].txbuffer, 1);
 #endif
   }
 
@@ -774,7 +774,7 @@ bx_serial_c::rx_timer(void)
   fd_set fds;
 #endif
 #endif
-  int bdrate = BX_SER_THIS s[0].baudrate / 8;
+  int bdrate = BX_SER_THIS_PTR s[0].baudrate / 8;
   unsigned char chbuf = 0;
 
 #if BX_HAVE_SELECT
@@ -790,18 +790,18 @@ bx_serial_c::rx_timer(void)
   FD_ZERO(&fds);
   if (tty_id >= 0) FD_SET(tty_id, &fds);
 
-  if (BX_SER_THIS s[0].line_status.rxdata_ready == 0) {
+  if (BX_SER_THIS_PTR s[0].line_status.rxdata_ready == 0) {
 #if defined (USE_TTY_HACK)
     if (tty_prefetch_char(tty_id)) {
       tty(tty_id, 1, &chbuf);
 #elif USE_RAW_SERIAL
     bx_bool rdy;
     uint16 data;
-    if ((rdy = BX_SER_THIS raw->ready_receive())) {
-      data = BX_SER_THIS raw->receive();
+    if ((rdy = BX_SER_THIS_PTR raw->ready_receive())) {
+      data = BX_SER_THIS_PTR raw->receive();
       if (data == C_BREAK) {
 	    BX_DEBUG(("got BREAK"));
-	    BX_SER_THIS s[0].line_status.break_int = 1;
+	    BX_SER_THIS_PTR s[0].line_status.break_int = 1;
 	    rdy = 0;
       }
     }
@@ -814,16 +814,16 @@ bx_serial_c::rx_timer(void)
 #else
     if (0) {
 #endif
-      if (!BX_SER_THIS s[0].modem_cntl.local_loopback) {
+      if (!BX_SER_THIS_PTR s[0].modem_cntl.local_loopback) {
 
-        BX_SER_THIS s[0].rxbuffer = chbuf;
-        BX_SER_THIS s[0].line_status.rxdata_ready = 1;
-        BX_SER_THIS s[0].rx_empty = 0;
-        if (BX_SER_THIS s[0].int_enable.rxdata_enable) {
-          BX_SER_THIS s[0].rx_interrupt = 1;
+        BX_SER_THIS_PTR s[0].rxbuffer = chbuf;
+        BX_SER_THIS_PTR s[0].line_status.rxdata_ready = 1;
+        BX_SER_THIS_PTR s[0].rx_empty = 0;
+        if (BX_SER_THIS_PTR s[0].int_enable.rxdata_enable) {
+          BX_SER_THIS_PTR s[0].rx_interrupt = 1;
           DEV_pic_raise_irq(4);
         } else {
-          BX_SER_THIS s[0].rx_ipending = 1;
+          BX_SER_THIS_PTR s[0].rx_ipending = 1;
         }
       }
     } else {
@@ -836,7 +836,7 @@ bx_serial_c::rx_timer(void)
   }
 #endif
 #endif
-    bx_pc_system.activate_timer(BX_SER_THIS s[0].rx_timer_index,
+    bx_pc_system.activate_timer(BX_SER_THIS_PTR s[0].rx_timer_index,
                                 (int) (1000000.0 / bdrate),
                                 0); /* not continuous */
     }

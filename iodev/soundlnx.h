@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: soundlnx.h,v 1.5 2002/12/24 10:12:26 vruppert Exp $
+// $Id: soundlnx.h,v 1.5.4.1 2003/04/04 03:46:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -30,6 +30,8 @@
 #if (defined(linux) || defined(__FreeBSD__))
 
 #include "bochs.h"
+
+// BJS TODO: implement state registration
 
 #define BX_SOUND_LINUX_BUFSIZE   BX_SOUND_OUTPUT_WAVEPACKETSIZE
 

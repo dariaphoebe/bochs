@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.14 2003/04/04 03:15:36 bdenney Exp $
+// $Id: main.cc,v 1.223.4.15 2003/04/04 03:46:03 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -2287,7 +2287,9 @@ bx_init_hardware()
 #if BX_SMP_PROCESSORS==1
   bx_param_num_c *memsize = SIM->get_param_num(BXPN_MEM_SIZE);
   BX_MEM(0)->init_memory(memsize->get() * 1024*1024);
-  BX_MEM(0)->register_state(SIM->get_param (BXPN_RAM));
+
+  // BJS TODO:
+  //BX_MEM(0)->register_state(SIM->get_param (BXPN_RAM));
 
   // First load the optional ROM images
   if (strcmp(bx_options.optrom[0].Opath->getptr (),"") !=0 )
@@ -2308,7 +2310,9 @@ bx_init_hardware()
     new bx_list_c (SIM->get_param("."), "cpu", "cpu", 20);
   bx_list_c *cpu_param_p = 
     new bx_list_c (cpu_param_root, "0", "cpu #0", 100);
-  BX_CPU(0)->register_state(cpu_param_p);
+
+  // BJS TODO:
+  //BX_CPU(0)->register_state(cpu_param_p);
 
   BX_CPU(0)->set_cpu_id(0);
 #if BX_SUPPORT_APIC

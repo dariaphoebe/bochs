@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.cc,v 1.48.2.1 2003/03/28 09:26:07 slechta Exp $
+// $Id: ne2k.cc,v 1.48.2.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -74,45 +74,45 @@ bx_ne2k_c::reset(unsigned type)
 {
   BX_DEBUG (("reset"));
   // Zero out registers and memory
-  memset( & BX_NE2K_THIS s.CR,  0, sizeof(BX_NE2K_THIS s.CR) );
-  memset( & BX_NE2K_THIS s.ISR, 0, sizeof(BX_NE2K_THIS s.ISR));
-  memset( & BX_NE2K_THIS s.IMR, 0, sizeof(BX_NE2K_THIS s.IMR));
-  memset( & BX_NE2K_THIS s.DCR, 0, sizeof(BX_NE2K_THIS s.DCR));
-  memset( & BX_NE2K_THIS s.TCR, 0, sizeof(BX_NE2K_THIS s.TCR));
-  memset( & BX_NE2K_THIS s.TSR, 0, sizeof(BX_NE2K_THIS s.TSR));
-  memset( & BX_NE2K_THIS s.RCR, 0, sizeof(BX_NE2K_THIS s.RCR));
-  memset( & BX_NE2K_THIS s.RSR, 0, sizeof(BX_NE2K_THIS s.RSR));
-  BX_NE2K_THIS s.local_dma  = 0;
-  BX_NE2K_THIS s.page_start = 0;
-  BX_NE2K_THIS s.page_stop  = 0;
-  BX_NE2K_THIS s.bound_ptr  = 0;
-  BX_NE2K_THIS s.tx_page_start = 0;
-  BX_NE2K_THIS s.num_coll   = 0;
-  BX_NE2K_THIS s.tx_bytes   = 0;
-  BX_NE2K_THIS s.fifo       = 0;
-  BX_NE2K_THIS s.remote_dma = 0;
-  BX_NE2K_THIS s.remote_start = 0;
-  BX_NE2K_THIS s.remote_bytes = 0;
-  BX_NE2K_THIS s.tallycnt_0 = 0;
-  BX_NE2K_THIS s.tallycnt_1 = 0;
-  BX_NE2K_THIS s.tallycnt_2 = 0;
+  memset( & BX_NE2K_THIS_PTR s.CR,  0, sizeof(BX_NE2K_THIS_PTR s.CR) );
+  memset( & BX_NE2K_THIS_PTR s.ISR, 0, sizeof(BX_NE2K_THIS_PTR s.ISR));
+  memset( & BX_NE2K_THIS_PTR s.IMR, 0, sizeof(BX_NE2K_THIS_PTR s.IMR));
+  memset( & BX_NE2K_THIS_PTR s.DCR, 0, sizeof(BX_NE2K_THIS_PTR s.DCR));
+  memset( & BX_NE2K_THIS_PTR s.TCR, 0, sizeof(BX_NE2K_THIS_PTR s.TCR));
+  memset( & BX_NE2K_THIS_PTR s.TSR, 0, sizeof(BX_NE2K_THIS_PTR s.TSR));
+  memset( & BX_NE2K_THIS_PTR s.RCR, 0, sizeof(BX_NE2K_THIS_PTR s.RCR));
+  memset( & BX_NE2K_THIS_PTR s.RSR, 0, sizeof(BX_NE2K_THIS_PTR s.RSR));
+  BX_NE2K_THIS_PTR s.local_dma  = 0;
+  BX_NE2K_THIS_PTR s.page_start = 0;
+  BX_NE2K_THIS_PTR s.page_stop  = 0;
+  BX_NE2K_THIS_PTR s.bound_ptr  = 0;
+  BX_NE2K_THIS_PTR s.tx_page_start = 0;
+  BX_NE2K_THIS_PTR s.num_coll   = 0;
+  BX_NE2K_THIS_PTR s.tx_bytes   = 0;
+  BX_NE2K_THIS_PTR s.fifo       = 0;
+  BX_NE2K_THIS_PTR s.remote_dma = 0;
+  BX_NE2K_THIS_PTR s.remote_start = 0;
+  BX_NE2K_THIS_PTR s.remote_bytes = 0;
+  BX_NE2K_THIS_PTR s.tallycnt_0 = 0;
+  BX_NE2K_THIS_PTR s.tallycnt_1 = 0;
+  BX_NE2K_THIS_PTR s.tallycnt_2 = 0;
 
-  memset( & BX_NE2K_THIS s.physaddr, 0, sizeof(BX_NE2K_THIS s.physaddr));
-  memset( & BX_NE2K_THIS s.mchash, 0, sizeof(BX_NE2K_THIS s.mchash));
-  BX_NE2K_THIS s.curr_page = 0;
+  memset( & BX_NE2K_THIS_PTR s.physaddr, 0, sizeof(BX_NE2K_THIS_PTR s.physaddr));
+  memset( & BX_NE2K_THIS_PTR s.mchash, 0, sizeof(BX_NE2K_THIS_PTR s.mchash));
+  BX_NE2K_THIS_PTR s.curr_page = 0;
 
-  BX_NE2K_THIS s.rempkt_ptr   = 0;
-  BX_NE2K_THIS s.localpkt_ptr = 0;
-  BX_NE2K_THIS s.address_cnt  = 0;
+  BX_NE2K_THIS_PTR s.rempkt_ptr   = 0;
+  BX_NE2K_THIS_PTR s.localpkt_ptr = 0;
+  BX_NE2K_THIS_PTR s.address_cnt  = 0;
 
-  memset( & BX_NE2K_THIS s.mem, 0, sizeof(BX_NE2K_THIS s.mem));
+  memset( & BX_NE2K_THIS_PTR s.mem, 0, sizeof(BX_NE2K_THIS_PTR s.mem));
   
   // Set power-up conditions
-  BX_NE2K_THIS s.CR.stop      = 1;
-    BX_NE2K_THIS s.CR.rdma_cmd  = 4;
-  BX_NE2K_THIS s.ISR.reset    = 1;
-  BX_NE2K_THIS s.DCR.longaddr = 1;
-  DEV_pic_lower_irq(BX_NE2K_THIS s.base_irq);
+  BX_NE2K_THIS_PTR s.CR.stop      = 1;
+    BX_NE2K_THIS_PTR s.CR.rdma_cmd  = 4;
+  BX_NE2K_THIS_PTR s.ISR.reset    = 1;
+  BX_NE2K_THIS_PTR s.DCR.longaddr = 1;
+  DEV_pic_lower_irq(BX_NE2K_THIS_PTR s.base_irq);
 }
 
 //
@@ -123,11 +123,11 @@ Bit32u
 bx_ne2k_c::read_cr(void)
 {
   Bit32u val = 
-         (((BX_NE2K_THIS s.CR.pgsel    & 0x03) << 6) |
-	  ((BX_NE2K_THIS s.CR.rdma_cmd & 0x07) << 3) |
-	  (BX_NE2K_THIS s.CR.tx_packet << 2) |
-	  (BX_NE2K_THIS s.CR.start     << 1) |
-	  (BX_NE2K_THIS s.CR.stop));
+         (((BX_NE2K_THIS_PTR s.CR.pgsel    & 0x03) << 6) |
+	  ((BX_NE2K_THIS_PTR s.CR.rdma_cmd & 0x07) << 3) |
+	  (BX_NE2K_THIS_PTR s.CR.tx_packet << 2) |
+	  (BX_NE2K_THIS_PTR s.CR.start     << 1) |
+	  (BX_NE2K_THIS_PTR s.CR.stop));
   BX_DEBUG(("read CR returns 0x%08x", val));
   return val;
 }
@@ -143,53 +143,53 @@ bx_ne2k_c::write_cr(Bit32u value)
 
   // Check for s/w reset
   if (value & 0x01) {
-    BX_NE2K_THIS s.ISR.reset = 1;
-    BX_NE2K_THIS s.CR.stop   = 1;
+    BX_NE2K_THIS_PTR s.ISR.reset = 1;
+    BX_NE2K_THIS_PTR s.CR.stop   = 1;
   } else {
-    BX_NE2K_THIS s.CR.stop = 0;
+    BX_NE2K_THIS_PTR s.CR.stop = 0;
   }
 
-  BX_NE2K_THIS s.CR.rdma_cmd = (value & 0x38) >> 3;
+  BX_NE2K_THIS_PTR s.CR.rdma_cmd = (value & 0x38) >> 3;
 
   // If start command issued, the RST bit in the ISR
   // must be cleared
-  if ((value & 0x02) && !BX_NE2K_THIS s.CR.start) {
-    BX_NE2K_THIS s.ISR.reset = 0;
+  if ((value & 0x02) && !BX_NE2K_THIS_PTR s.CR.start) {
+    BX_NE2K_THIS_PTR s.ISR.reset = 0;
   }
 
-  BX_NE2K_THIS s.CR.start = ((value & 0x02) == 0x02);
-  BX_NE2K_THIS s.CR.pgsel = (value & 0xc0) >> 6;
+  BX_NE2K_THIS_PTR s.CR.start = ((value & 0x02) == 0x02);
+  BX_NE2K_THIS_PTR s.CR.pgsel = (value & 0xc0) >> 6;
 
     // Check for send-packet command
-    if (BX_NE2K_THIS s.CR.rdma_cmd == 3) {
+    if (BX_NE2K_THIS_PTR s.CR.rdma_cmd == 3) {
 	// Set up DMA read from receive ring
-	BX_NE2K_THIS s.remote_start = BX_NE2K_THIS s.remote_dma = BX_NE2K_THIS s.bound_ptr * 256;
-	BX_NE2K_THIS s.remote_bytes = *((Bit16u*) & BX_NE2K_THIS s.mem[BX_NE2K_THIS s.bound_ptr * 256 + 2 - BX_NE2K_MEMSTART]);
+	BX_NE2K_THIS_PTR s.remote_start = BX_NE2K_THIS_PTR s.remote_dma = BX_NE2K_THIS_PTR s.bound_ptr * 256;
+	BX_NE2K_THIS_PTR s.remote_bytes = *((Bit16u*) & BX_NE2K_THIS_PTR s.mem[BX_NE2K_THIS_PTR s.bound_ptr * 256 + 2 - BX_NE2K_MEMSTART]);
 	BX_INFO(("Sending buffer #x%x length %d",
-		  BX_NE2K_THIS s.remote_start,
-		  BX_NE2K_THIS s.remote_bytes));
+		  BX_NE2K_THIS_PTR s.remote_start,
+		  BX_NE2K_THIS_PTR s.remote_bytes));
     }
 
   // Check for start-tx
-    if ((value & 0x04) && BX_NE2K_THIS s.TCR.loop_cntl) {
-	if (BX_NE2K_THIS s.TCR.loop_cntl != 1) {
-	    BX_INFO(("Loop mode %d not supported.", BX_NE2K_THIS s.TCR.loop_cntl));
+    if ((value & 0x04) && BX_NE2K_THIS_PTR s.TCR.loop_cntl) {
+	if (BX_NE2K_THIS_PTR s.TCR.loop_cntl != 1) {
+	    BX_INFO(("Loop mode %d not supported.", BX_NE2K_THIS_PTR s.TCR.loop_cntl));
 	} else {
-	    rx_frame (& BX_NE2K_THIS s.mem[BX_NE2K_THIS s.tx_page_start*256 - BX_NE2K_MEMSTART],
-		      BX_NE2K_THIS s.tx_bytes);
+	    rx_frame (& BX_NE2K_THIS_PTR s.mem[BX_NE2K_THIS_PTR s.tx_page_start*256 - BX_NE2K_MEMSTART],
+		      BX_NE2K_THIS_PTR s.tx_bytes);
 	}
     } else if (value & 0x04) {
-    if (BX_NE2K_THIS s.CR.stop || !BX_NE2K_THIS s.CR.start)
+    if (BX_NE2K_THIS_PTR s.CR.stop || !BX_NE2K_THIS_PTR s.CR.start)
       BX_PANIC(("CR write - tx start, dev in reset"));
     
-    if (BX_NE2K_THIS s.tx_bytes == 0)
+    if (BX_NE2K_THIS_PTR s.tx_bytes == 0)
       BX_PANIC(("CR write - tx start, tx bytes == 0"));
 
 #ifdef notdef    
     // XXX debug stuff
-    printf("packet tx (%d bytes):\t", BX_NE2K_THIS s.tx_bytes);
-    for (int i = 0; i < BX_NE2K_THIS s.tx_bytes; i++) {
-      printf("%02x ", BX_NE2K_THIS s.mem[BX_NE2K_THIS s.tx_page_start*256 - 
+    printf("packet tx (%d bytes):\t", BX_NE2K_THIS_PTR s.tx_bytes);
+    for (int i = 0; i < BX_NE2K_THIS_PTR s.tx_bytes; i++) {
+      printf("%02x ", BX_NE2K_THIS_PTR s.mem[BX_NE2K_THIS_PTR s.tx_page_start*256 - 
 				BX_NE2K_MEMSTART + i]);
       if (i && (((i+1) % 16) == 0)) 
 	printf("\t");
@@ -198,10 +198,10 @@ bx_ne2k_c::write_cr(Bit32u value)
 #endif    
 
     // Send the packet to the system driver
-    BX_NE2K_THIS ethdev->sendpkt(& BX_NE2K_THIS s.mem[BX_NE2K_THIS s.tx_page_start*256 - BX_NE2K_MEMSTART], BX_NE2K_THIS s.tx_bytes);
+    BX_NE2K_THIS_PTR ethdev->sendpkt(& BX_NE2K_THIS_PTR s.mem[BX_NE2K_THIS_PTR s.tx_page_start*256 - BX_NE2K_MEMSTART], BX_NE2K_THIS_PTR s.tx_bytes);
 
     // some more debug
-    if (BX_NE2K_THIS s.tx_timer_active)
+    if (BX_NE2K_THIS_PTR s.tx_timer_active)
       BX_PANIC(("CR write, tx timer still active"));
     
     // Schedule a timer to trigger a tx-complete interrupt
@@ -210,20 +210,20 @@ bx_ne2k_c::write_cr(Bit32u value)
     // inter-frame gap (96 bits), the CRC (4 bytes), and the
     // the number of bits in the frame (s.tx_bytes * 8).
     //
-    bx_pc_system.activate_timer(BX_NE2K_THIS s.tx_timer_index,
-				(64 + 96 + 4*8 + BX_NE2K_THIS s.tx_bytes*8)/10,
+    bx_pc_system.activate_timer(BX_NE2K_THIS_PTR s.tx_timer_index,
+				(64 + 96 + 4*8 + BX_NE2K_THIS_PTR s.tx_bytes*8)/10,
 				0); // not continuous
   }
 
   // Linux probes for an interrupt by setting up a remote-DMA read
   // of 0 bytes with remote-DMA completion interrupts enabled.
   // Detect this here
-  if (BX_NE2K_THIS s.CR.rdma_cmd == 0x01 &&
-      BX_NE2K_THIS s.CR.start &&
-      BX_NE2K_THIS s.remote_bytes == 0) {
-    BX_NE2K_THIS s.ISR.rdma_done = 1;
-    if (BX_NE2K_THIS s.IMR.rdma_inte) {
-      DEV_pic_raise_irq(BX_NE2K_THIS s.base_irq);
+  if (BX_NE2K_THIS_PTR s.CR.rdma_cmd == 0x01 &&
+      BX_NE2K_THIS_PTR s.CR.start &&
+      BX_NE2K_THIS_PTR s.remote_bytes == 0) {
+    BX_NE2K_THIS_PTR s.ISR.rdma_done = 1;
+    if (BX_NE2K_THIS_PTR s.IMR.rdma_inte) {
+      DEV_pic_raise_irq(BX_NE2K_THIS_PTR s.base_irq);
     }
   }
 }
@@ -246,17 +246,17 @@ bx_ne2k_c::chipmem_read(Bit32u address, unsigned int io_len)
 
   // ROM'd MAC address
   if ((address >=0) && (address <= 31)) {
-    retval = BX_NE2K_THIS s.macaddr[address];
+    retval = BX_NE2K_THIS_PTR s.macaddr[address];
     if (io_len == 2) {
-      retval |= (BX_NE2K_THIS s.macaddr[address + 1] << 8);
+      retval |= (BX_NE2K_THIS_PTR s.macaddr[address + 1] << 8);
     }
     return (retval);
   }
 
   if ((address >= BX_NE2K_MEMSTART) && (address < BX_NE2K_MEMEND)) {
-    retval = BX_NE2K_THIS s.mem[address - BX_NE2K_MEMSTART];
+    retval = BX_NE2K_THIS_PTR s.mem[address - BX_NE2K_MEMSTART];
     if (io_len == 2) {
-      retval |= (BX_NE2K_THIS s.mem[address - BX_NE2K_MEMSTART + 1] << 8);
+      retval |= (BX_NE2K_THIS_PTR s.mem[address - BX_NE2K_MEMSTART + 1] << 8);
     }
     return (retval);
   }
@@ -273,9 +273,9 @@ bx_ne2k_c::chipmem_write(Bit32u address, Bit32u value, unsigned io_len)
     BX_PANIC(("unaligned chipmem word write"));
 
   if ((address >= BX_NE2K_MEMSTART) && (address < BX_NE2K_MEMEND)) {
-    BX_NE2K_THIS s.mem[address - BX_NE2K_MEMSTART] = value & 0xff;
+    BX_NE2K_THIS_PTR s.mem[address - BX_NE2K_MEMSTART] = value & 0xff;
     if (io_len == 2)
-      BX_NE2K_THIS s.mem[address - BX_NE2K_MEMSTART + 1] = value >> 8;
+      BX_NE2K_THIS_PTR s.mem[address - BX_NE2K_MEMSTART + 1] = value >> 8;
   } else
     BX_DEBUG(("out-of-bounds chipmem write, %04X", address));
 }
@@ -302,34 +302,34 @@ bx_ne2k_c::asic_read(Bit32u offset, unsigned int io_len)
     // and the source-address and length registers must  
     // have been initialised.
     //
-    if (io_len > BX_NE2K_THIS s.remote_bytes)
+    if (io_len > BX_NE2K_THIS_PTR s.remote_bytes)
       {
-       BX_ERROR(("ne2K: dma read underrun iolen=%d remote_bytes=%d",io_len,BX_NE2K_THIS s.remote_bytes));
+       BX_ERROR(("ne2K: dma read underrun iolen=%d remote_bytes=%d",io_len,BX_NE2K_THIS_PTR s.remote_bytes));
        //return 0;
       }
 
-    //BX_INFO(("ne2k read DMA: addr=%4x remote_bytes=%d",BX_NE2K_THIS s.remote_dma,BX_NE2K_THIS s.remote_bytes));
-    retval = chipmem_read(BX_NE2K_THIS s.remote_dma, io_len);
+    //BX_INFO(("ne2k read DMA: addr=%4x remote_bytes=%d",BX_NE2K_THIS_PTR s.remote_dma,BX_NE2K_THIS_PTR s.remote_bytes));
+    retval = chipmem_read(BX_NE2K_THIS_PTR s.remote_dma, io_len);
     //
     // The 8390 bumps the address and decreases the byte count
     // by the selected word size after every access, not by
     // the amount of data requested by the host (io_len).
     //
-    BX_NE2K_THIS s.remote_dma += (BX_NE2K_THIS s.DCR.wdsize + 1);
-    if (BX_NE2K_THIS s.remote_dma == BX_NE2K_THIS s.page_stop << 8) {
-      BX_NE2K_THIS s.remote_dma = BX_NE2K_THIS s.page_start << 8;
+    BX_NE2K_THIS_PTR s.remote_dma += (BX_NE2K_THIS_PTR s.DCR.wdsize + 1);
+    if (BX_NE2K_THIS_PTR s.remote_dma == BX_NE2K_THIS_PTR s.page_stop << 8) {
+      BX_NE2K_THIS_PTR s.remote_dma = BX_NE2K_THIS_PTR s.page_start << 8;
     }
     // keep s.remote_bytes from underflowing
-    if (BX_NE2K_THIS s.remote_bytes > 1)
-      BX_NE2K_THIS s.remote_bytes -= (BX_NE2K_THIS s.DCR.wdsize + 1);
+    if (BX_NE2K_THIS_PTR s.remote_bytes > 1)
+      BX_NE2K_THIS_PTR s.remote_bytes -= (BX_NE2K_THIS_PTR s.DCR.wdsize + 1);
     else
-      BX_NE2K_THIS s.remote_bytes = 0;
+      BX_NE2K_THIS_PTR s.remote_bytes = 0;
 
 	// If all bytes have been written, signal remote-DMA complete
-	if (BX_NE2K_THIS s.remote_bytes == 0) {
-	    BX_NE2K_THIS s.ISR.rdma_done = 1;
-	    if (BX_NE2K_THIS s.IMR.rdma_inte) {
-		DEV_pic_raise_irq(BX_NE2K_THIS s.base_irq);
+	if (BX_NE2K_THIS_PTR s.remote_bytes == 0) {
+	    BX_NE2K_THIS_PTR s.ISR.rdma_done = 1;
+	    if (BX_NE2K_THIS_PTR s.IMR.rdma_inte) {
+		DEV_pic_raise_irq(BX_NE2K_THIS_PTR s.base_irq);
 	    }
 	}
     break;
@@ -353,30 +353,30 @@ bx_ne2k_c::asic_write(Bit32u offset, Bit32u value, unsigned io_len)
   switch (offset) {
   case 0x0:  // Data register - see asic_read for a description
 
-    if ((io_len == 2) && (BX_NE2K_THIS s.DCR.wdsize == 0)) {
+    if ((io_len == 2) && (BX_NE2K_THIS_PTR s.DCR.wdsize == 0)) {
       BX_PANIC(("dma write length 2 on byte mode operation"));
       break;
     }
 
-    if (BX_NE2K_THIS s.remote_bytes == 0)
+    if (BX_NE2K_THIS_PTR s.remote_bytes == 0)
       BX_PANIC(("ne2K: dma write, byte count 0"));
 
-    chipmem_write(BX_NE2K_THIS s.remote_dma, value, io_len);
+    chipmem_write(BX_NE2K_THIS_PTR s.remote_dma, value, io_len);
     // is this right ??? asic_read uses DCR.wordsize
-    BX_NE2K_THIS s.remote_dma   += io_len;
-    if (BX_NE2K_THIS s.remote_dma == BX_NE2K_THIS s.page_stop << 8) {
-      BX_NE2K_THIS s.remote_dma = BX_NE2K_THIS s.page_start << 8;
+    BX_NE2K_THIS_PTR s.remote_dma   += io_len;
+    if (BX_NE2K_THIS_PTR s.remote_dma == BX_NE2K_THIS_PTR s.page_stop << 8) {
+      BX_NE2K_THIS_PTR s.remote_dma = BX_NE2K_THIS_PTR s.page_start << 8;
     }
 
-    BX_NE2K_THIS s.remote_bytes -= io_len;
-    if (BX_NE2K_THIS s.remote_bytes > BX_NE2K_MEMSIZ)
-      BX_NE2K_THIS s.remote_bytes = 0;
+    BX_NE2K_THIS_PTR s.remote_bytes -= io_len;
+    if (BX_NE2K_THIS_PTR s.remote_bytes > BX_NE2K_MEMSIZ)
+      BX_NE2K_THIS_PTR s.remote_bytes = 0;
 
     // If all bytes have been written, signal remote-DMA complete
-    if (BX_NE2K_THIS s.remote_bytes == 0) {
-      BX_NE2K_THIS s.ISR.rdma_done = 1;
-      if (BX_NE2K_THIS s.IMR.rdma_inte) {
-	  DEV_pic_raise_irq(BX_NE2K_THIS s.base_irq);
+    if (BX_NE2K_THIS_PTR s.remote_bytes == 0) {
+      BX_NE2K_THIS_PTR s.ISR.rdma_done = 1;
+      if (BX_NE2K_THIS_PTR s.IMR.rdma_inte) {
+	  DEV_pic_raise_irq(BX_NE2K_THIS_PTR s.base_irq);
       }
     }
     break;
@@ -413,52 +413,52 @@ bx_ne2k_c::page0_read(Bit32u offset, unsigned int io_len)
     break;
     
   case 0x1:  // CLDA0
-    return (BX_NE2K_THIS s.local_dma & 0xff);
+    return (BX_NE2K_THIS_PTR s.local_dma & 0xff);
     break;
 
   case 0x2:  // CLDA1
-    return (BX_NE2K_THIS s.local_dma >> 8);
+    return (BX_NE2K_THIS_PTR s.local_dma >> 8);
     break;
 
   case 0x3:  // BNRY
-    return (BX_NE2K_THIS s.bound_ptr);
+    return (BX_NE2K_THIS_PTR s.bound_ptr);
     break;
 
   case 0x4:  // TSR
-    return ((BX_NE2K_THIS s.TSR.ow_coll    << 7) |
-	    (BX_NE2K_THIS s.TSR.cd_hbeat   << 6) |
-	    (BX_NE2K_THIS s.TSR.fifo_ur    << 5) |
-	    (BX_NE2K_THIS s.TSR.no_carrier << 4) |
-	    (BX_NE2K_THIS s.TSR.aborted    << 3) |
-	    (BX_NE2K_THIS s.TSR.collided   << 2) |
-	    (BX_NE2K_THIS s.TSR.tx_ok));
+    return ((BX_NE2K_THIS_PTR s.TSR.ow_coll    << 7) |
+	    (BX_NE2K_THIS_PTR s.TSR.cd_hbeat   << 6) |
+	    (BX_NE2K_THIS_PTR s.TSR.fifo_ur    << 5) |
+	    (BX_NE2K_THIS_PTR s.TSR.no_carrier << 4) |
+	    (BX_NE2K_THIS_PTR s.TSR.aborted    << 3) |
+	    (BX_NE2K_THIS_PTR s.TSR.collided   << 2) |
+	    (BX_NE2K_THIS_PTR s.TSR.tx_ok));
     break;
 
   case 0x5:  // NCR
-    return (BX_NE2K_THIS s.num_coll);
+    return (BX_NE2K_THIS_PTR s.num_coll);
     break;
     
   case 0x6:  // FIFO
-    return (BX_NE2K_THIS s.fifo);
+    return (BX_NE2K_THIS_PTR s.fifo);
     break;
 
   case 0x7:  // ISR
-    return ((BX_NE2K_THIS s.ISR.reset     << 7) |
-	    (BX_NE2K_THIS s.ISR.rdma_done << 6) |
-	    (BX_NE2K_THIS s.ISR.cnt_oflow << 5) |
-	    (BX_NE2K_THIS s.ISR.overwrite << 4) |
-	    (BX_NE2K_THIS s.ISR.tx_err    << 3) |
-	    (BX_NE2K_THIS s.ISR.rx_err    << 2) |
-	    (BX_NE2K_THIS s.ISR.pkt_tx    << 1) |
-	    (BX_NE2K_THIS s.ISR.pkt_rx));
+    return ((BX_NE2K_THIS_PTR s.ISR.reset     << 7) |
+	    (BX_NE2K_THIS_PTR s.ISR.rdma_done << 6) |
+	    (BX_NE2K_THIS_PTR s.ISR.cnt_oflow << 5) |
+	    (BX_NE2K_THIS_PTR s.ISR.overwrite << 4) |
+	    (BX_NE2K_THIS_PTR s.ISR.tx_err    << 3) |
+	    (BX_NE2K_THIS_PTR s.ISR.rx_err    << 2) |
+	    (BX_NE2K_THIS_PTR s.ISR.pkt_tx    << 1) |
+	    (BX_NE2K_THIS_PTR s.ISR.pkt_rx));
     break;
     
   case 0x8:  // CRDA0
-    return (BX_NE2K_THIS s.remote_dma & 0xff);
+    return (BX_NE2K_THIS_PTR s.remote_dma & 0xff);
     break;
 
   case 0x9:  // CRDA1
-    return (BX_NE2K_THIS s.remote_dma >> 8);
+    return (BX_NE2K_THIS_PTR s.remote_dma >> 8);
     break;
 
   case 0xa:  // reserved
@@ -472,26 +472,26 @@ bx_ne2k_c::page0_read(Bit32u offset, unsigned int io_len)
     break;
     
   case 0xc:  // RSR
-    return ((BX_NE2K_THIS s.RSR.deferred    << 7) |
-	    (BX_NE2K_THIS s.RSR.rx_disabled << 6) |
-	    (BX_NE2K_THIS s.RSR.rx_mbit     << 5) |
-	    (BX_NE2K_THIS s.RSR.rx_missed   << 4) |
-	    (BX_NE2K_THIS s.RSR.fifo_or     << 3) |
-	    (BX_NE2K_THIS s.RSR.bad_falign  << 2) |
-	    (BX_NE2K_THIS s.RSR.bad_crc     << 1) |
-	    (BX_NE2K_THIS s.RSR.rx_ok));
+    return ((BX_NE2K_THIS_PTR s.RSR.deferred    << 7) |
+	    (BX_NE2K_THIS_PTR s.RSR.rx_disabled << 6) |
+	    (BX_NE2K_THIS_PTR s.RSR.rx_mbit     << 5) |
+	    (BX_NE2K_THIS_PTR s.RSR.rx_missed   << 4) |
+	    (BX_NE2K_THIS_PTR s.RSR.fifo_or     << 3) |
+	    (BX_NE2K_THIS_PTR s.RSR.bad_falign  << 2) |
+	    (BX_NE2K_THIS_PTR s.RSR.bad_crc     << 1) |
+	    (BX_NE2K_THIS_PTR s.RSR.rx_ok));
     break;
     
   case 0xd:  // CNTR0
-    return (BX_NE2K_THIS s.tallycnt_0);
+    return (BX_NE2K_THIS_PTR s.tallycnt_0);
     break;
 
   case 0xe:  // CNTR1
-    return (BX_NE2K_THIS s.tallycnt_1);
+    return (BX_NE2K_THIS_PTR s.tallycnt_1);
     break;
 
   case 0xf:  // CNTR2
-    return (BX_NE2K_THIS s.tallycnt_2);
+    return (BX_NE2K_THIS_PTR s.tallycnt_2);
     break;
 
   default:
@@ -520,86 +520,86 @@ bx_ne2k_c::page0_write(Bit32u offset, Bit32u value, unsigned io_len)
     break;
 
   case 0x1:  // PSTART
-    BX_NE2K_THIS s.page_start = value;
+    BX_NE2K_THIS_PTR s.page_start = value;
     break;
 
   case 0x2:  // PSTOP
 	// BX_INFO(("Writing to PSTOP: %02x", value));
-    BX_NE2K_THIS s.page_stop = value;
+    BX_NE2K_THIS_PTR s.page_stop = value;
     break;
 
   case 0x3:  // BNRY
-    BX_NE2K_THIS s.bound_ptr = value;
+    BX_NE2K_THIS_PTR s.bound_ptr = value;
     break;
 
   case 0x4:  // TPSR
-    BX_NE2K_THIS s.tx_page_start = value;
+    BX_NE2K_THIS_PTR s.tx_page_start = value;
     break;
 
   case 0x5:  // TBCR0
     // Clear out low byte and re-insert
-    BX_NE2K_THIS s.tx_bytes &= 0xff00;
-    BX_NE2K_THIS s.tx_bytes |= (value & 0xff);
+    BX_NE2K_THIS_PTR s.tx_bytes &= 0xff00;
+    BX_NE2K_THIS_PTR s.tx_bytes |= (value & 0xff);
     break;
 
   case 0x6:  // TBCR1
     // Clear out high byte and re-insert
-    BX_NE2K_THIS s.tx_bytes &= 0x00ff;
-    BX_NE2K_THIS s.tx_bytes |= ((value & 0xff) << 8);
+    BX_NE2K_THIS_PTR s.tx_bytes &= 0x00ff;
+    BX_NE2K_THIS_PTR s.tx_bytes |= ((value & 0xff) << 8);
     break;
 
   case 0x7:  // ISR
     value &= 0x7f;  // clear RST bit - status-only bit
     // All other values are cleared iff the ISR bit is 1
-    BX_NE2K_THIS s.ISR.pkt_rx    &= ~((value & 0x01) == 0x01);
-    BX_NE2K_THIS s.ISR.pkt_tx    &= ~((value & 0x02) == 0x02);
-    BX_NE2K_THIS s.ISR.rx_err    &= ~((value & 0x04) == 0x04);
-    BX_NE2K_THIS s.ISR.tx_err    &= ~((value & 0x08) == 0x08);
-    BX_NE2K_THIS s.ISR.overwrite &= ~((value & 0x10) == 0x10);
-    BX_NE2K_THIS s.ISR.cnt_oflow &= ~((value & 0x20) == 0x20);
-    BX_NE2K_THIS s.ISR.rdma_done &= ~((value & 0x40) == 0x40);
-    value = ((BX_NE2K_THIS s.ISR.rdma_done << 6) |
-             (BX_NE2K_THIS s.ISR.cnt_oflow << 5) |
-             (BX_NE2K_THIS s.ISR.overwrite << 4) |
-             (BX_NE2K_THIS s.ISR.tx_err    << 3) |
-             (BX_NE2K_THIS s.ISR.rx_err    << 2) |
-             (BX_NE2K_THIS s.ISR.pkt_tx    << 1) |
-             (BX_NE2K_THIS s.ISR.pkt_rx));
-    value &= ((BX_NE2K_THIS s.IMR.rdma_inte << 6) |
-              (BX_NE2K_THIS s.IMR.cofl_inte << 5) |
-              (BX_NE2K_THIS s.IMR.overw_inte << 4) |
-              (BX_NE2K_THIS s.IMR.txerr_inte << 3) |
-              (BX_NE2K_THIS s.IMR.rxerr_inte << 2) |
-              (BX_NE2K_THIS s.IMR.tx_inte << 1) |
-              (BX_NE2K_THIS s.IMR.rx_inte));
+    BX_NE2K_THIS_PTR s.ISR.pkt_rx    &= ~((value & 0x01) == 0x01);
+    BX_NE2K_THIS_PTR s.ISR.pkt_tx    &= ~((value & 0x02) == 0x02);
+    BX_NE2K_THIS_PTR s.ISR.rx_err    &= ~((value & 0x04) == 0x04);
+    BX_NE2K_THIS_PTR s.ISR.tx_err    &= ~((value & 0x08) == 0x08);
+    BX_NE2K_THIS_PTR s.ISR.overwrite &= ~((value & 0x10) == 0x10);
+    BX_NE2K_THIS_PTR s.ISR.cnt_oflow &= ~((value & 0x20) == 0x20);
+    BX_NE2K_THIS_PTR s.ISR.rdma_done &= ~((value & 0x40) == 0x40);
+    value = ((BX_NE2K_THIS_PTR s.ISR.rdma_done << 6) |
+             (BX_NE2K_THIS_PTR s.ISR.cnt_oflow << 5) |
+             (BX_NE2K_THIS_PTR s.ISR.overwrite << 4) |
+             (BX_NE2K_THIS_PTR s.ISR.tx_err    << 3) |
+             (BX_NE2K_THIS_PTR s.ISR.rx_err    << 2) |
+             (BX_NE2K_THIS_PTR s.ISR.pkt_tx    << 1) |
+             (BX_NE2K_THIS_PTR s.ISR.pkt_rx));
+    value &= ((BX_NE2K_THIS_PTR s.IMR.rdma_inte << 6) |
+              (BX_NE2K_THIS_PTR s.IMR.cofl_inte << 5) |
+              (BX_NE2K_THIS_PTR s.IMR.overw_inte << 4) |
+              (BX_NE2K_THIS_PTR s.IMR.txerr_inte << 3) |
+              (BX_NE2K_THIS_PTR s.IMR.rxerr_inte << 2) |
+              (BX_NE2K_THIS_PTR s.IMR.tx_inte << 1) |
+              (BX_NE2K_THIS_PTR s.IMR.rx_inte));
     if (value == 0)
-      DEV_pic_lower_irq(BX_NE2K_THIS s.base_irq);
+      DEV_pic_lower_irq(BX_NE2K_THIS_PTR s.base_irq);
     break;
 
   case 0x8:  // RSAR0
     // Clear out low byte and re-insert
-    BX_NE2K_THIS s.remote_start &= 0xff00;
-    BX_NE2K_THIS s.remote_start |= (value & 0xff);
-    BX_NE2K_THIS s.remote_dma = BX_NE2K_THIS s.remote_start;
+    BX_NE2K_THIS_PTR s.remote_start &= 0xff00;
+    BX_NE2K_THIS_PTR s.remote_start |= (value & 0xff);
+    BX_NE2K_THIS_PTR s.remote_dma = BX_NE2K_THIS_PTR s.remote_start;
     break;
 
   case 0x9:  // RSAR1
     // Clear out high byte and re-insert
-    BX_NE2K_THIS s.remote_start &= 0x00ff;
-    BX_NE2K_THIS s.remote_start |= ((value & 0xff) << 8);
-    BX_NE2K_THIS s.remote_dma = BX_NE2K_THIS s.remote_start;
+    BX_NE2K_THIS_PTR s.remote_start &= 0x00ff;
+    BX_NE2K_THIS_PTR s.remote_start |= ((value & 0xff) << 8);
+    BX_NE2K_THIS_PTR s.remote_dma = BX_NE2K_THIS_PTR s.remote_start;
     break;
 
   case 0xa:  // RBCR0
     // Clear out low byte and re-insert
-    BX_NE2K_THIS s.remote_bytes &= 0xff00;
-    BX_NE2K_THIS s.remote_bytes |= (value & 0xff);
+    BX_NE2K_THIS_PTR s.remote_bytes &= 0xff00;
+    BX_NE2K_THIS_PTR s.remote_bytes |= (value & 0xff);
     break;
 
   case 0xb:  // RBCR1
     // Clear out high byte and re-insert
-    BX_NE2K_THIS s.remote_bytes &= 0x00ff;
-    BX_NE2K_THIS s.remote_bytes |= ((value & 0xff) << 8);
+    BX_NE2K_THIS_PTR s.remote_bytes &= 0x00ff;
+    BX_NE2K_THIS_PTR s.remote_bytes |= ((value & 0xff) << 8);
     break;
 
   case 0xc:  // RCR
@@ -608,12 +608,12 @@ bx_ne2k_c::page0_write(Bit32u offset, Bit32u value, unsigned io_len)
       BX_INFO(("RCR write, reserved bits set"));
 
     // Set all other bit-fields
-    BX_NE2K_THIS s.RCR.errors_ok = ((value & 0x01) == 0x01);
-    BX_NE2K_THIS s.RCR.runts_ok  = ((value & 0x02) == 0x02);
-    BX_NE2K_THIS s.RCR.broadcast = ((value & 0x04) == 0x04);
-    BX_NE2K_THIS s.RCR.multicast = ((value & 0x08) == 0x08);
-    BX_NE2K_THIS s.RCR.promisc   = ((value & 0x10) == 0x10);
-    BX_NE2K_THIS s.RCR.monitor   = ((value & 0x20) == 0x20);
+    BX_NE2K_THIS_PTR s.RCR.errors_ok = ((value & 0x01) == 0x01);
+    BX_NE2K_THIS_PTR s.RCR.runts_ok  = ((value & 0x02) == 0x02);
+    BX_NE2K_THIS_PTR s.RCR.broadcast = ((value & 0x04) == 0x04);
+    BX_NE2K_THIS_PTR s.RCR.multicast = ((value & 0x08) == 0x08);
+    BX_NE2K_THIS_PTR s.RCR.promisc   = ((value & 0x10) == 0x10);
+    BX_NE2K_THIS_PTR s.RCR.monitor   = ((value & 0x20) == 0x20);
 
     // Monitor bit is a little suspicious...
     if (value & 0x20)
@@ -627,10 +627,10 @@ bx_ne2k_c::page0_write(Bit32u offset, Bit32u value, unsigned io_len)
 
     // Test loop mode (not supported)
     if (value & 0x06) {
-      BX_NE2K_THIS s.TCR.loop_cntl = (value & 0x6) >> 1;
-	    BX_INFO(("TCR write, loop mode %d not supported", BX_NE2K_THIS s.TCR.loop_cntl));
+      BX_NE2K_THIS_PTR s.TCR.loop_cntl = (value & 0x6) >> 1;
+	    BX_INFO(("TCR write, loop mode %d not supported", BX_NE2K_THIS_PTR s.TCR.loop_cntl));
     } else {
-      BX_NE2K_THIS s.TCR.loop_cntl = 0;
+      BX_NE2K_THIS_PTR s.TCR.loop_cntl = 0;
     }
 
     // Inhibit-CRC not supported.
@@ -642,7 +642,7 @@ bx_ne2k_c::page0_write(Bit32u offset, Bit32u value, unsigned io_len)
       BX_PANIC(("TCR write, auto transmit disable not supported"));
 
     // Allow collision-offset to be set, although not used
-    BX_NE2K_THIS s.TCR.coll_prio = ((value & 0x08) == 0x08);
+    BX_NE2K_THIS_PTR s.TCR.coll_prio = ((value & 0x08) == 0x08);
     break;
 
   case 0xe:  // DCR
@@ -661,11 +661,11 @@ bx_ne2k_c::page0_write(Bit32u offset, Bit32u value, unsigned io_len)
       BX_INFO(("DCR write - AR set ???"));
 
     // Set other values.
-    BX_NE2K_THIS s.DCR.wdsize   = ((value & 0x01) == 0x01);
-    BX_NE2K_THIS s.DCR.endian   = ((value & 0x02) == 0x02);
-    BX_NE2K_THIS s.DCR.longaddr = ((value & 0x04) == 0x04); // illegal ?
-    BX_NE2K_THIS s.DCR.auto_rx  = ((value & 0x10) == 0x10); // also illegal ?
-    BX_NE2K_THIS s.DCR.fifo_size = (value & 0x50) >> 5;
+    BX_NE2K_THIS_PTR s.DCR.wdsize   = ((value & 0x01) == 0x01);
+    BX_NE2K_THIS_PTR s.DCR.endian   = ((value & 0x02) == 0x02);
+    BX_NE2K_THIS_PTR s.DCR.longaddr = ((value & 0x04) == 0x04); // illegal ?
+    BX_NE2K_THIS_PTR s.DCR.auto_rx  = ((value & 0x10) == 0x10); // also illegal ?
+    BX_NE2K_THIS_PTR s.DCR.fifo_size = (value & 0x50) >> 5;
     break;
 
   case 0xf:  // IMR
@@ -674,13 +674,13 @@ bx_ne2k_c::page0_write(Bit32u offset, Bit32u value, unsigned io_len)
       BX_PANIC(("IMR write, reserved bit set"));
 
     // Set other values
-    BX_NE2K_THIS s.IMR.rx_inte    = ((value & 0x01) == 0x01);
-    BX_NE2K_THIS s.IMR.tx_inte    = ((value & 0x02) == 0x02);
-    BX_NE2K_THIS s.IMR.rxerr_inte = ((value & 0x04) == 0x04);
-    BX_NE2K_THIS s.IMR.txerr_inte = ((value & 0x08) == 0x08);
-    BX_NE2K_THIS s.IMR.overw_inte = ((value & 0x10) == 0x10);
-    BX_NE2K_THIS s.IMR.cofl_inte  = ((value & 0x20) == 0x20);
-    BX_NE2K_THIS s.IMR.rdma_inte  = ((value & 0x40) == 0x40);
+    BX_NE2K_THIS_PTR s.IMR.rx_inte    = ((value & 0x01) == 0x01);
+    BX_NE2K_THIS_PTR s.IMR.tx_inte    = ((value & 0x02) == 0x02);
+    BX_NE2K_THIS_PTR s.IMR.rxerr_inte = ((value & 0x04) == 0x04);
+    BX_NE2K_THIS_PTR s.IMR.txerr_inte = ((value & 0x08) == 0x08);
+    BX_NE2K_THIS_PTR s.IMR.overw_inte = ((value & 0x10) == 0x10);
+    BX_NE2K_THIS_PTR s.IMR.cofl_inte  = ((value & 0x20) == 0x20);
+    BX_NE2K_THIS_PTR s.IMR.rdma_inte  = ((value & 0x40) == 0x40);
     break;
 
   default:
@@ -713,12 +713,12 @@ bx_ne2k_c::page1_read(Bit32u offset, unsigned int io_len)
   case 0x4:
   case 0x5:
   case 0x6:
-    return (BX_NE2K_THIS s.physaddr[offset - 1]);
+    return (BX_NE2K_THIS_PTR s.physaddr[offset - 1]);
     break;
 
   case 0x7:  // CURR
-      BX_DEBUG(("returning current page: %02x", (BX_NE2K_THIS s.curr_page)));
-    return (BX_NE2K_THIS s.curr_page);
+      BX_DEBUG(("returning current page: %02x", (BX_NE2K_THIS_PTR s.curr_page)));
+    return (BX_NE2K_THIS_PTR s.curr_page);
 
   case 0x8:  // MAR0-7
   case 0x9:
@@ -728,7 +728,7 @@ bx_ne2k_c::page1_read(Bit32u offset, unsigned int io_len)
   case 0xd:
   case 0xe:
   case 0xf:
-    return (BX_NE2K_THIS s.mchash[offset - 8]);
+    return (BX_NE2K_THIS_PTR s.mchash[offset - 8]);
     break;
 
   default:
@@ -753,11 +753,11 @@ bx_ne2k_c::page1_write(Bit32u offset, Bit32u value, unsigned io_len)
   case 0x4:
   case 0x5:
   case 0x6:
-    BX_NE2K_THIS s.physaddr[offset - 1] = value;
+    BX_NE2K_THIS_PTR s.physaddr[offset - 1] = value;
     break;
     
   case 0x7:  // CURR
-    BX_NE2K_THIS s.curr_page = value;
+    BX_NE2K_THIS_PTR s.curr_page = value;
     break;
 
   case 0x8:  // MAR0-7
@@ -768,7 +768,7 @@ bx_ne2k_c::page1_write(Bit32u offset, Bit32u value, unsigned io_len)
   case 0xd:
   case 0xe:
   case 0xf:
-    BX_NE2K_THIS s.mchash[offset - 8] = value;
+    BX_NE2K_THIS_PTR s.mchash[offset - 8] = value;
     break;
 
   default:
@@ -795,31 +795,31 @@ bx_ne2k_c::page2_read(Bit32u offset, unsigned int io_len)
     break;
 
   case 0x1:  // PSTART
-    return (BX_NE2K_THIS s.page_start);
+    return (BX_NE2K_THIS_PTR s.page_start);
     break;
 
   case 0x2:  // PSTOP
-    return (BX_NE2K_THIS s.page_stop);
+    return (BX_NE2K_THIS_PTR s.page_stop);
     break;
 
   case 0x3:  // Remote Next-packet pointer
-    return (BX_NE2K_THIS s.rempkt_ptr);
+    return (BX_NE2K_THIS_PTR s.rempkt_ptr);
     break;
 
   case 0x4:  // TPSR
-    return (BX_NE2K_THIS s.tx_page_start);
+    return (BX_NE2K_THIS_PTR s.tx_page_start);
     break;
 
   case 0x5:  // Local Next-packet pointer
-    return (BX_NE2K_THIS s.localpkt_ptr);
+    return (BX_NE2K_THIS_PTR s.localpkt_ptr);
     break;
 
   case 0x6:  // Address counter (upper)
-    return (BX_NE2K_THIS s.address_cnt >> 8);
+    return (BX_NE2K_THIS_PTR s.address_cnt >> 8);
     break;
 
   case 0x7:  // Address counter (lower)
-    return (BX_NE2K_THIS s.address_cnt & 0xff);
+    return (BX_NE2K_THIS_PTR s.address_cnt & 0xff);
     break;
 
   case 0x8:  // Reserved
@@ -831,38 +831,38 @@ bx_ne2k_c::page2_read(Bit32u offset, unsigned int io_len)
     break;
 
   case 0xc:  // RCR
-    return ((BX_NE2K_THIS s.RCR.monitor   << 5) |
-	    (BX_NE2K_THIS s.RCR.promisc   << 4) |
-	    (BX_NE2K_THIS s.RCR.multicast << 3) |
-	    (BX_NE2K_THIS s.RCR.broadcast << 2) |
-	    (BX_NE2K_THIS s.RCR.runts_ok  << 1) |
-	    (BX_NE2K_THIS s.RCR.errors_ok));
+    return ((BX_NE2K_THIS_PTR s.RCR.monitor   << 5) |
+	    (BX_NE2K_THIS_PTR s.RCR.promisc   << 4) |
+	    (BX_NE2K_THIS_PTR s.RCR.multicast << 3) |
+	    (BX_NE2K_THIS_PTR s.RCR.broadcast << 2) |
+	    (BX_NE2K_THIS_PTR s.RCR.runts_ok  << 1) |
+	    (BX_NE2K_THIS_PTR s.RCR.errors_ok));
     break;
 
   case 0xd:  // TCR
-    return ((BX_NE2K_THIS s.TCR.coll_prio   << 4) |
-	    (BX_NE2K_THIS s.TCR.ext_stoptx  << 3) |
-	    ((BX_NE2K_THIS s.TCR.loop_cntl & 0x3) << 1) |
-	    (BX_NE2K_THIS s.TCR.crc_disable));
+    return ((BX_NE2K_THIS_PTR s.TCR.coll_prio   << 4) |
+	    (BX_NE2K_THIS_PTR s.TCR.ext_stoptx  << 3) |
+	    ((BX_NE2K_THIS_PTR s.TCR.loop_cntl & 0x3) << 1) |
+	    (BX_NE2K_THIS_PTR s.TCR.crc_disable));
     break;
 
   case 0xe:  // DCR
-    return (((BX_NE2K_THIS s.DCR.fifo_size & 0x3) << 5) |
-	    (BX_NE2K_THIS s.DCR.auto_rx  << 4) |
-	    (BX_NE2K_THIS s.DCR.loop     << 3) |
-	    (BX_NE2K_THIS s.DCR.longaddr << 2) |
-	    (BX_NE2K_THIS s.DCR.endian   << 1) |
-	    (BX_NE2K_THIS s.DCR.wdsize));
+    return (((BX_NE2K_THIS_PTR s.DCR.fifo_size & 0x3) << 5) |
+	    (BX_NE2K_THIS_PTR s.DCR.auto_rx  << 4) |
+	    (BX_NE2K_THIS_PTR s.DCR.loop     << 3) |
+	    (BX_NE2K_THIS_PTR s.DCR.longaddr << 2) |
+	    (BX_NE2K_THIS_PTR s.DCR.endian   << 1) |
+	    (BX_NE2K_THIS_PTR s.DCR.wdsize));
     break;
 
   case 0xf:  // IMR
-    return ((BX_NE2K_THIS s.IMR.rdma_inte  << 6) |
-	    (BX_NE2K_THIS s.IMR.cofl_inte  << 5) |
-	    (BX_NE2K_THIS s.IMR.overw_inte << 4) |
-	    (BX_NE2K_THIS s.IMR.txerr_inte << 3) |
-	    (BX_NE2K_THIS s.IMR.rxerr_inte << 2) |
-	    (BX_NE2K_THIS s.IMR.tx_inte    << 1) |
-	    (BX_NE2K_THIS s.IMR.rx_inte));
+    return ((BX_NE2K_THIS_PTR s.IMR.rdma_inte  << 6) |
+	    (BX_NE2K_THIS_PTR s.IMR.cofl_inte  << 5) |
+	    (BX_NE2K_THIS_PTR s.IMR.overw_inte << 4) |
+	    (BX_NE2K_THIS_PTR s.IMR.txerr_inte << 3) |
+	    (BX_NE2K_THIS_PTR s.IMR.rxerr_inte << 2) |
+	    (BX_NE2K_THIS_PTR s.IMR.tx_inte    << 1) |
+	    (BX_NE2K_THIS_PTR s.IMR.rx_inte));
     break;
 
   default:
@@ -888,18 +888,18 @@ bx_ne2k_c::page2_write(Bit32u offset, Bit32u value, unsigned io_len)
 
   case 0x1:  // CLDA0
     // Clear out low byte and re-insert
-    BX_NE2K_THIS s.local_dma &= 0xff00;
-    BX_NE2K_THIS s.local_dma |= (value & 0xff);
+    BX_NE2K_THIS_PTR s.local_dma &= 0xff00;
+    BX_NE2K_THIS_PTR s.local_dma |= (value & 0xff);
     break;
 
   case 0x2:  // CLDA1
     // Clear out high byte and re-insert
-    BX_NE2K_THIS s.local_dma &= 0x00ff;
-    BX_NE2K_THIS s.local_dma |= ((value & 0xff) << 8);
+    BX_NE2K_THIS_PTR s.local_dma &= 0x00ff;
+    BX_NE2K_THIS_PTR s.local_dma |= ((value & 0xff) << 8);
     break;
 
   case 0x3:  // Remote Next-pkt pointer
-    BX_NE2K_THIS s.rempkt_ptr = value;
+    BX_NE2K_THIS_PTR s.rempkt_ptr = value;
     break;
 
   case 0x4:
@@ -907,19 +907,19 @@ bx_ne2k_c::page2_write(Bit32u offset, Bit32u value, unsigned io_len)
     break;
 
   case 0x5:  // Local Next-packet pointer
-    BX_NE2K_THIS s.localpkt_ptr = value;
+    BX_NE2K_THIS_PTR s.localpkt_ptr = value;
     break;
 
   case 0x6:  // Address counter (upper)
     // Clear out high byte and re-insert
-    BX_NE2K_THIS s.address_cnt &= 0x00ff;
-    BX_NE2K_THIS s.address_cnt |= ((value & 0xff) << 8);
+    BX_NE2K_THIS_PTR s.address_cnt &= 0x00ff;
+    BX_NE2K_THIS_PTR s.address_cnt |= ((value & 0xff) << 8);
     break;
 
   case 0x7:  // Address counter (lower)
     // Clear out low byte and re-insert
-    BX_NE2K_THIS s.address_cnt &= 0xff00;
-    BX_NE2K_THIS s.address_cnt |= (value & 0xff);
+    BX_NE2K_THIS_PTR s.address_cnt &= 0xff00;
+    BX_NE2K_THIS_PTR s.address_cnt |= (value & 0xff);
     break;
 
   case 0x8:
@@ -970,13 +970,13 @@ void
 bx_ne2k_c::tx_timer(void)
 {
   BX_DEBUG(("tx_timer"));
-  BX_NE2K_THIS s.TSR.tx_ok = 1;
+  BX_NE2K_THIS_PTR s.TSR.tx_ok = 1;
   // Generate an interrupt if not masked and not one in progress
-  if (BX_NE2K_THIS s.IMR.tx_inte && !BX_NE2K_THIS s.ISR.pkt_tx) {
-    BX_NE2K_THIS s.ISR.pkt_tx = 1;
-    DEV_pic_raise_irq(BX_NE2K_THIS s.base_irq);
+  if (BX_NE2K_THIS_PTR s.IMR.tx_inte && !BX_NE2K_THIS_PTR s.ISR.pkt_tx) {
+    BX_NE2K_THIS_PTR s.ISR.pkt_tx = 1;
+    DEV_pic_raise_irq(BX_NE2K_THIS_PTR s.base_irq);
   }
-  BX_NE2K_THIS s.tx_timer_active = 0;
+  BX_NE2K_THIS_PTR s.tx_timer_active = 0;
 }
 
 
@@ -1002,12 +1002,12 @@ bx_ne2k_c::read(Bit32u address, unsigned io_len)
 #endif  // !BX_USE_NE2K_SMF
   BX_DEBUG(("read addr %x, len %d", address, io_len));
   Bit32u retval = 0;
-  int offset = address - BX_NE2K_THIS s.base_address;
+  int offset = address - BX_NE2K_THIS_PTR s.base_address;
 
   if (offset >= 0x10) {
     retval = asic_read(offset - 0x10, io_len);
   } else {
-    switch (BX_NE2K_THIS s.CR.pgsel) {
+    switch (BX_NE2K_THIS_PTR s.CR.pgsel) {
     case 0x00:
       retval = page0_read(offset, io_len);
       break;
@@ -1026,7 +1026,7 @@ bx_ne2k_c::read(Bit32u address, unsigned io_len)
 
     default:
       BX_PANIC(("ne2K: unknown value of pgsel in read - %d",
-	       BX_NE2K_THIS s.CR.pgsel));
+	       BX_NE2K_THIS_PTR s.CR.pgsel));
     }
   }
 
@@ -1055,7 +1055,7 @@ bx_ne2k_c::write(Bit32u address, Bit32u value, unsigned io_len)
   UNUSED(this_ptr);
 #endif  // !BX_USE_NE2K_SMF
   BX_DEBUG(("write with length %d", io_len));
-  int offset = address - BX_NE2K_THIS s.base_address;
+  int offset = address - BX_NE2K_THIS_PTR s.base_address;
 
   //
   // The high 16 bytes of i/o space are for the ne2000 asic -
@@ -1066,7 +1066,7 @@ bx_ne2k_c::write(Bit32u address, Bit32u value, unsigned io_len)
   if (offset >= 0x10) {
     asic_write(offset - 0x10, value, io_len);
   } else {
-    switch (BX_NE2K_THIS s.CR.pgsel) {
+    switch (BX_NE2K_THIS_PTR s.CR.pgsel) {
     case 0x00:
       page0_write(offset, value, io_len);
       break;
@@ -1085,7 +1085,7 @@ bx_ne2k_c::write(Bit32u address, Bit32u value, unsigned io_len)
 
     default:
       BX_PANIC(("ne2K: unknown value of pgsel in write - %d",
-	       BX_NE2K_THIS s.CR.pgsel));
+	       BX_NE2K_THIS_PTR s.CR.pgsel));
     }
   }
 }
@@ -1153,9 +1153,9 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
   BX_DEBUG(("rx_frame with length %d", io_len));
 
 
-  if ((BX_NE2K_THIS s.CR.stop != 0) ||
-      (BX_NE2K_THIS s.page_start == 0) ||
-      (BX_NE2K_THIS s.TCR.loop_cntl != 0)) {
+  if ((BX_NE2K_THIS_PTR s.CR.stop != 0) ||
+      (BX_NE2K_THIS_PTR s.page_start == 0) ||
+      (BX_NE2K_THIS_PTR s.TCR.loop_cntl != 0)) {
 
     return;
   }
@@ -1164,11 +1164,11 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
   // out how many 256-byte pages the frame would occupy
   pages = (io_len + 4 + 4 + 255)/256;
 
-  if (BX_NE2K_THIS s.curr_page < BX_NE2K_THIS s.bound_ptr) {
-    avail = BX_NE2K_THIS s.bound_ptr - BX_NE2K_THIS s.curr_page;    
+  if (BX_NE2K_THIS_PTR s.curr_page < BX_NE2K_THIS_PTR s.bound_ptr) {
+    avail = BX_NE2K_THIS_PTR s.bound_ptr - BX_NE2K_THIS_PTR s.curr_page;    
   } else {
-    avail = (BX_NE2K_THIS s.page_stop - BX_NE2K_THIS s.page_start) -
-      (BX_NE2K_THIS s.curr_page - BX_NE2K_THIS s.bound_ptr);
+    avail = (BX_NE2K_THIS_PTR s.page_stop - BX_NE2K_THIS_PTR s.page_start) -
+      (BX_NE2K_THIS_PTR s.curr_page - BX_NE2K_THIS_PTR s.bound_ptr);
     wrapped = 1;
   }
 
@@ -1179,26 +1179,26 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
     return;
   }
 
-  if ((io_len < 60) && !BX_NE2K_THIS s.RCR.runts_ok) {
+  if ((io_len < 60) && !BX_NE2K_THIS_PTR s.RCR.runts_ok) {
     BX_DEBUG(("rejected small packet, length %d", io_len));
     return;
   }
 
   // Do address filtering if not in promiscuous mode
-  if (! BX_NE2K_THIS s.RCR.promisc) {
+  if (! BX_NE2K_THIS_PTR s.RCR.promisc) {
     if (!memcmp(buf, bcast_addr, 6)) {
-      if (!BX_NE2K_THIS s.RCR.broadcast) {
+      if (!BX_NE2K_THIS_PTR s.RCR.broadcast) {
 	return;
       }
     } else if (pktbuf[0] & 0x01) {
-	if (! BX_NE2K_THIS s.RCR.multicast) {
+	if (! BX_NE2K_THIS_PTR s.RCR.multicast) {
 	    return;
 	}
       idx = mcast_index(buf);
-      if (!(BX_NE2K_THIS s.mchash[idx >> 3] & (1 << (idx & 0x7)))) {
+      if (!(BX_NE2K_THIS_PTR s.mchash[idx >> 3] & (1 << (idx & 0x7)))) {
 	return;
       }
-    } else if (0 != memcmp(buf, BX_NE2K_THIS s.physaddr, 6)) {
+    } else if (0 != memcmp(buf, BX_NE2K_THIS_PTR s.physaddr, 6)) {
       return;
     }
   } else {
@@ -1210,9 +1210,9 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
 //  	   pktbuf[0], pktbuf[1], pktbuf[2], pktbuf[3], pktbuf[4], pktbuf[5],
 //  	   pktbuf[6], pktbuf[7], pktbuf[8], pktbuf[9], pktbuf[10], pktbuf[11]));
 
-  nextpage = BX_NE2K_THIS s.curr_page + pages;
-  if (nextpage >= BX_NE2K_THIS s.page_stop) {
-    nextpage -= BX_NE2K_THIS s.page_stop - BX_NE2K_THIS s.page_start;
+  nextpage = BX_NE2K_THIS_PTR s.curr_page + pages;
+  if (nextpage >= BX_NE2K_THIS_PTR s.page_stop) {
+    nextpage -= BX_NE2K_THIS_PTR s.page_stop - BX_NE2K_THIS_PTR s.page_start;
   }
 
   // Setup packet header
@@ -1227,34 +1227,34 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
   pkthdr[3] = (io_len + 4) >> 8;	// length-hi
 
   // copy into buffer, update curpage, and signal interrupt if config'd
-  startptr = & BX_NE2K_THIS s.mem[BX_NE2K_THIS s.curr_page * 256 -
+  startptr = & BX_NE2K_THIS_PTR s.mem[BX_NE2K_THIS_PTR s.curr_page * 256 -
 			       BX_NE2K_MEMSTART];
-  if ((nextpage > BX_NE2K_THIS s.curr_page) ||
-      ((BX_NE2K_THIS s.curr_page + pages) == BX_NE2K_THIS s.page_stop)) {
+  if ((nextpage > BX_NE2K_THIS_PTR s.curr_page) ||
+      ((BX_NE2K_THIS_PTR s.curr_page + pages) == BX_NE2K_THIS_PTR s.page_stop)) {
     memcpy(startptr, pkthdr, 4);
     memcpy(startptr + 4, buf, io_len);
-    BX_NE2K_THIS s.curr_page = nextpage;
+    BX_NE2K_THIS_PTR s.curr_page = nextpage;
   } else {
-    int endbytes = (BX_NE2K_THIS s.page_stop - BX_NE2K_THIS s.curr_page) 
+    int endbytes = (BX_NE2K_THIS_PTR s.page_stop - BX_NE2K_THIS_PTR s.curr_page) 
       * 256;
     memcpy(startptr, pkthdr, 4);
     memcpy(startptr + 4, buf, endbytes - 4);
-    startptr = & BX_NE2K_THIS s.mem[BX_NE2K_THIS s.page_start * 256 -
+    startptr = & BX_NE2K_THIS_PTR s.mem[BX_NE2K_THIS_PTR s.page_start * 256 -
 				 BX_NE2K_MEMSTART];
     memcpy(startptr, (void *)(pktbuf + endbytes - 4),
 	   io_len - endbytes + 8);    
-    BX_NE2K_THIS s.curr_page = nextpage;
+    BX_NE2K_THIS_PTR s.curr_page = nextpage;
   }
   
-  BX_NE2K_THIS s.RSR.rx_ok = 1;
+  BX_NE2K_THIS_PTR s.RSR.rx_ok = 1;
   if (pktbuf[0] & 0x80) {
-    BX_NE2K_THIS s.RSR.rx_mbit = 1;
+    BX_NE2K_THIS_PTR s.RSR.rx_mbit = 1;
   }
 
-  BX_NE2K_THIS s.ISR.pkt_rx = 1;
+  BX_NE2K_THIS_PTR s.ISR.pkt_rx = 1;
 
-  if (BX_NE2K_THIS s.IMR.rx_inte) {
-    DEV_pic_raise_irq(BX_NE2K_THIS s.base_irq);
+  if (BX_NE2K_THIS_PTR s.IMR.rx_inte) {
+    DEV_pic_raise_irq(BX_NE2K_THIS_PTR s.base_irq);
   }
 
 }
@@ -1262,77 +1262,77 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
 void
 bx_ne2k_c::init(void)
 {
-  BX_DEBUG(("Init $Id: ne2k.cc,v 1.48.2.1 2003/03/28 09:26:07 slechta Exp $"));
+  BX_DEBUG(("Init $Id: ne2k.cc,v 1.48.2.2 2003/04/04 03:46:08 slechta Exp $"));
 
 
   // Bring the register state into power-up state
   theNE2kDevice->reset(BX_RESET_HARDWARE);
 
   // Read in values from config file
-  BX_NE2K_THIS s.base_address = bx_options.ne2k.Oioaddr->get ();
-  BX_NE2K_THIS s.base_irq     = bx_options.ne2k.Oirq->get ();
-  memcpy(BX_NE2K_THIS s.physaddr, bx_options.ne2k.Omacaddr->getptr (), 6);
+  BX_NE2K_THIS_PTR s.base_address = bx_options.ne2k.Oioaddr->get ();
+  BX_NE2K_THIS_PTR s.base_irq     = bx_options.ne2k.Oirq->get ();
+  memcpy(BX_NE2K_THIS_PTR s.physaddr, bx_options.ne2k.Omacaddr->getptr (), 6);
 
-  if (BX_NE2K_THIS s.tx_timer_index == BX_NULL_TIMER_HANDLE) {
-    BX_NE2K_THIS s.tx_timer_index =
-      bx_pc_system.register_timer(this, tx_timer_handler, 0,
+  if (BX_NE2K_THIS_PTR s.tx_timer_index == BX_NULL_TIMER_HANDLE) {
+    BX_NE2K_THIS_PTR s.tx_timer_index =
+      bx_pc_system.register_timer(BX_NE2K_THIS, tx_timer_handler, 0,
                                   0,0, "ne2k"); // one-shot, inactive
   }
   // Register the IRQ and i/o port addresses
-  DEV_register_irq(BX_NE2K_THIS s.base_irq, "NE2000 ethernet NIC");
+  DEV_register_irq(BX_NE2K_THIS_PTR s.base_irq, "NE2000 ethernet NIC");
 
-  for (unsigned addr = BX_NE2K_THIS s.base_address; 
-       addr <= BX_NE2K_THIS s.base_address + 0x20; 
+  for (unsigned addr = BX_NE2K_THIS_PTR s.base_address; 
+       addr <= BX_NE2K_THIS_PTR s.base_address + 0x20; 
        addr++) {
-    DEV_register_ioread_handler(this, read_handler, addr, "ne2000 NIC", 1);
-    DEV_register_iowrite_handler(this, write_handler, addr, "ne2000 NIC", 1);
+    DEV_register_ioread_handler(BX_NE2K_THIS, read_handler, addr, "ne2000 NIC", 1);
+    DEV_register_iowrite_handler(BX_NE2K_THIS, write_handler, addr, "ne2000 NIC", 1);
   }
   BX_INFO(("port 0x%x/32 irq %d mac %02x:%02x:%02x:%02x:%02x:%02x",
-           BX_NE2K_THIS s.base_address,
-           BX_NE2K_THIS s.base_irq,
-           BX_NE2K_THIS s.physaddr[0],
-           BX_NE2K_THIS s.physaddr[1],
-           BX_NE2K_THIS s.physaddr[2],
-           BX_NE2K_THIS s.physaddr[3],
-           BX_NE2K_THIS s.physaddr[4],
-           BX_NE2K_THIS s.physaddr[5]));
+           BX_NE2K_THIS_PTR s.base_address,
+           BX_NE2K_THIS_PTR s.base_irq,
+           BX_NE2K_THIS_PTR s.physaddr[0],
+           BX_NE2K_THIS_PTR s.physaddr[1],
+           BX_NE2K_THIS_PTR s.physaddr[2],
+           BX_NE2K_THIS_PTR s.physaddr[3],
+           BX_NE2K_THIS_PTR s.physaddr[4],
+           BX_NE2K_THIS_PTR s.physaddr[5]));
 
   // Initialise the mac address area by doubling the physical address
-  BX_NE2K_THIS s.macaddr[0]  = BX_NE2K_THIS s.physaddr[0];
-  BX_NE2K_THIS s.macaddr[1]  = BX_NE2K_THIS s.physaddr[0];
-  BX_NE2K_THIS s.macaddr[2]  = BX_NE2K_THIS s.physaddr[1];
-  BX_NE2K_THIS s.macaddr[3]  = BX_NE2K_THIS s.physaddr[1];
-  BX_NE2K_THIS s.macaddr[4]  = BX_NE2K_THIS s.physaddr[2];
-  BX_NE2K_THIS s.macaddr[5]  = BX_NE2K_THIS s.physaddr[2];
-  BX_NE2K_THIS s.macaddr[6]  = BX_NE2K_THIS s.physaddr[3];
-  BX_NE2K_THIS s.macaddr[7]  = BX_NE2K_THIS s.physaddr[3];
-  BX_NE2K_THIS s.macaddr[8]  = BX_NE2K_THIS s.physaddr[4];
-  BX_NE2K_THIS s.macaddr[9]  = BX_NE2K_THIS s.physaddr[4];
-  BX_NE2K_THIS s.macaddr[10] = BX_NE2K_THIS s.physaddr[5];
-  BX_NE2K_THIS s.macaddr[11] = BX_NE2K_THIS s.physaddr[5];
+  BX_NE2K_THIS_PTR s.macaddr[0]  = BX_NE2K_THIS_PTR s.physaddr[0];
+  BX_NE2K_THIS_PTR s.macaddr[1]  = BX_NE2K_THIS_PTR s.physaddr[0];
+  BX_NE2K_THIS_PTR s.macaddr[2]  = BX_NE2K_THIS_PTR s.physaddr[1];
+  BX_NE2K_THIS_PTR s.macaddr[3]  = BX_NE2K_THIS_PTR s.physaddr[1];
+  BX_NE2K_THIS_PTR s.macaddr[4]  = BX_NE2K_THIS_PTR s.physaddr[2];
+  BX_NE2K_THIS_PTR s.macaddr[5]  = BX_NE2K_THIS_PTR s.physaddr[2];
+  BX_NE2K_THIS_PTR s.macaddr[6]  = BX_NE2K_THIS_PTR s.physaddr[3];
+  BX_NE2K_THIS_PTR s.macaddr[7]  = BX_NE2K_THIS_PTR s.physaddr[3];
+  BX_NE2K_THIS_PTR s.macaddr[8]  = BX_NE2K_THIS_PTR s.physaddr[4];
+  BX_NE2K_THIS_PTR s.macaddr[9]  = BX_NE2K_THIS_PTR s.physaddr[4];
+  BX_NE2K_THIS_PTR s.macaddr[10] = BX_NE2K_THIS_PTR s.physaddr[5];
+  BX_NE2K_THIS_PTR s.macaddr[11] = BX_NE2K_THIS_PTR s.physaddr[5];
     
   // ne2k signature
   for (int i = 12; i < 32; i++) 
-    BX_NE2K_THIS s.macaddr[i] = 0x57;
+    BX_NE2K_THIS_PTR s.macaddr[i] = 0x57;
     
   // Attach to the simulated ethernet dev
-  BX_NE2K_THIS ethdev = eth_locator_c::create(bx_options.ne2k.Oethmod->getptr (), 
+  BX_NE2K_THIS_PTR ethdev = eth_locator_c::create(bx_options.ne2k.Oethmod->getptr (), 
                                               bx_options.ne2k.Oethdev->getptr (),
                                               (const char *) bx_options.ne2k.Omacaddr->getptr (),
                                               rx_handler, 
-                                              this);
+                                              BX_NE2K_THIS);
 
-  if (BX_NE2K_THIS ethdev == NULL) {
+  if (BX_NE2K_THIS_PTR ethdev == NULL) {
     BX_PANIC(("could not find eth module %s", bx_options.ne2k.Oethmod->getptr ()));
     // if they continue, use null.
     BX_INFO(("could not find eth module %s - using null instead",
              bx_options.ne2k.Oethmod->getptr ()));
 
-    BX_NE2K_THIS ethdev = eth_locator_c::create("null", NULL,
+    BX_NE2K_THIS_PTR ethdev = eth_locator_c::create("null", NULL,
                                                 (const char *) bx_options.ne2k.Omacaddr->getptr (),
                                                 rx_handler, 
-                                                this);
-    if (BX_NE2K_THIS ethdev == NULL)
+                                                BX_NE2K_THIS);
+    if (BX_NE2K_THIS_PTR ethdev == NULL)
       BX_PANIC(("could not locate null module"));
   }
 }
@@ -1340,7 +1340,7 @@ bx_ne2k_c::init(void)
 void
 bx_ne2k_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_ne2k_c, this, "", list_p, 35);
+  BXRS_START(bx_ne2k_c, BX_NE2K_THIS, "", list_p, 35);
   {
     BXRS_OBJ(bx_ne2k_t, s);
     // BJS TODO: implement eth_pktmover_c *ethdev
@@ -1361,7 +1361,7 @@ bx_ne2k_c::register_state(bx_param_c *list_p)
 
 #define SHOW_FIELD(reg,field) do { \
   if (n>0 && !(n%5)) dbg_printf ("\n  "); \
-  dbg_printf ("%s=%d ", #field, BX_NE2K_THIS s.reg.field); \
+  dbg_printf ("%s=%d ", #field, BX_NE2K_THIS_PTR s.reg.field); \
   n++; \
 } while (0);
 #define BX_HIGH_BYTE(x) ((0xff00 & (x)) >> 8)
@@ -1417,7 +1417,7 @@ bx_ne2k_c::print_info (FILE *fp, int page, int reg, int brief)
       dbg_printf ("\n");
       break;
     case 0x0003:
-      dbg_printf ("BNRY = Boundary Pointer = 0x%02x\n", BX_NE2K_THIS s.bound_ptr);
+      dbg_printf ("BNRY = Boundary Pointer = 0x%02x\n", BX_NE2K_THIS_PTR s.bound_ptr);
       break;
     case 0x0004:
       dbg_printf ("TSR (Transmit Status Register), read-only:\n  ");
@@ -1432,15 +1432,15 @@ bx_ne2k_c::print_info (FILE *fp, int page, int reg, int brief)
       dbg_printf ("\n");
       // fall through into TPSR, no break line.
     case 0x0204:
-      dbg_printf ("TPSR = Transmit Page Start = 0x%02x\n", BX_NE2K_THIS s.tx_page_start);
+      dbg_printf ("TPSR = Transmit Page Start = 0x%02x\n", BX_NE2K_THIS_PTR s.tx_page_start);
       break;
     case 0x0005:
     case 0x0006:  BX_DUPLICATE(0x0005);
-      dbg_printf ("NCR = Number of Collisions Register (read-only) = 0x%02x\n", BX_NE2K_THIS s.num_coll);
+      dbg_printf ("NCR = Number of Collisions Register (read-only) = 0x%02x\n", BX_NE2K_THIS_PTR s.num_coll);
       dbg_printf ("TBCR1,TBCR0 = Transmit Byte Count = %02x %02x\n", 
-	  BX_HIGH_BYTE (BX_NE2K_THIS s.tx_bytes),
-	  BX_LOW_BYTE (BX_NE2K_THIS s.tx_bytes));
-      dbg_printf ("FIFO = %02x\n", BX_NE2K_THIS s.fifo);
+	  BX_HIGH_BYTE (BX_NE2K_THIS_PTR s.tx_bytes),
+	  BX_LOW_BYTE (BX_NE2K_THIS_PTR s.tx_bytes));
+      dbg_printf ("FIFO = %02x\n", BX_NE2K_THIS_PTR s.fifo);
       break;
     case 0x0007:
       dbg_printf ("ISR (Interrupt Status Register):\n  ");
@@ -1457,15 +1457,15 @@ bx_ne2k_c::print_info (FILE *fp, int page, int reg, int brief)
     case 0x0008:
     case 0x0009:  BX_DUPLICATE(0x0008);
       dbg_printf ("CRDA1,0 = Current remote DMA address = %02x %02x\n", 
-	  BX_HIGH_BYTE (BX_NE2K_THIS s.remote_dma),
-	  BX_LOW_BYTE (BX_NE2K_THIS s.remote_dma));
+	  BX_HIGH_BYTE (BX_NE2K_THIS_PTR s.remote_dma),
+	  BX_LOW_BYTE (BX_NE2K_THIS_PTR s.remote_dma));
       dbg_printf ("RSAR1,0 = Remote start address = %02x %02x\n", 
 	  BX_HIGH_BYTE(s.remote_start),
 	  BX_LOW_BYTE(s.remote_start));
       break;
     case 0x000a:
     case 0x000b:  BX_DUPLICATE(0x000a);
-      dbg_printf ("RCBR1,0 = Remote byte count = %02x\n", BX_NE2K_THIS s.remote_bytes);
+      dbg_printf ("RCBR1,0 = Remote byte count = %02x\n", BX_NE2K_THIS_PTR s.remote_bytes);
       break;
     case 0x000c:
       dbg_printf ("RSR (Receive Status Register), read-only:\n  ");
@@ -1492,7 +1492,7 @@ bx_ne2k_c::print_info (FILE *fp, int page, int reg, int brief)
       break;
     case 0x000d:
       dbg_printf ("CNTR0 = Tally Counter 0 (Frame alignment errors) = %02x\n",
-	  BX_NE2K_THIS s.tallycnt_0);
+	  BX_NE2K_THIS_PTR s.tallycnt_0);
       // fall through into TCR
     case 0x020d:
       dbg_printf ("TCR (Transmit Configuration Register):\n  ");
@@ -1505,7 +1505,7 @@ bx_ne2k_c::print_info (FILE *fp, int page, int reg, int brief)
       break;
     case 0x000e:
       dbg_printf ("CNTR1 = Tally Counter 1 (CRC Errors) = %02x\n",
-	  BX_NE2K_THIS s.tallycnt_1);
+	  BX_NE2K_THIS_PTR s.tallycnt_1);
       // fall through into DCR
     case 0x020e:
       dbg_printf ("DCR (Data Configuration Register):\n  ");
@@ -1519,7 +1519,7 @@ bx_ne2k_c::print_info (FILE *fp, int page, int reg, int brief)
       break;
     case 0x000f:
       dbg_printf ("CNTR2 = Tally Counter 2 (Missed Packet Errors) = %02x\n",
-	  BX_NE2K_THIS s.tallycnt_2);
+	  BX_NE2K_THIS_PTR s.tallycnt_2);
       // fall through into IMR
     case 0x020f:
       dbg_printf ("IMR (Interrupt Mask Register)\n  ");
@@ -1542,10 +1542,10 @@ bx_ne2k_c::print_info (FILE *fp, int page, int reg, int brief)
       dbg_printf ("MAC address registers are located at page 1, registers 1-6.\n");
       dbg_printf ("The MAC address is ");
       for (i=0; i<=5; i++) 
-	dbg_printf ("%02x%c", BX_NE2K_THIS s.physaddr[i], i<5?':' : '\n');
+	dbg_printf ("%02x%c", BX_NE2K_THIS_PTR s.physaddr[i], i<5?':' : '\n');
       break;
     case 0x0107:
-      dbg_printf ("Current page is 0x%02x\n", BX_NE2K_THIS s.curr_page);
+      dbg_printf ("Current page is 0x%02x\n", BX_NE2K_THIS_PTR s.curr_page);
       break;
     case 0x0108:
     case 0x0109:  BX_DUPLICATE(0x0108);
@@ -1556,30 +1556,30 @@ bx_ne2k_c::print_info (FILE *fp, int page, int reg, int brief)
     case 0x010E:  BX_DUPLICATE(0x0108);
     case 0x010F:  BX_DUPLICATE(0x0108);
       dbg_printf ("MAR0-7 (Multicast address registers 0-7) are set to:\n");
-      for (i=0; i<8; i++) dbg_printf ("%02x ", BX_NE2K_THIS s.mchash[i]);
+      for (i=0; i<8; i++) dbg_printf ("%02x ", BX_NE2K_THIS_PTR s.mchash[i]);
       dbg_printf ("\nMAR0 is listed first.\n");
       break;
     case 0x0001:
     case 0x0002:  BX_DUPLICATE(0x0001);
     case 0x0201:  BX_DUPLICATE(0x0001);
     case 0x0202:  BX_DUPLICATE(0x0001);
-      dbg_printf ("PSTART = Page start register = %02x\n", BX_NE2K_THIS s.page_start);
-      dbg_printf ("PSTOP = Page stop register = %02x\n", BX_NE2K_THIS s.page_stop);
+      dbg_printf ("PSTART = Page start register = %02x\n", BX_NE2K_THIS_PTR s.page_start);
+      dbg_printf ("PSTOP = Page stop register = %02x\n", BX_NE2K_THIS_PTR s.page_stop);
       dbg_printf ("Local DMA address = %02x %02x\n", 
-	  BX_HIGH_BYTE(BX_NE2K_THIS s.local_dma),
-	  BX_LOW_BYTE(BX_NE2K_THIS s.local_dma));
+	  BX_HIGH_BYTE(BX_NE2K_THIS_PTR s.local_dma),
+	  BX_LOW_BYTE(BX_NE2K_THIS_PTR s.local_dma));
       break;
     case 0x0203:
-      dbg_printf ("Remote Next Packet Pointer = %02x\n", BX_NE2K_THIS s.rempkt_ptr);
+      dbg_printf ("Remote Next Packet Pointer = %02x\n", BX_NE2K_THIS_PTR s.rempkt_ptr);
       break;
     case 0x0205:
-      dbg_printf ("Local Next Packet Pointer = %02x\n", BX_NE2K_THIS s.localpkt_ptr);
+      dbg_printf ("Local Next Packet Pointer = %02x\n", BX_NE2K_THIS_PTR s.localpkt_ptr);
       break;
     case 0x0206:
     case 0x0207:  BX_DUPLICATE(0x0206);
       dbg_printf ("Address Counter= %02x %02x\n", 
-	 BX_HIGH_BYTE(BX_NE2K_THIS s.address_cnt),
-	 BX_LOW_BYTE(BX_NE2K_THIS s.address_cnt));
+	 BX_HIGH_BYTE(BX_NE2K_THIS_PTR s.address_cnt),
+	 BX_LOW_BYTE(BX_NE2K_THIS_PTR s.address_cnt));
       break;
     case 0x0208:
     case 0x0209:  BX_DUPLICATE(0x0208);

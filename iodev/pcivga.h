@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.h,v 1.3.4.1 2003/03/28 09:26:09 slechta Exp $
+// $Id: pcivga.h,v 1.3.4.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003  Mike Nordell
@@ -19,9 +19,11 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
 #if BX_USE_PCIVGA_SMF
-#  define BX_PCIVGA_THIS thePciVgaAdapter->
+#  define BX_PCIVGA_THIS_PTR thePciVgaAdapter->
+#  define BX_PCIVGA_THIS thePciVgaAdapter
 #else
-#  define BX_PCIVGA_THIS this->
+#  define BX_PCIVGA_THIS_PTR this->
+#  define BX_PCIVGA_THIS this
 #endif
 
 

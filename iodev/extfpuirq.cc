@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: extfpuirq.cc,v 1.3 2003/01/09 17:14:20 vruppert Exp $
+// $Id: extfpuirq.cc,v 1.3.4.1 2003/04/04 03:46:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -70,7 +70,7 @@ bx_extfpuirq_c::~bx_extfpuirq_c(void)
 bx_extfpuirq_c::init(void)
 {
   // called once when bochs initializes
-  DEV_register_iowrite_handler(this, write_handler, 0x00F0, "External FPU IRQ", 7);
+  DEV_register_iowrite_handler(BX_EXTFPUIRQ_THIS, write_handler, 0x00F0, "External FPU IRQ", 7);
   DEV_register_irq(13, "External FPU IRQ");
 }
 

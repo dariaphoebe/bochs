@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: slowdown_timer.cc,v 1.13 2002/10/24 21:07:52 bdenney Exp $
+// $Id: slowdown_timer.cc,v 1.13.6.1 2003/04/04 03:46:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 #include "bochs.h"
@@ -49,6 +49,27 @@ bx_slowdown_timer_c::init(void) {
   }
   bx_pc_system.deactivate_timer(s.timer_handle);
   bx_pc_system.activate_timer(s.timer_handle,(Bit32u)s.Q,0);
+}
+
+void
+bx_slowdown_time_c::register_state(bx_param_c *list_p)
+{
+  // BJS TODO: TESTME
+#warning bx_slowdown timer save/restore needs to be tested
+  BXRS(bx_slowdown_time_c, this, "a slowdown timer", list_p, 10);
+  BXRS_STRUCT_START(struct s_type, s);
+  {
+    BXRS_NUM(Bit64u, start_time);
+    BXRS_NUM(Bit64u, start_emulated_time);
+    BXRS_NUM(Bit64u, lasttime);
+
+    BXRS_NUM(int, timer_handle);
+
+    BXRS_ENUM(float, MAXmultiplier);
+    BXRS_NUM_D(Bit64u, Q, "Q (in seconds)");    
+  }
+  BXRS_STRUCT_END;
+  BXRS_END;
 }
 
 void

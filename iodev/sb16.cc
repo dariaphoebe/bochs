@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.cc,v 1.31 2003/02/24 18:35:46 vruppert Exp $
+// $Id: sb16.cc,v 1.31.2.1 2003/04/04 03:46:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -53,16 +53,16 @@ libsb16_LTX_plugin_fini(void)
 }
 
 // some shortcuts to save typing
-#define LOGFILE         BX_SB16_THIS logfile
-#define MIDIDATA        BX_SB16_THIS midifile
-#define WAVEDATA        BX_SB16_THIS wavefile
-#define MPU             BX_SB16_THIS mpu401
-#define DSP             BX_SB16_THIS dsp
-#define MIXER           BX_SB16_THIS mixer
-#define EMUL            BX_SB16_THIS emuldata
-#define OPL             BX_SB16_THIS opl
+#define LOGFILE         BX_SB16_THIS_PTR logfile
+#define MIDIDATA        BX_SB16_THIS_PTR midifile
+#define WAVEDATA        BX_SB16_THIS_PTR wavefile
+#define MPU             BX_SB16_THIS_PTR mpu401
+#define DSP             BX_SB16_THIS_PTR dsp
+#define MIXER           BX_SB16_THIS_PTR mixer
+#define EMUL            BX_SB16_THIS_PTR emuldata
+#define OPL             BX_SB16_THIS_PTR opl
 
-#define BX_SB16_OUTPUT  BX_SB16_THIS output
+#define BX_SB16_OUTPUT  BX_SB16_THIS_PTR output
 
 // here's a safe way to print out null pointeres
 #define MIGHT_BE_NULL(x)  ((x==NULL)? "(null)" : x)
@@ -136,7 +136,7 @@ void bx_sb16_c::init(void)
     }
 
       // let the output functions initialize
-  BX_SB16_OUTPUT = new BX_SOUND_OUTPUT_C(BX_SB16_THISP);
+  BX_SB16_OUTPUT = new BX_SOUND_OUTPUT_C(BX_SB16_THIS);
 
   if (BX_SB16_OUTPUT == NULL)
     {
@@ -230,31 +230,31 @@ void bx_sb16_c::init(void)
 
   // Allocate the IO addresses, 2x0..2xf, 3x0..3x4 and 388..38b
   for (addr=BX_SB16_IO; addr<BX_SB16_IO+BX_SB16_IOLEN; addr++) {
-    DEV_register_ioread_handler(this,
+    DEV_register_ioread_handler(BX_SB16_THIS,
        &read_handler, addr, "SB16", 7);
-    DEV_register_iowrite_handler(this,
+    DEV_register_iowrite_handler(BX_SB16_THIS,
        &write_handler, addr, "SB16", 7);
     }
   for (addr=BX_SB16_IOMPU; addr<BX_SB16_IOMPU+BX_SB16_IOMPULEN; addr++) {
-    DEV_register_ioread_handler(this,
+    DEV_register_ioread_handler(BX_SB16_THIS,
        &read_handler, addr, "SB16", 7);
-    DEV_register_iowrite_handler(this,
+    DEV_register_iowrite_handler(BX_SB16_THIS,
        &write_handler, addr, "SB16", 7);
     }
   for (addr=BX_SB16_IOADLIB; addr<BX_SB16_IOADLIB+BX_SB16_IOADLIBLEN; addr++) {
-    DEV_register_ioread_handler(this,
+    DEV_register_ioread_handler(BX_SB16_THIS,
        read_handler, addr, "SB16", 7);
-    DEV_register_iowrite_handler(this,
+    DEV_register_iowrite_handler(BX_SB16_THIS,
        write_handler, addr, "SB16", 7);
     }
 
   // Allocate the SB16 gameport IO address range 0x200..0x207
   for (addr=0x200; addr<0x208; addr++) {
-    DEV_register_ioread_handler(this, read_handler, addr, "SB16", 7);
-    DEV_register_iowrite_handler(this, write_handler, addr, "SB16", 7);
+    DEV_register_ioread_handler(BX_SB16_THIS, read_handler, addr, "SB16", 7);
+    DEV_register_iowrite_handler(BX_SB16_THIS, write_handler, addr, "SB16", 7);
     }
 
-  BX_SB16_THIS gameport = 0xf0;
+  BX_SB16_THIS_PTR gameport = 0xf0;
 
   writelog(BOTHLOG(3),
 	   "driver initialised, IRQ %d, IO %03x/%03x/%03x, DMA %d/%d",
@@ -264,19 +264,19 @@ void bx_sb16_c::init(void)
   // initialize the timers
   if (MPU.timer_handle == BX_NULL_TIMER_HANDLE) {
     MPU.timer_handle = bx_pc_system.register_timer
-      (BX_SB16_THISP, mpu_timer, 500000 / 384, 1, 1, "sb16.mpu");
+      (BX_SB16_THIS, mpu_timer, 500000 / 384, 1, 1, "sb16.mpu");
     // midi timer: active, continuous, 500000 / 384 seconds (384 = delta time, 500000 = sec per beat at 120 bpm. Don't change this!)
   }
 
   if (DSP.timer_handle == BX_NULL_TIMER_HANDLE) {
     DSP.timer_handle = bx_pc_system.register_timer
-      (BX_SB16_THISP, dsp_dmatimer, 1, 1, 0, "sb16.dsp");
+      (BX_SB16_THIS, dsp_dmatimer, 1, 1, 0, "sb16.dsp");
 	// dma timer: inactive, continous, frequency variable
   }
 
   if (OPL.timer_handle == BX_NULL_TIMER_HANDLE) {
     OPL.timer_handle = bx_pc_system.register_timer
-      (BX_SB16_THISP, opl_timer, 80, 1, 0, "sb16.opl");
+      (BX_SB16_THIS, opl_timer, 80, 1, 0, "sb16.opl");
 	// opl timer: inactive, continuous, frequency 80us
   }
 
@@ -1521,7 +1521,7 @@ void bx_sb16_c::mpu_command(Bit32u value)
 	  if (BX_SB16_IRQ != -1)
 	    {
 	      MIXER.reg[0x82] |= 4;
-	      BX_SB16_THIS devices->pic->trigger_irq(BX_SB16_IRQ);
+	      BX_SB16_THIS_PTR devices->pic->trigger_irq(BX_SB16_IRQ);
 	    }
 	  */
 	  break;
@@ -1591,7 +1591,7 @@ void bx_sb16_c::mpu_datawrite(Bit32u value)
       if (MPU.cmd.put(value) == 0)
 	writelog(MIDILOG(3), "MPU Command arguments too long - buffer full");
       if (MPU.cmd.commanddone() == 1)
-	BX_SB16_THIS mpu_command(MPU.cmd.currentcommand());
+	BX_SB16_THIS_PTR mpu_command(MPU.cmd.currentcommand());
     }
   else if ( (MPU.uartmode == 0) && (MPU.singlecommand == 0) )
     {
@@ -2751,7 +2751,7 @@ void bx_sb16_c::processmidicommand(bx_bool force)
       MPU.singlecommand = 0;
       // and trigger IRQ?
       //      MPU.irqpending = 1;
-      //      BX_SB16_THIS devices->pic->trigger_irq(BX_SB16_IRQMPU);
+      //      BX_SB16_THIS_PTR devices->pic->trigger_irq(BX_SB16_IRQMPU);
     }
 
   if ( (force == 0) && (needremap == 1) )
@@ -3073,7 +3073,7 @@ Bit32u bx_sb16_c::read(Bit32u address, unsigned io_len)
     case 0x0206:
     case 0x0207:
       BX_INFO(("read: joystick not present yet"));
-      return BX_SB16_THIS gameport;
+      return BX_SB16_THIS_PTR gameport;
     }
 
   // If we get here, the port wasn't valid
@@ -3219,7 +3219,7 @@ void bx_sb16_c::write(Bit32u address, Bit32u value, unsigned io_len)
     case 0x0206:
     case 0x0207:
       BX_INFO(("write: joystick not present yet"));
-      BX_SB16_THIS gameport |= 0x0f;
+      BX_SB16_THIS_PTR gameport |= 0x0f;
       break;
     }
 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: biosdev.cc,v 1.5.6.2 2003/03/28 09:26:00 slechta Exp $
+// $Id: biosdev.cc,v 1.5.6.3 2003/04/04 03:46:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -96,22 +96,22 @@ bx_biosdev_c::~bx_biosdev_c(void)
   void
 bx_biosdev_c::init(void)
 {
-  DEV_register_iowrite_handler(this, write_handler, 0x0400, "Bios Panic Port 1", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0401, "Bios Panic Port 2", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0403, "Bios Debug Port", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0402, "Bios Info Port", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0xfff0, "Bios Info Port (legacy)", 7);
+  DEV_register_iowrite_handler(BX_BIOS_THIS, write_handler, 0x0400, "Bios Panic Port 1", 7);
+  DEV_register_iowrite_handler(BX_BIOS_THIS, write_handler, 0x0401, "Bios Panic Port 2", 7);
+  DEV_register_iowrite_handler(BX_BIOS_THIS, write_handler, 0x0403, "Bios Debug Port", 7);
+  DEV_register_iowrite_handler(BX_BIOS_THIS, write_handler, 0x0402, "Bios Info Port", 7);
+  DEV_register_iowrite_handler(BX_BIOS_THIS, write_handler, 0xfff0, "Bios Info Port (legacy)", 7);
 
-  DEV_register_iowrite_handler(this, write_handler, 0x0501, "VGABios Panic Port 1", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0502, "VGABios Panic Port 2", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0503, "VGABios Debug Port", 7);
-  DEV_register_iowrite_handler(this, write_handler, 0x0500, "VGABios Info Port", 7);
+  DEV_register_iowrite_handler(BX_BIOS_THIS, write_handler, 0x0501, "VGABios Panic Port 1", 7);
+  DEV_register_iowrite_handler(BX_BIOS_THIS, write_handler, 0x0502, "VGABios Panic Port 2", 7);
+  DEV_register_iowrite_handler(BX_BIOS_THIS, write_handler, 0x0503, "VGABios Debug Port", 7);
+  DEV_register_iowrite_handler(BX_BIOS_THIS, write_handler, 0x0500, "VGABios Info Port", 7);
 }
 
   void 
 bx_biosdev_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_biosdev_c, this, "bios rom", list_p, 4);
+  BXRS_START(bx_biosdev_c, BX_BIOS_THIS, "bios rom", list_p, 4);
   {
     BXRS_STRUCT_START(struct s_t, s);
     {
@@ -154,14 +154,14 @@ bx_biosdev_c::write(Bit32u address, Bit32u value, unsigned io_len)
   switch (address) {
     // 0x400-0x401 are used as panic ports for the rombios
     case 0x0401:
-      if (BX_BIOS_THIS s.bios_message_i > 0) {
+      if (BX_BIOS_THIS_PTR s.bios_message_i > 0) {
 	// if there are bits of message in the buffer, print them as the
 	// panic message.  Otherwise fall into the next case.
-	if (BX_BIOS_THIS s.bios_message_i >= BX_BIOS_MESSAGE_SIZE)
-	  BX_BIOS_THIS s.bios_message_i = BX_BIOS_MESSAGE_SIZE-1;
-        BX_BIOS_THIS s.bios_message[ BX_BIOS_THIS s.bios_message_i] = 0;
-	BX_BIOS_THIS s.bios_message_i = 0;
-        bioslog->panic("%s", BX_BIOS_THIS s.bios_message);
+	if (BX_BIOS_THIS_PTR s.bios_message_i >= BX_BIOS_MESSAGE_SIZE)
+	  BX_BIOS_THIS_PTR s.bios_message_i = BX_BIOS_MESSAGE_SIZE-1;
+        BX_BIOS_THIS_PTR s.bios_message[ BX_BIOS_THIS_PTR s.bios_message_i] = 0;
+	BX_BIOS_THIS_PTR s.bios_message_i = 0;
+        bioslog->panic("%s", BX_BIOS_THIS_PTR s.bios_message);
 	break;
       }
     case 0x0400:
@@ -174,33 +174,33 @@ bx_biosdev_c::write(Bit32u address, Bit32u value, unsigned io_len)
     case 0xfff0:
     case 0x0402:
     case 0x0403:
-      BX_BIOS_THIS s.bios_message[BX_BIOS_THIS s.bios_message_i] =
+      BX_BIOS_THIS_PTR s.bios_message[BX_BIOS_THIS_PTR s.bios_message_i] =
         (Bit8u) value;
-      BX_BIOS_THIS s.bios_message_i ++;
-      if ( BX_BIOS_THIS s.bios_message_i >= BX_BIOS_MESSAGE_SIZE ) {
-        BX_BIOS_THIS s.bios_message[ BX_BIOS_MESSAGE_SIZE - 1] = 0;
-        BX_BIOS_THIS s.bios_message_i = 0;
-	if (address==0x403) bioslog->ldebug("%s", BX_BIOS_THIS s.bios_message);
-	else bioslog->info("%s", BX_BIOS_THIS s.bios_message);
+      BX_BIOS_THIS_PTR s.bios_message_i ++;
+      if ( BX_BIOS_THIS_PTR s.bios_message_i >= BX_BIOS_MESSAGE_SIZE ) {
+        BX_BIOS_THIS_PTR s.bios_message[ BX_BIOS_MESSAGE_SIZE - 1] = 0;
+        BX_BIOS_THIS_PTR s.bios_message_i = 0;
+	if (address==0x403) bioslog->ldebug("%s", BX_BIOS_THIS_PTR s.bios_message);
+	else bioslog->info("%s", BX_BIOS_THIS_PTR s.bios_message);
 	}
       else if ((value & 0xff) == '\n') {
-        BX_BIOS_THIS s.bios_message[ BX_BIOS_THIS s.bios_message_i - 1 ] = 0;
-        BX_BIOS_THIS s.bios_message_i = 0;
-	if (address==0x403) bioslog->ldebug("%s", BX_BIOS_THIS s.bios_message);
-	else bioslog->info("%s", BX_BIOS_THIS s.bios_message);
+        BX_BIOS_THIS_PTR s.bios_message[ BX_BIOS_THIS_PTR s.bios_message_i - 1 ] = 0;
+        BX_BIOS_THIS_PTR s.bios_message_i = 0;
+	if (address==0x403) bioslog->ldebug("%s", BX_BIOS_THIS_PTR s.bios_message);
+	else bioslog->info("%s", BX_BIOS_THIS_PTR s.bios_message);
         }
       break;
 
     // 0x501-0x502 are used as panic ports for the vgabios
     case 0x0502:
-      if (BX_BIOS_THIS s.vgabios_message_i > 0) {
+      if (BX_BIOS_THIS_PTR s.vgabios_message_i > 0) {
 	// if there are bits of message in the buffer, print them as the
 	// panic message.  Otherwise fall into the next case.
-	if (BX_BIOS_THIS s.vgabios_message_i >= BX_BIOS_MESSAGE_SIZE)
-	  BX_BIOS_THIS s.vgabios_message_i = BX_BIOS_MESSAGE_SIZE-1;
-        BX_BIOS_THIS s.vgabios_message[ BX_BIOS_THIS s.vgabios_message_i] = 0;
-	BX_BIOS_THIS s.vgabios_message_i = 0;
-        vgabioslog->panic("%s", BX_BIOS_THIS s.vgabios_message);
+	if (BX_BIOS_THIS_PTR s.vgabios_message_i >= BX_BIOS_MESSAGE_SIZE)
+	  BX_BIOS_THIS_PTR s.vgabios_message_i = BX_BIOS_MESSAGE_SIZE-1;
+        BX_BIOS_THIS_PTR s.vgabios_message[ BX_BIOS_THIS_PTR s.vgabios_message_i] = 0;
+	BX_BIOS_THIS_PTR s.vgabios_message_i = 0;
+        vgabioslog->panic("%s", BX_BIOS_THIS_PTR s.vgabios_message);
 	break;
       }
     case 0x0501:
@@ -210,20 +210,20 @@ bx_biosdev_c::write(Bit32u address, Bit32u value, unsigned io_len)
     // 0x0500 is used as the message port for the vgabios
     case 0x0500:
     case 0x0503:
-      BX_BIOS_THIS s.vgabios_message[BX_BIOS_THIS s.vgabios_message_i] =
+      BX_BIOS_THIS_PTR s.vgabios_message[BX_BIOS_THIS_PTR s.vgabios_message_i] =
         (Bit8u) value;
-      BX_BIOS_THIS s.vgabios_message_i ++;
-      if ( BX_BIOS_THIS s.vgabios_message_i >= BX_BIOS_MESSAGE_SIZE ) {
-        BX_BIOS_THIS s.vgabios_message[ BX_BIOS_MESSAGE_SIZE - 1] = 0;
-        BX_BIOS_THIS s.vgabios_message_i = 0;
-        if (address==0x503) vgabioslog->ldebug("%s", BX_BIOS_THIS s.vgabios_message);
-        else vgabioslog->info("%s", BX_BIOS_THIS s.vgabios_message);
+      BX_BIOS_THIS_PTR s.vgabios_message_i ++;
+      if ( BX_BIOS_THIS_PTR s.vgabios_message_i >= BX_BIOS_MESSAGE_SIZE ) {
+        BX_BIOS_THIS_PTR s.vgabios_message[ BX_BIOS_MESSAGE_SIZE - 1] = 0;
+        BX_BIOS_THIS_PTR s.vgabios_message_i = 0;
+        if (address==0x503) vgabioslog->ldebug("%s", BX_BIOS_THIS_PTR s.vgabios_message);
+        else vgabioslog->info("%s", BX_BIOS_THIS_PTR s.vgabios_message);
         }
       else if ((value & 0xff) == '\n') {
-        BX_BIOS_THIS s.vgabios_message[ BX_BIOS_THIS s.vgabios_message_i - 1 ] = 0;
-        BX_BIOS_THIS s.vgabios_message_i = 0;
-        if (address==0x503) vgabioslog->ldebug("%s", BX_BIOS_THIS s.vgabios_message);
-        else vgabioslog->info("%s", BX_BIOS_THIS s.vgabios_message);
+        BX_BIOS_THIS_PTR s.vgabios_message[ BX_BIOS_THIS_PTR s.vgabios_message_i - 1 ] = 0;
+        BX_BIOS_THIS_PTR s.vgabios_message_i = 0;
+        if (address==0x503) vgabioslog->ldebug("%s", BX_BIOS_THIS_PTR s.vgabios_message);
+        else vgabioslog->info("%s", BX_BIOS_THIS_PTR s.vgabios_message);
         }
       break;
 

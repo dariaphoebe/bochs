@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.h,v 1.1.4.1 2003/03/28 09:26:09 slechta Exp $
+// $Id: pciusb.h,v 1.1.4.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -29,9 +29,11 @@
 //
 
 #if BX_USE_PCIUSB_SMF
-#  define BX_USB_THIS theUSBDevice->
+#  define BX_USB_THIS_PTR theUSBDevice->
+#  define BX_USB_THIS theUSBDevice
 #else
-#  define BX_USB_THIS this->
+#  define BX_USB_THIS_PTR this->
+#  define BX_USB_THIS this
 #endif
 
 #define BX_USB_MAXDEV   1

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: unmapped.cc,v 1.20.4.1 2003/03/28 09:26:09 slechta Exp $
+// $Id: unmapped.cc,v 1.20.4.2 2003/04/04 03:46:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -76,7 +76,7 @@ bx_unmapped_c::init(void)
 void
 bx_unmapped_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_unmapped_c, this, "unmapped device", list_p, 3);
+  BXRS_START(bx_unmapped_c, BX_UM_THIS, "unmapped device", list_p, 3);
   {
     BXRS_STRUCT_START_D(struct s_t, s, "state information");
     {
@@ -126,10 +126,10 @@ bx_unmapped_c::read(Bit32u address, unsigned io_len)
 
   switch (address) {
     case 0x80:
-	  retval = BX_UM_THIS s.port80;
+	  retval = BX_UM_THIS_PTR s.port80;
 	  break;
     case 0x8e:
-	  retval = BX_UM_THIS s.port8e;
+	  retval = BX_UM_THIS_PTR s.port8e;
 	  break;
 #if BX_PORT_E9_HACK
     // Unused port on ISA - this can be used by the emulated code
@@ -227,11 +227,11 @@ bx_unmapped_c::write(Bit32u address, Bit32u value, unsigned io_len)
   switch (address) {
     case 0x80: // diagnostic test port to display progress of POST
       //BX_DEBUG(("Diagnostic port 80h: write = %02xh", (unsigned) value));
-      BX_UM_THIS s.port80 = value;
+      BX_UM_THIS_PTR s.port80 = value;
       break;
 
     case 0x8e: // ???
-      BX_UM_THIS s.port8e = value;
+      BX_UM_THIS_PTR s.port8e = value;
       break;
 
 #if BX_PORT_E9_HACK
@@ -272,17 +272,17 @@ bx_unmapped_c::write(Bit32u address, Bit32u value, unsigned io_len)
     case 0x8900: // Shutdown port, could be moved in a PM device
                  // or a host <-> guest communication device 
       switch (value) {
-        case 'S': if (BX_UM_THIS s.shutdown == 0) BX_UM_THIS s.shutdown = 1; break;
-        case 'h': if (BX_UM_THIS s.shutdown == 1) BX_UM_THIS s.shutdown = 2; break;
-        case 'u': if (BX_UM_THIS s.shutdown == 2) BX_UM_THIS s.shutdown = 3; break;
-        case 't': if (BX_UM_THIS s.shutdown == 3) BX_UM_THIS s.shutdown = 4; break;
-        case 'd': if (BX_UM_THIS s.shutdown == 4) BX_UM_THIS s.shutdown = 5; break;
-        case 'o': if (BX_UM_THIS s.shutdown == 5) BX_UM_THIS s.shutdown = 6; break;
-        case 'w': if (BX_UM_THIS s.shutdown == 6) BX_UM_THIS s.shutdown = 7; break;
-        case 'n': if (BX_UM_THIS s.shutdown == 7) BX_UM_THIS s.shutdown = 8; break;
-	default :  BX_UM_THIS s.shutdown = 0; break;
+        case 'S': if (BX_UM_THIS_PTR s.shutdown == 0) BX_UM_THIS_PTR s.shutdown = 1; break;
+        case 'h': if (BX_UM_THIS_PTR s.shutdown == 1) BX_UM_THIS_PTR s.shutdown = 2; break;
+        case 'u': if (BX_UM_THIS_PTR s.shutdown == 2) BX_UM_THIS_PTR s.shutdown = 3; break;
+        case 't': if (BX_UM_THIS_PTR s.shutdown == 3) BX_UM_THIS_PTR s.shutdown = 4; break;
+        case 'd': if (BX_UM_THIS_PTR s.shutdown == 4) BX_UM_THIS_PTR s.shutdown = 5; break;
+        case 'o': if (BX_UM_THIS_PTR s.shutdown == 5) BX_UM_THIS_PTR s.shutdown = 6; break;
+        case 'w': if (BX_UM_THIS_PTR s.shutdown == 6) BX_UM_THIS_PTR s.shutdown = 7; break;
+        case 'n': if (BX_UM_THIS_PTR s.shutdown == 7) BX_UM_THIS_PTR s.shutdown = 8; break;
+	default :  BX_UM_THIS_PTR s.shutdown = 0; break;
         }
-      if (BX_UM_THIS s.shutdown == 8) {
+      if (BX_UM_THIS_PTR s.shutdown == 8) {
         BX_INFO(("Shutdown port: shutdown requested"));
         BX_CPU(0)->kill_bochs_request = 2;
         }

@@ -43,7 +43,9 @@ extern "C" {
 
 #define LOG_THIS genlog->
 #if BX_USE_CPU_SMF
-#define this (BX_CPU(0))
+# define BX_CPU_THIS (BX_CPU(0))
+#else
+# define BX_CPU_THIS this
 #endif
 
 // Use this to hold a pointer to the instruction since
@@ -83,7 +85,7 @@ BX_CPU_C::fpu_execute(bxInstruction_c *i)
   bx_bool is_32;
 
   fpu_iptr = i;
-  fpu_cpu_ptr = this;
+  fpu_cpu_ptr = BX_CPU_THIS;
   current_i387 = &(BX_CPU_THIS_PTR the_i387);
 
   is_32 = BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.d_b;

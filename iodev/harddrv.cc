@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.97.2.5 2003/03/28 09:26:03 slechta Exp $
+// $Id: harddrv.cc,v 1.97.2.6 2003/04/04 03:46:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -67,27 +67,27 @@ static unsigned curr_multiple_sectors = 0; // was 0x3f
 #define get_packet_word(c,b) (((uint16)BX_SELECTED_CONTROLLER((c)).buffer[(b)] << 8) | BX_SELECTED_CONTROLLER((c)).buffer[(b)+1])
 
 
-#define BX_CONTROLLER(c,a) (BX_HD_THIS channels[(c)].drives[(a)]).controller
-#define BX_DRIVE(c,a) (BX_HD_THIS channels[(c)].drives[(a)])
+#define BX_CONTROLLER(c,a) (BX_HD_THIS_PTR channels[(c)].drives[(a)]).controller
+#define BX_DRIVE(c,a) (BX_HD_THIS_PTR channels[(c)].drives[(a)])
 
-#define BX_DRIVE_IS_PRESENT(c,a) (BX_HD_THIS channels[(c)].drives[(a)].device_type != IDE_NONE)
-#define BX_DRIVE_IS_HD(c,a) (BX_HD_THIS channels[(c)].drives[(a)].device_type == IDE_DISK)
-#define BX_DRIVE_IS_CD(c,a) (BX_HD_THIS channels[(c)].drives[(a)].device_type == IDE_CDROM)
+#define BX_DRIVE_IS_PRESENT(c,a) (BX_HD_THIS_PTR channels[(c)].drives[(a)].device_type != IDE_NONE)
+#define BX_DRIVE_IS_HD(c,a) (BX_HD_THIS_PTR channels[(c)].drives[(a)].device_type == IDE_DISK)
+#define BX_DRIVE_IS_CD(c,a) (BX_HD_THIS_PTR channels[(c)].drives[(a)].device_type == IDE_CDROM)
 
 #define BX_MASTER_IS_PRESENT(c) BX_DRIVE_IS_PRESENT((c),0)
 #define BX_SLAVE_IS_PRESENT(c) BX_DRIVE_IS_PRESENT((c),1)
 #define BX_ANY_IS_PRESENT(c) (BX_DRIVE_IS_PRESENT((c),0) || BX_DRIVE_IS_PRESENT((c),1))
 
-#define BX_SELECTED_CONTROLLER(c) (BX_CONTROLLER((c),BX_HD_THIS channels[(c)].drive_select))
-#define BX_SELECTED_DRIVE(c) (BX_DRIVE((c),BX_HD_THIS channels[(c)].drive_select))
-#define BX_MASTER_SELECTED(c) (!BX_HD_THIS channels[(c)].drive_select)
-#define BX_SLAVE_SELECTED(c)  (BX_HD_THIS channels[(c)].drive_select)
+#define BX_SELECTED_CONTROLLER(c) (BX_CONTROLLER((c),BX_HD_THIS_PTR channels[(c)].drive_select))
+#define BX_SELECTED_DRIVE(c) (BX_DRIVE((c),BX_HD_THIS_PTR channels[(c)].drive_select))
+#define BX_MASTER_SELECTED(c) (!BX_HD_THIS_PTR channels[(c)].drive_select)
+#define BX_SLAVE_SELECTED(c)  (BX_HD_THIS_PTR channels[(c)].drive_select)
 
 #define BX_SELECTED_IS_PRESENT(c) (BX_DRIVE_IS_PRESENT((c),BX_SLAVE_SELECTED((c))))
 #define BX_SELECTED_IS_HD(c) (BX_DRIVE_IS_HD((c),BX_SLAVE_SELECTED((c))))
 #define BX_SELECTED_IS_CD(c) (BX_DRIVE_IS_CD((c),BX_SLAVE_SELECTED((c))))
 
-#define BX_SELECTED_MODEL(c) (BX_HD_THIS channels[(c)].drives[BX_HD_THIS channels[(c)].drive_select].model_no)
+#define BX_SELECTED_MODEL(c) (BX_HD_THIS_PTR channels[(c)].drives[BX_HD_THIS_PTR channels[(c)].drive_select].model_no)
 #define BX_SELECTED_TYPE_STRING(channel) ((BX_SELECTED_IS_CD(channel)) ? "CD-ROM" : "DISK")
 
 #define WRITE_FEATURES(c,a) do { uint8 _a = a; BX_CONTROLLER((c),0).features = _a; BX_CONTROLLER((c),1).features = _a; } while(0)
@@ -176,58 +176,58 @@ bx_hard_drive_c::init(void)
   Bit8u channel;
   char  string[5];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.5 2003/03/28 09:26:03 slechta Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.6 2003/04/04 03:46:07 slechta Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
-      BX_HD_THIS channels[channel].ioaddr1 = bx_options.ata[channel].Oioaddr1->get();
-      BX_HD_THIS channels[channel].ioaddr2 = bx_options.ata[channel].Oioaddr2->get();
-      BX_HD_THIS channels[channel].irq = bx_options.ata[channel].Oirq->get();
+      BX_HD_THIS_PTR channels[channel].ioaddr1 = bx_options.ata[channel].Oioaddr1->get();
+      BX_HD_THIS_PTR channels[channel].ioaddr2 = bx_options.ata[channel].Oioaddr2->get();
+      BX_HD_THIS_PTR channels[channel].irq = bx_options.ata[channel].Oirq->get();
 
       // Coherency check
-      if ( (BX_HD_THIS channels[channel].ioaddr1 == 0) ||
-           (BX_HD_THIS channels[channel].ioaddr2 == 0) ||
-           (BX_HD_THIS channels[channel].irq == 0) ) {
+      if ( (BX_HD_THIS_PTR channels[channel].ioaddr1 == 0) ||
+           (BX_HD_THIS_PTR channels[channel].ioaddr2 == 0) ||
+           (BX_HD_THIS_PTR channels[channel].irq == 0) ) {
         BX_PANIC(("incoherency for ata channel %d: io1=0x%x, io2=%x, irq=%d",
 	  channel,
-	  BX_HD_THIS channels[channel].ioaddr1,
-	  BX_HD_THIS channels[channel].ioaddr2,
-	  BX_HD_THIS channels[channel].irq));
+	  BX_HD_THIS_PTR channels[channel].ioaddr1,
+	  BX_HD_THIS_PTR channels[channel].ioaddr2,
+	  BX_HD_THIS_PTR channels[channel].irq));
         }
       }
     else {
-      BX_HD_THIS channels[channel].ioaddr1 = 0;
-      BX_HD_THIS channels[channel].ioaddr2 = 0;
-      BX_HD_THIS channels[channel].irq = 0;
+      BX_HD_THIS_PTR channels[channel].ioaddr1 = 0;
+      BX_HD_THIS_PTR channels[channel].ioaddr2 = 0;
+      BX_HD_THIS_PTR channels[channel].irq = 0;
       }
     }
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     sprintf(string ,"ATA%d", channel);
 
-    if (BX_HD_THIS channels[channel].irq != 0) 
-      DEV_register_irq(BX_HD_THIS channels[channel].irq, strdup(string));
+    if (BX_HD_THIS_PTR channels[channel].irq != 0) 
+      DEV_register_irq(BX_HD_THIS_PTR channels[channel].irq, strdup(string));
 
-    if (BX_HD_THIS channels[channel].ioaddr1 != 0) {
+    if (BX_HD_THIS_PTR channels[channel].ioaddr1 != 0) {
       for (unsigned addr=0x0; addr<=0x7; addr++) {
         DEV_register_ioread_handler(this, read_handler,
-                             BX_HD_THIS channels[channel].ioaddr1+addr, strdup(string), 7);
+                             BX_HD_THIS_PTR channels[channel].ioaddr1+addr, strdup(string), 7);
         DEV_register_iowrite_handler(this, write_handler,
-                             BX_HD_THIS channels[channel].ioaddr1+addr, strdup(string), 7);
+                             BX_HD_THIS_PTR channels[channel].ioaddr1+addr, strdup(string), 7);
         }
       }
 
     // We don't want to register addresses 0x3f6 and 0x3f7 as they are handled by the floppy controller
-    if ((BX_HD_THIS channels[channel].ioaddr2 != 0) && (BX_HD_THIS channels[channel].ioaddr2 != 0x3f0)) {
+    if ((BX_HD_THIS_PTR channels[channel].ioaddr2 != 0) && (BX_HD_THIS_PTR channels[channel].ioaddr2 != 0x3f0)) {
       for (unsigned addr=0x6; addr<=0x7; addr++) {
         DEV_register_ioread_handler(this, read_handler,
-                              BX_HD_THIS channels[channel].ioaddr2+addr, strdup(string), 7);
+                              BX_HD_THIS_PTR channels[channel].ioaddr2+addr, strdup(string), 7);
         DEV_register_iowrite_handler(this, write_handler,
-                              BX_HD_THIS channels[channel].ioaddr2+addr, strdup(string), 7);
+                              BX_HD_THIS_PTR channels[channel].ioaddr2+addr, strdup(string), 7);
         }
       }
      
-     BX_HD_THIS channels[channel].drive_select = 0;
+     BX_HD_THIS_PTR channels[channel].drive_select = 0;
     }
 
   channel = 0;
@@ -235,45 +235,45 @@ bx_hard_drive_c::init(void)
     for (Bit8u device=0; device<2; device ++) {
 
       // If not present
-      BX_HD_THIS channels[channel].drives[device].device_type           = IDE_NONE;
+      BX_HD_THIS_PTR channels[channel].drives[device].device_type           = IDE_NONE;
       if (!bx_options.atadevice[channel][device].Opresent->get()) {
         continue;
         }
 
       // Make model string
-      strncpy((char*)BX_HD_THIS channels[channel].drives[device].model_no, 
+      strncpy((char*)BX_HD_THIS_PTR channels[channel].drives[device].model_no, 
         bx_options.atadevice[channel][device].Omodel->getptr(), 40);
-      while (strlen((char *)BX_HD_THIS channels[channel].drives[device].model_no) < 40) {
-        strcat ((char*)BX_HD_THIS channels[channel].drives[device].model_no, " ");
+      while (strlen((char *)BX_HD_THIS_PTR channels[channel].drives[device].model_no) < 40) {
+        strcat ((char*)BX_HD_THIS_PTR channels[channel].drives[device].model_no, " ");
         }
 
       if (bx_options.atadevice[channel][device].Otype->get() == BX_ATA_DEVICE_DISK) {
         BX_DEBUG(( "Hard-Disk on target %d/%d",channel,device));
-        BX_HD_THIS channels[channel].drives[device].device_type           = IDE_DISK;
+        BX_HD_THIS_PTR channels[channel].drives[device].device_type           = IDE_DISK;
         int cyl = bx_options.atadevice[channel][device].Ocylinders->get ();
         int heads = bx_options.atadevice[channel][device].Oheads->get ();
         int spt = bx_options.atadevice[channel][device].Ospt->get ();
-        BX_HD_THIS channels[channel].drives[device].hard_drive->cylinders = cyl;
-        BX_HD_THIS channels[channel].drives[device].hard_drive->heads = heads;
-        BX_HD_THIS channels[channel].drives[device].hard_drive->sectors = spt;
+        BX_HD_THIS_PTR channels[channel].drives[device].hard_drive->cylinders = cyl;
+        BX_HD_THIS_PTR channels[channel].drives[device].hard_drive->heads = heads;
+        BX_HD_THIS_PTR channels[channel].drives[device].hard_drive->sectors = spt;
 
         if (cyl == 0 || heads == 0 || spt == 0) {
           BX_PANIC(("ata%d/%d cannot have zero cylinders, heads, or sectors/track", channel, device));
           }
 
         /* open hard drive image file */
-        if ((BX_HD_THIS channels[channel].drives[device].hard_drive->open(bx_options.atadevice[channel][device].Opath->getptr ())) < 0) {
+        if ((BX_HD_THIS_PTR channels[channel].drives[device].hard_drive->open(bx_options.atadevice[channel][device].Opath->getptr ())) < 0) {
           BX_PANIC(("ata%d-%d: could not open hard drive image file '%s'", channel, device, bx_options.atadevice[channel][device].Opath->getptr ()));
           }
         BX_INFO(("HD on ata%d-%d: '%s'",channel, device, bx_options.atadevice[channel][device].Opath->getptr ()));
         }
       else if (bx_options.atadevice[channel][device].Otype->get() == BX_ATA_DEVICE_CDROM) {
         BX_DEBUG(( "CDROM on target %d/%d",channel,device));
-        BX_HD_THIS channels[channel].drives[device].device_type = IDE_CDROM;
-        BX_HD_THIS channels[channel].drives[device].cdrom.locked = 0;
-        BX_HD_THIS channels[channel].drives[device].sense.sense_key = SENSE_NONE;
-        BX_HD_THIS channels[channel].drives[device].sense.asc = 0;
-        BX_HD_THIS channels[channel].drives[device].sense.ascq = 0;
+        BX_HD_THIS_PTR channels[channel].drives[device].device_type = IDE_CDROM;
+        BX_HD_THIS_PTR channels[channel].drives[device].cdrom.locked = 0;
+        BX_HD_THIS_PTR channels[channel].drives[device].sense.sense_key = SENSE_NONE;
+        BX_HD_THIS_PTR channels[channel].drives[device].sense.asc = 0;
+        BX_HD_THIS_PTR channels[channel].drives[device].sense.ascq = 0;
 	
         // Check bit fields
         BX_CONTROLLER(channel,device).sector_count = 0;
@@ -299,23 +299,23 @@ bx_hard_drive_c::init(void)
 
 	// allocate low level driver
 #ifdef LOWLEVEL_CDROM
-	BX_HD_THIS channels[channel].drives[device].cdrom.cd = new LOWLEVEL_CDROM(bx_options.atadevice[channel][device].Opath->getptr ());
+	BX_HD_THIS_PTR channels[channel].drives[device].cdrom.cd = new LOWLEVEL_CDROM(bx_options.atadevice[channel][device].Opath->getptr ());
         BX_INFO(("CD on ata%d-%d: '%s'",channel, device, bx_options.atadevice[channel][device].Opath->getptr ()));
 
 	if (bx_options.atadevice[channel][device].Ostatus->get () == BX_INSERTED) {
-	      if (BX_HD_THIS channels[channel].drives[device].cdrom.cd->insert_cdrom()) {
+	      if (BX_HD_THIS_PTR channels[channel].drives[device].cdrom.cd->insert_cdrom()) {
 		    BX_INFO(( "Media present in CD-ROM drive"));
-		    BX_HD_THIS channels[channel].drives[device].cdrom.ready = 1;
-		    BX_HD_THIS channels[channel].drives[device].cdrom.capacity = BX_HD_THIS channels[channel].drives[device].cdrom.cd->capacity();
+		    BX_HD_THIS_PTR channels[channel].drives[device].cdrom.ready = 1;
+		    BX_HD_THIS_PTR channels[channel].drives[device].cdrom.capacity = BX_HD_THIS_PTR channels[channel].drives[device].cdrom.cd->capacity();
 	      } else {		    
 		    BX_INFO(( "Could not locate CD-ROM, continuing with media not present"));
-		    BX_HD_THIS channels[channel].drives[device].cdrom.ready = 0;
+		    BX_HD_THIS_PTR channels[channel].drives[device].cdrom.ready = 0;
 		    bx_options.atadevice[channel][device].Ostatus->set(BX_EJECTED);
 	      }
 	} else {
 #endif
 	      BX_INFO(( "Media not present in CD-ROM drive" ));
-	      BX_HD_THIS channels[channel].drives[device].cdrom.ready = 0;
+	      BX_HD_THIS_PTR channels[channel].drives[device].cdrom.ready = 0;
 #ifdef LOWLEVEL_CDROM
 	}
 #endif
@@ -352,10 +352,10 @@ bx_hard_drive_c::init(void)
   }
 
 #if BX_PDC20230C_VLBIDE_SUPPORT
-      BX_HD_THIS pdc20230c.prog_mode = 0;
-      BX_HD_THIS pdc20230c.prog_count = 0;
-      BX_HD_THIS pdc20230c.p1f3_value = 0;
-      BX_HD_THIS pdc20230c.p1f4_value = 0;
+      BX_HD_THIS_PTR pdc20230c.prog_mode = 0;
+      BX_HD_THIS_PTR pdc20230c.prog_count = 0;
+      BX_HD_THIS_PTR pdc20230c.p1f3_value = 0;
+      BX_HD_THIS_PTR pdc20230c.p1f4_value = 0;
 #endif
 
 
@@ -518,8 +518,8 @@ bx_hard_drive_c::init(void)
 bx_hard_drive_c::reset(unsigned type)
 {
   for (unsigned channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
-    if (BX_HD_THIS channels[channel].irq)
-      DEV_pic_lower_irq(BX_HD_THIS channels[channel].irq);
+    if (BX_HD_THIS_PTR channels[channel].irq)
+      DEV_pic_lower_irq(BX_HD_THIS_PTR channels[channel].irq);
   }
 }
 
@@ -564,12 +564,12 @@ bx_hard_drive_c::read(Bit32u address, unsigned io_len)
   Bit32u port = 0xff; // undefined
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
-    if ((address & 0xfff8) == BX_HD_THIS channels[channel].ioaddr1) {
-      port = address - BX_HD_THIS channels[channel].ioaddr1;
+    if ((address & 0xfff8) == BX_HD_THIS_PTR channels[channel].ioaddr1) {
+      port = address - BX_HD_THIS_PTR channels[channel].ioaddr1;
       break;
       }
-    else if ((address & 0xfff8) == BX_HD_THIS channels[channel].ioaddr2) {
-      port = address - BX_HD_THIS channels[channel].ioaddr2 + 0x10;
+    else if ((address & 0xfff8) == BX_HD_THIS_PTR channels[channel].ioaddr2) {
+      port = address - BX_HD_THIS_PTR channels[channel].ioaddr2 + 0x10;
       break;
       }
     }
@@ -583,52 +583,52 @@ bx_hard_drive_c::read(Bit32u address, unsigned io_len)
 if (channel == 0) {
 
   // Detect the switch to programming mode
-  if (!BX_HD_THIS pdc20230c.prog_mode) {
+  if (!BX_HD_THIS_PTR pdc20230c.prog_mode) {
     switch (port) {
       case 0x02:
-        if ((BX_HD_THIS pdc20230c.prog_count == 0) || (BX_HD_THIS pdc20230c.prog_count > 2)) {
-          BX_HD_THIS pdc20230c.prog_count++;
+        if ((BX_HD_THIS_PTR pdc20230c.prog_count == 0) || (BX_HD_THIS_PTR pdc20230c.prog_count > 2)) {
+          BX_HD_THIS_PTR pdc20230c.prog_count++;
         }
 	else {
-          BX_HD_THIS pdc20230c.prog_count=0;
+          BX_HD_THIS_PTR pdc20230c.prog_count=0;
 	}
 	break;
       case 0x16:
-        if ((BX_HD_THIS pdc20230c.prog_count == 1) || (BX_HD_THIS pdc20230c.prog_count == 2)) {
-	  BX_HD_THIS pdc20230c.prog_count++;
+        if ((BX_HD_THIS_PTR pdc20230c.prog_count == 1) || (BX_HD_THIS_PTR pdc20230c.prog_count == 2)) {
+	  BX_HD_THIS_PTR pdc20230c.prog_count++;
 	}
 	else {
-          BX_HD_THIS pdc20230c.prog_count=0;
+          BX_HD_THIS_PTR pdc20230c.prog_count=0;
 	}
 	break;
       default:
-	BX_HD_THIS pdc20230c.prog_count=0;
+	BX_HD_THIS_PTR pdc20230c.prog_count=0;
     }
 
-    if (BX_HD_THIS pdc20230c.prog_count == 5) {
-      BX_HD_THIS pdc20230c.prog_mode = 1;
+    if (BX_HD_THIS_PTR pdc20230c.prog_count == 5) {
+      BX_HD_THIS_PTR pdc20230c.prog_mode = 1;
       BX_SELECTED_CONTROLLER(channel).sector_count &= 0x7f;
       BX_INFO(("Promise VLB-IDE DC2300: Switching to Programming mode"));
     }
   }
 
   // Returns value when in programming mode
-  if (BX_HD_THIS pdc20230c.prog_mode) {
+  if (BX_HD_THIS_PTR pdc20230c.prog_mode) {
     switch (port) {
       case 0x05:
 	// Leave programming mode
-        BX_HD_THIS pdc20230c.prog_mode = 0;
+        BX_HD_THIS_PTR pdc20230c.prog_mode = 0;
         BX_INFO(("Promise VLB-IDE DC2300: Leaving Programming mode"));
 	// Value will be sent be normal code
         break;
       case 0x03:
 	// Special programming register
-        value32 = BX_HD_THIS pdc20230c.p1f3_value;
+        value32 = BX_HD_THIS_PTR pdc20230c.p1f3_value;
         GOTO_RETURN_VALUE ;
         break;
       case 0x04:
 	// Special programming register
-        value32 = BX_HD_THIS pdc20230c.p1f4_value;
+        value32 = BX_HD_THIS_PTR pdc20230c.p1f4_value;
         GOTO_RETURN_VALUE ;
         break;
     }
@@ -1008,7 +1008,7 @@ if (channel == 0) {
       value8 = (1 << 7) |
                ((BX_SELECTED_CONTROLLER(channel).lba_mode>0) << 6) |
                (1 << 5) | // 01b = 512 sector size
-               (BX_HD_THIS channels[channel].drive_select << 4) |
+               (BX_HD_THIS_PTR channels[channel].drive_select << 4) |
                (BX_SELECTED_CONTROLLER(channel).head_no << 0);
       goto return_value8;
       break;
@@ -1037,7 +1037,7 @@ if (channel == 0) {
         }
       }
       if (port == 0x07) {
-        DEV_pic_lower_irq(BX_HD_THIS channels[channel].irq);
+        DEV_pic_lower_irq(BX_HD_THIS_PTR channels[channel].irq);
         }
       goto return_value8;
       break;
@@ -1103,12 +1103,12 @@ bx_hard_drive_c::write(Bit32u address, Bit32u value, unsigned io_len)
   Bit32u port = 0xff; // undefined
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
-    if ((address & 0xfff8) == BX_HD_THIS channels[channel].ioaddr1) {
-      port = address - BX_HD_THIS channels[channel].ioaddr1;
+    if ((address & 0xfff8) == BX_HD_THIS_PTR channels[channel].ioaddr1) {
+      port = address - BX_HD_THIS_PTR channels[channel].ioaddr1;
       break;
       }
-    else if ((address & 0xfff8) == BX_HD_THIS channels[channel].ioaddr2) {
-      port = address - BX_HD_THIS channels[channel].ioaddr2 + 0x10;
+    else if ((address & 0xfff8) == BX_HD_THIS_PTR channels[channel].ioaddr2) {
+      port = address - BX_HD_THIS_PTR channels[channel].ioaddr2 + 0x10;
       break;
       }
     }
@@ -1120,16 +1120,16 @@ bx_hard_drive_c::write(Bit32u address, Bit32u value, unsigned io_len)
 #if BX_PDC20230C_VLBIDE_SUPPORT
 // pdc20230c is only available for first ata channel
 if (channel == 0) {
-  BX_HD_THIS pdc20230c.prog_count = 0;
+  BX_HD_THIS_PTR pdc20230c.prog_count = 0;
 
-  if (BX_HD_THIS pdc20230c.prog_mode != 0) {
+  if (BX_HD_THIS_PTR pdc20230c.prog_mode != 0) {
     switch (port) {
       case 0x03:
-	BX_HD_THIS pdc20230c.p1f3_value = value;
+	BX_HD_THIS_PTR pdc20230c.p1f3_value = value;
 	return;
         break;
       case 0x04:
-	BX_HD_THIS pdc20230c.p1f4_value = value;
+	BX_HD_THIS_PTR pdc20230c.p1f4_value = value;
 	return;
         break;
     }
@@ -1834,7 +1834,7 @@ BX_DEBUG(("IO write to %04x = %02x", (unsigned) address, (unsigned) value));
       {
       if ( (value & 0xa0) != 0xa0 ) // 1x1xxxxx
         BX_INFO(("IO write 0x%04x (%02x): not 1x1xxxxxb", address, (unsigned) value));
-      Bit32u drvsel = BX_HD_THIS channels[channel].drive_select = (value >> 4) & 0x01;
+      Bit32u drvsel = BX_HD_THIS_PTR channels[channel].drive_select = (value >> 4) & 0x01;
       WRITE_HEAD_NO(channel,value & 0xf);
       if (BX_SELECTED_CONTROLLER(channel).lba_mode == 0 && ((value >> 6) & 1) == 1)
         BX_INFO(("enabling LBA mode"));
@@ -1853,7 +1853,7 @@ BX_DEBUG(("IO write to %04x = %02x", (unsigned) address, (unsigned) value));
       if ((BX_SLAVE_SELECTED(channel)) && (!BX_SLAVE_IS_PRESENT(channel)))
 	    break;
       // Writes to the command register clear the IRQ
-      DEV_pic_lower_irq(BX_HD_THIS channels[channel].irq);
+      DEV_pic_lower_irq(BX_HD_THIS_PTR channels[channel].irq);
 
       if (BX_SELECTED_CONTROLLER(channel).status.busy)
         BX_PANIC(("hard disk: command sent, controller BUSY"));
@@ -1999,7 +1999,7 @@ BX_DEBUG(("IO write to %04x = %02x", (unsigned) address, (unsigned) value));
           // sets logical geometry of specified drive
           BX_DEBUG(("init drive params: sec=%u, drive sel=%u, head=%u",
             (unsigned) BX_SELECTED_CONTROLLER(channel).sector_count,
-            (unsigned) BX_HD_THIS channels[channel].drive_select,
+            (unsigned) BX_HD_THIS_PTR channels[channel].drive_select,
             (unsigned) BX_SELECTED_CONTROLLER(channel).head_no));
           if (!BX_SELECTED_IS_PRESENT(channel)) {
             BX_PANIC(("init drive params: disk ata%d-%d not present", channel, BX_SLAVE_SELECTED(channel)));
@@ -2226,8 +2226,8 @@ BX_DEBUG(("IO write to %04x = %02x", (unsigned) address, (unsigned) value));
             BX_SELECTED_CONTROLLER(channel).status.corrected_data = 0;
             BX_SELECTED_CONTROLLER(channel).status.err   = 0;
             BX_SELECTED_CONTROLLER(channel).buffer_index = 0;
-  	    BX_DEBUG(("s[0].controller.control.disable_irq = %02x", (BX_HD_THIS channels[channel].drives[0]).controller.control.disable_irq));
-  	    BX_DEBUG(("s[1].controller.control.disable_irq = %02x", (BX_HD_THIS channels[channel].drives[1]).controller.control.disable_irq));
+  	    BX_DEBUG(("s[0].controller.control.disable_irq = %02x", (BX_HD_THIS_PTR channels[channel].drives[0]).controller.control.disable_irq));
+  	    BX_DEBUG(("s[1].controller.control.disable_irq = %02x", (BX_HD_THIS_PTR channels[channel].drives[1]).controller.control.disable_irq));
   	    BX_DEBUG(("SEEK completed.  error_register = %02x", BX_SELECTED_CONTROLLER(channel).error_register));
   	    raise_interrupt(channel);
   	    BX_DEBUG(("SEEK interrupt completed"));
@@ -2323,11 +2323,11 @@ BX_DEBUG(("IO write to %04x = %02x", (unsigned) address, (unsigned) value));
 	  // goes to device 0 (if device 1 is absent)
 		
 	  prev_control_reset = BX_SELECTED_CONTROLLER(channel).control.reset;
-	  BX_HD_THIS channels[channel].drives[0].controller.control.reset         = value & 0x04;
-	  BX_HD_THIS channels[channel].drives[1].controller.control.reset         = value & 0x04;
+	  BX_HD_THIS_PTR channels[channel].drives[0].controller.control.reset         = value & 0x04;
+	  BX_HD_THIS_PTR channels[channel].drives[1].controller.control.reset         = value & 0x04;
 	  // CGS: was: BX_SELECTED_CONTROLLER(channel).control.disable_irq    = value & 0x02;
-	  BX_HD_THIS channels[channel].drives[0].controller.control.disable_irq = value & 0x02;
-	  BX_HD_THIS channels[channel].drives[1].controller.control.disable_irq = value & 0x02;
+	  BX_HD_THIS_PTR channels[channel].drives[0].controller.control.disable_irq = value & 0x02;
+	  BX_HD_THIS_PTR channels[channel].drives[1].controller.control.disable_irq = value & 0x02;
 
       BX_DEBUG(( "adpater control reg: reset controller = %d",
         (unsigned) (BX_SELECTED_CONTROLLER(channel).control.reset) ? 1 : 0 ));
@@ -2359,7 +2359,7 @@ BX_DEBUG(("IO write to %04x = %02x", (unsigned) address, (unsigned) value));
 		      BX_CONTROLLER(channel,id).lba_mode          = 0;
 
 		      BX_CONTROLLER(channel,id).control.disable_irq = 0;
-		      DEV_pic_lower_irq(BX_HD_THIS channels[channel].irq);
+		      DEV_pic_lower_irq(BX_HD_THIS_PTR channels[channel].irq);
 		}
 	  } else if (BX_SELECTED_CONTROLLER(channel).reset_in_progress &&
 		     !BX_SELECTED_CONTROLLER(channel).control.reset) {
@@ -2384,8 +2384,8 @@ BX_DEBUG(("IO write to %04x = %02x", (unsigned) address, (unsigned) value));
 		      }
 		}
 	  }
-	    BX_DEBUG(("s[0].controller.control.disable_irq = %02x", (BX_HD_THIS channels[channel].drives[0]).controller.control.disable_irq));
-	    BX_DEBUG(("s[1].controller.control.disable_irq = %02x", (BX_HD_THIS channels[channel].drives[1]).controller.control.disable_irq));
+	    BX_DEBUG(("s[0].controller.control.disable_irq = %02x", (BX_HD_THIS_PTR channels[channel].drives[0]).controller.control.disable_irq));
+	    BX_DEBUG(("s[1].controller.control.disable_irq = %02x", (BX_HD_THIS_PTR channels[channel].drives[1]).controller.control.disable_irq));
 	  break;
 
     default:
@@ -2398,8 +2398,8 @@ BX_DEBUG(("IO write to %04x = %02x", (unsigned) address, (unsigned) value));
 bx_hard_drive_c::close_harddrive(void)
 {
   for (Bit8u channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
-    BX_HD_THIS channels[channel].drives[0].hard_drive->close();
-    BX_HD_THIS channels[channel].drives[1].hard_drive->close();
+    BX_HD_THIS_PTR channels[channel].drives[0].hard_drive->close();
+    BX_HD_THIS_PTR channels[channel].drives[1].hard_drive->close();
   }
 }
 
@@ -3018,7 +3018,7 @@ bx_hard_drive_c::raise_interrupt(Bit8u channel)
 	BX_DEBUG(("raise_interrupt called, disable_irq = %02x", BX_SELECTED_CONTROLLER(channel).control.disable_irq));
 	if (!BX_SELECTED_CONTROLLER(channel).control.disable_irq) { BX_DEBUG(("raising interrupt")); } else { BX_DEBUG(("Not raising interrupt")); }
       if (!BX_SELECTED_CONTROLLER(channel).control.disable_irq) {
-          Bit32u irq = BX_HD_THIS channels[channel].irq; 
+          Bit32u irq = BX_HD_THIS_PTR channels[channel].irq; 
           BX_DEBUG(("Raising interrupt %d {%s}", irq, BX_SELECTED_TYPE_STRING(channel)));
           DEV_pic_raise_irq(irq);
       } else {
@@ -3071,7 +3071,7 @@ bx_hard_drive_c::get_cd_media_status(Bit32u handle)
 
   Bit8u channel = handle / 2;
   Bit8u device  = handle % 2;
-  return( BX_HD_THIS channels[channel].drives[device].cdrom.ready );
+  return( BX_HD_THIS_PTR channels[channel].drives[device].cdrom.ready );
 }
 
   unsigned
@@ -3084,7 +3084,7 @@ bx_hard_drive_c::set_cd_media_status(Bit32u handle, unsigned status)
   Bit8u device  = handle % 2;
 
   // if setting to the current value, nothing to do
-  if (status == BX_HD_THIS channels[channel].drives[device].cdrom.ready)
+  if (status == BX_HD_THIS_PTR channels[channel].drives[device].cdrom.ready)
     return(status);
   // return 0 if no cdromd is present
   if (!BX_DRIVE_IS_CD(channel,device))
@@ -3092,22 +3092,22 @@ bx_hard_drive_c::set_cd_media_status(Bit32u handle, unsigned status)
 
   if (status == 0) {
     // eject cdrom if not locked by guest OS
-    if (BX_HD_THIS channels[channel].drives[device].cdrom.locked) return(1);
+    if (BX_HD_THIS_PTR channels[channel].drives[device].cdrom.locked) return(1);
     else {
 #ifdef LOWLEVEL_CDROM
-      BX_HD_THIS channels[channel].drives[device].cdrom.cd->eject_cdrom();
+      BX_HD_THIS_PTR channels[channel].drives[device].cdrom.cd->eject_cdrom();
 #endif
-      BX_HD_THIS channels[channel].drives[device].cdrom.ready = 0;
+      BX_HD_THIS_PTR channels[channel].drives[device].cdrom.ready = 0;
       bx_options.atadevice[channel][device].Ostatus->set(BX_EJECTED);
       }
     }
   else {
     // insert cdrom
 #ifdef LOWLEVEL_CDROM
-    if (BX_HD_THIS channels[channel].drives[device].cdrom.cd->insert_cdrom(bx_options.atadevice[channel][device].Opath->getptr())) {
+    if (BX_HD_THIS_PTR channels[channel].drives[device].cdrom.cd->insert_cdrom(bx_options.atadevice[channel][device].Opath->getptr())) {
       BX_INFO(( "Media present in CD-ROM drive"));
-      BX_HD_THIS channels[channel].drives[device].cdrom.ready = 1;
-      BX_HD_THIS channels[channel].drives[device].cdrom.capacity = BX_HD_THIS channels[channel].drives[device].cdrom.cd->capacity();
+      BX_HD_THIS_PTR channels[channel].drives[device].cdrom.ready = 1;
+      BX_HD_THIS_PTR channels[channel].drives[device].cdrom.capacity = BX_HD_THIS_PTR channels[channel].drives[device].cdrom.cd->capacity();
       bx_options.atadevice[channel][device].Ostatus->set(BX_INSERTED);
       BX_SELECTED_DRIVE(channel).sense.sense_key = SENSE_UNIT_ATTENTION;
       BX_SELECTED_DRIVE(channel).sense.asc = 0;
@@ -3117,13 +3117,13 @@ bx_hard_drive_c::set_cd_media_status(Bit32u handle, unsigned status)
     else {		    
 #endif
       BX_INFO(( "Could not locate CD-ROM, continuing with media not present"));
-      BX_HD_THIS channels[channel].drives[device].cdrom.ready = 0;
+      BX_HD_THIS_PTR channels[channel].drives[device].cdrom.ready = 0;
       bx_options.atadevice[channel][device].Ostatus->set(BX_EJECTED);
 #ifdef LOWLEVEL_CDROM
       }
 #endif
     }
-  return( BX_HD_THIS channels[channel].drives[device].cdrom.ready );
+  return( BX_HD_THIS_PTR channels[channel].drives[device].cdrom.ready );
 }
 
 
@@ -3570,7 +3570,7 @@ atapi_t::register_state(bx_param_c *list_p)
 void 
 bx_hard_drive_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_hard_drive_c, this, desc, list_p, 20);
+  BXRS_START(bx_hard_drive_c, BX_HD_THIS, desc, list_p, 20);
   BXRS_ARRAY_START(struct channel_t, channels, BX_MAX_ATA_CHANNEL);
   {
     BXRS_ARRAY_START(struct channel_t::drive_t, drives, 2); 

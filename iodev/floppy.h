@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: floppy.h,v 1.16.6.1 2003/03/28 09:26:03 slechta Exp $
+// $Id: floppy.h,v 1.16.6.2 2003/04/04 03:46:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -31,10 +31,12 @@
 
 #if BX_USE_FD_SMF
 #  define BX_FD_SMF  static
-#  define BX_FD_THIS theFloppyController->
+#  define BX_FD_THIS_PTR theFloppyController->
+#  define BX_FD_THIS theFloppyController
 #else
 #  define BX_FD_SMF
-#  define BX_FD_THIS this->
+#  define BX_FD_THIS_PTR this->
+#  define BX_FD_THIS this
 #endif
 
 typedef struct {

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.h,v 1.11.2.1 2003/03/28 09:26:07 slechta Exp $
+// $Id: ne2k.h,v 1.11.2.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -36,10 +36,12 @@
 
 #if BX_USE_NE2K_SMF
 #  define BX_NE2K_SMF  static
-#  define BX_NE2K_THIS theNE2kDevice->
+#  define BX_NE2K_THIS_PTR theNE2kDevice->
+#  define BX_NE2K_THIS theNE2kDevice
 #else
 #  define BX_NE2K_SMF
-#  define BX_NE2K_THIS this->
+#  define BX_NE2K_THIS_PTR this->
+#  define BX_NE2K_THIS this
 #endif
 
 #define  BX_NE2K_MEMSIZ    (32*1024)

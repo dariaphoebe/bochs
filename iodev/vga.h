@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.h,v 1.24 2003/03/02 23:59:11 cbothamy Exp $
+// $Id: vga.h,v 1.24.2.1 2003/04/04 03:46:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -86,10 +86,12 @@
 
 #if BX_USE_VGA_SMF
 #  define BX_VGA_SMF  static
-#  define BX_VGA_THIS theVga->
+#  define BX_VGA_THIS_PTR theVga->
+#  define BX_VGA_THIS theVga
 #else
 #  define BX_VGA_SMF
-#  define BX_VGA_THIS this->
+#  define BX_VGA_THIS_PTR this->
+#  define BX_VGA_THIS this
 #endif
 
 
@@ -99,6 +101,7 @@ public:
   bx_vga_c(void);
   ~bx_vga_c(void);
   virtual void   init(void);
+  virtual void   register_state(bx_param_c *list_p);
   virtual void   reset(unsigned type);
   virtual Bit8u  mem_read(Bit32u addr);
   // Note: either leave value of type Bit8u, or mask it when
@@ -130,8 +133,8 @@ private:
   static void   vbe_write_handler(void *this_ptr, Bit32u address, Bit32u value, unsigned io_len);
 #endif
 
-  struct {
-    struct {
+  struct s_t {
+    struct misc_output_t {
       bx_bool color_emulation;  // 1=color emulation, base address = 3Dx
                                 // 0=mono emulation,  base address = 3Bx
       bx_bool enable_ram;       // enable CPU access to video memory if set
@@ -147,12 +150,12 @@ private:
                                 //   3 - 480 lines
       } misc_output;
 
-    struct {
+    struct CRTC_t {
       Bit8u   address;
       Bit8u   reg[0x19];
       } CRTC;
 
-    struct {
+    struct attribute_ctrl_t {
       bx_bool  flip_flop; /* 0 = address, 1 = data-write */
       unsigned address;  /* register number */
       bx_bool  video_enabled;
@@ -161,7 +164,7 @@ private:
       Bit8u    color_plane_enable;
       Bit8u    horiz_pel_panning;
       Bit8u    color_select;
-      struct {
+      struct mode_ctrl_t {
         bx_bool graphics_alpha;
         bx_bool display_type;
         bx_bool enable_line_graphics;
@@ -172,13 +175,13 @@ private:
         } mode_ctrl;
       } attribute_ctrl;
 
-    struct {
+    struct pel_t {
       Bit8u write_data_register;
       Bit8u write_data_cycle; /* 0, 1, 2 */
       Bit8u read_data_register;
       Bit8u read_data_cycle; /* 0, 1, 2 */
       Bit8u dac_state;
-      struct {
+      struct data_t {
         Bit8u red;
         Bit8u green;
         Bit8u blue;
@@ -187,7 +190,7 @@ private:
       } pel;
 
 
-    struct {
+    struct graphics_ctrl_t {
       Bit8u   index;
       Bit8u   set_reset;
       Bit8u   enable_set_reset;
@@ -211,7 +214,7 @@ private:
       Bit8u   latch[4];
       } graphics_ctrl;
 
-    struct {
+    struct sequencer_t {
       Bit8u   index;
       Bit8u   map_mask;
       bx_bool map_mask_bit[4];

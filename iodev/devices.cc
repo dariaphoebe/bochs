@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.52.2.10 2003/03/30 05:42:19 bdenney Exp $
+// $Id: devices.cc,v 1.52.2.11 2003/04/04 03:46:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -93,7 +93,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.10 2003/03/30 05:42:19 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.11 2003/04/04 03:46:06 slechta Exp $"));
   mem = newmem;
 
   /* no read / write handlers defined */
@@ -308,6 +308,8 @@ bx_devices_c::init(BX_MEM_C *newmem)
 #if BX_SUPPORT_SB16
     PLUG_load_plugin(sb16, PLUGTYPE_OPTIONAL);
     pluginSB16Device->register_state(SIM->get_param("sb16"));;
+    // BJS TODO: implement sb16 state registration
+#warning sb16 registration not implemented.  cant save restore sb16 yet!
 #endif
 #if BX_SUPPORT_APIC
     bx_list_c *ioapic_list_p = 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.h,v 1.14.4.1 2003/03/28 09:26:08 slechta Exp $
+// $Id: pci.h,v 1.14.4.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -34,10 +34,12 @@ typedef void   (*bx_pci_write_handler_t)(void *, Bit8u, Bit32u, unsigned);
 
 #if BX_USE_PCI_SMF
 #  define BX_PCI_SMF  static
-#  define BX_PCI_THIS thePciBridge->
+#  define BX_PCI_THIS_PTR thePciBridge->
+#  define BX_PCI_THIS thePciBridge
 #else
 #  define BX_PCI_SMF
-#  define BX_PCI_THIS this->
+#  define BX_PCI_THIS_PTR this->
+#  define BX_PCI_THIS this
 #endif
 
 

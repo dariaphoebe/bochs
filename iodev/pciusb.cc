@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.cc,v 1.3.4.1 2003/03/28 09:26:08 slechta Exp $
+// $Id: pciusb.cc,v 1.3.4.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -81,28 +81,28 @@ bx_pciusb_c::init(void)
   Bit8u irq = bx_options.usb[0].Oirq->get();
 
   DEV_register_irq(irq, "USB Hub #1");
-  BX_USB_THIS hub[0].irq = irq;
+  BX_USB_THIS_PTR hub[0].irq = irq;
 
   // Call our timer routine every 1mS (1,000uS)
   // Continuous and active
-  BX_USB_THIS hub[0].timer_index =
-                   bx_pc_system.register_timer(this, usb_timer_handler, 1000, 1,1, "usb.timer");
+  BX_USB_THIS_PTR hub[0].timer_index =
+                   bx_pc_system.register_timer(BX_USB_THIS, usb_timer_handler, 1000, 1,1, "usb.timer");
 
   for (unsigned addr=base_ioaddr; addr<(unsigned)(base_ioaddr+0x14); addr++) {
     BX_DEBUG(("register read/write: 0x%04x", addr));
-    DEV_register_ioread_handler(this, read_handler, addr, "USB Hub #1", 7);
-    DEV_register_iowrite_handler(this, write_handler, addr, "USB Hub #1", 7);
+    DEV_register_ioread_handler(BX_USB_THIS, read_handler, addr, "USB Hub #1", 7);
+    DEV_register_iowrite_handler(BX_USB_THIS, write_handler, addr, "USB Hub #1", 7);
   }
-  BX_USB_THIS hub[0].base_ioaddr = base_ioaddr;
+  BX_USB_THIS_PTR hub[0].base_ioaddr = base_ioaddr;
 
-  DEV_register_pci_handlers(this,
+  DEV_register_pci_handlers(BX_USB_THIS,
                             pci_read_handler,
                             pci_write_handler,
                             BX_PCI_DEVICE(1,2),
                             "Experimental PCI USB");
 
   for (unsigned i=0; i<256; i++) {
-    BX_USB_THIS hub[0].pci_conf[i] = 0x0;
+    BX_USB_THIS_PTR hub[0].pci_conf[i] = 0x0;
   }
 
   BX_INFO(("usb1 at 0x%04x-0x%04x irq %d", base_ioaddr, base_ioaddr+0x13, irq));
@@ -193,7 +193,7 @@ bx_usb_t::register_state(bx_param_c *list_p)
 void
 bx_pciusb_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_pciusb_c, this, "", list_p, 30);
+  BXRS_START(bx_pciusb_c, BX_USB_THIS, "", list_p, 30);
   {
     BXRS_ARRAY_OBJ(bx_usb_t, hub, BX_USB_MAXDEV);
     BXRS_NUM(Bit8u, global_reset);
@@ -231,46 +231,46 @@ bx_pciusb_c::reset(unsigned type)
 
   };
   for (i = 0; i < sizeof(reset_vals) / sizeof(*reset_vals); ++i) {
-      BX_USB_THIS hub[0].pci_conf[reset_vals[i].addr] = reset_vals[i].val;
+      BX_USB_THIS_PTR hub[0].pci_conf[reset_vals[i].addr] = reset_vals[i].val;
   }
 
   // reset locals
-  BX_USB_THIS global_reset = 0;
+  BX_USB_THIS_PTR global_reset = 0;
 
   // Put the USB registers into their RESET state
   for (i=0; i<BX_USB_CONFDEV; i++) {
-    BX_USB_THIS hub[i].usb_command.max_packet_size = 0;
-    BX_USB_THIS hub[i].usb_command.configured = 0;
-    BX_USB_THIS hub[i].usb_command.debug = 0;
-    BX_USB_THIS hub[i].usb_command.resume = 0;
-    BX_USB_THIS hub[i].usb_command.suspend = 1;
-    BX_USB_THIS hub[i].usb_command.host_reset = 0;
-    BX_USB_THIS hub[i].usb_command.reset = 0;
-    BX_USB_THIS hub[i].usb_command.schedule = 0;
-    BX_USB_THIS hub[i].usb_status.error_interrupt = 0;
-    BX_USB_THIS hub[i].usb_status.host_error = 0;
-    BX_USB_THIS hub[i].usb_status.host_halted = 0;
-    BX_USB_THIS hub[i].usb_status.interrupt = 0;
-    BX_USB_THIS hub[i].usb_status.pci_error = 0;
-    BX_USB_THIS hub[i].usb_status.resume = 0;
-    BX_USB_THIS hub[i].usb_enable.short_packet = 0;
-    BX_USB_THIS hub[i].usb_enable.on_complete = 0;
-    BX_USB_THIS hub[i].usb_enable.resume = 0;
-    BX_USB_THIS hub[i].usb_enable.timeout_crc = 0;
-    BX_USB_THIS hub[i].usb_frame_num.frame_num = 0x0000;
-    BX_USB_THIS hub[i].usb_frame_base.frame_base = 0x00000000;
-    BX_USB_THIS hub[i].usb_sof.sof_timing = 0x40;
+    BX_USB_THIS_PTR hub[i].usb_command.max_packet_size = 0;
+    BX_USB_THIS_PTR hub[i].usb_command.configured = 0;
+    BX_USB_THIS_PTR hub[i].usb_command.debug = 0;
+    BX_USB_THIS_PTR hub[i].usb_command.resume = 0;
+    BX_USB_THIS_PTR hub[i].usb_command.suspend = 1;
+    BX_USB_THIS_PTR hub[i].usb_command.host_reset = 0;
+    BX_USB_THIS_PTR hub[i].usb_command.reset = 0;
+    BX_USB_THIS_PTR hub[i].usb_command.schedule = 0;
+    BX_USB_THIS_PTR hub[i].usb_status.error_interrupt = 0;
+    BX_USB_THIS_PTR hub[i].usb_status.host_error = 0;
+    BX_USB_THIS_PTR hub[i].usb_status.host_halted = 0;
+    BX_USB_THIS_PTR hub[i].usb_status.interrupt = 0;
+    BX_USB_THIS_PTR hub[i].usb_status.pci_error = 0;
+    BX_USB_THIS_PTR hub[i].usb_status.resume = 0;
+    BX_USB_THIS_PTR hub[i].usb_enable.short_packet = 0;
+    BX_USB_THIS_PTR hub[i].usb_enable.on_complete = 0;
+    BX_USB_THIS_PTR hub[i].usb_enable.resume = 0;
+    BX_USB_THIS_PTR hub[i].usb_enable.timeout_crc = 0;
+    BX_USB_THIS_PTR hub[i].usb_frame_num.frame_num = 0x0000;
+    BX_USB_THIS_PTR hub[i].usb_frame_base.frame_base = 0x00000000;
+    BX_USB_THIS_PTR hub[i].usb_sof.sof_timing = 0x40;
     for (unsigned j=0; j<USB_NUM_PORTS; j++) {
-      BX_USB_THIS hub[i].usb_port[j].connect_changed = 0;
-      BX_USB_THIS hub[i].usb_port[j].line_dminus = 0;
-      BX_USB_THIS hub[i].usb_port[j].line_dplus = 0;
-      BX_USB_THIS hub[i].usb_port[j].low_speed = 0;
-      BX_USB_THIS hub[i].usb_port[j].reset = 0;
-      BX_USB_THIS hub[i].usb_port[j].resume = 0;
-      BX_USB_THIS hub[i].usb_port[j].suspend = 0;
-      BX_USB_THIS hub[i].usb_port[j].enabled = 0;
-      BX_USB_THIS hub[i].usb_port[j].able_changed = 0;
-      BX_USB_THIS hub[i].usb_port[j].status = 0;
+      BX_USB_THIS_PTR hub[i].usb_port[j].connect_changed = 0;
+      BX_USB_THIS_PTR hub[i].usb_port[j].line_dminus = 0;
+      BX_USB_THIS_PTR hub[i].usb_port[j].line_dplus = 0;
+      BX_USB_THIS_PTR hub[i].usb_port[j].low_speed = 0;
+      BX_USB_THIS_PTR hub[i].usb_port[j].reset = 0;
+      BX_USB_THIS_PTR hub[i].usb_port[j].resume = 0;
+      BX_USB_THIS_PTR hub[i].usb_port[j].suspend = 0;
+      BX_USB_THIS_PTR hub[i].usb_port[j].enabled = 0;
+      BX_USB_THIS_PTR hub[i].usb_port[j].able_changed = 0;
+      BX_USB_THIS_PTR hub[i].usb_port[j].status = 0;
     }
   }
 }
@@ -300,7 +300,7 @@ bx_pciusb_c::read(Bit32u address, unsigned io_len)
 
   BX_DEBUG(("register read from address 0x%04x - ", (unsigned) address));
 
-  offset = address - BX_USB_THIS hub[0].base_ioaddr;
+  offset = address - BX_USB_THIS_PTR hub[0].base_ioaddr;
 
   switch (offset) {
     case 0x0C: // Start of Frame Modify
@@ -329,59 +329,59 @@ bx_pciusb_c::read(Bit32u address, unsigned io_len)
 
   switch (offset) {
     case 0x00: // command register (16-bit)
-      val = BX_USB_THIS hub[0].usb_command.max_packet_size << 7
-            | BX_USB_THIS hub[0].usb_command.configured << 6
-            | BX_USB_THIS hub[0].usb_command.debug << 5
-            | BX_USB_THIS hub[0].usb_command.resume << 4
-            | BX_USB_THIS hub[0].usb_command.suspend << 3
-            | BX_USB_THIS hub[0].usb_command.reset << 2
-            | BX_USB_THIS hub[0].usb_command.host_reset << 1
-            | BX_USB_THIS hub[0].usb_command.schedule;
+      val = BX_USB_THIS_PTR hub[0].usb_command.max_packet_size << 7
+            | BX_USB_THIS_PTR hub[0].usb_command.configured << 6
+            | BX_USB_THIS_PTR hub[0].usb_command.debug << 5
+            | BX_USB_THIS_PTR hub[0].usb_command.resume << 4
+            | BX_USB_THIS_PTR hub[0].usb_command.suspend << 3
+            | BX_USB_THIS_PTR hub[0].usb_command.reset << 2
+            | BX_USB_THIS_PTR hub[0].usb_command.host_reset << 1
+            | BX_USB_THIS_PTR hub[0].usb_command.schedule;
       break;
 
     case 0x02: // status register (16-bit)
-      val = BX_USB_THIS hub[0].usb_status.host_halted << 5
-            | BX_USB_THIS hub[0].usb_status.host_error << 4
-            | BX_USB_THIS hub[0].usb_status.pci_error << 3
-            | BX_USB_THIS hub[0].usb_status.resume << 2
-            | BX_USB_THIS hub[0].usb_status.error_interrupt << 1
-            | BX_USB_THIS hub[0].usb_status.interrupt;
+      val = BX_USB_THIS_PTR hub[0].usb_status.host_halted << 5
+            | BX_USB_THIS_PTR hub[0].usb_status.host_error << 4
+            | BX_USB_THIS_PTR hub[0].usb_status.pci_error << 3
+            | BX_USB_THIS_PTR hub[0].usb_status.resume << 2
+            | BX_USB_THIS_PTR hub[0].usb_status.error_interrupt << 1
+            | BX_USB_THIS_PTR hub[0].usb_status.interrupt;
       break;
 
     case 0x04: // interrupt enable register (16-bit)
-      val = BX_USB_THIS hub[0].usb_enable.short_packet << 3
-            | BX_USB_THIS hub[0].usb_enable.on_complete << 2
-            | BX_USB_THIS hub[0].usb_enable.resume << 1
-            | BX_USB_THIS hub[0].usb_enable.timeout_crc;
+      val = BX_USB_THIS_PTR hub[0].usb_enable.short_packet << 3
+            | BX_USB_THIS_PTR hub[0].usb_enable.on_complete << 2
+            | BX_USB_THIS_PTR hub[0].usb_enable.resume << 1
+            | BX_USB_THIS_PTR hub[0].usb_enable.timeout_crc;
       break;
 
     case 0x06: // frame number register (16-bit)
-      val = BX_USB_THIS hub[0].usb_frame_num.frame_num;
+      val = BX_USB_THIS_PTR hub[0].usb_frame_num.frame_num;
       break;
 
     case 0x08: // frame base register (32-bit)
-      val = BX_USB_THIS hub[0].usb_frame_base.frame_base;
+      val = BX_USB_THIS_PTR hub[0].usb_frame_base.frame_base;
       break;
 
     case 0x0C: // start of Frame Modify register (8-bit)
-      val = BX_USB_THIS hub[0].usb_sof.sof_timing;
+      val = BX_USB_THIS_PTR hub[0].usb_sof.sof_timing;
       break;
 
     case 0x10: // port0
     case 0x12: // port1
       port = (offset & 0x0F) >> 1;
       if (port < USB_NUM_PORTS) {
-        val = BX_USB_THIS hub[0].usb_port[port].suspend << 12
-              | BX_USB_THIS hub[0].usb_port[port].reset << 9
-              | BX_USB_THIS hub[0].usb_port[port].low_speed << 8
+        val = BX_USB_THIS_PTR hub[0].usb_port[port].suspend << 12
+              | BX_USB_THIS_PTR hub[0].usb_port[port].reset << 9
+              | BX_USB_THIS_PTR hub[0].usb_port[port].low_speed << 8
               | 1 << 7
-              | BX_USB_THIS hub[0].usb_port[port].resume << 6
-              | BX_USB_THIS hub[0].usb_port[port].line_dplus << 5
-              | BX_USB_THIS hub[0].usb_port[port].line_dminus << 4
-              | BX_USB_THIS hub[0].usb_port[port].able_changed << 3
-              | BX_USB_THIS hub[0].usb_port[port].enabled << 2
-              | BX_USB_THIS hub[0].usb_port[port].connect_changed << 1
-              | BX_USB_THIS hub[0].usb_port[port].status;
+              | BX_USB_THIS_PTR hub[0].usb_port[port].resume << 6
+              | BX_USB_THIS_PTR hub[0].usb_port[port].line_dplus << 5
+              | BX_USB_THIS_PTR hub[0].usb_port[port].line_dminus << 4
+              | BX_USB_THIS_PTR hub[0].usb_port[port].able_changed << 3
+              | BX_USB_THIS_PTR hub[0].usb_port[port].enabled << 2
+              | BX_USB_THIS_PTR hub[0].usb_port[port].connect_changed << 1
+              | BX_USB_THIS_PTR hub[0].usb_port[port].status;
         break;
       } // else fall through to default
 
@@ -419,7 +419,7 @@ bx_pciusb_c::write(Bit32u address, Bit32u value, unsigned io_len)
 
   BX_DEBUG(("register write to address 0x%04x - ", (unsigned) address));
 
-  offset = address - BX_USB_THIS hub[0].base_ioaddr;
+  offset = address - BX_USB_THIS_PTR hub[0].base_ioaddr;
 
   switch (offset) {
     case 0x0C: // Start of Frame Modify
@@ -446,29 +446,29 @@ bx_pciusb_c::write(Bit32u address, Bit32u value, unsigned io_len)
       if (value & 0xFF00)
         BX_ERROR(("write to command register with bits 15:8 not zero: 0x%04x", value));
 
-      BX_USB_THIS hub[0].usb_command.max_packet_size = (value & 0x80) ? 1: 0;
-      BX_USB_THIS hub[0].usb_command.configured = (value & 0x40) ? 1: 0;
-      BX_USB_THIS hub[0].usb_command.debug = (value & 0x20) ? 1: 0;
-      BX_USB_THIS hub[0].usb_command.resume = (value & 0x10) ? 1: 0;
-      BX_USB_THIS hub[0].usb_command.suspend = (value & 0x08) ? 1: 0;
-      BX_USB_THIS hub[0].usb_command.reset = (value & 0x04) ? 1: 0;
-      BX_USB_THIS hub[0].usb_command.host_reset = (value & 0x02) ? 1: 0;
-      BX_USB_THIS hub[0].usb_command.schedule = (value & 0x01) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_command.max_packet_size = (value & 0x80) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_command.configured = (value & 0x40) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_command.debug = (value & 0x20) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_command.resume = (value & 0x10) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_command.suspend = (value & 0x08) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_command.reset = (value & 0x04) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_command.host_reset = (value & 0x02) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_command.schedule = (value & 0x01) ? 1: 0;
 
       // If software set the reset bit, we need to set reset bit of each port for 10ms.
-      if (BX_USB_THIS hub[0].usb_command.reset)
-        BX_USB_THIS global_reset = 10;
+      if (BX_USB_THIS_PTR hub[0].usb_command.reset)
+        BX_USB_THIS_PTR global_reset = 10;
 
       // If host_reset then reset all registers, etc.
-      if (BX_USB_THIS hub[0].usb_command.host_reset)
-        BX_USB_THIS reset(0);
+      if (BX_USB_THIS_PTR hub[0].usb_command.host_reset)
+        BX_USB_THIS_PTR reset(0);
 
       // If Run/Stop, identify in log and ignore
-      if (BX_USB_THIS hub[0].usb_command.schedule)
+      if (BX_USB_THIS_PTR hub[0].usb_command.schedule)
         BX_INFO(("Software set Schedule bit in Command register"));
 
       // If Debug mode set, panic.  Not implemented
-      if (BX_USB_THIS hub[0].usb_command.debug)
+      if (BX_USB_THIS_PTR hub[0].usb_command.debug)
         BX_PANIC(("Software set DEBUG bit in Command register. Not implemented"));
 
       break;
@@ -477,22 +477,22 @@ bx_pciusb_c::write(Bit32u address, Bit32u value, unsigned io_len)
       if (value & 0xFFC0)
         BX_ERROR(("write to status register with bits 15:6 not zero: 0x%04x", value));
 
-      BX_USB_THIS hub[0].usb_status.host_halted = (value & 0x20) ? 0: BX_USB_THIS hub[0].usb_status.host_halted;
-      BX_USB_THIS hub[0].usb_status.host_error = (value & 0x10) ? 0: BX_USB_THIS hub[0].usb_status.host_error;
-      BX_USB_THIS hub[0].usb_status.pci_error = (value & 0x08) ? 0: BX_USB_THIS hub[0].usb_status.pci_error;
-      BX_USB_THIS hub[0].usb_status.resume = (value & 0x04) ? 0: BX_USB_THIS hub[0].usb_status.resume;
-      BX_USB_THIS hub[0].usb_status.error_interrupt = (value & 0x02) ? 0: BX_USB_THIS hub[0].usb_status.error_interrupt;
-      BX_USB_THIS hub[0].usb_status.interrupt = (value & 0x01) ? 0: BX_USB_THIS hub[0].usb_status.interrupt;
+      BX_USB_THIS_PTR hub[0].usb_status.host_halted = (value & 0x20) ? 0: BX_USB_THIS_PTR hub[0].usb_status.host_halted;
+      BX_USB_THIS_PTR hub[0].usb_status.host_error = (value & 0x10) ? 0: BX_USB_THIS_PTR hub[0].usb_status.host_error;
+      BX_USB_THIS_PTR hub[0].usb_status.pci_error = (value & 0x08) ? 0: BX_USB_THIS_PTR hub[0].usb_status.pci_error;
+      BX_USB_THIS_PTR hub[0].usb_status.resume = (value & 0x04) ? 0: BX_USB_THIS_PTR hub[0].usb_status.resume;
+      BX_USB_THIS_PTR hub[0].usb_status.error_interrupt = (value & 0x02) ? 0: BX_USB_THIS_PTR hub[0].usb_status.error_interrupt;
+      BX_USB_THIS_PTR hub[0].usb_status.interrupt = (value & 0x01) ? 0: BX_USB_THIS_PTR hub[0].usb_status.interrupt;
       break;
 
     case 0x04: // interrupt enable register (16-bit)
       if (value & 0xFFF0)
         BX_ERROR(("write to interrupt enable register with bits 15:4 not zero: 0x%04x", value));
 
-      BX_USB_THIS hub[0].usb_enable.short_packet  = (value & 0x08) ? 1: 0;
-      BX_USB_THIS hub[0].usb_enable.on_complete  = (value & 0x04) ? 1: 0;
-      BX_USB_THIS hub[0].usb_enable.resume  = (value & 0x02) ? 1: 0;
-      BX_USB_THIS hub[0].usb_enable.timeout_crc = (value & 0x01) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_enable.short_packet  = (value & 0x08) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_enable.on_complete  = (value & 0x04) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_enable.resume  = (value & 0x02) ? 1: 0;
+      BX_USB_THIS_PTR hub[0].usb_enable.timeout_crc = (value & 0x01) ? 1: 0;
 
       // For now, we will just ignore these being set since we never raise the IRQ
 
@@ -502,8 +502,8 @@ bx_pciusb_c::write(Bit32u address, Bit32u value, unsigned io_len)
       if (value & 0xF800)
         BX_ERROR(("write to frame number register with bits 15:11 not zero: 0x%04x", value));
 
-      if (BX_USB_THIS hub[0].usb_status.host_halted)
-        BX_USB_THIS hub[0].usb_frame_num.frame_num = value;
+      if (BX_USB_THIS_PTR hub[0].usb_status.host_halted)
+        BX_USB_THIS_PTR hub[0].usb_frame_num.frame_num = value;
       else
         // ignored by the hardward, but lets report it anyway
         BX_ERROR(("write to frame number register with STATUS.HALTED == 0"));
@@ -514,14 +514,14 @@ bx_pciusb_c::write(Bit32u address, Bit32u value, unsigned io_len)
       if (value & 0xFFF)
         BX_PANIC(("write to frame base register with bits 11:0 not zero: 0x%08x", value));
 
-      BX_USB_THIS hub[0].usb_frame_base.frame_base = value;
+      BX_USB_THIS_PTR hub[0].usb_frame_base.frame_base = value;
       break;
 
     case 0x0C: // start of Frame Modify register (8-bit)
       if (value & 0x80)
         BX_ERROR(("write to SOF Modify register with bit 7 not zero: 0x%04x", value));
 
-       BX_USB_THIS hub[0].usb_sof.sof_timing = value;
+       BX_USB_THIS_PTR hub[0].usb_sof.sof_timing = value;
        break;
 
     case 0x10: // port0
@@ -536,15 +536,15 @@ bx_pciusb_c::write(Bit32u address, Bit32u value, unsigned io_len)
           BX_INFO(("write to bit 8 in port%d register ignored", port));
         if (value & (1<<2))
           BX_INFO(("port%d enabled ignored.  Not implemented", port));
-        if ((value & (1<<12)) && BX_USB_THIS hub[0].usb_command.suspend)
+        if ((value & (1<<12)) && BX_USB_THIS_PTR hub[0].usb_command.suspend)
           BX_ERROR(("write to port%d register bit 12 when in Global-Suspend", port));
 
-        BX_USB_THIS hub[0].usb_port[port].suspend = (value & (1<<12)) ? 1 : 0;
-        BX_USB_THIS hub[0].usb_port[port].reset = (value & (1<<9)) ? 1 : 0;
-        BX_USB_THIS hub[0].usb_port[port].resume = (value & (1<<6)) ? 1 : 0;
-        BX_USB_THIS hub[0].usb_port[port].able_changed = (value & (1<<3)) ? 0 : BX_USB_THIS hub[0].usb_port[0].able_changed;
-        BX_USB_THIS hub[0].usb_port[port].enabled = (value & (1<<2)) ? 1 : 0;
-        BX_USB_THIS hub[0].usb_port[port].connect_changed = (value & (1<<1)) ? 0 : BX_USB_THIS hub[0].usb_port[0].connect_changed;
+        BX_USB_THIS_PTR hub[0].usb_port[port].suspend = (value & (1<<12)) ? 1 : 0;
+        BX_USB_THIS_PTR hub[0].usb_port[port].reset = (value & (1<<9)) ? 1 : 0;
+        BX_USB_THIS_PTR hub[0].usb_port[port].resume = (value & (1<<6)) ? 1 : 0;
+        BX_USB_THIS_PTR hub[0].usb_port[port].able_changed = (value & (1<<3)) ? 0 : BX_USB_THIS_PTR hub[0].usb_port[0].able_changed;
+        BX_USB_THIS_PTR hub[0].usb_port[port].enabled = (value & (1<<2)) ? 1 : 0;
+        BX_USB_THIS_PTR hub[0].usb_port[port].connect_changed = (value & (1<<1)) ? 0 : BX_USB_THIS_PTR hub[0].usb_port[0].connect_changed;
         break;
       }
       // else fall through to default
@@ -568,33 +568,33 @@ void bx_pciusb_c::usb_timer(void)
 
   // The Frame Number Register is incremented every 1ms  ?????????
   // Needs more work and investigation on this.
-  BX_USB_THIS hub[0].usb_frame_num.frame_num++;
-  BX_USB_THIS hub[0].usb_frame_num.frame_num &= (1024-1);
+  BX_USB_THIS_PTR hub[0].usb_frame_num.frame_num++;
+  BX_USB_THIS_PTR hub[0].usb_frame_num.frame_num &= (1024-1);
 
   // If the "global reset" bit was set by software, we need
   // to set the reset bit in each "active" port for 10ms
-  if (BX_USB_THIS global_reset) {
+  if (BX_USB_THIS_PTR global_reset) {
     for (i=0; i<USB_NUM_PORTS; i++) {
-      BX_USB_THIS hub[0].usb_port[i].able_changed = 0;
-      BX_USB_THIS hub[0].usb_port[i].connect_changed = 0;
-      BX_USB_THIS hub[0].usb_port[i].enabled = 0;
-      BX_USB_THIS hub[0].usb_port[i].line_dminus = 0;
-      BX_USB_THIS hub[0].usb_port[i].line_dplus = 0;
-      BX_USB_THIS hub[0].usb_port[i].low_speed = 0;
-      BX_USB_THIS hub[0].usb_port[i].reset = 1;
-      BX_USB_THIS hub[0].usb_port[i].resume = 0;
-      BX_USB_THIS hub[0].usb_port[i].status = 0;
-      BX_USB_THIS hub[0].usb_port[i].suspend = 0;
+      BX_USB_THIS_PTR hub[0].usb_port[i].able_changed = 0;
+      BX_USB_THIS_PTR hub[0].usb_port[i].connect_changed = 0;
+      BX_USB_THIS_PTR hub[0].usb_port[i].enabled = 0;
+      BX_USB_THIS_PTR hub[0].usb_port[i].line_dminus = 0;
+      BX_USB_THIS_PTR hub[0].usb_port[i].line_dplus = 0;
+      BX_USB_THIS_PTR hub[0].usb_port[i].low_speed = 0;
+      BX_USB_THIS_PTR hub[0].usb_port[i].reset = 1;
+      BX_USB_THIS_PTR hub[0].usb_port[i].resume = 0;
+      BX_USB_THIS_PTR hub[0].usb_port[i].status = 0;
+      BX_USB_THIS_PTR hub[0].usb_port[i].suspend = 0;
     }
-    BX_USB_THIS global_reset--;
+    BX_USB_THIS_PTR global_reset--;
   } else {
     for (i=0; i<USB_NUM_PORTS; i++)
-      BX_USB_THIS hub[0].usb_port[i].reset = 0;
+      BX_USB_THIS_PTR hub[0].usb_port[i].reset = 0;
   }
 
   // If command.schedule = 0, then we need to set Status.Halted
-  if (!BX_USB_THIS hub[0].usb_command.schedule)
-    BX_USB_THIS hub[0].usb_status.host_halted = 1;
+  if (!BX_USB_THIS_PTR hub[0].usb_command.schedule)
+    BX_USB_THIS_PTR hub[0].usb_status.host_halted = 1;
 
 
   // TODO:
@@ -667,8 +667,8 @@ bx_pciusb_c::pci_read(Bit8u address, unsigned io_len)
   szTmp[0] = '\0';
   szTmp2[0] = '\0';
   for (unsigned i=0; i<io_len; i++) {
-    value |= (BX_USB_THIS hub[0].pci_conf[address+i] << (i*8));
-    sprintf(szTmp2, "%02x", (BX_USB_THIS hub[0].pci_conf[address+i]));
+    value |= (BX_USB_THIS_PTR hub[0].pci_conf[address+i] << (i*8));
+    sprintf(szTmp2, "%02x", (BX_USB_THIS_PTR hub[0].pci_conf[address+i]));
     strrev(szTmp2);
     strcat(szTmp, szTmp2);
   }
@@ -713,7 +713,7 @@ bx_pciusb_c::pci_write(Bit8u address, Bit32u value, unsigned io_len)
     const Bit8u value8 = (value >> (i*8)) & 0xFF;
     switch (address+i) {
       case 0x20: // Base address
-        BX_USB_THIS hub[0].pci_conf[address+i] = (value8 & 0xe0) | 0x01;
+        BX_USB_THIS_PTR hub[0].pci_conf[address+i] = (value8 & 0xe0) | 0x01;
         sprintf(szTmp2, "%02x", (value8 & 0xe0) | 0x01);
         break;
       case 0x10: // Reserved
@@ -748,7 +748,7 @@ bx_pciusb_c::pci_write(Bit8u address, Bit32u value, unsigned io_len)
         strcpy(szTmp2, "..");
         break;
       default:
-        BX_USB_THIS hub[0].pci_conf[address+i] = value8;
+        BX_USB_THIS_PTR hub[0].pci_conf[address+i] = value8;
         sprintf(szTmp2, "%02x", value8);
     }
     strrev(szTmp2);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: keyboard.h,v 1.21.2.1 2003/03/28 09:26:07 slechta Exp $
+// $Id: keyboard.h,v 1.21.2.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -35,10 +35,12 @@
 // these keywords should only be used in keyboard.cc
 #if BX_USE_KEY_SMF
 #  define BX_KEY_SMF  static
-#  define BX_KEY_THIS theKeyboard->
+#  define BX_KEY_THIS_PTR theKeyboard->
+#  define BX_KEY_THIS theKeyboard
 #else
 #  define BX_KEY_SMF
-#  define BX_KEY_THIS 
+#  define BX_KEY_THIS_PTR this->
+#  define BX_KEY_THIS this 
 #endif
 
 #define MOUSE_MODE_RESET  10

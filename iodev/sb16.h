@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.h,v 1.12 2003/02/24 18:35:48 vruppert Exp $
+// $Id: sb16.h,v 1.12.2.1 2003/04/04 03:46:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -29,12 +29,12 @@
 
 #if BX_USE_SB16_SMF
 #  define BX_SB16_SMF   static
-#  define BX_SB16_THIS  theSB16Device->
-#  define BX_SB16_THISP (theSB16Device)
+#  define BX_SB16_THIS_PTR  theSB16Device->
+#  define BX_SB16_THIS (theSB16Device)
 #else
 #  define BX_SB16_SMF
-#  define BX_SB16_THIS  this->
-#  define BX_SB16_THISP (this)
+#  define BX_SB16_THIS_PTR  this->
+#  define BX_SB16_THIS (this)
 #endif
 
 #if BX_USE_SOUND_VIRTUAL

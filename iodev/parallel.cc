@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parallel.cc,v 1.22.6.1 2003/03/28 09:26:07 slechta Exp $
+// $Id: parallel.cc,v 1.22.6.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -69,7 +69,7 @@ bx_parallel_c::~bx_parallel_c(void)
   void
 bx_parallel_c::init(void)
 {
-  BX_DEBUG(("Init $Id: parallel.cc,v 1.22.6.1 2003/03/28 09:26:07 slechta Exp $"));
+  BX_DEBUG(("Init $Id: parallel.cc,v 1.22.6.2 2003/04/04 03:46:08 slechta Exp $"));
 
   if (bx_options.par[0].Oenabled->get ()) {
 
@@ -78,25 +78,25 @@ bx_parallel_c::init(void)
     DEV_register_irq(7, "Parallel Port 1");
     BX_INFO (("parallel port 1 at 0x378"));
     for (unsigned addr=0x0378; addr<=0x037A; addr++) {
-      DEV_register_ioread_handler(this, read_handler, addr, "Parallel Port 1", 7);
+      DEV_register_ioread_handler(BX_PAR_THIS, read_handler, addr, "Parallel Port 1", 7);
       }
-    DEV_register_iowrite_handler(this, write_handler, 0x0378, "Parallel Port 1", 7);
-    DEV_register_iowrite_handler(this, write_handler, 0x037A, "Parallel Port 1", 7);
+    DEV_register_iowrite_handler(BX_PAR_THIS, write_handler, 0x0378, "Parallel Port 1", 7);
+    DEV_register_iowrite_handler(BX_PAR_THIS, write_handler, 0x037A, "Parallel Port 1", 7);
 
-    BX_PAR_THIS s.STATUS.error = 1;
-    BX_PAR_THIS s.STATUS.slct  = 1;
-    BX_PAR_THIS s.STATUS.pe    = 0;
-    BX_PAR_THIS s.STATUS.ack   = 1;
-    BX_PAR_THIS s.STATUS.busy  = 1;
+    BX_PAR_THIS_PTR s.STATUS.error = 1;
+    BX_PAR_THIS_PTR s.STATUS.slct  = 1;
+    BX_PAR_THIS_PTR s.STATUS.pe    = 0;
+    BX_PAR_THIS_PTR s.STATUS.ack   = 1;
+    BX_PAR_THIS_PTR s.STATUS.busy  = 1;
 
-    BX_PAR_THIS s.CONTROL.strobe   = 0;
-    BX_PAR_THIS s.CONTROL.autofeed = 0;
-    BX_PAR_THIS s.CONTROL.init     = 1;
-    BX_PAR_THIS s.CONTROL.slct_in  = 1;
-    BX_PAR_THIS s.CONTROL.irq      = 0;
-    BX_PAR_THIS s.CONTROL.input    = 0;
+    BX_PAR_THIS_PTR s.CONTROL.strobe   = 0;
+    BX_PAR_THIS_PTR s.CONTROL.autofeed = 0;
+    BX_PAR_THIS_PTR s.CONTROL.init     = 1;
+    BX_PAR_THIS_PTR s.CONTROL.slct_in  = 1;
+    BX_PAR_THIS_PTR s.CONTROL.irq      = 0;
+    BX_PAR_THIS_PTR s.CONTROL.input    = 0;
 
-    BX_PAR_THIS s.initmode = 0;
+    BX_PAR_THIS_PTR s.initmode = 0;
 
     if (strlen(bx_options.par[0].Ooutfile->getptr ()) > 0) {
       s.output = fopen(bx_options.par[0].Ooutfile->getptr (), "wb");
@@ -111,7 +111,7 @@ bx_parallel_c::init(void)
   void
 bx_parallel_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_parallel_c, this, "parallel port", list_p, 1);
+  BXRS_START(bx_parallel_c, BX_PAR_THIS, "parallel port", list_p, 1);
   {
     BXRS_OBJ(bx_par_t, s);
   }
@@ -160,16 +160,16 @@ bx_parallel_c::reset(unsigned type)
   void
 bx_parallel_c::virtual_printer(void)
 {
-  if (BX_PAR_THIS s.STATUS.slct) {
-    if (BX_PAR_THIS s.output != NULL) {
-      fputc(BX_PAR_THIS s.data, BX_PAR_THIS s.output);
-      fflush (BX_PAR_THIS s.output);
+  if (BX_PAR_THIS_PTR s.STATUS.slct) {
+    if (BX_PAR_THIS_PTR s.output != NULL) {
+      fputc(BX_PAR_THIS_PTR s.data, BX_PAR_THIS_PTR s.output);
+      fflush (BX_PAR_THIS_PTR s.output);
       }
-    if (BX_PAR_THIS s.CONTROL.irq == 1) {
+    if (BX_PAR_THIS_PTR s.CONTROL.irq == 1) {
       DEV_pic_raise_irq(7);
       }
-    BX_PAR_THIS s.STATUS.ack = 0;
-    BX_PAR_THIS s.STATUS.busy = 1;
+    BX_PAR_THIS_PTR s.STATUS.ack = 0;
+    BX_PAR_THIS_PTR s.STATUS.busy = 1;
     }
   else {
     BX_ERROR(("data is valid, but printer is offline"));
@@ -201,8 +201,8 @@ bx_parallel_c::read(Bit32u address, unsigned io_len)
   if (io_len == 1) {
     switch (address) {
       case 0x0378:
-        if (!BX_PAR_THIS s.CONTROL.input) {
-          return (Bit32u)BX_PAR_THIS s.data;
+        if (!BX_PAR_THIS_PTR s.CONTROL.input) {
+          return (Bit32u)BX_PAR_THIS_PTR s.data;
           }
         else {
           BX_ERROR(("read: input mode not supported"));
@@ -211,21 +211,21 @@ bx_parallel_c::read(Bit32u address, unsigned io_len)
         break;
       case 0x0379:
 	{
-	  retval = ((BX_PAR_THIS s.STATUS.busy  << 7) |
-		    (BX_PAR_THIS s.STATUS.ack   << 6) |
-		    (BX_PAR_THIS s.STATUS.pe    << 5) |
-		    (BX_PAR_THIS s.STATUS.slct  << 4) |
-		    (BX_PAR_THIS s.STATUS.error << 3));
-	  if (BX_PAR_THIS s.STATUS.ack == 0) {
-	    BX_PAR_THIS s.STATUS.ack = 1;
-            if (BX_PAR_THIS s.CONTROL.irq == 1) {
+	  retval = ((BX_PAR_THIS_PTR s.STATUS.busy  << 7) |
+		    (BX_PAR_THIS_PTR s.STATUS.ack   << 6) |
+		    (BX_PAR_THIS_PTR s.STATUS.pe    << 5) |
+		    (BX_PAR_THIS_PTR s.STATUS.slct  << 4) |
+		    (BX_PAR_THIS_PTR s.STATUS.error << 3));
+	  if (BX_PAR_THIS_PTR s.STATUS.ack == 0) {
+	    BX_PAR_THIS_PTR s.STATUS.ack = 1;
+            if (BX_PAR_THIS_PTR s.CONTROL.irq == 1) {
               DEV_pic_lower_irq(7);
 	      }
 	    }
-	  if (BX_PAR_THIS s.initmode == 1) {
-	    BX_PAR_THIS s.STATUS.busy  = 1;
-	    BX_PAR_THIS s.STATUS.slct  = 1;
-	    BX_PAR_THIS s.initmode = 0;
+	  if (BX_PAR_THIS_PTR s.initmode == 1) {
+	    BX_PAR_THIS_PTR s.STATUS.busy  = 1;
+	    BX_PAR_THIS_PTR s.STATUS.slct  = 1;
+	    BX_PAR_THIS_PTR s.initmode = 0;
 	    }
 	  BX_DEBUG(("read: status register returns 0x%02x", retval));
 	  return retval;
@@ -233,12 +233,12 @@ bx_parallel_c::read(Bit32u address, unsigned io_len)
 	break;
       case 0x037A:
         {
-          retval = ((BX_PAR_THIS s.CONTROL.input    << 5) |
-                    (BX_PAR_THIS s.CONTROL.irq      << 4) |
-		    (BX_PAR_THIS s.CONTROL.slct_in  << 3) |
-		    (BX_PAR_THIS s.CONTROL.init     << 2) |
-		    (BX_PAR_THIS s.CONTROL.autofeed << 1) |
-		    (BX_PAR_THIS s.CONTROL.strobe));
+          retval = ((BX_PAR_THIS_PTR s.CONTROL.input    << 5) |
+                    (BX_PAR_THIS_PTR s.CONTROL.irq      << 4) |
+		    (BX_PAR_THIS_PTR s.CONTROL.slct_in  << 3) |
+		    (BX_PAR_THIS_PTR s.CONTROL.init     << 2) |
+		    (BX_PAR_THIS_PTR s.CONTROL.autofeed << 1) |
+		    (BX_PAR_THIS_PTR s.CONTROL.strobe));
 	  BX_DEBUG(("read: control register returns 0x%02x", retval));
 	  return retval;
 	}
@@ -272,66 +272,66 @@ bx_parallel_c::write(Bit32u address, Bit32u value, unsigned io_len)
   if (io_len == 1) {
     switch (address) {
       case 0x0378:
-        BX_PAR_THIS s.data = (Bit8u)value;
+        BX_PAR_THIS_PTR s.data = (Bit8u)value;
         BX_DEBUG(("write: data output register = 0x%02x", (Bit8u)value));
         break;
       case 0x037A:
 	{
 	  if ((value & 0x01) == 0x01) {
-	    if (BX_PAR_THIS s.CONTROL.strobe == 0) {
-	      BX_PAR_THIS s.CONTROL.strobe = 1;
+	    if (BX_PAR_THIS_PTR s.CONTROL.strobe == 0) {
+	      BX_PAR_THIS_PTR s.CONTROL.strobe = 1;
 	      virtual_printer(); // data is valid now
 	      }
 	  } else {
-	    if (BX_PAR_THIS s.CONTROL.strobe == 1) {
-	      BX_PAR_THIS s.CONTROL.strobe = 0;
+	    if (BX_PAR_THIS_PTR s.CONTROL.strobe == 1) {
+	      BX_PAR_THIS_PTR s.CONTROL.strobe = 0;
 	      }
 	    }
-	  BX_PAR_THIS s.CONTROL.autofeed = ((value & 0x02) == 0x02);
+	  BX_PAR_THIS_PTR s.CONTROL.autofeed = ((value & 0x02) == 0x02);
 	  if ((value & 0x04) == 0x04) {
-	    if (BX_PAR_THIS s.CONTROL.init == 0) {
-	      BX_PAR_THIS s.CONTROL.init = 1;
-	      BX_PAR_THIS s.STATUS.busy  = 0;
-	      BX_PAR_THIS s.STATUS.slct  = 0;
-	      BX_PAR_THIS s.initmode = 1;
+	    if (BX_PAR_THIS_PTR s.CONTROL.init == 0) {
+	      BX_PAR_THIS_PTR s.CONTROL.init = 1;
+	      BX_PAR_THIS_PTR s.STATUS.busy  = 0;
+	      BX_PAR_THIS_PTR s.STATUS.slct  = 0;
+	      BX_PAR_THIS_PTR s.initmode = 1;
 	      BX_DEBUG(("printer init requested"));
 	      }
 	  } else {
-	    if (BX_PAR_THIS s.CONTROL.init == 1) {
-	      BX_PAR_THIS s.CONTROL.init = 0;
+	    if (BX_PAR_THIS_PTR s.CONTROL.init == 1) {
+	      BX_PAR_THIS_PTR s.CONTROL.init = 0;
 	      }
 	    }
 	  if ((value & 0x08) == 0x08) {
-	    if (BX_PAR_THIS s.CONTROL.slct_in == 0) {
-	      BX_PAR_THIS s.CONTROL.slct_in = 1;
+	    if (BX_PAR_THIS_PTR s.CONTROL.slct_in == 0) {
+	      BX_PAR_THIS_PTR s.CONTROL.slct_in = 1;
 	      BX_DEBUG(("printer now online"));
 	      }
 	  } else {
-	    if (BX_PAR_THIS s.CONTROL.slct_in == 1) {
-	      BX_PAR_THIS s.CONTROL.slct_in = 0;
+	    if (BX_PAR_THIS_PTR s.CONTROL.slct_in == 1) {
+	      BX_PAR_THIS_PTR s.CONTROL.slct_in = 0;
 	      BX_DEBUG(("printer now offline"));
 	      }
 	    }
-	  BX_PAR_THIS s.STATUS.slct = BX_PAR_THIS s.CONTROL.slct_in;
+	  BX_PAR_THIS_PTR s.STATUS.slct = BX_PAR_THIS_PTR s.CONTROL.slct_in;
 	  if ((value & 0x10) == 0x10) {
-	    if (BX_PAR_THIS s.CONTROL.irq == 0) {
-	      BX_PAR_THIS s.CONTROL.irq = 1;
+	    if (BX_PAR_THIS_PTR s.CONTROL.irq == 0) {
+	      BX_PAR_THIS_PTR s.CONTROL.irq = 1;
 	      BX_DEBUG(("irq mode selected"));
 	      }
 	  } else {
-	    if (BX_PAR_THIS s.CONTROL.irq == 1) {
-	      BX_PAR_THIS s.CONTROL.irq = 0;
+	    if (BX_PAR_THIS_PTR s.CONTROL.irq == 1) {
+	      BX_PAR_THIS_PTR s.CONTROL.irq = 0;
 	      BX_DEBUG(("polling mode selected"));
 	      }
 	    }
 	  if ((value & 0x20) == 0x20) {
-	    if (BX_PAR_THIS s.CONTROL.input == 0) {
-	      BX_PAR_THIS s.CONTROL.input = 1;
+	    if (BX_PAR_THIS_PTR s.CONTROL.input == 0) {
+	      BX_PAR_THIS_PTR s.CONTROL.input = 1;
 	      BX_DEBUG(("data input mode selected"));
 	      }
 	  } else {
-	    if (BX_PAR_THIS s.CONTROL.input == 1) {
-	      BX_PAR_THIS s.CONTROL.input = 0;
+	    if (BX_PAR_THIS_PTR s.CONTROL.input == 1) {
+	      BX_PAR_THIS_PTR s.CONTROL.input = 0;
 	      BX_DEBUG(("data output mode selected"));
 	      }
 	    }

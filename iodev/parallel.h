@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parallel.h,v 1.11.6.1 2003/03/28 09:26:08 slechta Exp $
+// $Id: parallel.h,v 1.11.6.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -27,10 +27,12 @@
 
 #if BX_USE_PAR_SMF
 #  define BX_PAR_SMF  static
-#  define BX_PAR_THIS theParallelDevice->
+#  define BX_PAR_THIS_PTR theParallelDevice->
+#  define BX_PAR_THIS theParallelDevice
 #else
 #  define BX_PAR_SMF
-#  define BX_PAR_THIS this->
+#  define BX_PAR_THIS_PTR this->
+#  define BX_PAR_THIS this
 #endif
 
 typedef struct {

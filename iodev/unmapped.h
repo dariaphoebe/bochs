@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: unmapped.h,v 1.10.6.1 2003/03/28 09:26:09 slechta Exp $
+// $Id: unmapped.h,v 1.10.6.2 2003/04/04 03:46:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -29,10 +29,12 @@
 
 #if BX_USE_UM_SMF
 #  define BX_UM_SMF  static
-#  define BX_UM_THIS theUnmappedDevice->
+#  define BX_UM_THIS_PTR theUnmappedDevice->
+#  define BX_UM_THIS theUnmappedDevice
 #else
 #  define BX_UM_SMF
-#  define BX_UM_THIS this->
+#  define BX_UM_THIS_PTR this->
+#  define BX_UM_THIS this
 #endif
 
 

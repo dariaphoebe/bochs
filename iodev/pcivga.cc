@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.cc,v 1.2.4.1 2003/03/28 09:26:09 slechta Exp $
+// $Id: pcivga.cc,v 1.2.4.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003 Mike Nordell
@@ -73,14 +73,14 @@ bx_pcivga_c::init(void)
 {
   // called once when bochs initializes
 
-  DEV_register_pci_handlers(this,
+  DEV_register_pci_handlers(BX_PCIVGA_THIS,
                             pci_read_handler,
                             pci_write_handler,
                             BX_PCI_DEVICE(2,0),
                             "Experimental PCI VGA");
 
   for (unsigned i=0; i<256; i++) {
-    BX_PCIVGA_THIS s.pci_conf[i] = 0x0;
+    BX_PCIVGA_THIS_PTR s.pci_conf[i] = 0x0;
   }
 
   // readonly registers
@@ -98,14 +98,14 @@ bx_pcivga_c::init(void)
     { 0x0e, 0x00 }                  // header_type_generic
   };
   for (unsigned i = 0; i < sizeof(init_vals) / sizeof(*init_vals); ++i) {
-    BX_PCIVGA_THIS s.pci_conf[init_vals[i].addr] = init_vals[i].val;
+    BX_PCIVGA_THIS_PTR s.pci_conf[init_vals[i].addr] = init_vals[i].val;
   }
 }
 
 void
 bx_pcivga_c::register_state(bx_param_c *list_p)
 {
-  BXRS_START(bx_pcivga_c, this, "", list_p, 1);
+  BXRS_START(bx_pcivga_c, BX_PCIVGA_THIS, "", list_p, 1);
   {
     BXRS_STRUCT(struct s_t, s);
     {
@@ -127,7 +127,7 @@ bx_pcivga_c::reset(unsigned type)
       { 0x06, 0x00 }, { 0x07, 0x02 }	// status_devsel_medium
   };
   for (unsigned i = 0; i < sizeof(reset_vals) / sizeof(*reset_vals); ++i) {
-      BX_PCIVGA_THIS s.pci_conf[reset_vals[i].addr] = reset_vals[i].val;
+      BX_PCIVGA_THIS_PTR s.pci_conf[reset_vals[i].addr] = reset_vals[i].val;
   }
 }
 
@@ -194,9 +194,9 @@ bx_pcivga_c::pci_read(Bit8u address, unsigned io_len)
   szTmp[0] = '\0';
   szTmp2[0] = '\0';
   for (unsigned i=0; i<io_len; i++) {
-    value |= (BX_PCIVGA_THIS s.pci_conf[address+i] << (i*8));
+    value |= (BX_PCIVGA_THIS_PTR s.pci_conf[address+i] << (i*8));
 
-    sprintf(szTmp2, "%02x", (BX_PCIVGA_THIS s.pci_conf[address+i]));
+    sprintf(szTmp2, "%02x", (BX_PCIVGA_THIS_PTR s.pci_conf[address+i]));
     strrev(szTmp2);
     strcat(szTmp, szTmp2);
   }
@@ -249,7 +249,7 @@ bx_pcivga_c::pci_write(Bit8u address, Bit32u value, unsigned io_len)
         strcpy(szTmp2, "..");
         break;
       default:
-        BX_PCIVGA_THIS s.pci_conf[address+i] = value8;
+        BX_PCIVGA_THIS_PTR s.pci_conf[address+i] = value8;
         sprintf(szTmp2, "%02x", value8);
     }
     strrev(szTmp2);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: slowdown_timer.h,v 1.7 2002/10/24 21:07:52 bdenney Exp $
+// $Id: slowdown_timer.h,v 1.7.6.1 2003/04/04 03:46:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 
@@ -8,7 +8,7 @@
 class bx_slowdown_timer_c {
 
 private:
-  struct {
+  struct s_type {
     Bit64u start_time;
     Bit64u start_emulated_time;
     Bit64u lasttime;
@@ -23,6 +23,7 @@ public:
   bx_slowdown_timer_c();
 
   void init(void);
+  void register_state(bx_param_c *list_p);
   void reset(unsigned type);
 
   static void timer_handler(void * this_ptr);

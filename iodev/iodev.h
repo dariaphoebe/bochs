@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: iodev.h,v 1.31.2.1 2003/03/28 09:26:06 slechta Exp $
+// $Id: iodev.h,v 1.31.2.2 2003/04/04 03:46:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -57,10 +57,12 @@ typedef void   (*bx_write_handler_t)(void *, Bit32u, Bit32u, unsigned);
 
 #if BX_USE_DEV_SMF
 #  define BX_DEV_SMF  static
-#  define BX_DEV_THIS bx_devices.
+#  define BX_DEV_THIS_PTR bx_devices.
+#  define BX_DEV_THIS (&(bx_devices))
 #else
 #  define BX_DEV_SMF
-#  define BX_DEV_THIS this->
+#  define BX_DEV_THIS_PTR this->
+#  define BX_DEV_THIS this
 #endif
 
 //////////////////////////////////////////////////////////////////////

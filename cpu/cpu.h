@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.133.2.2 2003/03/29 19:57:18 slechta Exp $
+// $Id: cpu.h,v 1.133.2.3 2003/04/04 03:46:05 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -472,7 +472,8 @@ typedef struct {
 #define EFlagsOSZAPCMask 0x000008d5
 #define EFlagsOSZAPMask  0x000008d4
 
-  } bx_flags_reg_t;
+  void register_state(bx_param_c *list_p);
+} bx_flags_reg_t;
 
 
 #define DECLARE_8BIT_REGISTER_ACCESSORS(name)                                \
@@ -1189,21 +1190,21 @@ typedef struct {
 typedef struct {
   typedef struct{
       Bit32u erx;
-  } gr_dword_t;
+  } dword_t;
   typedef struct {
     typedef struct {
       Bit8u rl;
       Bit8u rh;
-    } gr_byte_t;
+    } byte_t;
     union {
       Bit16u rx;
-      gr_byte_t byte;
+      byte_t byte;
     };
     Bit16u word_filler;
-  } gr_word_t;
+  } word_t;
   union {
-    gr_dword_t dword;
-    gr_word_t word;
+    dword_t dword;
+    word_t word;
   };
   void register_state(bx_param_c *list_p);
 } bx_gen_reg_t;
@@ -1231,6 +1232,7 @@ public:
   bx_generic_apic_c ();
   virtual ~bx_generic_apic_c ();
   virtual void init ();
+  virtual void register_state(bx_param_c *list_p);
   virtual void hwreset () { }
   Bit32u get_base (void) { return base_addr; }
   void set_base (Bit32u newbase);

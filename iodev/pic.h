@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pic.h,v 1.10.6.1 2003/03/28 09:26:09 slechta Exp $
+// $Id: pic.h,v 1.10.6.2 2003/04/04 03:46:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -27,10 +27,12 @@
 
 #if BX_USE_PIC_SMF
 #  define BX_PIC_SMF  static
-#  define BX_PIC_THIS thePic->
+#  define BX_PIC_THIS_PTR thePic->
+#  define BX_PIC_THIS thePic
 #else
 #  define BX_PIC_SMF
-#  define BX_PIC_THIS this->
+#  define BX_PIC_THIS_PTR this->
+#  define BX_PIC_THIS this
 #endif
 
 

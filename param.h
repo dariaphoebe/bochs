@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: param.h,v 1.1.2.2 2003/04/04 03:19:16 bdenney Exp $
+// $Id: param.h,v 1.1.2.3 2003/04/04 03:46:05 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 
 // support for compiling param.cc without Bochs
@@ -165,7 +165,7 @@ class BOCHSAPI bx_param_num_c : public bx_param_c {
 protected:
   Bit64s min, max, initial_val;
   union _uval_ {
-    Bit64s number;   // used by bx_param_num_c
+    Bit64s number;   // used by bx_param_num_c and bx_param_bool
     Bit64s *p64bit;  // used by bx_shadow_num_c
     Bit32s *p32bit;  // used by bx_shadow_num_c
     Bit16s *p16bit;  // used by bx_shadow_num_c
@@ -184,8 +184,9 @@ public:
   virtual bx_list_c *get_dependent_list () { return dependent_list; }
   void set_dependent_list (bx_list_c *l);
   virtual void set_enabled (int enabled);
-  virtual Bit32s get () { return (Bit32s) get64(); }
-  virtual Bit64s get64 ();
+  virtual Bit32s get (bx_bool ignore_handler=0) 
+    { return (Bit32s) get64(ignore_handler); }
+  virtual Bit64s get64 (bx_bool ignore_handler=0);
   virtual void set (Bit64s val, bx_bool ignore_handler=0);
   void set_base (int base) { this->base = base; }
   void set_initial_val (Bit64s initial_val);
@@ -259,7 +260,7 @@ public:
       Bit8u *ptr_to_real_val,
       Bit8u highbit = 7,
       Bit8u lowbit = 0);
-  virtual Bit64s get64 ();
+  virtual Bit64s get64 (bx_bool ignore_handler=0);
   virtual void set (Bit64s val, bx_bool ignore_handler=0);
   virtual void reset ();
 };
@@ -286,7 +287,7 @@ class BOCHSAPI bx_shadow_data_c : public bx_param_c
   void set_data_size(int size) {data_size = size;};
   int  get_data_size() {return data_size;};
   virtual void set (void* new_data_ptr, bx_bool ignore_handler=0);
-  virtual void* get();
+  virtual void* get(bx_bool ignore_handler=0);
 };
 
 class BOCHSAPI bx_param_bool_c : public bx_param_num_c {
@@ -315,7 +316,7 @@ public:
       char *description,
       bx_bool *ptr_to_real_val,
       Bit8u bitnum = 0);
-  virtual Bit64s get64 ();
+  virtual Bit64s get64 (bx_bool ignore_handler=0);
   virtual void set (Bit64s val, bx_bool ignore_handler=0);
 };
 
@@ -362,7 +363,7 @@ public:
   virtual ~bx_param_string_c ();
   virtual void reset ();
   void set_handler (param_string_event_handler handler);
-  Bit32s get (char *buf, int len);
+  Bit32s get (char *buf, int len, bx_bool ignore_handler=0);
   char *getptr () {return val; }
   void set (char *buf, bx_bool ignore_handler=0);
   bx_bool equals (const char *buf);
@@ -745,21 +746,37 @@ void param_print_tree (bx_param_c *node, int level = 0);
 #define BXRS_ARRAY_BOOL(_type, _var, _size)                                   \
   BXRS_ARRAY_BOOL_D(_type, _var, _size, "")
 
-#define BXRS_ARRAY_BOOL_D(_type, _var, _size, _desc)                          \
+#define BXRS_ARRAY_BOOL_D(_type, _var, _size, _desc)                           \
 {                                                                             \
   static char foobar[_size][30];                                              \
   char *_index_name = foobar[0];                                              \
   bx_list_c *_bxrs_old_list_p = _bxrs_cur_list_p;                             \
-  bx_list_c *_bxrs_cur_list_p = new bx_list_c(_bxrs_old_list_p, #_var, _desc, _size);\
+  bx_list_c *_bxrs_cur_list_p =                                               \
+    new bx_list_c(_bxrs_old_list_p, #_var, _desc, _size);                     \
   for (int _itr = 0;                                                          \
        (_itr < _size) &&                                                      \
          (sprintf(foobar[_itr], "%d", _itr),                                  \
           _index_name = foobar[_itr],                                         \
           true);                                                              \
        _itr++)                                                                \
-  new bx_shadow_bool_c(_bxrs_cur_list_p, _index_name, "",                     \
-                      &((*((_bxrs_this_t*)_bxrs_this))._var[_itr])   );       \
+  new bx_shadow_bool_c((bx_param_c*)_bxrs_cur_list_p, _index_name, "",        \
+                      &(((((_bxrs_this_t*)_bxrs_this))->_var)[_itr])   );       \
 }
+//#define BXRS_ARRAY_BOOL_D(_type, _var, _size, _desc)
+//{
+//  static char foobar[_size][30];
+//  char *_index_name = foobar[0];
+//  bx_list_c *_bxrs_old_list_p = _bxrs_cur_list_p;
+//  bx_list_c *_bxrs_cur_list_p = new bx_list_c(_bxrs_old_list_p, #_var, _desc, _size);
+//  for (int _itr = 0;
+//       (_itr < _size) &&
+//         (sprintf(foobar[_itr], "%d", _itr),
+//          _index_name = foobar[_itr],
+//          true);
+//       _itr++)
+//  new bx_shadow_bool_c(_bxrs_cur_list_p, _index_name, "",
+//                      &((*((_bxrs_this_t*)_bxrs_this))._var[_itr])   );
+//}
 
 
 /*---------------------------------------------------------------------------*/
@@ -816,14 +833,6 @@ void param_print_tree (bx_param_c *node, int level = 0);
 #define BXRS_UNION_START {
 #define BXRS_UNION_START_D BXRS_UNION_START
 #define BXRS_UNION_END }
-/*---------------------------------------------------------------------------*/
-// for registering dynamically created arrays and their size variable
-// NOTE: size variable must be in current bxrs scope
-#define BXRS_DARRAY_NUM(_type, _var_p, _sizetype, _sizevar)                   \
-  BXRS_DARRAY_NUM_D(_type, _var_p, _sizetype, _sizevar, "")
-  
-#define BXRS_DARRAY_NUM_D(_type, _var_p, _sizetype, _sizevar, _desc) ;
-  // BJS TODO: implement BXRS_DARRAY_NUM_D
 
 /*---------------------------------------------------------------------------*/
 // for registering pointer variables that are relative to another pointer
@@ -834,8 +843,14 @@ void param_print_tree (bx_param_c *node, int level = 0);
 // BJS TODO: implement BXRS_RELNUM_D
 
 /*---------------------------------------------------------------------------*/
-#define BXRS_DARRAY(_ptr, _len)                                                    \
+#define BXRS_DARRAY(_ptr, _len)                                               \
   BXRS_DARRAY_DH(_ptr, _len, "", NULL);
+
+#define BXRS_DARRAY_D(_ptr, _len, _desc)                                      \
+  BXRS_DARRAY_DH(_ptr, _len, _desc, NULL);
+
+#define BXRS_DARRAY_H(_ptr, _len, _handler)                                   \
+  BXRS_DARRAY_DH(_ptr, _len, "", _handler);
 
 #define BXRS_DARRAY_DH(_ptr, _len, _desc, _handler)                           \
   (new bx_shadow_data_c(_bxrs_cur_list_p,                                     \

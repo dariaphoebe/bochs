@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: extfpuirq.h,v 1.2 2003/01/07 08:17:15 cbothamy Exp $
+// $Id: extfpuirq.h,v 1.2.4.1 2003/04/04 03:46:07 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -27,10 +27,12 @@
 
 #if BX_USE_EFI_SMF
 #  define BX_EXTFPUIRQ_SMF  static
-#  define BX_EXTFPUIRQ_THIS theExternalFpuIrq->
+#  define BX_EXTFPUIRQ_THIS_PTR theExternalFpuIrq->
+#  define BX_EXTFPUIRQ_THIS theExternalFpuIrq
 #else
 #  define BX_EXTFPUIRQ_SMF
-#  define BX_EXTFPUIRQ_THIS this->
+#  define BX_EXTFPUIRQ_THIS_PTR this->
+#  define BX_EXTFPUIRQ_THIS this
 #endif
 
 

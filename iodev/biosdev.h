@@ -1,5 +1,5 @@
 
-// $Id: biosdev.h,v 1.3.6.2 2003/03/28 09:26:01 slechta Exp $
+// $Id: biosdev.h,v 1.3.6.3 2003/04/04 03:46:06 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -30,10 +30,12 @@
 
 #if BX_USE_BIOS_SMF
 #  define BX_BIOS_SMF  static
-#  define BX_BIOS_THIS theBiosDevice->
+#  define BX_BIOS_THIS_PTR theBiosDevice->
+#  define BX_BIOS_THIS theBiosDevice
 #else
 #  define BX_BIOS_SMF
-#  define BX_BIOS_THIS this->
+#  define BX_BIOS_THIS_PTR this->
+#  define BX_BIOS_THIS this
 #endif
 
 
