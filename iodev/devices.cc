@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.52 2003/03/02 23:59:10 cbothamy Exp $
+// $Id: devices.cc,v 1.52.2.1 2003/03/20 05:54:22 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -93,7 +93,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.52 2003/03/02 23:59:10 cbothamy Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.1 2003/03/20 05:54:22 bdenney Exp $"));
   mem = newmem;
 
   /* no read / write handlers defined */
@@ -201,6 +201,8 @@ bx_devices_c::init(BX_MEM_C *newmem)
   /*--- 8254 PIT ---*/
   pit = & bx_pit;
   pit->init();
+  bx_param_c *param_root = SIM->get_param (".");
+  pit->register_state ("pit", "8254 PIT", param_root);
 
   bx_virt_timer.init();
 
