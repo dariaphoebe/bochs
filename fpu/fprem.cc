@@ -134,7 +134,7 @@ static floatx80 do_fprem(floatx80 a, floatx80 b, Bit64u &q, int rounding_mode, f
                 
                if ((eq && (q & 1)) || lt) {
                   aSign = !aSign;
-                 ++q;
+                  ++q;
                }
                if (lt) sub128(bSig, 0, aSig0, aSig1, &aSig0, &aSig1);
             }

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.10.4 2004/04/17 16:43:05 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.10.5 2004/05/08 10:17:14 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -32,8 +32,6 @@ static FPU_REG const CONST_PI   = MAKE_REG(POS,  1, 0x2168c235, 0xc90fdaa2);
 #define FPTAN  8
 
 /* Used only by fptan, fsin, fcos, and fsincos. */
-/* This routine produces very accurate results, similar to
-   using a value of pi with more than 128 bits precision. */
 /* Limited measurements show no results worse than 64 bit precision
    except for the results for arguments close to 2^63, where the
    precision of the result sometimes degrades to about 63.9 bits */
