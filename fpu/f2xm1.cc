@@ -56,12 +56,12 @@ static float128 exp_arr[EXP_ARR_SIZE] =
     packFloat128(BX_CONST64(0x3fd6ae7f3e733b81), BX_CONST64(0xf11d8656b0ee8cb0))  /* 15 */
 };
 
-/* required -1 < x < 1 */
-static float128 poly_exp(float128 x1, float_status_t &status)
-{
-    float128 x2 = float128_mul(x1, x1, status);
-    float128 r1, r2;
+extern float128 EvalPoly(float128 x, float128 *arr, unsigned n, float_status_t &status);
 
+/* required -1 < x < 1 */
+static float128 poly_exp(float128 x, float_status_t &status)
+{
+/*
     //               2     3     4     5     6     7     8     9
     //  x           x     x     x     x     x     x     x     x
     // e - 1 ~ x + --- + --- + --- + --- + --- + --- + --- + --- + ...
@@ -81,42 +81,9 @@ static float128 poly_exp(float128 x1, float_status_t &status)
     //    x                     
     //   e  - 1 ~ x * [ p(x) + x * q(x) ]
     //
-
-    // r1 = x1*(a_1 + x2*(a_3 + x2*(a_5 + x2*(a_7 + x2*(a_9 + x2*(a_11+x2*a_13)))))
-    r1 = float128_mul(x2, exp_arr[13], status);
-    r1 = float128_add(r1, exp_arr[11], status);
-    r1 = float128_mul(r1, x2, status);
-    r1 = float128_add(r1, exp_arr[9], status);
-    r1 = float128_mul(r1, x2, status);
-    r1 = float128_add(r1, exp_arr[7], status);
-    r1 = float128_mul(r1, x2, status);
-    r1 = float128_add(r1, exp_arr[5], status);
-    r1 = float128_mul(r1, x2, status);
-    r1 = float128_add(r1, exp_arr[3], status);
-    r1 = float128_mul(r1, x2, status);
-    r1 = float128_add(r1, exp_arr[1], status);
-    r1 = float128_mul(r1, x1, status);
-
-    // r2 = x2*(a_2 + x2*(a_4 + x2*(a_6 + x2*(a_8 + x2*(a_10 + x2*(a_12+x2*a_14))))))
-    r2 = float128_mul(x2, exp_arr[14], status);
-    r2 = float128_add(r2, exp_arr[12], status);
-    r2 = float128_mul(r2, x2, status);
-    r2 = float128_add(r2, exp_arr[10], status);
-    r2 = float128_mul(r2, x2, status);
-    r2 = float128_add(r2, exp_arr[8], status);
-    r2 = float128_mul(r2, x2, status);
-    r2 = float128_add(r2, exp_arr[6], status);
-    r2 = float128_mul(r2, x2, status);
-    r2 = float128_add(r2, exp_arr[4], status);
-    r2 = float128_mul(r2, x2, status);
-    r2 = float128_add(r2, exp_arr[2], status);
-    r2 = float128_mul(r2, x2, status);
-
-    r1 = float128_add(r1, r2, status);
-    r1 = float128_add(r1, exp_arr[0], status);
-    r1 = float128_mul(r1, x1, status);
-
-    return r1;
+*/
+    float128 t = EvalPoly(x, exp_arr, EXP_ARR_SIZE, status);
+    return float128_mul(t, x, status);
 }
 
 // =================================================

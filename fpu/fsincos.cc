@@ -113,34 +113,7 @@ static float128 cos_arr[COS_ARR_SIZE] =
     packFloat128(BX_CONST64(0x3fd2ae7f3e733b81), BX_CONST64(0xf11d8656b0ee8cb0))  /* 16 */
 };
 
-static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
-{
-    float128 x2 = float128_mul(x1, x1, status);
-    float128 x4 = float128_mul(x2, x2, status);
-    float128 r1, r2;
-
-    // negative = x2*(a_1 + x4*(a_3 + x4*(a_5+x4*a_7)));
-    r1 = float128_mul(x4, carr[7], status);
-    r1 = float128_add(r1, carr[5], status);
-    r1 = float128_mul(r1, x4, status);
-    r1 = float128_add(r1, carr[3], status);
-    r1 = float128_mul(r1, x4, status);
-    r1 = float128_add(r1, carr[1], status);
-    r1 = float128_mul(r1, x2, status);
-
-    // positive = x4*(a_2 + x4*(a_4 + x4*(a_6+x4*a_8)));
-    r2 = float128_mul(x4, carr[8], status);
-    r2 = float128_add(r2, carr[6], status);
-    r2 = float128_mul(r2, x4, status);
-    r2 = float128_add(r2, carr[4], status);
-    r2 = float128_mul(r2, x4, status);
-    r2 = float128_add(r2, carr[2], status);
-    r2 = float128_mul(r2, x4, status);
-
-    r1 = float128_add(r1, r2, status);
-    return 
-       float128_add(r1, carr[0], status);
-}
+extern float128 OddPoly (float128 x, float128 *arr, unsigned n, float_status_t &status);
 
 /* 0 <= x <= pi/4 */
 BX_CPP_INLINE float128 poly_sin(float128 x, float_status_t &status)
@@ -165,10 +138,10 @@ BX_CPP_INLINE float128 poly_sin(float128 x, float_status_t &status)
     //   sin(x) ~ x * [ p(x) + x * q(x) ]
     //
 
-    float128 t = poly_sincos(x, sin_arr, status);
-    t = float128_mul(t, x, status);
-    return t;
+    return OddPoly(x, sin_arr, SIN_ARR_SIZE, status);
 }
+
+extern float128 EvenPoly(float128 x, float128 *arr, unsigned n, float_status_t &status);
 
 /* 0 <= x <= pi/4 */
 BX_CPP_INLINE float128 poly_cos(float128 x, float_status_t &status)
@@ -188,7 +161,7 @@ BX_CPP_INLINE float128 poly_cos(float128 x, float_status_t &status)
     //   cos(x) ~ [ p(x) + x * q(x) ]
     //
 
-    return poly_sincos(x, cos_arr, status);
+    return EvenPoly(x, cos_arr, COS_ARR_SIZE, status);
 }
 
 BX_CPP_INLINE void sincos_invalid(floatx80 *sin_a, floatx80 *cos_a, floatx80 a)
