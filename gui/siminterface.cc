@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94.4.9 2003/03/29 01:57:08 slechta Exp $
+// $Id: siminterface.cc,v 1.94.4.10 2003/03/29 19:42:52 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1033,8 +1033,11 @@ bx_param_num_c::set (Bit64s newval, bx_bool ignore_handler)
     // just set the value
     val.number = newval;
   }
-  if ((val.number < min || val.number > max) && max != BX_MAX_BIT64U)
-    BX_PANIC (("numerical parameter '%s' was set to %lld, which is out of range %lld to %lld", get_name (), val.number, min, max));
+  if ((val.number < min || val.number > max) && max != BX_MAX_BIT64U) {
+    char pname[BX_PATHNAME_LEN];
+    get_param_path (pname, BX_PATHNAME_LEN);
+    BX_PANIC (("numerical parameter '%s' was set to %lld, which is out of range %lld to %lld", pname, val.number, min, max));
+  }
   if (dependent_list != NULL) update_dependents (dependent_list);
 }
 
@@ -1225,8 +1228,11 @@ void
 bx_shadow_num_c::set (Bit64s newval, bx_bool ignore_handler)
 {
   Bit64u tmp = 0;
-  if ((newval < min || newval > max) && max != BX_MAX_BIT64U)
-    BX_PANIC (("numerical parameter %s was set to %lld, which is out of range %lld to %lld", get_name (), newval, min, max));
+  if ((newval < min || newval > max) && max != BX_MAX_BIT64U) {
+    char pname[BX_PATHNAME_LEN];
+    get_param_path (pname, BX_PATHNAME_LEN);
+    BX_PANIC (("numerical parameter %s was set to %lld, which is out of range %lld to %lld", pname, newval, min, max));
+  }
   switch (varsize) {
     case 8: 
       tmp = (*(val.p8bit) >> lowbit) & mask;
