@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig_c.c,v 1.1.2.1 2004/05/23 18:53:26 sshwarts Exp $
+ |  $Id: fpu_trig_c.c,v 1.1.2.2 2004/05/24 16:49:45 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -20,10 +20,11 @@
 /* bbd: make CONST_PI2 non-const so that you can write "&CONST_PI2" when
    calling a function.  Otherwise you get const warnings.  Surely there's
    a better way. */
-static FPU_REG CONST_PI2  = MAKE_REG(POS, 0, 0x2168c235, 0xc90fdaa2);
-static FPU_REG const CONST_PI4  = MAKE_REG(POS, -1, 0x2168c235, 0xc90fdaa2);
-static FPU_REG const CONST_PI   = MAKE_REG(POS,  1, 0x2168c235, 0xc90fdaa2);
 static FPU_REG const CONST_1    = MAKE_REG(POS,  0, 0x00000000, 0x80000000);
+static FPU_REG const CONST_PI   = MAKE_REG(POS,  1, 0x2168c235, 0xc90fdaa2);
+static FPU_REG const CONST_PI2  = MAKE_REG(POS,  0, 0x2168c235, 0xc90fdaa2);
+static FPU_REG const CONST_PI4  = MAKE_REG(POS, -1, 0x2168c235, 0xc90fdaa2);
+static FPU_REG const CONST_3PI4 = MAKE_REG(POS,  1, 0x990e91a8, 0x96cbe3f9);
 
 static void single_arg_error(FPU_REG *st0_ptr, u_char st0_tag)
 {
@@ -343,16 +344,11 @@ void fpatan(FPU_REG *st0_ptr, u_char st0_tag)
 	    {
 	      if (signpositive(st0_ptr))
 		{
-		  FPU_copy_to_reg1(&CONST_PI4, TAG_Valid);
+		  FPU_copy_to_reg1(&CONST_PI4,  TAG_Valid);
 		}
 	      else
 		{
-		  setpositive(st1_ptr);
-		  tag = FPU_u_add(&CONST_PI4, &CONST_PI2, st1_ptr,
-				  FULL_PRECISION, SIGN_POS,
-				  exponent(&CONST_PI4), exponent(&CONST_PI2));
-		  if (tag >= 0)
-		    FPU_settagi(1, tag);
+		  FPU_copy_to_reg1(&CONST_3PI4, TAG_Valid);
 		}
 	    }
 	  else

@@ -35,8 +35,6 @@
 #endif
 
 #if BX_SUPPORT_FPU
-extern float128 poly_eval(float128 x, float128 *carr, int n, float_status_t &status);
-
 static const floatx80 floatx80_one = packFloatx80(0, 0x3fff, BX_CONST64(0x8000000000000000));
 static const floatx80 floatx80_pi2 = packFloatx80(0, 0x3fff, BX_CONST64(0xc90fdaa22168c235));
 static const float128 float128_one = packFloat128(0, 0x3fff, 0, 0);
@@ -114,11 +112,6 @@ static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
 /* 0 <= x <= pi/4 */
 static float128 poly_sin(float128 x, float_status_t &status)
 {
-    if (float128_exp(x) < 0x3FBB) /* handle tiny arguments */
-    {
-        return x;
-    }
-
     float128 t = poly_sincos(x, sin_arr, status);
     t = float128_mul(t, x, status);
     return t;
@@ -127,11 +120,6 @@ static float128 poly_sin(float128 x, float_status_t &status)
 /* 0 <= x <= pi/4 */
 static float128 poly_cos(float128 x, float_status_t &status)
 {
-    if (float128_exp(x) < 0x3FBB) /* handle tiny arguments */
-    {
-        return float128_one;
-    }
-
     return poly_sincos(x, cos_arr, status);
 }
 
@@ -203,6 +191,14 @@ print("after  arg reduction: ", y);
       return;
   }
 
+  if (floatx80_exp(y) <= EXP_BIAS - 68)
+  {
+      if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+          BX_WRITE_FPU_REG(y, 0);
+
+      return;
+  }
+
   sincos_approximation(y, quotient, status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
@@ -249,6 +245,14 @@ void BX_CPU_C::FCOS(bxInstruction_c *i)
   {
       if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
           BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
+
+      return;
+  }
+
+  if (floatx80_exp(y) <= EXP_BIAS - 68)
+  {
+      if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+          BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_one, FPU_Tag_Valid, 0);
 
       return;
   }
@@ -311,6 +315,18 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
           BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
           BX_CPU_THIS_PTR the_i387.FPU_push();
           BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
+      }
+
+      return;
+  }
+
+  if (floatx80_exp(y) <= EXP_BIAS - 68)
+  {
+      if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      {
+          BX_WRITE_FPU_REG(y, 0);
+          BX_CPU_THIS_PTR the_i387.FPU_push();
+          BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_one, FPU_Tag_Valid, 0);
       }
 
       return;
@@ -385,29 +401,31 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
       return;
   }
 
-  int neg = floatx80_sign(y);
-  float128 r = floatx80_to_float128(floatx80_abs(y), status);
-  float128 sin_r = poly_sin(r, status);
-  float128 cos_r = poly_cos(r, status);
+  if (floatx80_exp(y) > EXP_BIAS - 68)
+  {
+      int neg = floatx80_sign(y);
+      float128 r = floatx80_to_float128(floatx80_abs(y), status);
+      float128 sin_r = poly_sin(r, status);
+      float128 cos_r = poly_cos(r, status);
 
-  if (quotient & 0x1) {
-      r = float128_div(cos_r, sin_r, status);
-      neg = ! neg;
-  } else {
-      r = float128_div(sin_r, cos_r, status);
+      if (quotient & 0x1) {
+          r = float128_div(cos_r, sin_r, status);
+          neg = ! neg;
+      } else {
+          r = float128_div(sin_r, cos_r, status);
+      }
+
+      y = float128_to_floatx80(r, status);
+      if (neg)
+          floatx80_chs(y);
   }
-
-  y = float128_to_floatx80(r, status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  if (neg)
-      floatx80_chs(y);
-
   BX_WRITE_FPU_REG(y, 0);
   BX_CPU_THIS_PTR the_i387.FPU_push();
-  BX_WRITE_FPU_REG(floatx80_one, 0);
+  BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_one, FPU_Tag_Valid, 0);
 #else
   BX_INFO(("FPTAN: required FPU, configure --enable-fpu"));
 #endif
