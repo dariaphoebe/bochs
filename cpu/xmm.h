@@ -3,6 +3,9 @@
 
 /* XMM REGISTER */
 
+typedef Bit32u Float32;
+typedef Bit64u Float64;
+
 typedef union bx_xmm_reg_t {
    Bit8s   s8[16];
    Bit16s  s16[8];
@@ -16,6 +19,11 @@ typedef union bx_xmm_reg_t {
    Float64 f64[2];
 } BxPackedXmmRegister;
 
+#ifdef BX_SUPPORT_X86_64
+#  define BX_XMM_REGISTERS 16
+#else
+#  define BX_XMM_REGISTERS 8
+#endif
  
 /* MXCSR REGISTER */
 
@@ -52,7 +60,7 @@ struct bx_mxcsr_t {
    Bit32u mxcsr;      /* define bitfields later */
 };
 
-#define MXCSR_MASK  0x00ff  /* reset reserved bits */
-#define MXCSR_RESET 0x1f80  /* reset value of the MXCSR register */
+#define MXCSR_MASK  0x00FF  /* reset reserved bits */
+#define MXCSR_RESET 0x1F80  /* reset value of the MXCSR register */
 
 #endif

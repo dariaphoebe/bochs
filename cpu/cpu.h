@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.102.2.1 2002/10/11 17:56:52 sshwarts Exp $
+// $Id: cpu.h,v 1.102.2.2 2002/10/12 13:42:19 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1288,6 +1288,10 @@ class BX_MEM_C;
 
 #include "cpu/i387.h"
 
+#if BX_SUPPORT_SSE || BX_SUPPORT_SSE2
+#include "cpu/xmm.h"
+#endif
+
 class BX_CPU_C : public logfunctions {
 
 public: // for now...
@@ -1421,6 +1425,10 @@ union {
 #endif
 
   i387_t the_i387;
+
+#if BX_SUPPORT_SSE || BX_SUPPORT_SSE2
+  bx_xmm_reg_t xmm[BX_XMM_REGISTERS];
+#endif
 
   // pointer to the address space that this processor uses.
   BX_MEM_C *mem;
