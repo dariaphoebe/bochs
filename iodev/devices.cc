@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.23 2002/04/01 21:53:23 cbothamy Exp $
+// $Id: devices.cc,v 1.22.2.1 2002/06/10 21:20:06 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -56,7 +56,6 @@ bx_devices_c::bx_devices_c(void)
   keyboard = NULL;
   dma = NULL;
   floppy = NULL;
-  biosdev = NULL;
   cmos = NULL;
   serial = NULL;
   parallel = NULL;
@@ -103,7 +102,7 @@ bx_devices_c::~bx_devices_c(void)
   void
 bx_devices_c::init(BX_MEM_C *newmem)
 {
-  BX_DEBUG(("Init $Id: devices.cc,v 1.23 2002/04/01 21:53:23 cbothamy Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.22.2.1 2002/06/10 21:20:06 cbothamy Exp $"));
   mem = newmem;
   // Start with all IO port address registered to unmapped handler
   // MUST be called first
@@ -124,14 +123,15 @@ bx_devices_c::init(BX_MEM_C *newmem)
   ioapic->set_id (BX_IOAPIC_DEFAULT_ID);
 #endif
 
-  // BIOS log 
-  biosdev = &bx_biosdev;
-  biosdev->init(this);
 
   // CMOS RAM & RTC
   cmos = &bx_cmos;
   cmos->init(this);
   cmos->reset();
+
+  /*--- 8237 DMA ---*/
+  dma = &bx_dma;
+  dma->init(this);
 
   /*--- HARD DRIVE ---*/
   hard_drive = &bx_hard_drive;
@@ -168,9 +168,6 @@ bx_devices_c::init(BX_MEM_C *newmem)
 #if BX_USE_SLOWDOWN_TIMER
   bx_slowdown_timer.init();
 #endif
-
-  dma = &bx_dma;
-  dma->init(this);
 
   keyboard = &bx_keyboard;
   keyboard->init(this, cmos);
