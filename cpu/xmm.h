@@ -141,6 +141,10 @@ struct bx_mxcsr_t
 #define MXCSR_MASK  0x0000FFBF  /* reset reserved bits */
 #endif
 
+#if defined(NEED_CPU_REG_SHORTCUTS)
+#define MXCSR (BX_CPU_THIS_PTR mxcsr)
+#endif
+
 /* INTEGER SATURATION */
 
 /*
