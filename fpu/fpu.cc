@@ -488,38 +488,34 @@ void BX_CPU_C::FPLEGACY(bxInstruction_c *i)
 
 void BX_CPU_C::print_state_FPU()
 {
-/*
-  static double sigh_scale_factor = pow(2.0, -31.0);
-  static double sigl_scale_factor = pow(2.0, -63.0);
+  static double scale_factor = pow(2.0, -63.0);
 
   Bit32u reg;
   reg = BX_CPU_THIS_PTR the_i387.cwd;
-  fprintf(stderr, "cwd            0x%04x\n", reg);
+  fprintf(stderr, "control word: 0x%04x\n", reg);
   reg = BX_CPU_THIS_PTR the_i387.swd;
-  fprintf(stderr, "swd            0x%04x\n", reg);
+  fprintf(stderr, "status word:  0x%04x\n", reg);
   reg = BX_CPU_THIS_PTR the_i387.twd;
-  fprintf(stderr, "twd            0x%04x\n", reg);
+  fprintf(stderr, "tag word:     0x%04x\n", reg);
   reg = BX_CPU_THIS_PTR the_i387.foo;
-  fprintf(stderr, "foo            0x%04x\n", reg);
+  fprintf(stderr, "operand:      0x%04x\n", reg);
   reg = BX_CPU_THIS_PTR the_i387.fip & 0xffffffff;
-  fprintf(stderr, "fip            0x%08x\n", reg);
+  fprintf(stderr, "fip:          0x%08x\n", reg);
   reg = BX_CPU_THIS_PTR the_i387.fcs;
-  fprintf(stderr, "fcs            0x%04x\n", reg);
+  fprintf(stderr, "fcs:          0x%04x\n", reg);
   reg = BX_CPU_THIS_PTR the_i387.fdp & 0xffffffff;
-  fprintf(stderr, "fip            0x%08x\n", reg);
+  fprintf(stderr, "fdp:          0x%08x\n", reg);
   reg = BX_CPU_THIS_PTR the_i387.fds;
-  fprintf(stderr, "fcs            0x%04x\n", reg);
+  fprintf(stderr, "fds:          0x%04x\n", reg);
 
   // print stack too
   for (int i=0; i<8; i++) {
-    FPU_REG *fpr = &BX_FPU_READ_RAW_FPU_REG(i);
-    double f1 = pow(2.0, ((0x7fff & fpr->exp) - 0x3fff));
-    if (fpr->exp & 0x8000) f1 = -f1;
-    double f2 = ((double)fpr->sigh * sigh_scale_factor);
-    double f3 = ((double)fpr->sigl * sigl_scale_factor);
-    double f = f1*(f2+f3);
-    fprintf(stderr, "st%d            %.10f (raw 0x%04x%08x%08x)\n", i, f, 0xffff & fpr->exp, fpr->sigh, fpr->sigl);
+    const floatx80 &fp = BX_FPU_REG(i);
+    double f = pow(2.0, ((0x7fff & fp.exp) - 0x3fff));
+    if (fp.exp & 0x8000) f = -f;
+    f *= fp.fraction*scale_factor;
+    fprintf(stderr, "st(%d):        %.10f (raw 0x%04x:%08x%08x)\n", i, 
+          f, fp.exp & 0xffff, fp.fraction >> 32, fp.fraction & 0xffffffff);
   }
-*/
 }
 #endif

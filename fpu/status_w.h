@@ -57,4 +57,16 @@
 #define FPU_EX_Precision_Lost_Up 	(EX_Precision | SW_C1)
 #define FPU_EX_Precision_Lost_Dn        (EX_Precision)
 
+/*
+ * bbd: use do {...} while (0) structure instead of using curly brackets
+ * inside parens, which most compilers do not like.
+ */
+#define setcc(cc) do { 				\
+  FPU_PARTIAL_STATUS &= ~(FPU_SW_CC); 		\
+  FPU_PARTIAL_STATUS |= (cc) & FPU_SW_CC; 	\
+} while(0);
+
+#define clear_C1() { FPU_PARTIAL_STATUS &= ~FPU_SW_C1; }
+#define clear_C2() { FPU_PARTIAL_STATUS &= ~FPU_SW_C2; }
+
 #endif

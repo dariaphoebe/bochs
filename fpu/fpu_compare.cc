@@ -94,7 +94,7 @@ void BX_CPU_C::FCOM_STi(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -109,7 +109,7 @@ void BX_CPU_C::FCOM_STi(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  SETCC(status_word_flags_fpu_compare(rc));
+  setcc(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -212,7 +212,7 @@ void BX_CPU_C::FUCOM_STi(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -227,7 +227,7 @@ void BX_CPU_C::FUCOM_STi(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  SETCC(status_word_flags_fpu_compare(rc));
+  setcc(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -252,7 +252,7 @@ void BX_CPU_C::FCOM_SINGLE_REAL(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -271,7 +271,7 @@ void BX_CPU_C::FCOM_SINGLE_REAL(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  SETCC(status_word_flags_fpu_compare(rc));
+  setcc(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -296,7 +296,7 @@ void BX_CPU_C::FCOM_DOUBLE_REAL(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -315,7 +315,7 @@ void BX_CPU_C::FCOM_DOUBLE_REAL(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  SETCC(status_word_flags_fpu_compare(rc));
+  setcc(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -340,7 +340,7 @@ void BX_CPU_C::FICOM_WORD_INTEGER(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -359,7 +359,7 @@ void BX_CPU_C::FICOM_WORD_INTEGER(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  SETCC(status_word_flags_fpu_compare(rc));
+  setcc(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -384,7 +384,7 @@ void BX_CPU_C::FICOM_DWORD_INTEGER(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
           if (pop_stack)
               BX_CPU_THIS_PTR the_i387.FPU_pop();
       }
@@ -403,7 +403,7 @@ void BX_CPU_C::FICOM_DWORD_INTEGER(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  SETCC(status_word_flags_fpu_compare(rc));
+  setcc(status_word_flags_fpu_compare(rc));
 
   if (pop_stack)
       BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -427,7 +427,7 @@ void BX_CPU_C::FCOMPP(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
 
           BX_CPU_THIS_PTR the_i387.FPU_pop();
           BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -443,7 +443,7 @@ void BX_CPU_C::FCOMPP(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  SETCC(status_word_flags_fpu_compare(rc));
+  setcc(status_word_flags_fpu_compare(rc));
 
   BX_CPU_THIS_PTR the_i387.FPU_pop();
   BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -465,7 +465,7 @@ void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
 
           BX_CPU_THIS_PTR the_i387.FPU_pop();
           BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -481,7 +481,7 @@ void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  SETCC(status_word_flags_fpu_compare(rc));
+  setcc(status_word_flags_fpu_compare(rc));
 
   BX_CPU_THIS_PTR the_i387.FPU_pop();
   BX_CPU_THIS_PTR the_i387.FPU_pop();
@@ -543,7 +543,7 @@ void BX_CPU_C::FTST(bxInstruction_c *i)
       if(BX_CPU_THIS_PTR the_i387.is_IA_masked())
       {
           /* the masked response */
-          SETCC(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
+          setcc(FPU_SW_C0|FPU_SW_C2|FPU_SW_C3);
       }
       return;
   }
@@ -556,7 +556,7 @@ void BX_CPU_C::FTST(bxInstruction_c *i)
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
 
-  SETCC(status_word_flags_fpu_compare(rc));
+  setcc(status_word_flags_fpu_compare(rc));
 #else
   BX_INFO(("FTST: required FPU, configure --enable-fpu"));
 #endif
@@ -579,7 +579,7 @@ void BX_CPU_C::FXAM(bxInstruction_c *i)
 
   if (IS_TAG_EMPTY(0))
   {
-      SETCC(FPU_SW_C3|FPU_SW_C1|FPU_SW_C0);
+      setcc(FPU_SW_C3|FPU_SW_C1|FPU_SW_C0);
   }
   else
   {
@@ -588,29 +588,29 @@ void BX_CPU_C::FXAM(bxInstruction_c *i)
       switch(aClass)
       {
         case float_zero:
-           SETCC(FPU_SW_C3|FPU_SW_C1);
+           setcc(FPU_SW_C3|FPU_SW_C1);
            break;
        
         case float_NaN:
            // unsupported handled as NaNs
            if (floatx80_is_unsupported(reg)) {
-               SETCC(FPU_SW_C1); 
+               setcc(FPU_SW_C1); 
            } else {
-               SETCC(FPU_SW_C1|FPU_SW_C0);
+               setcc(FPU_SW_C1|FPU_SW_C0);
            }
            break;
        
         case float_negative_inf:
         case float_positive_inf:
-           SETCC(FPU_SW_C2|FPU_SW_C1|FPU_SW_C0);
+           setcc(FPU_SW_C2|FPU_SW_C1|FPU_SW_C0);
            break;
        
         case float_denormal:
-           SETCC(FPU_SW_C3|FPU_SW_C2|FPU_SW_C1);
+           setcc(FPU_SW_C3|FPU_SW_C2|FPU_SW_C1);
            break;
        
         case float_normalized:
-           SETCC(FPU_SW_C2|FPU_SW_C1);
+           setcc(FPU_SW_C2|FPU_SW_C1);
            break;
       }
   }

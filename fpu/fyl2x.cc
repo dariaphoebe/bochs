@@ -282,4 +282,5 @@ invalid:
     else                // regular polynomial approximation
         x = poly_l2p1(x, status);
     floatx80 r = float128_to_floatx80(x, status);
-    return floatx80_mul(r, b, status);}
+    return floatx80_mul(r, b, status);
+}

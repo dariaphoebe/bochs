@@ -29,9 +29,6 @@
 #define BX_FPU_REG(index) \
     (BX_CPU_THIS_PTR the_i387.st_space[index])
 
-#define BX_FPU_READ_ST0() \
-    (BX_CPU_THIS_PTR the_i387.st_space[BX_CPU_THIS_PTR the_i387.tos & 0x07])
-
 #if defined(NEED_CPU_REG_SHORTCUTS)
 #define FPU_PARTIAL_STATUS     (BX_CPU_THIS_PTR the_i387.swd)
 #define FPU_CONTROL_WORD       (BX_CPU_THIS_PTR the_i387.cwd)
@@ -74,10 +71,9 @@ public:
     void   	FPU_settagi(int tag, int stnr) { FPU_settag(tag, tos+stnr); }
     int    	FPU_gettagi(int stnr) { return FPU_gettag(tos+stnr); }
 
-    void	FPU_save_reg (floatx80 reg, int regnr);
     void	FPU_save_reg (floatx80 reg, int tag, int regnr);
 
-    void  	FPU_save_regi(floatx80 reg, int stnr) { FPU_save_reg(reg, (tos+stnr) & 0x07); }
+    void  	FPU_save_regi(floatx80 reg, int stnr) { FPU_save_regi(reg, FPU_tagof(reg), stnr); }
     floatx80 	FPU_read_regi(int stnr) { return st_space[(tos+stnr) & 0x07]; }
     void  	FPU_save_regi(floatx80 reg, int tag, int stnr) { FPU_save_reg(reg, tag, (tos+stnr) & 0x07); }
 
@@ -99,22 +95,6 @@ public:
     unsigned char align2;
     unsigned char align3;
 };
-
-// for now solution, will be merged with i387_t when FPU 
-// replacement will be done
-#ifdef __cplusplus
-
-#define clear_C1() { FPU_PARTIAL_STATUS &= ~FPU_SW_C1; }
-#define clear_C2() { FPU_PARTIAL_STATUS &= ~FPU_SW_C2; }
-
-/*
- * bbd: use do {...} while (0) structure instead of using curly brackets
- * inside parens, which most compilers do not like.
- */
-#define SETCC(cc) do { 				\
-  FPU_PARTIAL_STATUS &= ~(FPU_SW_CC); 		\
-  FPU_PARTIAL_STATUS |= (cc) & FPU_SW_CC; 	\
-} while(0);
 
 extern softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word);
 
@@ -160,11 +140,6 @@ BX_CPP_INLINE void i387_t::FPU_pop(void)
   tos++;
 }
 
-BX_CPP_INLINE void i387_t::FPU_save_reg (floatx80 reg, int regnr)
-{
-  FPU_save_reg(reg, FPU_tagof(reg), regnr);
-}
-
 BX_CPP_INLINE void i387_t::FPU_save_reg (floatx80 reg, int tag, int regnr)
 {
   st_space[regnr] = reg;
@@ -203,8 +178,6 @@ BX_CPP_INLINE void i387_t::reset()
 
 extern const floatx80 Const_Z;
 extern const floatx80 Const_1;
-
-#endif
 
 #if BX_SUPPORT_MMX
 

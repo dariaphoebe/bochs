@@ -249,7 +249,7 @@ void BX_CPU_C::FPREM1(bxInstruction_c *i)
       if (quotient & 2) cc |= FPU_SW_C3;
       if (quotient & 4) cc |= FPU_SW_C0;
   }
-  SETCC(cc);
+  setcc(cc);
 
   BX_WRITE_FPU_REG(result, 0);
 #else
@@ -292,7 +292,7 @@ void BX_CPU_C::FPREM(bxInstruction_c *i)
       if (quotient & 2) cc |= FPU_SW_C3;
       if (quotient & 4) cc |= FPU_SW_C0;
   }
-  SETCC(cc);
+  setcc(cc);
 
   BX_WRITE_FPU_REG(result, 0);
 #else
