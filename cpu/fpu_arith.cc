@@ -154,7 +154,7 @@ void BX_CPU_C::FADD_STi_ST0(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->b1() & 2;
 
   clear_C1();
 
@@ -339,7 +339,7 @@ void BX_CPU_C::FMUL_STi_ST0(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->b1() & 2;
 
   clear_C1();
 
@@ -552,7 +552,7 @@ void BX_CPU_C::FSUB_STi_ST0(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->b1() & 2;
 
   clear_C1();
 
@@ -585,7 +585,7 @@ void BX_CPU_C::FSUBR_STi_ST0(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->b1() & 2;
 
   clear_C1();
 
@@ -922,7 +922,7 @@ void BX_CPU_C::FDIV_STi_ST0(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->b1() & 2;
 
   clear_C1();
 
@@ -955,7 +955,7 @@ void BX_CPU_C::FDIVR_STi_ST0(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->b1() & 2;
 
   clear_C1();
 

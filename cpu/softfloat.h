@@ -214,7 +214,7 @@ int float64_is_signaling_nan(float64);
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE floating-point types.
 *----------------------------------------------------------------------------*/
-#ifdef BIG_ENDIAN
+#ifdef BX_BIG_ENDIAN
 struct floatx80 {	// do not allow 16-byte extension of the structure
     Bit16u exp;
     Bit64u fraction;

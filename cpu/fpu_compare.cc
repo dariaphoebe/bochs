@@ -83,7 +83,7 @@ void BX_CPU_C::FCOM_STi(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->nnn() & 1;
 
   clear_C1();
 
@@ -123,7 +123,7 @@ void BX_CPU_C::FCOMI_ST0_STj(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->b1() & 4;
 
   clear_C1();
 
@@ -163,7 +163,7 @@ void BX_CPU_C::FUCOMI_ST0_STj(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->b1() & 4;
 
   clear_C1();
 
@@ -203,7 +203,7 @@ void BX_CPU_C::FUCOM_STi(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->nnn() & 1;
 
   if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
   {
@@ -241,7 +241,7 @@ void BX_CPU_C::FCOM_SINGLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->nnn() & 1;
 
   clear_C1();
 
@@ -285,7 +285,7 @@ void BX_CPU_C::FCOM_DOUBLE_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->nnn() & 1;
 
   clear_C1();
 
@@ -329,7 +329,7 @@ void BX_CPU_C::FICOM_WORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->nnn() & 1;
 
   clear_C1();
 
@@ -373,7 +373,7 @@ void BX_CPU_C::FICOM_DWORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->nnn() & 1;
 
   clear_C1();
 

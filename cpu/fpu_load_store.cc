@@ -228,8 +228,41 @@ void BX_CPU_C::FBLD_PACKED_BCD(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (! IS_TAG_EMPTY(-1))
+  {
+      BX_CPU_THIS_PTR FPU_stack_overflow();
+      return; 
+  }
+
+  Bit16u hi2;
+  Bit64u lo8;
+
+  // read packed bcd from memory
+  read_virtual_qword(i->seg(), RMAddr(i),     &lo8);
+  read_virtual_word (i->seg(), RMAddr(i) + 8, &hi2);
+
+  Bit64s scale = 1; 
+  Bit64s val64 = 0;
+
+  for (int i = 0; i < 16; i++)
+  {
+    val64 += (lo8 & 0x0F) * scale;
+    lo8 >>= 4;
+    scale *= 10;
+  }
+
+  val64 += (hi2 & 0x0F) * scale;
+  val64 += ((hi2>>4) & 0x0F) * scale * 10;
+
+  floatx80 result = int64_to_floatx80(val64);
+  if (hi2 & 0x8000)	// set negative
+      floatx80_chs(result);
+
+  BX_CPU_THIS_PTR the_i387.FPU_push();
+  BX_WRITE_FPU_REG(result, 0);
+#else
   BX_INFO(("FBLD_PACKED_BCD: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -239,7 +272,7 @@ void BX_CPU_C::FST_STi(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->nnn() & 1;
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
 
@@ -267,7 +300,7 @@ void BX_CPU_C::FST_SINGLE_REAL(bxInstruction_c *i)
 
   float32 save_reg = float32_default_nan; /* The masked response */
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->nnn() & 1;
 
   if (IS_TAG_EMPTY(0))
   {
@@ -303,7 +336,7 @@ void BX_CPU_C::FST_DOUBLE_REAL(bxInstruction_c *i)
 
   float64 save_reg = float64_default_nan; /* The masked response */
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->nnn() & 1;
 
   if (IS_TAG_EMPTY(0))
   {
@@ -367,7 +400,7 @@ void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
 
   Bit16s save_reg = int16_indefinite;
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->nnn() & 1;
 
   clear_C1();
 
@@ -405,7 +438,7 @@ void BX_CPU_C::FIST_DWORD_INTEGER(bxInstruction_c *i)
 
   Bit32s save_reg = int32_indefinite; /* The masked response */
 
-  int pop_stack = (i->b1() & 0x10) >> 1;
+  int pop_stack = i->nnn() & 1;
 
   clear_C1();
 
@@ -475,8 +508,67 @@ void BX_CPU_C::FBSTP_PACKED_BCD(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  Bit16u save_reg_hi = 0xFFFF; /* The masked response */
+  Bit64u save_reg_lo = BX_CONST64(0xC000000000000000);
+
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
+
+     if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
+        return;
+  }
+  else
+  {
+     softfloat_status_word_t status = 
+        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+     Bit64s save_val = floatx80_to_int64(BX_READ_FPU_REG(0), status);
+
+     int sign = (save_val < 0);
+     if (sign) 
+        save_val = -save_val;
+ 
+     if (save_val > BX_CONST64(999999999999999999))
+     {
+        float_raise(status, float_flag_invalid);
+     }
+     
+     /* 
+      * The packed BCD integer indefinite encoding (FFFFC000000000000000H) 
+      * is stored in response to a masked floating-point invalid-operation 
+      * exception.
+      */
+
+     if (! (status.float_exception_flags & float_flag_invalid))
+     {
+        save_reg_hi = (sign) ? 0x8000 : 0;
+        save_reg_lo = 0;
+
+        for (int i=0; i<16; i++)
+        {
+            save_reg_lo += ((Bit64u)(save_val % 10)) << (4*i);
+            save_val /= 10;
+        }
+
+        save_reg_hi += (save_val % 10);
+        save_val /= 10;
+        save_reg_hi += (save_val % 10) << 4;
+     }
+
+     /* check for fpu arithmetic exceptions */
+     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+        return;
+  }
+
+  // write packed bcd to memory
+  write_virtual_qword(i->seg(), RMAddr(i),     &save_reg_lo);
+  write_virtual_word (i->seg(), RMAddr(i) + 8, &save_reg_hi);
+
+  BX_CPU_THIS_PTR the_i387.FPU_pop();
+#else
   BX_INFO(("FBSTP_PACKED_BCD: required FPU, configure --enable-fpu"));
 #endif
 }
