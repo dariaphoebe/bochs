@@ -287,12 +287,6 @@ BX_CPP_INLINE void i387_structure_t::reset()
 }
 
 extern const floatx80 Const_Z;
-extern const floatx80 Const_1;
-extern const floatx80 Const_L2T;
-extern const floatx80 Const_L2E;
-extern const floatx80 Const_PI;
-extern const floatx80 Const_LG2;
-extern const floatx80 Const_LN2;
 
 #endif
 

@@ -19,7 +19,7 @@ these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
 // Pentium CPU uses only 68-bit precision M_PI approximation
-#define BETTER_THAN_PENTIUM
+// #define BETTER_THAN_PENTIUM
 
 /*============================================================================
  * Written for Bochs (x86 achitecture simulator) by
@@ -38,6 +38,9 @@ static const Bit64u Lo = BX_CONST64(0xC4C6628B80DC1CD1);
 static const Bit64u Hi = BX_CONST64(0xC90FDAA22168C234);
 static const Bit64u Lo = BX_CONST64(0xC000000000000000);
 #endif
+
+#define F_SIN 0
+#define F_COS 1
 
 /* reduce trigonometric function argument using 128-bit precision 
    M_PI approximation */
@@ -58,7 +61,7 @@ static Bit64u argument_reduction_kernel(Bit64u aSig0, int Exp, Bit64u *zSig0, Bi
     return q;
 }
 
-Bit64u trig_arg_reduction(floatx80 &a, float_status_t &status)
+Bit64u trig_arg_reduction(floatx80 &a, int function, float_status_t &status)
 {
     Bit64u aSig0, aSig1 = 0, term0, term1, q;
     Bit32s aExp, expDiff;
@@ -90,6 +93,14 @@ Bit64u trig_arg_reduction(floatx80 &a, float_status_t &status)
             return 0;
 
         float_raise(status, float_flag_denormal);
+        if (! (aSig0 & BX_CONST64(0x8000000000000000)))
+        {
+            float_raise(status, float_flag_inexact);
+            if (function == F_SIN)
+                float_raise(status, float_flag_underflow);
+            return 0;
+        }
+
         normalizeFloatx80Subnormal(aSig0, &aExp, &aSig0);
     }
 
@@ -100,12 +111,7 @@ Bit64u trig_arg_reduction(floatx80 &a, float_status_t &status)
     float_raise(status, float_flag_inexact);
 
     if (expDiff < 0) {
-        if (expDiff < -1)
-        {
-           if (a.fraction & BX_CONST64(0x8000000000000000))
-               a = packFloatx80(Sign, aExp, aSig0);
-           return 0;
-        }
+        if (expDiff < -1) return 0;
         shift128Right(aSig0, 0, 1, &aSig0, &aSig1);
         expDiff = 0;
     }
