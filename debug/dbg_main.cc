@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dbg_main.cc,v 1.41.4.2 2002/09/12 04:16:53 bdenney Exp $
+// $Id: dbg_main.cc,v 1.41.4.3 2002/09/12 06:09:51 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -24,12 +24,6 @@
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
-// define shortcuts to get register from the default CPU
-#define EBP (BX_CPU(dbg_cpu)->gen_reg[5].erx)
-#define EIP (BX_CPU(dbg_cpu)->_long.eip)
-#define ESP (BX_CPU(dbg_cpu)->gen_reg[4].erx)
-#define SP  (BX_CPU(dbg_cpu)->gen_reg[4].word.rx)
-
 extern "C" {
 #include <signal.h>
 }
@@ -46,6 +40,17 @@ extern "C" {
 #endif
 }
 #endif
+
+// define shortcuts to get register from the default CPU
+#define EBP (BX_CPU(dbg_cpu)->gen_reg[5].erx)
+#if BX_SUPPORT_X86_64==0
+#define EIP (BX_CPU(dbg_cpu)->eip)
+#else
+#define EIP (BX_CPU(dbg_cpu)->_long.eip)
+#endif
+#define ESP (BX_CPU(dbg_cpu)->gen_reg[4].erx)
+#define SP  (BX_CPU(dbg_cpu)->gen_reg[4].word.rx)
+
 
 static unsigned doit = 0;
 
@@ -976,7 +981,7 @@ bx_dbg_playback_command(char* path_quoted)
 void
 bx_dbg_modebp_command(char* dummy)
 {
-      BX_CPU(dbg_cpu)->debug_vm == BX_CPU(dbg_cpu)->eflags.vm;
+      BX_CPU(dbg_cpu)->debug_vm == BX_CPU(dbg_cpu)->eflags.get_VM ();
       BX_CPU(dbg_cpu)->mode_break = !BX_CPU(dbg_cpu)->mode_break;
       fprintf(stderr," mode switch break %s\n", 
 	      BX_CPU(dbg_cpu)->mode_break ? "enabled" : "disabled");
@@ -1180,7 +1185,7 @@ void bx_dbg_show_command(char* arg)
       BX_CPU(dbg_cpu)->show_flag = 0;
       last_cr3 = BX_CPU(dbg_cpu)->cr3;
       last_pe = BX_CPU(dbg_cpu)->cr0.pe;
-      last_vm = BX_CPU(dbg_cpu)->eflags.vm;
+      last_vm = BX_CPU(dbg_cpu)->eflags.get_VM ();
 
       fprintf(stderr,"%10lld: address %04x:%08x %08x\n\n", 
 	      bx_pc_system.time_ticks(),
@@ -2106,29 +2111,27 @@ void bx_dbg_disassemble_current (int which_cpu, int print_time)
     if( BX_CPU(dbg_cpu)->trace_reg )
 	    fprintf( stderr,
 		"eax: %08X\tecx: %08X\tedx: %08X\tebx: %08X\tesp: %08X\tebp: %08X\tesi: %08X\tedi: %08X\ncf=%u af=%u zf=%u sf=%u of=%u pf=%u tf=%u if=%u df=%u iopl=%u nt=%u rf=%u vm=%u\n",
-		BX_CPU(which_cpu)->gen_reg[0],
-		BX_CPU(which_cpu)->gen_reg[1],
-		BX_CPU(which_cpu)->gen_reg[2],
-		BX_CPU(which_cpu)->gen_reg[3],
-		BX_CPU(which_cpu)->gen_reg[4],
-		BX_CPU(which_cpu)->gen_reg[5],
-		BX_CPU(which_cpu)->gen_reg[6],
-		BX_CPU(which_cpu)->gen_reg[7],
+		BX_CPU(which_cpu)->gen_reg[0].erx,
+		BX_CPU(which_cpu)->gen_reg[1].erx,
+		BX_CPU(which_cpu)->gen_reg[2].erx,
+		BX_CPU(which_cpu)->gen_reg[3].erx,
+		BX_CPU(which_cpu)->gen_reg[4].erx,
+		BX_CPU(which_cpu)->gen_reg[5].erx,
+		BX_CPU(which_cpu)->gen_reg[6].erx,
+		BX_CPU(which_cpu)->gen_reg[7].erx,
 		!!BX_CPU(which_cpu)->get_CF(),
 		!!BX_CPU(which_cpu)->get_AF(),
 		!!BX_CPU(which_cpu)->get_ZF(),
 		!!BX_CPU(which_cpu)->get_SF(),
 		!!BX_CPU(which_cpu)->get_OF(),
 		!!BX_CPU(which_cpu)->get_PF(),
-#warning "KPL: fix eflags stuff"
-		(BX_CPU(which_cpu)->eflags.val32>>8)&1, // .tf,
-		(BX_CPU(which_cpu)->eflags.val32>>9)&1, // .if_,
-		(BX_CPU(which_cpu)->eflags.val32>>10)&1, // .df,
-		(BX_CPU(which_cpu)->eflags.val32>>12)&3, // .iopl,
-		(BX_CPU(which_cpu)->eflags.val32>>14)&1, // .nt,
-		(BX_CPU(which_cpu)->eflags.val32>>16)&1, // .rf,
-		(BX_CPU(which_cpu)->eflags.val32>>17)&1  // .vm
-		);
+		BX_CPU(which_cpu)->eflags.get_TF (),
+		BX_CPU(which_cpu)->eflags.get_IF (),
+		BX_CPU(which_cpu)->eflags.get_DF (),
+		BX_CPU(which_cpu)->eflags.get_IOPL (),
+		BX_CPU(which_cpu)->eflags.get_NT (),
+		BX_CPU(which_cpu)->eflags.get_RF (),
+		BX_CPU(which_cpu)->eflags.get_VM ());
 
     if (print_time)
       fprintf (stderr, "(%u).[%lld] ", which_cpu, bx_pc_system.time_ticks());
@@ -2207,7 +2210,7 @@ for (sim=0; sim<BX_SMP_PROCESSORS; sim++) {
 	fprintf(stderr, "(%u) Caught time breakpoint\n", sim);
   } else if (BX_CPU(sim)->stop_reason == STOP_MODE_BREAK_POINT) {
 	fprintf(stderr, "(%u) Caught vm mode switch breakpoint to %s mode\n",
-		sim, BX_CPU(sim)->eflags.vm ? "virtual 86" : "protected");
+		sim, BX_CPU(sim)->eflags.get_VM () ? "virtual 86" : "protected");
   } else if (BX_CPU(sim)->stop_reason == STOP_READ_WATCH_POINT) {
 	fprintf(stderr, "(%u) Caught read watch point at %08X\n", sim, BX_CPU(sim)->watchpoint);
   } else if (BX_CPU(sim)->stop_reason == STOP_WRITE_WATCH_POINT) {
@@ -4438,7 +4441,7 @@ bx_dbg_symbolic_output(void)
 	    last_pe = !last_pe;
       }
 
-      if(last_vm != BX_CPU(dbg_cpu)->eflags.vm) {
+      if(last_vm != BX_CPU(dbg_cpu)->eflags.get_VM ()) {
 	    fprintf(stderr,"%10lld: %s V86 mode\n", 
 		    bx_pc_system.time_ticks(), 
 		    last_vm ? "Exited" : "Entered");

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: load32bitOShack.cc,v 1.7.10.2 2002/09/12 04:16:53 bdenney Exp $
+// $Id: load32bitOShack.cc,v 1.7.10.3 2002/09/12 06:09:50 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -207,7 +207,7 @@ bx_load_linux_hack(void)
   BX_OUTP( 0xA1, 0xFB, 1 );
 
   // Disable interrupts and NMIs
-  BX_CPU(0)->eflags.if_ = 0;
+  BX_CPU(0)->eflags.clear_IF ();
   BX_OUTP( 0x70, 0x80, 1 );
 
   // Enter protected mode
