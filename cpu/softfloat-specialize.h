@@ -418,6 +418,19 @@ BX_CPP_INLINE int extractFloatx80Sign(floatx80 a)
 }
 
 /*----------------------------------------------------------------------------
+| Packs the sign `zSign', exponent `zExp', and significand `zSig' into an
+| extended double-precision floating-point value, returning the result.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE floatx80 packFloatx80(flag zSign, Bit32s zExp, Bit64u zSig)
+{
+    floatx80 z;
+    z.fraction = zSig;
+    z.exp = (((Bit16u) zSign)<<15) + zExp;
+    return z;
+}
+
+/*----------------------------------------------------------------------------
 | Returns 1 if the extended double-precision floating-point value `a' is a
 | NaN; otherwise returns 0.
 *----------------------------------------------------------------------------*/

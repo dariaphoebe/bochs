@@ -31,7 +31,7 @@
 #if BX_SUPPORT_FPU
 #include "softfloat-specialize.h"
 
-const floatx80 Const_QNaN = { floatx80_default_nan_exp, floatx80_default_nan_fraction };
+const floatx80 Const_QNaN = packFloatx80(0, floatx80_default_nan_exp, floatx80_default_nan_fraction);
 #endif
 
 void BX_CPU_C::FLDL2T(bxInstruction_c *i)

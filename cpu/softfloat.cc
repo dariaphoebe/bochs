@@ -64,13 +64,9 @@ these four paragraphs for those parts of this code that are retained.
 
 static Bit32s roundAndPackInt32(flag zSign, Bit64u absZ, float_status_t &status)
 {
-    int roundingMode;
-    Bit8s roundIncrement, roundBits;
-    Bit32s z;
-
-    roundingMode = get_float_rounding_mode(status);
+    int roundingMode = get_float_rounding_mode(status);
     int roundNearestEven = (roundingMode == float_round_nearest_even);
-    roundIncrement = 0x40;
+    int roundIncrement = 0x40;
     if (! roundNearestEven) {
         if (roundingMode == float_round_to_zero) {
             roundIncrement = 0;
@@ -85,10 +81,10 @@ static Bit32s roundAndPackInt32(flag zSign, Bit64u absZ, float_status_t &status)
             }
         }
     }
-    roundBits = absZ & 0x7F;
+    int roundBits = absZ & 0x7F;
     absZ = (absZ + roundIncrement)>>7;
     absZ &= ~(((roundBits ^ 0x40) == 0) & roundNearestEven);
-    z = absZ;
+    Bit32s z = absZ;
     if (zSign) z = -z;
     if ((absZ>>32) || (z && ((z < 0) ^ zSign))) {
         float_raise(status, float_flag_invalid);
@@ -2553,19 +2549,6 @@ float_class_t floatx80_class(floatx80 a)
 }
 
 /*----------------------------------------------------------------------------
-| Packs the sign `zSign', exponent `zExp', and significand `zSig' into an
-| extended double-precision floating-point value, returning the result.
-*----------------------------------------------------------------------------*/
-
-BX_CPP_INLINE floatx80 packFloatx80(flag zSign, Bit32s zExp, Bit64u zSig)
-{
-    floatx80 z;
-    z.fraction = zSig;
-    z.exp = (((Bit16u) zSign)<<15) + zExp;
-    return z;
-}
-
-/*----------------------------------------------------------------------------
 | Takes an abstract floating-point value having sign `zSign', exponent `zExp',
 | and extended significand formed by the concatenation of `zSig0' and `zSig1',
 | and returns the proper extended double-precision floating-point value
@@ -3083,8 +3066,7 @@ floatx80 floatx80_round_to_int(floatx80 a, float_status_t &status)
         return a;
     }
     if (aExp < 0x3FFF) {
-        if ((aExp == 0)
-             && ((Bit64u) (extractFloatx80Frac(a)<<1) == 0)) 
+        if ((aExp == 0) && ((Bit64u) (extractFloatx80Frac(a)<<1) == 0)) 
         {
             return a;
         }
@@ -3118,9 +3100,8 @@ floatx80 floatx80_round_to_int(floatx80 a, float_status_t &status)
         if ((z.fraction & roundBitsMask) == 0) z.fraction &= ~lastBitMask;
     }
     else if (roundingMode != float_round_to_zero) {
-        if (extractFloatx80Sign(z) ^ (roundingMode == float_round_up)) {
+        if (extractFloatx80Sign(z) ^ (roundingMode == float_round_up))
             z.fraction += roundBitsMask;
-        }
     }
     z.fraction &= ~roundBitsMask;
     if (z.fraction == 0) {
