@@ -1,4 +1,4 @@
-$Id: PARAM_TREE.txt,v 1.1.2.8 2003/03/30 05:42:18 bdenney Exp $
+$Id: PARAM_TREE.txt,v 1.1.2.9 2003/03/30 07:52:46 bdenney Exp $
 
 I'm trying to organize the parameters into a tree structure instead of
 a huge flat list.  Once the parameter code is improved, I hope to use
@@ -95,6 +95,13 @@ Notes:
   as binary data.  During save/restore, the binary blocks will be stored
   in a binary file, not in the ascii checkpoint file that shows the 
   parameter tree.
+- (MAYBE) get rid of BX_UI_TEXT variable, and the text_ask and text_print
+  methods on parameters.  At the time I thought it was a brilliant idea
+  to add virtual methods to the parameters themselves, but for wxWindows
+  I was not able to continue this pattern due to reasons mentioned in
+  siminterface.h comments.  It should be easy to just implement
+  text_ask and text_print as overloaded functions in textconfig.cc instead of
+  methods of param.cc.
 - (MAYBE) separate parameter code from siminterface so that it can be
   used and tested separately from Bochs.
 - (LOW PRIORITY) we need to be able to handle arrays of objects, but I think
