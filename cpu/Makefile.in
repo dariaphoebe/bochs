@@ -1,4 +1,4 @@
-# Copyright (C) 2001  MandrakeSoft S.A.
+# Copyright (C) 2000  MandrakeSoft S.A.
 #
 #   MandrakeSoft S.A.
 #   43, rue d'Aboukir
@@ -86,7 +86,8 @@ OBJS = \
 	segment_ctrl.o \
 	soft_int.o \
 	string.o \
-	bcd.o
+	bcd.o \
+	apic.o
 
 BX_INCLUDES = ../bochs.h ../config.h
 
