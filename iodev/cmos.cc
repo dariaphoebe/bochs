@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cmos.cc,v 1.45 2004/06/19 15:20:10 sshwarts Exp $
+// $Id: cmos.cc,v 1.45.2.1 2004/11/05 00:56:43 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -118,7 +118,7 @@ bx_cmos_c::~bx_cmos_c(void)
   void
 bx_cmos_c::init(void)
 {
-  BX_DEBUG(("Init $Id: cmos.cc,v 1.45 2004/06/19 15:20:10 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: cmos.cc,v 1.45.2.1 2004/11/05 00:56:43 slechta Exp $"));
   // CMOS RAM & RTC
 
   DEV_register_ioread_handler(this, read_handler, 0x0070, "CMOS RAM", 1);
@@ -290,6 +290,30 @@ bx_cmos_c::CRA_change(void)
     }
 }
 
+
+#if BX_SAVE_RESTORE
+
+void bx_cmos_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_cmos_c, BX_CMOS_THISP, list_p, 10);
+  {
+    BXRS_STRUCT_START(struct s_t, s); 
+    {
+      BXRS_NUM       (int    , periodic_timer_index);
+      BXRS_NUM       (Bit32u , periodic_interval_usec);
+      BXRS_NUM       (int    , one_second_timer_index);
+      BXRS_NUM       (int    , uip_timer_index);
+      BXRS_ENUM      (time_t , timeval);
+      BXRS_NUM       (Bit8u  , cmos_mem_address);
+      BXRS_BOOL      (bx_bool, timeval_change);
+      BXRS_ARRAY_NUM (Bit8u  , reg, BX_NUM_CMOS_REGS);
+    } 
+    BXRS_STRUCT_END;
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
 
   // static IO port read callback handler
   // redirects to non-static class handler to avoid virtual functions

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.127 2004/10/16 15:44:00 vruppert Exp $
+// $Id: harddrv.cc,v 1.127.2.1 2004/11/05 00:56:44 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -163,7 +163,7 @@ bx_hard_drive_c::init(void)
   char  string[5];
   char  sbtext[8];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.127 2004/10/16 15:44:00 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.127.2.1 2004/11/05 00:56:44 slechta Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
@@ -609,6 +609,195 @@ bx_hard_drive_c::reset(unsigned type)
       DEV_pic_lower_irq(BX_HD_THIS channels[channel].irq);
   }
 }
+
+#if BX_SAVE_RESTORE
+
+void 
+controller_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(controller_t, this, list_p, 20);
+  {
+    BXRS_STRUCT_START(struct status_t, status);
+    {
+      BXRS_BOOL(bx_bool, busy);
+      BXRS_BOOL(bx_bool, drive_ready);
+      BXRS_BOOL(bx_bool, write_fault);
+      BXRS_BOOL(bx_bool, seek_complete);
+      BXRS_BOOL(bx_bool, drq);
+      BXRS_BOOL(bx_bool, corrected_data);
+      BXRS_BOOL(bx_bool, index_pulse);
+      BXRS_NUM (unsigned, index_pulse_count);
+      BXRS_BOOL(bx_bool, err);
+    } 
+    BXRS_STRUCT_END;
+    
+    BXRS_NUM(Bit8u,    error_register);
+    BXRS_NUM(Bit8u,    head_no);
+    
+    BXRS_UNION_START;
+    {
+      BXRS_NUM(Bit8u, sector_count);
+    }
+    BXRS_UNION_END;
+
+    BXRS_NUM(Bit8u, sector_no);
+    BXRS_UNION_START; 
+    {
+      BXRS_NUM(Bit16u, cylinder_no);
+      BXRS_NUM(Bit16u, byte_count);
+    }
+    BXRS_UNION_END;
+
+    BXRS_ARRAY_NUM(Bit8u , buffer,2048);
+    BXRS_NUM(Bit32u,   buffer_index);
+    BXRS_NUM(Bit32u,   drq_index);
+    BXRS_NUM(Bit8u ,   current_command);
+    BXRS_NUM(Bit8u ,   sectors_per_block);
+    BXRS_NUM(Bit8u ,   lba_mode);
+
+    BXRS_STRUCT_START(struct control_t, control);
+    {
+      BXRS_BOOL_D(bx_bool, reset, "0=normal, 1=reset controller");
+      BXRS_BOOL_D(bx_bool, disable_irq, "0=allow irq, 1=disable ir");
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_NUM(Bit8u, reset_in_progress);
+    BXRS_NUM(Bit8u, features);
+  } 
+  BXRS_END;
+}
+
+
+void sense_info_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(struct sense_info_t, this, list_p, 8);
+  {
+    BXRS_ENUM(sense_t, sense_key);
+    BXRS_STRUCT_START(struct information_t, information);
+    {
+      BXRS_ARRAY_NUM(Bit8u, arr, 4);
+    } 
+    BXRS_STRUCT_END;
+    
+    BXRS_STRUCT_START(struct specific_inf_t, specific_inf);
+    {
+      BXRS_ARRAY_NUM(Bit8u, arr, 4);
+    } 
+    BXRS_STRUCT_END;
+
+    BXRS_STRUCT_START(struct key_spec_t, key_spec);
+    {
+      BXRS_ARRAY_NUM(Bit8u, arr, 3);
+    } 
+    BXRS_STRUCT_END;
+
+    BXRS_NUM(Bit8u, fruc);
+    BXRS_NUM(Bit8u, asc);
+    BXRS_NUM(Bit8u, ascq);
+  }
+  BXRS_END;
+}
+
+void
+error_recovery_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(struct error_recovery_t, this, list_p, 1);
+  {
+    BXRS_ARRAY_NUM(unsigned char, data, 8);
+  }
+  BXRS_END;
+}
+
+
+void 
+cdrom_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(cdrom_t, this, list_p, 10);
+  {
+    BXRS_BOOL(bx_bool, ready);
+    BXRS_BOOL(bx_bool, locked);
+#ifdef LOWLEVEL_CDROM
+#warning LOWLEVEL CDROM may not work with save/restore
+    // BJS TODO: LOWLEVEL_CDROM
+    //if (cd) BXRS_OBJP(LOWLEVEL_CDROM, cd);
+#endif
+    BXRS_NUM (uint32, capacity);
+    BXRS_NUM (int, next_lba);
+    BXRS_NUM (int, remaining_blocks);
+    BXRS_STRUCT_START(struct currentStruct, current); 
+    {
+        BXRS_OBJ(error_recovery_t, error_recovery);
+    } 
+    BXRS_STRUCT_END;
+  }
+  BXRS_END;
+}
+
+void 
+atapi_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(atapi_t, this, list_p, 3);
+  {
+  BXRS_NUM(uint8, command);
+  BXRS_NUM(int, drq_bytes);
+  BXRS_NUM(int, total_bytes_remaining);
+  }
+  BXRS_END;
+}
+
+
+void 
+bx_hard_drive_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_hard_drive_c, BX_HD_THISP, list_p, 20);
+  BXRS_ARRAY_START(struct channel_t, channels, BX_MAX_ATA_CHANNEL);
+  {
+    BXRS_ARRAY_START(struct channel_t::drive_t, drives, 2); 
+    {
+#warning hard drive images are current *not* save_restored
+      // BJS TODO: device_image_t* hard_drive;
+      // BJS TODO: implement device_image_t* hard_drive registration
+      BXRS_ENUM(device_type_t, device_type);
+      // 512 byte buffer for ID drive command
+      // These words are stored in native word endian format, as
+      // they are fetched and returned via a return(), so
+      // there's no need to keep them in x86 endian format.
+      BXRS_ARRAY_NUM(Bit16u, id_drive, 256);
+
+      BXRS_OBJ(controller_t, controller);
+      BXRS_OBJ(cdrom_t, cdrom);
+      BXRS_OBJ(sense_info_t, sense);
+      BXRS_OBJ(atapi_t, atapi);
+
+      BXRS_ARRAY_NUM(Bit8u, model_no, 41);
+    } 
+    BXRS_ARRAY_END;
+    
+    BXRS_NUM(unsigned, drive_select);
+    BXRS_NUM(Bit16u, ioaddr1);
+    BXRS_NUM(Bit16u, ioaddr2);
+    BXRS_NUM(Bit8u,  irq);
+  } 
+  BXRS_ARRAY_END;
+    
+  BXRS_NUM(int, iolight_timer_index);
+
+#if BX_PDC20230C_VLBIDE_SUPPORT
+// pdc20630c is only available for 1st ata channel
+  BXRS_STRUCT_D(struct pdc20630c_t, pdc20230c, "pdc20630c is only available for 1st ata channel");
+  {
+    BXRS_BOOL( bx_bool, prog_mode);
+    BXRS_NUM ( Bit8u  , prog_count);
+    BXRS_NUM ( Bit32u , p1f3_value);
+    BXRS_NUM ( Bit32u , p1f4_value);
+  } 
+  BXRS_STRUCT_END;
+#endif
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
 
   void
 bx_hard_drive_c::iolight_timer_handler(void *this_ptr)

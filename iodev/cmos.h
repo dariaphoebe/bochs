@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cmos.h,v 1.9 2003/01/04 00:02:07 vruppert Exp $
+// $Id: cmos.h,v 1.9.20.1 2004/11/05 00:56:43 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -31,9 +31,11 @@
 #if BX_USE_CMOS_SMF
 #  define BX_CMOS_SMF  static
 #  define BX_CMOS_THIS theCmosDevice->
+#  define BX_CMOS_THISP theCmosDevice
 #else
 #  define BX_CMOS_SMF
 #  define BX_CMOS_THIS this->
+#  define BX_CMOS_THISP this
 #endif
 
 
@@ -46,6 +48,12 @@ public:
   virtual void checksum_cmos(void);
   virtual void reset(unsigned type);
 
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif
+
   virtual Bit32u get_reg(unsigned reg) {
     return s.reg[reg];
   }
@@ -56,7 +64,7 @@ public:
     return s.timeval;
   }
 
-  struct {
+  struct s_t {
     int     periodic_timer_index;
     Bit32u  periodic_interval_usec;
     int     one_second_timer_index;

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parallel.h,v 1.12 2004/01/27 21:38:51 vruppert Exp $
+// $Id: parallel.h,v 1.12.12.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -28,9 +28,11 @@
 #if BX_USE_PAR_SMF
 #  define BX_PAR_SMF  static
 #  define BX_PAR_THIS theParallelDevice->
+#  define BX_PAR_THISP theParallelDevice
 #else
 #  define BX_PAR_SMF
 #  define BX_PAR_THIS this->
+#  define BX_PAR_THISP this
 #endif
 
 #define BX_PARPORT_MAXDEV   2
@@ -41,14 +43,14 @@
 
 typedef struct {
   Bit8u data;
-  struct {
+  struct STATUS_t {
     bx_bool error;
     bx_bool slct;
     bx_bool pe;
     bx_bool ack;
     bx_bool busy;
   } STATUS;
-  struct {
+  struct CONTROL_t {
     bx_bool strobe;
     bx_bool autofeed;
     bx_bool init;
@@ -70,6 +72,12 @@ public:
   ~bx_parallel_c(void);
   virtual void   init(void);
   virtual void   reset(unsigned type);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void   before_save_state () {};
+  virtual void   after_restore_state () {};
+#endif
 
 private:
   bx_par_t s[BX_PARPORT_MAXDEV];

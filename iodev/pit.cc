@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit.cc,v 1.19 2004/09/05 10:30:19 vruppert Exp $
+// $Id: pit.cc,v 1.19.2.1 2004/11/05 00:56:47 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -133,9 +133,14 @@
 
 
 bx_pit_c bx_pit;
-#if BX_USE_PIT_SMF
-#define this (&bx_pit)
-#endif
+
+// NOTE:  THIS IS EVIL EVIL EVIL EVIL EVIL EVIL...  NEVER EVER EVER DO SOMETHING 
+// LIKE THIS AGAIN!!!  USE BX_CPU_THIS, etc.  THAT IS WHAT THEY ARE FOR!
+//  --slechta
+//
+//#if BX_USE_PIT_SMF
+//#define this (&bx_pit)
+//#endif
 
 #ifdef OUT
 #  undef OUT
@@ -163,17 +168,17 @@ bx_pit_c::~bx_pit_c( void )
 bx_pit_c::init( void )
 {
   DEV_register_irq(0, "8254 PIT");
-  DEV_register_ioread_handler(this, read_handler, 0x0040, "8254 PIT", 1);
-  DEV_register_ioread_handler(this, read_handler, 0x0041, "8254 PIT", 1);
-  DEV_register_ioread_handler(this, read_handler, 0x0042, "8254 PIT", 1);
-  DEV_register_ioread_handler(this, read_handler, 0x0043, "8254 PIT", 1);
-  DEV_register_ioread_handler(this, read_handler, 0x0061, "8254 PIT", 1);
+  DEV_register_ioread_handler(BX_PIT_THIS_PTR, read_handler, 0x0040, "8254 PIT", 1);
+  DEV_register_ioread_handler(BX_PIT_THIS_PTR, read_handler, 0x0041, "8254 PIT", 1);
+  DEV_register_ioread_handler(BX_PIT_THIS_PTR, read_handler, 0x0042, "8254 PIT", 1);
+  DEV_register_ioread_handler(BX_PIT_THIS_PTR, read_handler, 0x0043, "8254 PIT", 1);
+  DEV_register_ioread_handler(BX_PIT_THIS_PTR, read_handler, 0x0061, "8254 PIT", 1);
 
-  DEV_register_iowrite_handler(this, write_handler, 0x0040, "8254 PIT", 1);
-  DEV_register_iowrite_handler(this, write_handler, 0x0041, "8254 PIT", 1);
-  DEV_register_iowrite_handler(this, write_handler, 0x0042, "8254 PIT", 1);
-  DEV_register_iowrite_handler(this, write_handler, 0x0043, "8254 PIT", 1);
-  DEV_register_iowrite_handler(this, write_handler, 0x0061, "8254 PIT", 1);
+  DEV_register_iowrite_handler(BX_PIT_THIS_PTR, write_handler, 0x0040, "8254 PIT", 1);
+  DEV_register_iowrite_handler(BX_PIT_THIS_PTR, write_handler, 0x0041, "8254 PIT", 1);
+  DEV_register_iowrite_handler(BX_PIT_THIS_PTR, write_handler, 0x0042, "8254 PIT", 1);
+  DEV_register_iowrite_handler(BX_PIT_THIS_PTR, write_handler, 0x0043, "8254 PIT", 1);
+  DEV_register_iowrite_handler(BX_PIT_THIS_PTR, write_handler, 0x0061, "8254 PIT", 1);
 
   BX_PIT_THIS s.speaker_data_on = 0;
   BX_PIT_THIS s.refresh_clock_div2 = 0;
@@ -858,5 +863,43 @@ bx_pit_c::periodic( Bit32u   usec_delta )
   else
     return(0);
 }
+
+
+#if BX_SAVE_RESTORE
+
+void
+bx_pit_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_pit_c, BX_PIT_THIS_PTR, list_p, 50);
+  BXRS_STRUCT_START(struct s_type, s);
+  {
+    BXRS_ARRAY_START(bx_pit_t, timer, 3);
+    {
+      BXRS_NUM   (Bit8u  , mode);
+      BXRS_NUM   (Bit8u  , latch_mode);
+      BXRS_NUM   (Bit16u , input_latch_value);
+      BXRS_BOOL  (bx_bool, input_latch_toggle);
+      BXRS_NUM   (Bit16u , output_latch_value);
+      BXRS_BOOL  (bx_bool, output_latch_toggle);
+      BXRS_BOOL  (bx_bool, output_latch_full);
+      BXRS_NUM   (Bit16u , counter_max);
+      BXRS_NUM   (Bit16u , counter);
+      BXRS_BOOL  (bx_bool, bcd_mode);
+      BXRS_BOOL  (bx_bool, active);
+      BXRS_BOOL_D(bx_bool, GATE, "GATE input pin");
+      BXRS_BOOL_D(bx_bool, OUT, "OUT output pin");
+    }
+    BXRS_ARRAY_END;
+    BXRS_NUM(Bit8u, speaker_data_on);
+    BXRS_BOOL(refresh_clock_div2);
+    BXRS_ARRAY_NUM(int, timer_handle, 3);
+
+  }
+  BXRS_STRUCT_END;
+  BXRS_END;
+}  
+
+
+#endif // #if BX_SAVE_RESTORE
 
 #endif // #if (BX_USE_NEW_PIT==0)

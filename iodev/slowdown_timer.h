@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: slowdown_timer.h,v 1.8 2003/08/19 00:10:38 cbothamy Exp $
+// $Id: slowdown_timer.h,v 1.8.14.1 2004/11/05 00:56:48 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 
 class bx_slowdown_timer_c : public logfunctions {
 
 private:
-  struct {
+  struct s_t {
     Bit64u start_time;
     Bit64u start_emulated_time;
     Bit64u lasttime;
@@ -22,6 +22,12 @@ public:
 
   void init(void);
   void reset(unsigned type);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
 
   static void timer_handler(void * this_ptr);
 

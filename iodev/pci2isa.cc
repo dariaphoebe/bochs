@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.cc,v 1.22 2004/09/25 22:15:02 vruppert Exp $
+// $Id: pci2isa.cc,v 1.22.2.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -388,5 +388,28 @@ bx_pci2isa_c::pci_write(Bit8u address, Bit32u value, unsigned io_len)
       }
     }
 }
+
+
+#if BX_SAVE_RESTORE
+
+void
+bx_pci2isa_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_pci2isa_c, BX_P2I_THISP, list_p, 10);
+  {
+    BXRS_STRUCT(struct s_t, s);
+    {
+      BXRS_ARRAY_NUM(Bit8u, pci_conf, 256);
+      BXRS_NUM(Bit8u, elcr1);
+      BXRS_NUM(Bit8u, elcr2); 
+      BXRS_ARRAY_NUM(Bit8u, irq_registry, 16);
+      BXRS_ARRAY_NUM(Bit32u, irq_level, 16);
+      BXRS_NUM(Bit8u, pci_reset);
+    }
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
 
 #endif /* BX_SUPPORT_PCI */

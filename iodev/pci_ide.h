@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci_ide.h,v 1.3 2004/07/11 20:38:48 vruppert Exp $
+// $Id: pci_ide.h,v 1.3.2.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -44,9 +44,15 @@ public:
   virtual void   init(void);
   virtual void   reset(unsigned type);
 
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
+
 private:
 
-  struct {
+  struct s_t {
     Bit8u pci_conf[256];
     Bit32u bmide_addr;
     Bit8u bmide_regs[16];

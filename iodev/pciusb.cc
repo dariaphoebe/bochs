@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.cc,v 1.12 2004/09/25 22:15:02 vruppert Exp $
+// $Id: pciusb.cc,v 1.12.2.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -656,5 +656,96 @@ bx_pciusb_c::pci_write(Bit8u address, Bit32u value, unsigned io_len)
   strrev(szTmp);
   BX_DEBUG(("Experimental USB PCI write register 0x%02x value 0x%s", address, szTmp));
 }
+
+
+#if BX_SAVE_RESTORE
+
+void
+bx_pciusb_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_pciusb_c, BX_PNIC_THIS_PTR, list_p, 15);
+  {
+    BXRS_ARRAY_START(bx_usb_t, hub, BX_USB_MAXDEV);
+    {
+      BXRS_NUM(Bit32u, base_ioaddr);
+      BXRS_NUM(int,    timer_index);
+      
+      BXRS_STRUCT_START(struct usb_command_t, usb_command); 
+      {
+        BXRS_BOOL(bx_bool, max_packet_size);
+        BXRS_BOOL(bx_bool, configured);     
+        BXRS_BOOL(bx_bool, debug);          
+        BXRS_BOOL(bx_bool, resume);         
+        BXRS_BOOL(bx_bool, suspend);        
+        BXRS_BOOL(bx_bool, reset);          
+        BXRS_BOOL(bx_bool, host_reset);     
+        BXRS_BOOL(bx_bool, schedule);       
+      }
+      BXRS_STRUCT_END;
+
+      BXRS_STRUCT_START(struct usb_status_t, usb_status);
+      {
+        BXRS_BOOL(bx_bool, host_halted);     
+        BXRS_BOOL(bx_bool, host_error);      
+        BXRS_BOOL(bx_bool, pci_error);       
+        BXRS_BOOL(bx_bool, resume);          
+        BXRS_BOOL(bx_bool, error_interrupt); 
+        BXRS_BOOL(bx_bool, interrupt);       
+      }
+      BXRS_STRUCT_END;
+
+      BXRS_STRUCT_START(struct usb_enable_t, usb_enable);
+      {
+        BXRS_BOOL(bx_bool, short_packet); 
+        BXRS_BOOL(bx_bool, on_complete);  
+        BXRS_BOOL(bx_bool, resume);       
+        BXRS_BOOL(bx_bool, timeout_crc);  
+      }
+      BXRS_STRUCT_END;
+
+      BXRS_STRUCT_START(struct usb_frame_num_t, usb_frame_num);
+      {
+        BXRS_NUM(Bit16u, frame_num);
+      }
+      BXRS_STRUCT_END;
+
+      BXRS_STRUCT_START(struct usb_frame_base_t, usb_frame_base);
+      {
+        BXRS_NUM(Bit32u, frame_base);
+      }
+      BXRS_STRUCT_END;
+
+      BXRS_STRUCT_START(struct usb_sof_t, usb_sof);
+      {
+        BXRS_NUM(Bit8u, sof_timing);
+      }
+      BXRS_STRUCT_END;
+  
+      BXRS_ARRAY_START(struct usb_port_t, usb_port, USB_NUM_PORTS);
+      {
+        BXRS_BOOL(bx_bool, suspend);
+        BXRS_BOOL(bx_bool, reset);
+        BXRS_BOOL(bx_bool, low_speed);
+        BXRS_BOOL(bx_bool, resume);
+        BXRS_BOOL(bx_bool, line_dplus);
+        BXRS_BOOL(bx_bool, line_dminus);
+        BXRS_BOOL(bx_bool, able_changed);
+        BXRS_BOOL(bx_bool, enabled);
+        BXRS_BOOL(bx_bool, connect_changed);
+        BXRS_BOOL(bx_bool, status);
+      }
+      BXRS_ARRAY_END;
+
+      BXRS_ARRAY_NUM(Bit8u, pci_conf, 256);
+
+    }
+    BXRS_ARRAY_END;
+
+    BXRS_NUM(Bit8u, global_reset);
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
 
 #endif // BX_SUPPORT_PCI && BX_SUPPORT_PCIUSB

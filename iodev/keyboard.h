@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: keyboard.h,v 1.23 2004/02/07 14:34:35 vruppert Exp $
+// $Id: keyboard.h,v 1.23.12.1 2004/11/05 00:56:45 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -36,9 +36,11 @@
 #if BX_USE_KEY_SMF
 #  define BX_KEY_SMF  static
 #  define BX_KEY_THIS theKeyboard->
+#  define BX_KEY_THISP theKeyboard
 #else
 #  define BX_KEY_SMF
-#  define BX_KEY_THIS 
+#  define BX_KEY_THIS this->
+#  define BX_KEY_THISP this
 #endif
 
 #define MOUSE_MODE_RESET  10
@@ -62,6 +64,12 @@ public:
   virtual void     paste_delay_changed ();
   virtual void     mouse_enabled_changed(bool enabled);
 
+#if BX_SAVE_RESTORE
+  virtual void   register_state(sr_param_c *list_p);
+  virtual void   before_save_state () {};
+  virtual void   after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
+
 private:
   BX_KEY_SMF Bit8u    get_kbd_enable(void);
   BX_KEY_SMF void     service_paste_buf ();
@@ -79,8 +87,8 @@ private:
   Bit32u   read(Bit32u   address, unsigned io_len);
 #endif
 
-  struct {
-    struct {
+  struct s_t {
+    struct kbd_controller_t {
       /* status bits matching the status port*/
       bx_bool pare; // Bit7, 1= parity error from keyboard/mouse - ignored.
       bx_bool tim;  // Bit6, 1= timeout from keyboard - ignored.
@@ -163,7 +171,7 @@ private:
       Bit16s delayed_dy;
       } mouse;
 
-    struct {
+    struct kbd_internal_buffer_t {
       int     num_elements;
       Bit8u   buffer[BX_KBD_ELEMENTS];
       int     head;
@@ -175,7 +183,7 @@ private:
       bx_bool scanning_enabled;
       } kbd_internal_buffer;
 
-    struct {
+    struct mouse_internal_buffer_t {
       int     num_elements;
       Bit8u   buffer[BX_MOUSE_BUFF_SIZE];
       int     head;

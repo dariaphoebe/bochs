@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: floppy.h,v 1.18 2004/05/31 14:47:12 vruppert Exp $
+// $Id: floppy.h,v 1.18.2.1 2004/11/05 00:56:43 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -32,9 +32,11 @@
 #if BX_USE_FD_SMF
 #  define BX_FD_SMF  static
 #  define BX_FD_THIS theFloppyController->
+#  define BX_FD_THISP theFloppyController
 #else
 #  define BX_FD_SMF
 #  define BX_FD_THIS this->
+#  define BX_FD_THISP this
 #endif
 
 typedef struct {
@@ -49,6 +51,9 @@ typedef struct {
 #ifdef WIN32
   unsigned char raw_floppy_win95_drv;
 #endif
+#if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+#endif // #if BX_SAVE_RESTORE
   } floppy_t;
 
 class bx_floppy_ctrl_c : public bx_floppy_stub_c {
@@ -61,9 +66,15 @@ public:
   virtual unsigned set_media_status(unsigned drive, unsigned status);
   virtual unsigned get_media_status(unsigned drive);
 
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif
+
 private:
 
-  struct {
+  struct s_t {
     Bit8u   data_rate;
 
     Bit8u   command[10]; /* largest command size ??? */

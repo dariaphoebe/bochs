@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parallel.cc,v 1.26 2004/06/19 15:20:13 sshwarts Exp $
+// $Id: parallel.cc,v 1.26.2.1 2004/11/05 00:56:45 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -77,7 +77,7 @@ bx_parallel_c::init(void)
   Bit8u irqs[BX_PARPORT_MAXDEV] = {7, 5};
   char name[16];
 
-  BX_DEBUG(("Init $Id: parallel.cc,v 1.26 2004/06/19 15:20:13 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: parallel.cc,v 1.26.2.1 2004/11/05 00:56:45 slechta Exp $"));
 
   for (unsigned i=0; i<BX_N_PARALLEL_PORTS; i++) {
     if (bx_options.par[i].Oenabled->get ()) {
@@ -325,3 +325,44 @@ bx_parallel_c::write(Bit32u address, Bit32u value, unsigned io_len)
       break;
   }
 }
+
+#if BX_SAVE_RESTORE
+
+  void
+bx_parallel_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_parallel_c, BX_PAR_THISP, list_p, 10);
+  {
+    BXRS_STRUCT_START(bx_par_t, s);
+    {
+      BXRS_NUM(Bit8u, data);
+      BXRS_STRUCT_START(bx_par_t::STATUS_t, STATUS);
+      {
+        BXRS_BOOL(bx_bool, error);
+        BXRS_BOOL(bx_bool, slct);
+        BXRS_BOOL(bx_bool, pe);
+        BXRS_BOOL(bx_bool, ack);
+        BXRS_BOOL(bx_bool, busy);
+      }
+      BXRS_END;
+      
+      BXRS_STRUCT_START(bx_par_t::CONTROL_t, CONTROL);
+      {
+        BXRS_BOOL(bx_bool, strobe);
+        BXRS_BOOL(bx_bool, autofeed);
+        BXRS_BOOL(bx_bool, init);
+        BXRS_BOOL(bx_bool, slct_in);
+        BXRS_BOOL(bx_bool, irq);
+        BXRS_BOOL(bx_bool, input);
+      }
+    BXRS_END;
+
+    // BJS TODO: register FILE *output;
+    BXRS_BOOL(bx_bool, initmode);
+    }
+    BXRS_STRUCT_END;
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: gameport.h,v 1.1 2003/06/21 12:55:19 vruppert Exp $
+// $Id: gameport.h,v 1.1.14.1 2004/11/05 00:56:44 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -28,9 +28,11 @@
 #if BX_USE_GAME_SMF
 #  define BX_GAMEPORT_SMF  static
 #  define BX_GAMEPORT_THIS theGameport->
+#  define BX_GAMEPORT_THISP theGameport
 #else
 #  define BX_GAMEPORT_SMF
 #  define BX_GAMEPORT_THIS this->
+#  define BX_GAMEPORT_THISP this
 #endif
 
 
@@ -41,6 +43,11 @@ public:
   ~bx_gameport_c(void);
   virtual void   init(void);
   virtual void   reset(unsigned type);
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif
 
 private:
 

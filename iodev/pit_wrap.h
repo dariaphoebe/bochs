@@ -1,5 +1,6 @@
+
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit_wrap.h,v 1.19 2004/02/01 23:42:04 cbothamy Exp $
+// $Id: pit_wrap.h,v 1.19.12.1 2004/11/05 00:56:47 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -36,9 +37,11 @@
 #if BX_USE_PIT_SMF
 #  define BX_PIT_SMF  static
 #  define BX_PIT_THIS bx_pit.
+#  define BX_PIT_THIS_PTR (&bx_pit)
 #else
 #  define BX_PIT_SMF
 #  define BX_PIT_THIS this->
+#  define BX_PIT_THIS_PTR this
 #endif
 
 #ifdef OUT
@@ -58,6 +61,13 @@ public:
   Bit16u get_timer(int Timer) {
       return s.timer.get_inlatch(Timer);
   }
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
+
 private:
 
   static Bit32u read_handler(void *this_ptr, Bit32u address, unsigned io_len);

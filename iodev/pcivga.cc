@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.cc,v 1.6 2004/08/06 15:49:55 vruppert Exp $
+// $Id: pcivga.cc,v 1.6.2.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003 Mike Nordell
@@ -245,5 +245,25 @@ bx_pcivga_c::pci_write(Bit8u address, Bit32u value, unsigned io_len)
   strrev(szTmp);
   BX_DEBUG(("Experimental PCIVGA write register 0x%02x value 0x%s", address, szTmp));
 }
+
+
+#if BX_SAVE_RESTORE
+
+void
+bx_pcivga_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_pcivga_c, BX_PCIVGA_THIS_PTR, list_p, 15);
+  {
+    BXRS_STRUCT_START(struct s_t, s);
+    {
+      BXRS_ARRAY_NUM(Bit8u, pci_conf, 256);
+    }
+    BXRS_STRUCT_END;
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
+
 
 #endif // BX_SUPPORT_PCI && BX_SUPPORT_PCIVGA

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.cc,v 1.14 2004/09/15 21:48:57 sshwarts Exp $
+// $Id: ioapic.cc,v 1.14.2.1 2004/11/05 00:56:44 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 #include <stdio.h>
@@ -180,5 +180,42 @@ void bx_ioapic_c::service_ioapic ()
     }
   }
 }
+
+#if BX_SAVE_RESTORE
+
+
+void
+bx_ioapic_c::register_state(sr_param_c *list_p) 
+{
+  BXRS_START(bx_ioapic_c, this, list_p, 5);
+  {
+    BXRS_NUM(Bit32u, ioregsel);
+    BXRS_NUM(Bit32u, irr);
+    BXRS_ARRAY_OBJ_D(bx_io_redirect_entry_t, ioredtbl, BX_IOAPIC_NUM_PINS, 
+                     "table of redirections");
+  }
+  BXRS_END;
+}
+
+void
+bx_io_redirect_entry_t::register_state(sr_param_c *list_p) 
+{
+  BXRS_START(bx_io_redirect_entry_t, this, list_p, 5);
+  {
+    BXRS_NUM(Bit64u, value);  
+    BXRS_NUM(Bit8u, dest);
+    BXRS_NUM(Bit8u, masked);
+    BXRS_NUM(Bit8u, trig_mode);
+    BXRS_NUM(Bit8u, remote_irr);
+    BXRS_NUM(Bit8u, polarity);
+    BXRS_NUM(Bit8u, delivery_status);
+    BXRS_NUM(Bit8u, dest_mode);
+    BXRS_NUM(Bit8u, delivery_mode);
+    BXRS_NUM(Bit8u, vector);
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
 
 #endif /* if BX_SUPPORT_APIC */

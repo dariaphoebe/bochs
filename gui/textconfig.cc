@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: textconfig.cc,v 1.28 2004/10/24 20:04:51 vruppert Exp $
+// $Id: textconfig.cc,v 1.28.2.1 2004/11/05 00:56:42 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // This is code for a text-mode configuration interface.  Note that this file
@@ -290,10 +290,12 @@ static char *runtime_menu_prompt =
 "9. Log options for individual devices\n"
 "10. Instruction tracing: off (doesn't exist yet)\n"
 "11. Misc runtime options\n"
-"12. Continue simulation\n"
-"13. Quit now\n"
+"12. Save state\n"
+"13. Restore state\n"
+"14. Continue simulation\n"
+"15. Quit now\n"
 "\n"
-"Please choose one:  [12] ";
+"Please choose one:  [14] ";
 #endif
 
 #define NOT_IMPLEMENTED(choice) \
@@ -501,6 +503,8 @@ int bx_config_interface (int menu)
        case BX_CI_RT_LOGOPTS2: bx_log_options (1); break;
        case BX_CI_RT_INST_TR: NOT_IMPLEMENTED (choice); break;
        case BX_CI_RT_MISC: do_menu (BXP_MENU_RUNTIME); break;
+       case BX_CI_RT_SAVE: SIM->save_state ("checkpt1"); break;
+       case BX_CI_RT_RESTORE: SIM->restore_state ("checkpt1"); break;
        case BX_CI_RT_CONT: fprintf (stderr, "Continuing simulation\n"); return 0;
        case BX_CI_RT_QUIT:
          fprintf (stderr, "You chose quit on the configuration interface.\n");

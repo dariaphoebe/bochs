@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.cc,v 1.90 2004/10/29 21:15:47 sshwarts Exp $
+// $Id: cpu.cc,v 1.90.2.1 2004/11/05 00:56:40 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -31,9 +31,13 @@
 #include "iodev/iodev.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-#if BX_USE_CPU_SMF
-#define this (BX_CPU(0))
-#endif
+// NOTE:  THIS IS EVIL EVIL EVIL EVIL EVIL EVIL...  NEVER EVER EVER DO SOMETHING 
+// LIKE THIS AGAIN!!!  USE BX_CPU_THIS, etc.  THAT IS WHAT THEY ARE FOR!
+//  --slechta
+//
+// #if BX_USE_CPU_SMF
+// #define this (BX_CPU(0))
+// #endif
 
 
 #if BX_SIM_ID == 0   // only need to define once
@@ -88,10 +92,22 @@ BOCHSAPI BX_MEM_C    *bx_mem_array[BX_ADDRESS_SPACES];
     count--; if (count == 0) return;  \
   }
 
-#if BX_SMP_PROCESSORS==1
-#  define BX_TICK1_IF_SINGLE_PROCESSOR() BX_TICK1()
+#if BX_SAVE_RESTORE
+#  define BX_CHECK_RESTORE_GOTO() if (bx_just_restored_state) { bx_just_restored_state = 0; goto redo_loop; }
+#  define BX_CHECK_RESTORE_RET() if (bx_just_restored_state) { bx_just_restored_state = 0; return 0; }
+#  define BX_DO_TICK1() BX_TICK1(); invalidate_prefetch_q(); BX_CHECK_RESTORE_RET()
+#  if BX_SMP_PROCESSORS==1
+#    define BX_TICK1_IF_SINGLE_PROCESSOR() BX_TICK1(); invalidate_prefetch_q(); BX_CHECK_RESTORE_GOTO()
+#  else
+#    define BX_TICK1_IF_SINGLE_PROCESSOR()
+#  endif
 #else
-#  define BX_TICK1_IF_SINGLE_PROCESSOR()
+#  define BX_DO_TICK1() BX_TICK1(); 
+#  if BX_SMP_PROCESSORS==1
+#    define BX_TICK1_IF_SINGLE_PROCESSOR() BX_TICK1()
+#  else
+#    define BX_TICK1_IF_SINGLE_PROCESSOR()
+#  endif
 #endif
 
 // Make code more tidy with a few macros.
@@ -104,6 +120,7 @@ BOCHSAPI BX_MEM_C    *bx_mem_array[BX_ADDRESS_SPACES];
   void
 BX_CPU_C::cpu_loop(Bit32s max_instr_count)
 {
+ redo_loop:
   unsigned ret;
   bxInstruction_c iStorage BX_CPP_AlignN(32);
   bxInstruction_c *i = &iStorage;
@@ -496,7 +513,7 @@ BX_CPU_C::handleAsyncEvent(void)
         BX_INFO(("decode: reset detected in halt state"));
         break;
         }
-      BX_TICK1();
+      BX_DO_TICK1();
       }
 #else      /* BX_SMP_PROCESSORS != 1 */
     // for multiprocessor simulation, even if this CPU is halted we still
@@ -741,7 +758,7 @@ BX_CPU_C::prefetch(void)
   BX_CPU_THIS_PTR eipPageBias = - eipPageOffset0;
   BX_CPU_THIS_PTR eipPageWindowSize = 4096; // FIXME:
   BX_CPU_THIS_PTR pAddrA20Page = pAddr & 0xfffff000;
-  BX_CPU_THIS_PTR eipFetchPtr=BX_CPU_THIS_PTR mem->getHostMemAddr(this, BX_CPU_THIS_PTR pAddrA20Page,
+  BX_CPU_THIS_PTR eipFetchPtr=BX_CPU_THIS_PTR mem->getHostMemAddr(BX_CPU_THIS, BX_CPU_THIS_PTR pAddrA20Page,
                                           BX_READ);
 
   // Sanity checks
@@ -852,7 +869,7 @@ BX_CPU_C::trap_debugger (bx_bool callnow)
 {
   regs.debug_state = debug_step;
   if (callnow) {
-    bx_external_debugger(this);
+    bx_external_debugger(BX_CPU_THIS);
   }
 }
 
@@ -1035,3 +1052,551 @@ BX_CPU_C::dbg_take_dma(void)
 }
 #endif  // #if BX_DEBUGGER
 
+
+
+#if BX_SAVE_RESTORE
+
+void
+BX_CPU_C::register_state(sr_param_c *list_p)
+{
+  BXRS_START(BX_CPU_C, BX_CPU_THIS, list_p, 100);
+  {
+    BXRS_ARRAY_ENUM(char, name, 64);
+    
+    BXRS_NUM(unsigned, bx_cpuid);
+    
+    BXRS_ARRAY_START(bx_gen_reg_t, gen_reg, BX_GENERAL_REGISTERS);
+#   if BX_SUPPORT_X86_64
+    BXRS_NUM(Bit64u, rrx);
+#   else
+    BXRS_NUM(Bit32u, dword.erx);
+#   endif
+    BXRS_ARRAY_END;
+
+    //BXRS_ARRAY_OBJ(bx_gen_reg_t, gen_reg, BX_GENERAL_REGISTERS);
+#   if BX_SUPPORT_X86_64
+    BXRS_NUM_D(Bit64u, rip, "instruction pointer");
+#   else
+    BXRS_NUM_D(Bit32u, dword.eip, "instruction pointer");
+#   endif
+      
+    BXRS_NUM(bx_address, prev_eip);
+    BXRS_NUM(bx_address, prev_esp);
+    
+    // status and control flags register set
+    // BJS NOTE: lazy flags are taken care of pre and post save/restore    
+    BXRS_OBJ(bx_flags_reg_t, eflags);
+    
+    BXRS_NUM_D(unsigned, inhibit_mask, "What events to inhibit at any given time");
+
+    BXRS_ARRAY_OBJ_D(bx_segment_reg_t, sregs, 6, "user segment register set");
+    
+    /* system segment registers */
+#   if BX_CPU_LEVEL >= 2
+    BXRS_STRUCT_START_D(bx_global_segment_reg_t, gdtr, 
+                        "global descriptor table register");
+    {
+      BXRS_NUM_D(bx_address, base , 
+                 "base address: 24bits=286,32bits=386,64bits=x86-64");
+      BXRS_NUM_D(Bit16u    , limit, 
+                 "limit, 16bits");
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_STRUCT_START_D(bx_global_segment_reg_t, idtr, 
+                        "global descriptor table register");
+    {
+      BXRS_NUM_D(bx_address, base , 
+                 "base address: 24bits=286,32bits=386,64bits=x86-64");
+      BXRS_NUM_D(Bit16u    , limit, 
+                 "limit, 16bits");
+    }
+    BXRS_STRUCT_END;
+#   endif
+
+    BXRS_OBJ_D(bx_segment_reg_t, ldtr, "interrupt descriptor table register");
+    BXRS_OBJ_D(bx_segment_reg_t, tr,   "task register");
+    
+
+#   if BX_CPU_LEVEL >= 3
+    BXRS_NUM(Bit32u, dr0);
+    BXRS_NUM(Bit32u, dr1);
+    BXRS_NUM(Bit32u, dr2);
+    BXRS_NUM(Bit32u, dr3);
+    BXRS_NUM(Bit32u, dr6);
+    BXRS_NUM(Bit32u, dr7);
+#   endif
+    
+#   if BX_CPU_LEVEL >= 2
+    {
+      BXRS_OBJ(bx_cr0_t, cr0);
+      
+      BXRS_NUM_D(unsigned, protectedMode, "CR0.PE=1, EFLAGS.VM=0");
+      BXRS_NUM_D(unsigned, v8086Mode    , "CR0.PE=1, EFLAGS.VM=1");
+      BXRS_NUM_D(unsigned, realMode     , "CR0.PE=1");
+      
+      BXRS_NUM(Bit32u    , cr1);
+      BXRS_NUM(bx_address, cr2);
+      BXRS_NUM(bx_address, cr3);
+    }
+#   endif
+    
+#   if BX_CPU_LEVEL >= 4
+    BXRS_STRUCT_START(bx_cr4_t, cr4);
+    {
+      BXRS_NUM_D(Bit32u, registerValue, "32bit value of register");
+    }
+    BXRS_STRUCT_END;
+#   endif  // #if BX_CPU_LEVEL >= 4
+    
+#   if BX_CPU_LEVEL >= 5
+    BXRS_OBJ(bx_regs_msr_t, msr);
+#   endif
+
+#if BX_SUPPORT_FPU || BX_SUPPORT_MMX
+    // ------------ i387 register -------------
+    BXRS_STRUCT_START(i387_t, the_i387);
+    {
+      BXRS_NUM_D(Bit16u, cwd, "control word");
+      BXRS_NUM_D(Bit16u, swd, "status word");
+      BXRS_NUM_D(Bit16u, twd, "tag word");
+      BXRS_NUM_D(Bit16u, foo, "last instruction opcode");
+      
+      BXRS_NUM(bx_address, fip);
+      BXRS_NUM(bx_address, fdp);
+      BXRS_NUM(Bit16u, fcs);
+      BXRS_NUM(Bit16u, fds);
+      
+      BXRS_ARRAY_START(struct floatx80, st_space, 8);
+      {
+        BXRS_NUM(Bit64u, fraction);
+        BXRS_NUM(Bit16u, exp);
+      }
+      BXRS_ARRAY_END;
+      
+      BXRS_NUM(unsigned char, tos);
+      BXRS_NUM(unsigned char, align1);
+      BXRS_NUM(unsigned char, align2);
+      BXRS_NUM(unsigned char, align3);
+    }
+    BXRS_STRUCT_END;
+    // ------------ end i387 register -------------
+#endif
+
+#if BX_SUPPORT_SSE
+    BXRS_ARRAY_NUM(Bit64u, mmx, BX_XMM_REGISTERS);
+    BXRS_NUM(Bit32u, mxcsr);
+#endif
+
+#if BX_SUPPORT_SSE
+#warning SSE state registration not tested
+    BXRS_ARRAY_OBJ(bx_xmm_reg_t, xmm, BX_XMM_REGISTERS);
+    BXRS_OBJ(bx_mxcsr_t, mxcsr);
+#endif
+
+    BXRS_OBJP(BX_MEM_C, mem);
+
+    BXRS_BOOL (bx_bool, EXT);
+    BXRS_NUM_D(unsigned, errorno, "signal exception during instruction emulation");
+
+    BXRS_NUM_D(Bit32u , debug_trap, "holds DR6 value to be set as well");
+    BXRS_BOOL (bx_bool, async_event);
+    BXRS_BOOL (bx_bool, INTR);
+    BXRS_BOOL (bx_bool, kill_bochs_request);
+
+    BXRS_BOOL_D(bx_bool, bsp, "wether this CPU is the BSP always set for UP");
+
+    // for accessing registers by index number
+    // BJS TODO: dont think we need to save these
+    // Bit16u *_16bit_base_reg[8];
+    // Bit16u *_16bit_index_reg[8];
+    BXRS_NUM(Bit32u, empty_register);
+
+    // for decoding instructions; accessing seg reg's by index
+    BXRS_ARRAY_NUM(unsigned, sreg_mod00_rm16, 8);
+    BXRS_ARRAY_NUM(unsigned, sreg_mod01_rm16, 8);
+    BXRS_ARRAY_NUM(unsigned, sreg_mod10_rm16, 8);
+#   if BX_SUPPORT_X86_64   
+    BXRS_ARRAY_NUM(unsigned, sreg_mod01_rm32, 16);
+    BXRS_ARRAY_NUM(unsigned, sreg_mod10_rm32, 16);
+    BXRS_ARRAY_NUM(unsigned, sreg_mod0_base32, 16);
+    BXRS_ARRAY_NUM(unsigned, sreg_mod1or2_base32, 16);
+#   else                   
+    BXRS_ARRAY_NUM(unsigned, sreg_mod01_rm32, 8);
+    BXRS_ARRAY_NUM(unsigned, sreg_mod10_rm32, 8);
+    BXRS_ARRAY_NUM(unsigned, sreg_mod0_base32, 8);
+    BXRS_ARRAY_NUM(unsigned, sreg_mod1or2_base32, 8);
+#   endif
+
+    // for exceptions
+    // BJS TODO: dont think we should save this...should we?
+    // jmp_buf jmp_buf_env;
+    BXRS_ARRAY_NUM(Bit8u, curr_exception, 2);
+
+    // BJS TODO: dont think we we need to save this
+    // static const bx_bool is_exception_OK[3][3];
+
+    BXRS_OBJ(bx_segment_reg_t, save_cs);
+    BXRS_OBJ(bx_segment_reg_t, save_ss);
+    BXRS_NUM(Bit32u, save_eip);
+    BXRS_NUM(Bit32u, save_esp);
+
+    // This help for OS/2
+    BXRS_BOOL(bx_bool, except_chk);
+    BXRS_NUM (Bit16u , except_cs);
+    BXRS_NUM (Bit16u , except_ss);
+
+    // Boundaries of current page, based on EIP
+    BXRS_NUM(bx_address, eipPageBias);
+    BXRS_NUM(bx_address, eipPageWindowSize);
+
+    // BJS TODO: invalidate prefetch_q
+    //Bit8u     *eipFetchPtr;
+    
+    BXRS_NUM_D(Bit32u, pAddrA20Page, "Guest physical address of current instruction");
+
+#if BX_SUPPORT_X86_64
+    // for x86-64  (MODE_IA32,MODE_LONG,MODE_64)
+    BXRS_NUM(unsigned, cpu_mode);
+#endif
+
+#if BX_DEBUGGER
+    BXRS_NUM(Bit32u, watchpoint);
+    BXRS_NUM(Bit8u, break_point);
+#ifdef MAGIC_BREAKPOINT
+    BXRS_NUM(Bit8u, magic_break);
+#endif
+    BXRS_NUM   (Bit8u, stop_reason);
+    BXRS_NUM   (Bit8u, trace);
+    BXRS_NUM   (Bit8u, trace_reg);
+    BXRS_NUM_D (Bit8u, mode_break, "BW");
+    BXRS_BOOL_D(bx_bool, debug_vm, "BW contains current mode");
+    BXRS_NUM_D (Bit8u, show_eip,   "BW record eip at special instr f.ex eip");
+    BXRS_NUM_D (Bit8u, show_flag,  "BW shows instr class executed");
+    BXRS_OBJ(bx_guard_found_t, guard_found);
+#endif
+
+#if BX_GDBSTUB
+    BXRS_NUM(Bit8u, ispanic);
+#endif
+
+#if BX_SUPPORT_X86_64
+#define TLB_GENERATION_MAX (BX_TLB_SIZE-1)
+#endif
+
+    // SYSENTER/SYSEXIT instruction msr's
+#if BX_SUPPORT_SEP
+    BXRS_NUM(Bit32u, sysenter_cs_msr);
+    BXRS_NUM(Bit32u, sysenter_esp_msr);
+    BXRS_NUM(Bit32u, sysenter_eip_msr);
+#endif
+
+    // for paging
+#if BX_USE_TLB
+    BXRS_STRUCT_START(tlb_t, TLB);
+    {
+      BXRS_ARRAY_START(bx_TLB_entry, entry, BX_TLB_SIZE);
+      {
+        BXRS_NUM_D(bx_address, lpf, "linear page frame");
+        BXRS_NUM_D(Bit32u, ppf, "physical page frame");
+        BXRS_NUM_D(Bit32u, accessBits, "Page Table Address for updating A & D bits");
+        BXRS_NUM  (bx_hostpageaddr_t, hostPageAddr);
+      }
+      BXRS_ARRAY_END;
+#if BX_USE_QUICK_TLB_INVALIDATE
+      BXRS_NUM(Bit32u, tlb_invalidate);
+#endif
+    }
+    BXRS_STRUCT_END;
+#endif  // #if BX_USE_TLB
+
+
+    // An instruction cache.  Each entry should be exactly 32 bytes, and
+    // this structure should be aligned on a 32-byte boundary to be friendly
+    // with the host cache lines.
+#if BX_SupportICache
+#warning bxICache_c state registration is not implemented
+    // BJS TODO: implement registration of bxICache_c iCache  BX_CPP_AlignN(32);
+#endif
+
+
+    BXRS_STRUCT_START(address_xlation_t, address_xlation);
+    {
+      BXRS_NUM_D(bx_address,  rm_addr, "The address offset after resolution.");
+      BXRS_NUM_D(Bit32u,  paddress1,   "phys addr after translation of 1st len1 bytes of data");
+      BXRS_NUM_D(Bit32u,  paddress2,   "phys addr after translation of 2nd len2 bytes of data");
+      BXRS_NUM_D(Bit32u,  len1,        "Number of bytes in page 1");
+      BXRS_NUM_D(Bit32u,  len2,        "Number of bytes in page 2");
+      BXRS_NUM_D(bx_ptr_equiv_t, pages,"Number of pages access spans (1 or 2).");
+    }
+    BXRS_STRUCT_END;
+
+#if BX_SUPPORT_X86_64
+    // BJS TODO: dont think we need to register this
+    // data upper 32 bits - not used any longer
+    //Bit32s daddr_upper;    // upper bits must be canonical  (-virtmax --> + virtmax)
+    // instruction upper 32 bits - not used any longer
+    //Bit32s iaddr_upper;    // upper bits must be canonical  (-virtmax --> + virtmax)
+#endif
+
+
+#if BX_SUPPORT_APIC
+#warning local_apic state registration not implemented
+    BXRS_OBJ(bx_local_apic_c, local_apic);
+    BXRS_NUM(Bit32u, cpu_online_map);
+#endif
+
+  }
+  BXRS_END;
+}
+
+void
+BX_CPU_C::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+BX_CPU_C::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
+
+#if BX_CPU_LEVEL >= 2
+void
+bx_cr0_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_cr0_t, this, list_p, 15);
+  {
+    BXRS_NUM_D(Bit32u, val32, "32bit value of register");
+    
+#   if BX_CPU_LEVEL >= 3
+    BXRS_BOOL_D(bx_bool, pg, "paging");
+#   endif
+      
+#   if BX_CPU_LEVEL >= 4
+    BXRS_BOOL_D(bx_bool, cd, "cache disable");
+    BXRS_BOOL_D(bx_bool, nw, "no write-through");
+    BXRS_BOOL_D(bx_bool, am, "alignment mask");
+    BXRS_BOOL_D(bx_bool, wp, "write-protect");
+    BXRS_BOOL_D(bx_bool, ne, "numerics exception");
+#   endif
+    
+    BXRS_BOOL_D(bx_bool, ts, "task switched");
+    BXRS_BOOL_D(bx_bool, em, "emulate math coprocessor");
+    BXRS_BOOL_D(bx_bool, mp, "monitor coprocessor");
+    BXRS_BOOL_D(bx_bool, pe, "protected mode enable");
+  }
+  BXRS_END;
+}
+#endif // #if BX_CPU_LEVEL >= 2
+
+
+
+
+
+
+
+
+void
+bx_segment_reg_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_segment_reg_t, this, list_p, 25);
+  {
+    BXRS_STRUCT_START(bx_selector_t, selector);
+    {
+      BXRS_NUM_D(Bit16u, value, "the 16bit value of the selector");
+#     if BX_CPU_LEVEL >= 2     
+      BXRS_NUM_D(Bit16u, index, "13bit index extracted from value in protected mode");
+      BXRS_NUM_D(Bit8u , ti   , "table indicator bit extracted from value");
+      BXRS_NUM_D(Bit8u , rpl  , "RPL extracted from value");
+#     endif
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_STRUCT_START(bx_descriptor_t, cache);
+    {
+      BXRS_BOOL  (bx_bool, valid);
+      BXRS_BOOL_D(bx_bool, p      , "/* present");
+      BXRS_NUM_D (Bit8u  , dpl    , "/* descriptor privilege level 0..3");
+      BXRS_BOOL_D(bx_bool, segment, "/* 0 = system/gate, 1 = data/code segment");
+      BXRS_NUM_D (Bit8u  , type   , "/* For system & gate descriptors, only");
+      BXRS_STRUCT_START(bx_descriptor_t::desc_u_t, u);
+      {
+        BXRS_STRUCT_START(bx_descriptor_t::desc_u_t::segment_t, segment);
+        {
+          BXRS_BOOL_D(bx_bool, executable,  "1=code, 0=data or stack segment");
+          BXRS_BOOL_D(bx_bool, c_ed,        "code: 1=conforming, data/stack: 1=expand down");
+          BXRS_BOOL_D(bx_bool, r_w,         "code: readable?, data/stack: writeable?");
+          BXRS_BOOL_D(bx_bool, a,           "accessed?");
+          BXRS_NUM_D (bx_address,  base,    "base address: 286=24bits, 386=32bits, long=64");
+          BXRS_NUM_D (Bit32u,  limit,       "limit: 286=16bits, 386=20bits");
+          BXRS_NUM_D (Bit32u,  limit_scaled,"for efficiency");
+#         if BX_CPU_LEVEL >= 3                       
+          BXRS_BOOL_D(bx_bool, g,           "granularity: 0=byte, 1=4K (page)");
+          BXRS_BOOL_D(bx_bool, d_b,         "default size: 0=16bit, 1=32bit");
+#         if BX_SUPPORT_X86_64                       
+          BXRS_BOOL_D(bx_bool, l,           "long mode: 0=compat, 1=64 bit");
+#         endif                                      
+          BXRS_BOOL_D(bx_bool, avl,         "available for use by system");
+#         endif
+        }
+        BXRS_STRUCT_END;
+
+        BXRS_STRUCT_START(bx_descriptor_t::desc_u_t::gate286_t, gate286);
+        {
+          BXRS_NUM_D(Bit8u ,  word_count, "5bits (0..31) (call gates only)");
+          BXRS_NUM  (Bit16u,  dest_selector);
+          BXRS_NUM  (Bit16u,  dest_offset);
+        }
+        BXRS_STRUCT_END;
+
+        BXRS_STRUCT_START_D(bx_descriptor_t::desc_u_t::taskgate_t, taskgate, "type 5: Task Gate Descriptor");
+        {
+          BXRS_NUM_D(Bit16u, tss_selector, "TSS segment selector");
+        }
+        BXRS_STRUCT_END;
+
+#       if BX_CPU_LEVEL >= 3
+        BXRS_STRUCT_START(bx_descriptor_t::desc_u_t::gate386_t, gate386);
+        {
+          BXRS_NUM_D(Bit8u , dword_count, "5bits (0..31) (call gates only)");
+          BXRS_NUM  (Bit16u, dest_selector);
+          BXRS_NUM  (Bit32u, dest_offset);
+        }
+        BXRS_STRUCT_END;
+#       endif
+
+        BXRS_STRUCT_START(bx_descriptor_t::desc_u_t::tss286_t, tss286);
+        {
+          BXRS_NUM_D(Bit32u, base, "24 bit 286 TSS base");
+          BXRS_NUM_D(Bit16u, limit, "16 bit 286 TSS limit");
+        }
+        BXRS_STRUCT_END;
+
+#       if BX_CPU_LEVEL >= 3
+        BXRS_STRUCT_START(bx_descriptor_t::desc_u_t::tss386_t, tss386);
+        {
+          BXRS_NUM_D (bx_address, base,     "32/64 bit 386 TSS base");
+          BXRS_NUM_D (Bit32u, limit,        "20 bit 386 TSS limit");
+          BXRS_NUM_D (Bit32u, limit_scaled, "Same notes as for \'segment\' field");
+          BXRS_BOOL_D(bx_bool, g,           "granularity: 0=byte, 1=4K (page)");
+          BXRS_BOOL_D(bx_bool, avl,         "available for use by system");
+        }
+        BXRS_STRUCT_END;
+#       endif
+
+        BXRS_STRUCT_START(bx_descriptor_t::desc_u_t::ldt_t, ldt); 
+        {
+          BXRS_NUM_D (bx_address, base, "286=24 386+ =32/64 bit LDT base");
+          BXRS_NUM_D (Bit16u, limit, "286+ =16 bit LDT limit");
+        }
+        BXRS_STRUCT_END;
+
+      }
+      BXRS_STRUCT_END;
+    }
+    BXRS_STRUCT_END;
+  }
+  BXRS_END;
+}
+
+
+#if BX_CPU_LEVEL >= 5
+void 
+bx_regs_msr_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_regs_msr_t, this, list_p, 10);
+  {
+    BXRS_NUM(Bit64u, apicbase);
+#   if BX_SUPPORT_X86_64
+    // x86-64 EFER bits
+    BXRS_BOOL(bx_bool, sce);
+    BXRS_BOOL(bx_bool, lme);
+    BXRS_BOOL(bx_bool, lma);
+    BXRS_BOOL(bx_bool, nxe);
+    BXRS_BOOL(bx_bool, ffxsr);
+    
+    BXRS_NUM(Bit64u, star);
+    BXRS_NUM(Bit64u, lstar);
+    BXRS_NUM(Bit64u, cstar);
+    BXRS_NUM(Bit64u, fmask);
+    BXRS_NUM(Bit64u, kernelgsbase);
+#   endif
+  }
+  BXRS_END;
+}
+#endif
+
+#if BX_SUPPORT_APIC
+bx_local_apic_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_local_apic_c, this, list_p, 20);
+  {
+    // generic apic base class
+    BXRS_NUM (Bit32u, base_addr);
+    BXRS_NUM (Bit8u, id);
+    
+    // local apic
+    BXRS_ARRAY_NUM (Bit8u  , tmr,BX_LOCAL_APIC_MAX_INTS);
+    BXRS_ARRAY_NUM (Bit8u  , irr,BX_LOCAL_APIC_MAX_INTS);
+    BXRS_ARRAY_NUM (Bit8u  , isr,BX_LOCAL_APIC_MAX_INTS);
+    BXRS_NUM (Bit32u , arb_id);
+    BXRS_NUM (Bit32u , arb_priority);
+    BXRS_NUM (Bit32u , task_priority);
+    BXRS_NUM (Bit32u , proc_priority);
+    BXRS_NUM (Bit32u , log_dest);
+    BXRS_NUM (Bit32u , dest_format);
+    BXRS_NUM (Bit32u , spurious_vec);
+    BXRS_ARRAY_NUM (Bit32u , lvt,6);
+    BXRS_NUM (Bit32u , timer_initial);
+    BXRS_NUM (Bit32u , timer_current);
+    BXRS_NUM (Bit32u , timer_divconf);
+    BXRS_BOOL(bx_bool, timer_active);
+    BXRS_NUM (Bit32u , timer_divide_counter);
+    BXRS_NUM (Bit32u , timer_divide_factor);
+    BXRS_NUM (Bit32u , icr_high);
+    BXRS_NUM (Bit32u , icr_low);
+    BXRS_NUM (Bit32u , err_status);
+    BXRS_NUM (int    , timer_handle);
+    BXRS_NUM (Bit64u , ticksInitial);
+    BXRS_BOOL(bx_bool, INTR);
+    BXRS_BOOL(bx_bool, bypass_irr_isr);
+  }
+  BXRS_END;
+}
+#endif // #if BX_SUPPORT_APIC
+
+
+
+Bit64s lazy_flags_save_restore(sr_param_c *param_p, int set, Bit64s val)
+{
+  BX_CPU(0)->set_CF(BX_CPU(0)->get_CF());
+  BX_CPU(0)->set_AF(BX_CPU(0)->get_AF());
+  BX_CPU(0)->set_ZF(BX_CPU(0)->get_ZF());
+  BX_CPU(0)->set_SF(BX_CPU(0)->get_SF());
+  BX_CPU(0)->set_OF(BX_CPU(0)->get_OF());
+  BX_CPU(0)->set_PF(BX_CPU(0)->get_PF());
+
+  if (set) 
+    {
+      ((sr_param_num_c*)param_p)->set(BX_CPU(0)->eflags.val32, 1/*ignorehandler*/);
+    }
+
+  return BX_CPU(0)->eflags.val32;
+}
+
+void
+bx_flags_reg_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_flags_reg_t, this, list_p, 5);
+  {
+    BXRS_NUM_H(Bit32u, val32, lazy_flags_save_restore);
+    BXRS_NUM(Bit32u, VM_cached);
+  }
+  BXRS_END;
+}
+
+
+#endif // #if BX_SAVE_RESTORE

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: gameport.cc,v 1.6 2004/06/19 15:20:11 sshwarts Exp $
+// $Id: gameport.cc,v 1.6.2.1 2004/11/05 00:56:44 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -122,6 +122,26 @@ bx_gameport_c::reset(unsigned type)
 {
   // nothing for now
 }
+
+#if BX_SAVE_RESTORE
+
+void
+bx_gameport_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_gameport_c, BX_GAMEPORT_THIS, list_p, 10);
+  {
+    BXRS_NUM (int    , joyfd);
+    BXRS_NUM (Bit8u  , port);
+    BXRS_NUM (Bit16u , delay_x);
+    BXRS_NUM (Bit16u , delay_y);
+    BXRS_BOOL(bx_bool, timer_x);
+    BXRS_BOOL(bx_bool, timer_y);
+    BXRS_NUM (Bit64u , write_usec);
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
 
   void
 bx_gameport_c::poll_joydev(void)

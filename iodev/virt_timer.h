@@ -122,6 +122,11 @@ class bx_virt_timer_c : public logfunctions {
   bx_virt_timer_c(void);
   ~bx_virt_timer_c(void);
 
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
 };
 
 

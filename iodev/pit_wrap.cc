@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////
-// $Id: pit_wrap.cc,v 1.57 2004/09/05 10:30:19 vruppert Exp $
+// $Id: pit_wrap.cc,v 1.57.2.1 2004/11/05 00:56:47 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -51,9 +51,13 @@
 
 //A single instance.
 bx_pit_c bx_pit;
-#if BX_USE_PIT_SMF
-#define this (&bx_pit)
-#endif
+// NOTE:  THIS IS EVIL EVIL EVIL EVIL EVIL EVIL...  NEVER EVER EVER DO SOMETHING 
+// LIKE THIS AGAIN!!!  USE BX_CPU_THIS, etc.  THAT IS WHAT THEY ARE FOR!
+//  --slechta
+//
+//#if BX_USE_PIT_SMF
+//#define this (&bx_pit)
+//#endif
 
 //Workaround for environments where OUT is defined.
 #ifdef OUT
@@ -102,17 +106,17 @@ bx_pit_c::~bx_pit_c( void )
 bx_pit_c::init( void )
 {
   DEV_register_irq(0, "8254 PIT");
-  DEV_register_ioread_handler(this, read_handler, 0x0040, "8254 PIT", 1);
-  DEV_register_ioread_handler(this, read_handler, 0x0041, "8254 PIT", 1);
-  DEV_register_ioread_handler(this, read_handler, 0x0042, "8254 PIT", 1);
-  DEV_register_ioread_handler(this, read_handler, 0x0043, "8254 PIT", 1);
-  DEV_register_ioread_handler(this, read_handler, 0x0061, "8254 PIT", 1);
+  DEV_register_ioread_handler(BX_PIT_THIS_PTR, read_handler, 0x0040, "8254 PIT", 1);
+  DEV_register_ioread_handler(BX_PIT_THIS_PTR, read_handler, 0x0041, "8254 PIT", 1);
+  DEV_register_ioread_handler(BX_PIT_THIS_PTR, read_handler, 0x0042, "8254 PIT", 1);
+  DEV_register_ioread_handler(BX_PIT_THIS_PTR, read_handler, 0x0043, "8254 PIT", 1);
+  DEV_register_ioread_handler(BX_PIT_THIS_PTR, read_handler, 0x0061, "8254 PIT", 1);
 
-  DEV_register_iowrite_handler(this, write_handler, 0x0040, "8254 PIT", 1);
-  DEV_register_iowrite_handler(this, write_handler, 0x0041, "8254 PIT", 1);
-  DEV_register_iowrite_handler(this, write_handler, 0x0042, "8254 PIT", 1);
-  DEV_register_iowrite_handler(this, write_handler, 0x0043, "8254 PIT", 1);
-  DEV_register_iowrite_handler(this, write_handler, 0x0061, "8254 PIT", 1);
+  DEV_register_iowrite_handler(BX_PIT_THIS_PTR, write_handler, 0x0040, "8254 PIT", 1);
+  DEV_register_iowrite_handler(BX_PIT_THIS_PTR, write_handler, 0x0041, "8254 PIT", 1);
+  DEV_register_iowrite_handler(BX_PIT_THIS_PTR, write_handler, 0x0042, "8254 PIT", 1);
+  DEV_register_iowrite_handler(BX_PIT_THIS_PTR, write_handler, 0x0043, "8254 PIT", 1);
+  DEV_register_iowrite_handler(BX_PIT_THIS_PTR, write_handler, 0x0061, "8254 PIT", 1);
 
   BX_DEBUG(("pit: starting init"));
 
@@ -124,7 +128,7 @@ bx_pit_c::init( void )
   Bit64u my_time_usec = bx_virt_timer.time_usec();
 
   if (BX_PIT_THIS s.timer_handle[0] == BX_NULL_TIMER_HANDLE) {
-    BX_PIT_THIS s.timer_handle[0] = bx_virt_timer.register_timer(this, timer_handler, (unsigned) 100 , 1, 1, "pit_wrap");
+    BX_PIT_THIS s.timer_handle[0] = bx_virt_timer.register_timer(BX_PIT_THIS_PTR, timer_handler, (unsigned) 100 , 1, 1, "pit_wrap");
   }
   BX_DEBUG(("pit: RESETting timer."));
   bx_virt_timer.deactivate_timer(BX_PIT_THIS s.timer_handle[0]);
@@ -313,7 +317,7 @@ bx_pit_c::write( Bit32u   address, Bit32u   dvalue,
     case 0x61:
       BX_PIT_THIS s.speaker_data_on = (value >> 1) & 0x01;
       if ( BX_PIT_THIS s.speaker_data_on ) {
-	  DEV_speaker_beep_on(1193180.0 / this->get_timer(2));
+	  DEV_speaker_beep_on(1193180.0 / BX_PIT_THIS get_timer(2));
       } else {
 	  DEV_speaker_beep_off();
       }
@@ -438,5 +442,38 @@ bx_pit_c::periodic( Bit32u   usec_delta )
 
   return(want_interrupt);
 }
+
+#if BX_SAVE_RESTORE
+
+void 
+bx_pit_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_pit_c, BX_PIT_THIS_PTR, list_p, 25);
+  BXRS_STRUCT_START(struct s_type, s);
+  {
+    BXRS_OBJ      (pit_82C54, timer       );
+    BXRS_NUM      (Bit8u  , speaker_data_on        );
+    BXRS_BOOL     (bx_bool, refresh_clock_div2     );
+    BXRS_ARRAY_NUM(int    , timer_handle, 3        );
+    BXRS_NUM      (Bit64u , last_usec              );
+    BXRS_NUM      (Bit32u , last_next_event_time   );
+    BXRS_NUM      (Bit64u , total_ticks            );
+    BXRS_NUM      (Bit64u , usec_per_second        );
+    BXRS_NUM      (Bit64u , ticks_per_second       );
+    BXRS_NUM      (Bit64u , total_sec              );
+    BXRS_NUM      (Bit64u , last_time              );
+    BXRS_NUM      (Bit64u , last_sec_usec          );
+    BXRS_NUM      (Bit64u , max_ticks              );
+    BXRS_NUM      (Bit64u , stored_delta           );
+    BXRS_NUM      (Bit64u , total_usec             );
+    BXRS_NUM      (Bit64u , em_last_realtime       );
+    BXRS_NUM      (Bit64u , last_realtime_delta    );
+    BXRS_NUM      (Bit64u , last_realtime_ticks    );
+  }
+  BXRS_STRUCT_END;
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
 
 #endif // #if BX_USE_NEW_PIT

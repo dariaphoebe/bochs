@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.cc,v 1.25 2004/06/19 15:20:13 sshwarts Exp $
+// $Id: pit82c54.cc,v 1.25.2.1 2004/11/05 00:56:47 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -895,3 +895,53 @@ Bit32u pit_82C54::get_next_event_time(void) {
 Bit16u pit_82C54::get_inlatch(int counternum) {
     return counter[counternum].inlatch;
 }
+
+
+#if BX_SAVE_RESTORE
+
+void
+pit_82C54::register_state(sr_param_c *list_p)
+{
+  BXRS_START(pit_82C54, this, list_p, 50);
+  BXRS_ARRAY_START(struct counter_type, counter, 3)
+  {
+    //Chip IOs;
+    BXRS_BOOL     (bx_bool, GATE); 
+    BXRS_BOOL     (bx_bool, OUTpin); 
+
+    //Architected state;
+    BXRS_NUM      (Bit32u, count); 
+    BXRS_NUM      (Bit16u, outlatch);
+    BXRS_NUM      (Bit16u, inlatch); 
+    BXRS_NUM      (Bit8u, status_latch);
+
+    //Status Register data;
+    BXRS_NUM      (Bit8u, rw_mode); 
+    BXRS_NUM      (Bit8u, mode);
+    BXRS_BOOL     (bx_bool, bcd_mode); 
+    BXRS_BOOL     (bx_bool, null_count); 
+
+    //Latch status data;
+    BXRS_BOOL     (bx_bool, count_LSB_latched);
+    BXRS_BOOL     (bx_bool, count_MSB_latched);
+    BXRS_BOOL     (bx_bool, status_latched);
+
+    //Miscelaneous State;
+    BXRS_NUM      (Bit32u, count_binary); 
+    BXRS_BOOL     (bx_bool, triggerGATE); 
+    BXRS_ENUM     (rw_status, write_state);
+    BXRS_ENUM     (rw_status, read_state);
+    BXRS_BOOL     (bx_bool, count_written); 
+    BXRS_BOOL     (bx_bool, first_pass); 
+    BXRS_BOOL     (bx_bool, state_bit_1);
+    BXRS_BOOL     (bx_bool, state_bit_2);
+    BXRS_NUM      (Bit32u, next_change_time);
+  };
+  BXRS_ARRAY_END;
+
+  BXRS_NUM(Bit8u, controlword);
+  BXRS_NUM(int, seen_problems);
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.281 2004/09/01 18:12:22 vruppert Exp $
+// $Id: main.cc,v 1.281.2.1 2004/11/05 00:56:40 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -870,6 +870,7 @@ bx_init_hardware()
   BX_INSTR_INIT(0);
   BX_CPU(0)->reset(BX_RESET_HARDWARE);
 #else
+
   // SMP initialization
   bx_mem_array[0] = new BX_MEM_C ();
   bx_mem_array[0]->init_memory(bx_options.memory.Osize->get () * 1024*1024);
@@ -900,6 +901,19 @@ bx_init_hardware()
     BX_CPU(i)->reset(BX_RESET_HARDWARE);
   }
 #endif
+
+# if BX_SAVE_RESTORE
+  static char param_cpu_buf[BX_SMP_PROCESSORS][30];
+  sr_list_c *cpu_list_p = new sr_list_c (SIM->get_sr_root(), "cpu", "cpu", 100);
+  for (int i=0; i<BX_SMP_PROCESSORS; i++) {
+    sprintf(param_cpu_buf[i], "%d\0", i);
+    sr_list_c *cpu_i_list_p = 
+      new sr_list_c (cpu_list_p, 
+                     param_cpu_buf[i], 
+                     param_cpu_buf[i], 100);
+    BX_CPU(i)->register_state(cpu_i_list_p);
+  }
+# endif // BX_SAVE_RESTORE
 
 #if BX_DEBUGGER == 0
   DEV_init_devices();

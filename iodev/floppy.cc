@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: floppy.cc,v 1.74 2004/06/19 15:20:11 sshwarts Exp $
+// $Id: floppy.cc,v 1.74.2.1 2004/11/05 00:56:43 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -132,7 +132,7 @@ bx_floppy_ctrl_c::init(void)
 {
   Bit8u i;
 
-  BX_DEBUG(("Init $Id: floppy.cc,v 1.74 2004/06/19 15:20:11 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: floppy.cc,v 1.74.2.1 2004/11/05 00:56:43 slechta Exp $"));
   DEV_dma_register_8bit_channel(2, dma_read, dma_write, "Floppy Drive");
   DEV_register_irq(6, "Floppy Drive");
   for (unsigned addr=0x03F2; addr<=0x03F7; addr++) {
@@ -1417,6 +1417,82 @@ bx_floppy_ctrl_c::get_media_status(unsigned drive)
 {
   return( BX_FD_THIS s.media_present[drive] );
 }
+
+#if BX_SAVE_RESTORE
+
+void
+floppy_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(floppy_t, this, list_p, 20);
+  {
+#warning floppy file decriptor..  save/restore?
+    // BJS TODO: int fd;         /* file descriptor of floppy image file */
+    BXRS_NUM_D(unsigned, sectors_per_track, "number of sectors/track");
+    BXRS_NUM_D(unsigned, sectors          , "number of formatted sectors on diskette");
+    BXRS_NUM_D(unsigned, tracks           , "number of tracks");
+    BXRS_NUM_D(unsigned, heads            , "number of heads");
+    BXRS_NUM  (unsigned, type           );
+    BXRS_NUM  (unsigned, write_protected);
+    BXRS_NUM  (unsigned char, raw_floppy_win95);
+#ifdef WIN32
+    BXRS_NUM  (unsigned char, raw_floppy_win95_drv);
+#endif
+  }
+  BXRS_END;
+}
+
+void
+bx_floppy_ctrl_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_floppy_ctrl_c, BX_FD_THISP, list_p, 1000);
+  BXRS_STRUCT_START_D(struct s_t, s, "state information");
+  {
+    BXRS_NUM   (Bit8u  ,data_rate);
+
+    BXRS_ARRAY_NUM_D(Bit8u, command, 10, "largest command size ???");
+    BXRS_NUM   (Bit8u  , command_index);
+    BXRS_NUM   (Bit8u  , command_size);
+    BXRS_BOOL  (bx_bool, command_complete);
+    BXRS_NUM   (Bit8u  , pending_command);
+
+    BXRS_BOOL  (bx_bool, multi_track);
+    BXRS_BOOL  (bx_bool, pending_irq);
+    BXRS_NUM   (Bit8u  , reset_sensei);
+    BXRS_NUM   (Bit8u  , format_count);
+    BXRS_NUM   (Bit8u  , format_fillbyte);
+    
+    BXRS_ARRAY_NUM(Bit8u, result, 10);
+    BXRS_NUM   (Bit8u  , result_index);
+    BXRS_NUM   (Bit8u  , result_size);
+    
+    BXRS_NUM_D (Bit8u  , DOR, "Digital Ouput Register");
+    BXRS_NUM_D (Bit8u  , TDR, "Tape Drive Register");
+    BXRS_ARRAY_NUM_D (Bit8u  , cylinder, 4, "really only using 2 drives");
+    BXRS_ARRAY_NUM_D (Bit8u  , head, 4, "really only using 2 drives");
+    BXRS_ARRAY_NUM_D (Bit8u  , sector, 4, "really only using 2 drives");
+
+    BXRS_NUM   (Bit8u,   main_status_reg);
+    BXRS_NUM   (Bit8u,   status_reg0);
+    BXRS_NUM   (Bit8u,   status_reg1);
+    BXRS_NUM   (Bit8u,   status_reg2);
+    BXRS_NUM   (Bit8u,   status_reg3);
+
+    BXRS_ARRAY_OBJ (floppy_t, media, 4);
+    BXRS_NUM         (unsigned, num_supported_floppies);
+    BXRS_ARRAY_NUM   (Bit8u   , floppy_buffer, (512+2));
+    BXRS_NUM         (unsigned, floppy_buffer_index);
+    BXRS_NUM         (int     , floppy_timer_index);
+    BXRS_ARRAY_BOOL  (bx_bool , media_present, 2);
+    BXRS_ARRAY_NUM   (Bit8u   , device_type, 4);
+    BXRS_ARRAY_NUM_D (Bit8u   , DIR, 4, "Digital Input Register");
+  }
+  BXRS_STRUCT_END;
+  BXRS_END;
+}
+
+
+#endif // #if BX_SAVE_RESTORE
+
 
 #ifdef O_BINARY
 #define BX_RDONLY O_RDONLY | O_BINARY

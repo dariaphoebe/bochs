@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcipnic.cc,v 1.12 2004/10/07 17:38:03 vruppert Exp $
+// $Id: pcipnic.cc,v 1.12.2.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  Fen Systems Ltd.
@@ -607,5 +607,36 @@ bx_pcipnic_c::rx_frame(const void *buf, unsigned io_len)
     set_irq_level(1);
   }
 }
+
+
+#if BX_SAVE_RESTORE
+
+void
+bx_pcipnic_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_pcipnic_c, BX_PNIC_THIS_PTR, list_p, 15);
+  {
+    BXRS_STRUCT(struct bx_pnic_t, s);
+    {
+      BXRS_NUM        (Bit32u, base_ioaddr);
+      BXRS_ARRAY_NUM  (Bit8u , macaddr, 6);
+      BXRS_NUM        (Bit8u , irqEnabled);
+      BXRS_NUM_D      (Bit16u, rCmd, "Command register");
+      BXRS_NUM_D      (Bit16u, rStatus, "Status register");
+      BXRS_NUM_D      (Bit16u, rLength, "Length register");
+      BXRS_ARRAY_NUM_D(Bit8u , rData, PNIC_DATA_SIZE, "Data register array");
+      BXRS_NUM        (Bit16u, rDataCursor);
+      BXRS_NUM        (int   , recvIndex);
+      BXRS_NUM        (int   , recvQueueLength);
+      BXRS_ARRAY_NUM_D(Bit8u , recvRing, (PNIC_RECV_RINGS*PNIC_DATA_SIZE), "Receive buffer");
+      BXRS_ARRAY_NUM  (Bit16u, recvRingLength, PNIC_RECV_RINGS);
+      BXRS_NUM        (Bit8u , devfunc);
+      BXRS_ARRAY_NUM  (Bit8u , pci_conf, 256);
+    }
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
 
 #endif // BX_SUPPORT_PCI && BX_SUPPORT_PCIPNIC

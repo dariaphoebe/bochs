@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: memory.h,v 1.22 2004/10/29 21:15:48 sshwarts Exp $
+// $Id: memory.h,v 1.22.2.1 2004/11/05 00:56:49 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -35,9 +35,11 @@
 // if static member functions on, then there is only one memory
 #  define BX_MEM_SMF  static
 #  define BX_MEM_THIS BX_MEM(0)->
+#  define BX_MEM_THIS_PTR BX_MEM(0)
 #else
 #  define BX_MEM_SMF
 #  define BX_MEM_THIS this->
+#  define BX_MEM_THIS_PTR this
 #endif
 
 // alignment of memory vector, must be a power of 2
@@ -79,6 +81,9 @@ public:
   ~BX_MEM_C(void);
   BX_MEM_SMF void    alloc_vector_aligned (size_t bytes, size_t alignment) BX_CPP_AttrRegparmN(2);
   BX_MEM_SMF void    init_memory(int memsize);
+# if BX_SAVE_RESTORE
+  BX_MEM_SMF void    register_state(sr_param_c *list_p);
+# endif
   BX_MEM_SMF void    readPhysicalPage(BX_CPU_C *cpu, Bit32u addr,
                                       unsigned len, void *data) BX_CPP_AttrRegparmN(3);
   BX_MEM_SMF void    writePhysicalPage(BX_CPU_C *cpu, Bit32u addr,

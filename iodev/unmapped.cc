@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: unmapped.cc,v 1.23 2004/06/19 15:20:14 sshwarts Exp $
+// $Id: unmapped.cc,v 1.23.2.1 2004/11/05 00:56:48 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -303,3 +303,23 @@ bx_unmapped_c::write(Bit32u address, Bit32u value, unsigned io_len)
 		  break;
 	  }
 }
+
+
+#if BX_SAVE_RESTORE
+
+void
+bx_unmapped_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_unmapped_c, BX_UM_THIS_PTR, list_p, 50);
+  BXRS_STRUCT_START(struct s_t, s);
+  {
+    BXRS_NUM(Bit8u, port80);
+    BXRS_NUM(Bit8u, port8e);
+    BXRS_NUM(Bit8u, shutdown);    
+  }
+  BXRS_STRUCT_END;
+  BXRS_END;
+}  
+
+
+#endif // #if BX_SAVE_RESTORE

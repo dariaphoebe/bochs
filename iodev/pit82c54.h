@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.h,v 1.13 2004/01/16 16:30:46 danielg4 Exp $
+// $Id: pit82c54.h,v 1.13.12.1 2004/11/05 00:56:47 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -129,6 +129,12 @@ public:
   Bit16u get_inlatch(int countnum);
 
   void print_cnum(Bit8u cnum);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
 
 };
 

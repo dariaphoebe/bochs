@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.185 2004/11/03 06:35:48 sshwarts Exp $
+// $Id: cpu.h,v 1.185.2.1 2004/11/05 00:56:41 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -32,6 +32,10 @@
 
 #include "cpu/lazy_flags.h"
 #include "cpu/hostasm.h"
+
+#if BX_SAVE_RESTORE
+#include "save_restore.h"
+#endif 
 
 // segment register encoding
 #define BX_SEG_REG_ES    0
@@ -490,6 +494,9 @@ typedef struct {
 #define EFlagsOSZAPMask  \
     (EFlagsPFMask | EFlagsAFMask | EFlagsZFMask | EFlagsSFMask | EFlagsOFMask)
 
+# if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+# endif 
   } bx_flags_reg_t;
 
 
@@ -577,6 +584,10 @@ typedef struct {
   bx_bool em; // emulate math coprocessor
   bx_bool mp; // monitor coprocessor
   bx_bool pe; // protected mode enable
+
+# if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+# endif
   } bx_cr0_t;
 #endif
 
@@ -628,6 +639,9 @@ typedef struct {
 #endif
 
   /* TODO finish of the others */
+# if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+# endif
   } bx_regs_msr_t;
 #endif
 
@@ -672,8 +686,8 @@ typedef struct {
                           * 13 = (reserved)
                           * 14 = 386 interrupt gate
                           * 15 = 386 trap gate */
-  union {
-  struct {
+  typedef union {
+  typedef struct {
     bx_bool executable;    /* 1=code, 0=data or stack segment */
     bx_bool c_ed;          /* for code: 1=conforming,
                               for data/stack: 1=expand down */
@@ -693,48 +707,59 @@ typedef struct {
 #endif
     bx_bool avl;           /* available for use by system */
 #endif
-    } segment;
-  struct {
+    } segment_t;
+    segment_t segment;
+  typedef struct {
     Bit8u   word_count;    /* 5bits (0..31) #words to copy from caller's stack
                             * to called procedure's stack.  (call gates only)*/
     Bit16u  dest_selector;
     Bit16u  dest_offset;
-    } gate286;
-  struct {                 // type 5: Task Gate Descriptor
+    } gate286_t;
+    gate286_t gate286;
+  typedef struct {                 // type 5: Task Gate Descriptor
     Bit16u  tss_selector;  // TSS segment selector
-    } taskgate;
+    } taskgate_t;
+    taskgate_t taskgate;
 #if BX_CPU_LEVEL >= 3
-  struct {
+  typedef struct {
     Bit8u   dword_count;   /* 5bits (0..31) #dwords to copy from caller's stack
                             * to called procedure's stack.  (call gates only)*/
     Bit16u  dest_selector;
     Bit32u  dest_offset;
-    } gate386;
+    } gate386_t;
+    gate386_t gate386;
 #endif
-  struct {
+  typedef struct {
     Bit32u  base;          /* 24 bit 286 TSS base  */
     Bit16u  limit;         /* 16 bit 286 TSS limit */
-    } tss286;
+    } tss286_t;
+    tss286_t tss286;
 #if BX_CPU_LEVEL >= 3
-  struct {
+  typedef struct {
     bx_address  base;      /* 32/64 bit 386 TSS base */
     Bit32u  limit;         /* 20 bit 386 TSS limit */
     Bit32u  limit_scaled;  // Same notes as for 'segment' field
     bx_bool g;             /* granularity: 0=byte, 1=4K (page) */
     bx_bool avl;           /* available for use by system */
-    } tss386;
+    } tss386_t;
+    tss386_t tss386;
 #endif
-  struct {
+  typedef struct {
     bx_address  base;  /* 286=24 386+ =32/64 bit LDT base */
     Bit16u  limit; /* 286+ =16 bit LDT limit */
-    } ldt;
-    } u;
+    } ldt_t;
+    ldt_t ldt;
+    } desc_u_t;
+    desc_u_t u;
 
   } bx_descriptor_t;
 
 typedef struct {
   bx_selector_t          selector;
   bx_descriptor_t  cache;
+# if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+# endif
   } bx_segment_reg_t;
 
 typedef void * (*BxVoidFPtr_t)(void);
@@ -1088,48 +1113,48 @@ typedef bx_ptr_equiv_t bx_hostpageaddr_t;
 #if BX_SUPPORT_X86_64
 
 #ifdef BX_BIG_ENDIAN
- typedef struct {
-   union {
-     struct {
+typedef struct {
+  union {
+    struct {
        Bit32u dword_filler;
-       Bit16u word_filler;
-       union {
-         Bit16u rx;
-         struct {
-           Bit8u rh;
-           Bit8u rl;
+      Bit16u word_filler;
+      union {
+        Bit16u rx;
+        struct {
+          Bit8u rh;
+          Bit8u rl;
            } byte;
-         };
-       } word;
-     Bit64u rrx;
-     struct {
-       Bit32u hrx;  // hi 32 bits
-       Bit32u erx;  // low 32 bits
-       } dword;
-     };
-   } bx_gen_reg_t;
+      };
+    } word;
+    Bit64u rrx;
+    struct {
+      Bit32u hrx;  // hi 32 bits
+      Bit32u erx;  // low 32 bits
+    } dword;
+  };
+} bx_gen_reg_t;
 #else
 
- typedef struct {
-   union {
-     struct {
-       union {
-         Bit16u rx;
-         struct {
-           Bit8u rl;
-           Bit8u rh;
-           } byte;
-         };
-       Bit16u word_filler;
-       Bit32u dword_filler;
-       } word;
-     Bit64u rrx;
-     struct {
-       Bit32u erx;  // low 32 bits
-       Bit32u hrx;  // hi 32 bits
-       } dword;
-     };
-   } bx_gen_reg_t;
+typedef struct {
+  union {
+    struct {
+      union {
+        Bit16u rx;
+        struct {
+          Bit8u rl;
+          Bit8u rh;
+        } byte;
+      };
+      Bit16u word_filler;
+      Bit32u dword_filler;
+    } word;
+    Bit64u rrx;
+    struct {
+      Bit32u erx;  // low 32 bits
+      Bit32u hrx;  // hi 32 bits
+    } dword;
+  };
+} bx_gen_reg_t;
 
 #endif
 
@@ -1406,7 +1431,7 @@ public: // for now...
 
   // for paging
 #if BX_USE_TLB
-  struct {
+  typedef struct {
     bx_TLB_entry entry[BX_TLB_SIZE]  BX_CPP_AlignN(16);
 
 #if BX_USE_QUICK_TLB_INVALIDATE
@@ -1415,7 +1440,8 @@ public: // for now...
 #else
 #  define BX_TLB_LPF_VALUE(lpf) (lpf)
 #endif
-    } TLB;
+    } tlb_t;
+  tlb_t TLB;
 #endif  // #if BX_USE_TLB
 
 
@@ -1427,7 +1453,7 @@ public: // for now...
 #endif
 
 
-  struct {
+  typedef struct {
     bx_address  rm_addr; // The address offset after resolution.
     Bit32u  paddress1;  // physical address after translation of 1st len1 bytes of data
     Bit32u  paddress2;  // physical address after translation of 2nd len2 bytes of data
@@ -1441,7 +1467,8 @@ public: // for now...
                         //   is greated than 2 (the maximum possible for
                         //   normal cases) it is a native pointer and is used
                         //   for a direct write access.
-    } address_xlation;
+    } address_xlation_t;
+  address_xlation_t address_xlation;
 
 #if BX_EXTERNAL_DEBUGGER
   virtual void ask (int level, const char *prefix, const char *fmt, va_list ap);
@@ -1479,6 +1506,11 @@ public: // for now...
   ~BX_CPU_C();
 #endif
   void init (BX_MEM_C *addrspace);
+# if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+  void before_save_state ();
+  void after_restore_state ();
+# endif
 
   // prototypes for CPU instructions...
   BX_SMF void ADD_EbGb(bxInstruction_c *);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.h,v 1.15 2003/05/03 07:41:27 vruppert Exp $
+// $Id: dma.h,v 1.15.14.1 2004/11/05 00:56:43 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -32,9 +32,11 @@
 #if BX_USE_DMA_SMF
 #  define BX_DMA_SMF  static
 #  define BX_DMA_THIS theDmaDevice->
+#  define BX_DMA_THISP theDmaDevice
 #else
 #  define BX_DMA_SMF
 #  define BX_DMA_THIS this->
+#  define BX_DMA_THISPthis
 #endif
 
 
@@ -50,6 +52,12 @@ public:
   virtual void     raise_HLDA(void);
   virtual void     set_DRQ(unsigned channel, bx_bool val);
   virtual unsigned get_TC(void);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif
 
   virtual unsigned registerDMA8Channel(unsigned channel,
     void (* dmaRead)(Bit8u *data_byte),
@@ -72,7 +80,7 @@ private:
   BX_DMA_SMF void control_HRQ(bx_bool ma_sl);
   BX_DMA_SMF void reset_controller(unsigned num);
 
-  struct {
+  struct s_t {
     bx_bool DRQ[4];  // DMA Request
     bx_bool DACK[4]; // DMA Acknowlege
 
@@ -82,8 +90,8 @@ private:
     Bit8u   command_reg;
     Bit8u   request_reg;
     Bit8u   temporary_reg;
-    struct {
-      struct {
+    struct chan_t {
+      struct mode_t {
         Bit8u mode_type;
         Bit8u address_decrement;
         Bit8u autoinit_enable;
@@ -101,7 +109,7 @@ private:
   bx_bool HLDA;    // Hold Acknowlege
   bx_bool TC;      // Terminal Count
 
-  struct {
+  struct h_t {
     void (* dmaRead8)(Bit8u *data_byte);
     void (* dmaWrite8)(Bit8u *data_byte);
     void (* dmaRead16)(Bit16u *data_word);

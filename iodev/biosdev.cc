@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: biosdev.cc,v 1.9 2004/09/05 17:55:12 vruppert Exp $
+// $Id: biosdev.cc,v 1.9.2.1 2004/11/05 00:56:42 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -112,6 +112,29 @@ bx_biosdev_c::init(void)
 bx_biosdev_c::reset(unsigned type)
 {
 }
+
+#if BX_SAVE_RESTORE
+
+  void 
+bx_biosdev_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_biosdev_c, BX_BIOS_THISP, list_p, 8);
+  {
+    BXRS_STRUCT_START(struct s_t, s);
+    {
+      BXRS_ARRAY_NUM(Bit8u, bios_message, BX_BIOS_MESSAGE_SIZE);
+      BXRS_NUM      (unsigned int, bios_message_i);  
+      BXRS_BOOL     (bx_bool, bios_panic_flag); 
+      BXRS_ARRAY_NUM(Bit8u, vgabios_message, BX_BIOS_MESSAGE_SIZE);
+      BXRS_NUM      (unsigned int, vgabios_message_i);
+      BXRS_BOOL     (bx_bool, vgabios_panic_flag); 
+    } 
+    BXRS_STRUCT_END;
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
 
   // static IO port write callback handler
   // redirects to non-static class handler to avoid virtual functions

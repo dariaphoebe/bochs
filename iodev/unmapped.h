@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: unmapped.h,v 1.10 2002/10/24 21:07:52 bdenney Exp $
+// $Id: unmapped.h,v 1.10.22.1 2004/11/05 00:56:48 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -30,9 +30,11 @@
 #if BX_USE_UM_SMF
 #  define BX_UM_SMF  static
 #  define BX_UM_THIS theUnmappedDevice->
+#  define BX_UM_THIS_PTR theUnmappedDevice
 #else
 #  define BX_UM_SMF
 #  define BX_UM_THIS this->
+#  define BX_UM_THIS_PTR this
 #endif
 
 
@@ -45,6 +47,12 @@ public:
   virtual void init(void);
   virtual void reset (unsigned type);
 
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
+
 private:
 
   static Bit32u read_handler(void *this_ptr, Bit32u address, unsigned io_len);
@@ -55,7 +63,7 @@ private:
 #endif
 
 
-  struct {
+  struct s_t {
     Bit8u port80;
     Bit8u port8e;
     Bit8u shutdown;

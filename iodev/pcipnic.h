@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcipnic.h,v 1.3 2004/07/13 17:45:34 vruppert Exp $
+// $Id: pcipnic.h,v 1.3.2.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  Fen Systems Ltd.
@@ -64,6 +64,12 @@ public:
   ~bx_pcipnic_c(void);
   virtual void   init(void);
   virtual void   reset(unsigned type);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
 
 private:
 

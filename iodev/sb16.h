@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.h,v 1.19 2004/09/05 10:30:19 vruppert Exp $
+// $Id: sb16.h,v 1.19.2.1 2004/11/05 00:56:48 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -196,6 +196,12 @@ public:
   ~bx_sb16_c(void);
   virtual void init(void);
   virtual void reset(unsigned type);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
 
       /* Make writelog available to output functions */
   BX_SB16_SMF void   writelog(int loglevel, const char *str, ...);

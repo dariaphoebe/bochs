@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: iodev.h,v 1.52 2004/09/25 22:15:02 vruppert Exp $
+// $Id: iodev.h,v 1.52.2.1 2004/11/05 00:56:45 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -84,6 +84,15 @@ class BOCHSAPI bx_devmodel_c : public logfunctions {
   virtual void reset(unsigned type) {}
   virtual void device_load_state () {}
   virtual void device_save_state () {}
+
+#if BX_SAVE_RESTORE
+  // called to register its parameters so that save/restore can work
+  virtual void register_state(sr_param_c *list_p) {}
+  // called just before saving state
+  virtual void before_save_state () {}
+  // called just after restoring state
+  virtual void after_restore_state () {}
+#endif
 };
 
 //////////////////////////////////////////////////////////////////////

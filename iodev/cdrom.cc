@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cdrom.cc,v 1.75 2004/11/04 22:41:24 sshwarts Exp $
+// $Id: cdrom.cc,v 1.75.2.1 2004/11/05 00:56:43 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -523,7 +523,7 @@ cdrom_interface::cdrom_interface(char *dev)
 
 void
 cdrom_interface::init(void) {
-  BX_DEBUG(("Init $Id: cdrom.cc,v 1.75 2004/11/04 22:41:24 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: cdrom.cc,v 1.75.2.1 2004/11/05 00:56:43 slechta Exp $"));
   BX_INFO(("file = '%s'",path));
 }
 
@@ -538,6 +538,35 @@ cdrom_interface::~cdrom_interface(void)
 		free(path);
 	BX_DEBUG(("Exit"));
 }
+
+#if BX_SAVE_RESTORE
+
+void
+cdrom_interface::register_state(sr_list_c *list_p)
+{
+#warning implement register_state() for low level cdrom?
+  //BXRS_START(cdrom_interface, this, "low level cdrom", list_p, 10);
+  //{
+  //  // BJS TODO: register function to reload lowlevel cdrom on save/restore
+  //  
+  //  // TODO: the following fields need to be reconstituted on loading of
+  //  // of a checkpoint.  a function handler is require for these fields.
+  //  //     int fd;
+  //  //     char *path;
+  //  //     
+  //  //     int using_file;
+  //  // #ifdef WIN32
+  //  //     HANDLE hFile;
+  //  //     int hid;
+  //  //     int tid;
+  //  //     int lun;
+  //  // #endif
+  //
+  //}
+  //BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
 
   bx_bool
 cdrom_interface::insert_cdrom(char *dev)

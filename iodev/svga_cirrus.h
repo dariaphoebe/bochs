@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: svga_cirrus.h,v 1.2 2004/08/16 15:23:19 vruppert Exp $
+// $Id: svga_cirrus.h,v 1.2.2.1 2004/11/05 00:56:48 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2004 Makoto Suzuki (suzu)
@@ -65,6 +65,13 @@ public:
 
   virtual void   init(void);
   virtual void   reset(unsigned type);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
+
   virtual void redraw_area(unsigned x0, unsigned y0, 
                            unsigned width, unsigned height);
   virtual Bit8u mem_read(Bit32u addr);

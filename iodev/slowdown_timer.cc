@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: slowdown_timer.cc,v 1.19 2004/06/19 15:20:14 sshwarts Exp $
+// $Id: slowdown_timer.cc,v 1.19.2.1 2004/11/05 00:56:48 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -180,3 +180,25 @@ bx_slowdown_timer_c::handle_timer() {
 #endif // Diagnostic info
 }
 
+#if BX_SAVE_RESTORE
+
+void
+bx_slowdown_timer_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_slowdown_timer_c, this, list_p, 10);
+  BXRS_STRUCT_START(struct s_t, s);
+  {
+    BXRS_NUM(Bit64u, start_time);
+    BXRS_NUM(Bit64u, start_emulated_time);
+    BXRS_NUM(Bit64u, lasttime);
+
+    BXRS_NUM(int, timer_handle);
+
+    BXRS_ENUM(float, MAXmultiplier);
+    BXRS_NUM_D(Bit64u, Q, "Q (in seconds)");    
+  }
+  BXRS_STRUCT_END;
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE

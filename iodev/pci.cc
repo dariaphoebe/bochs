@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.cc,v 1.37 2004/08/06 15:49:54 vruppert Exp $
+// $Id: pci.cc,v 1.37.2.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -567,5 +567,43 @@ bx_pci_c::pci_set_base_io(void *this_ptr, bx_read_handler_t f1, bx_write_handler
   }
   *addr = baseaddr;
 }
+
+#if BX_SAVE_RESTORE
+
+void
+bx_pci_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_pci_c, BX_PCI_THIS, list_p, 10);
+  {
+    BXRS_ARRAY_NUM_D(Bit8u, pci_handler_id,0x100, "256 devices/functions");
+    BXRS_ARRAY_START(struct pci_handler_t, pci_handler, BX_MAX_PCI_DEVICES);
+    {
+      BXRS_UNUSED;
+      // BJS TODO: what do we do with these?  assuming we dont need to s/r this
+      // bx_pci_read_handler_t  read;
+      // bx_pci_write_handler_t write;
+      // void             *this_ptr;
+    }
+    BXRS_ARRAY_END;
+
+    BXRS_NUM(unsigned, num_pci_handles);
+    
+    BXRS_STRUCT_START(struct s_t, s);
+    {
+      BXRS_STRUCT_START(s_t::bx_def440fx_t, i440fx);
+      {
+        BXRS_NUM(Bit32u, confAddr);
+        BXRS_NUM(Bit32u, confData);
+        BXRS_ARRAY_NUM(Bit8u, pci_conf, 256);
+      }
+      BXRS_STRUCT_END;
+      BXRS_OBJ(bx_def440fx_t, i440fx);
+    }
+    BXRS_STRUCT_END;
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
 
 #endif /* BX_SUPPORT_PCI */

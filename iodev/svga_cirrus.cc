@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: svga_cirrus.cc,v 1.4 2004/08/28 15:31:33 vruppert Exp $
+// $Id: svga_cirrus.cc,v 1.4.2.1 2004/11/05 00:56:48 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2004 Makoto Suzuki (suzu)
@@ -3450,5 +3450,8 @@ bx_svga_cirrus_c::svga_get_bkwd_rop_handler(Bit8u rop)
   return rop_handler;
 }
 
+#if BX_SAVE_RESTORE
+#warning svga_cirrus not currently save/restored!
+#endif // #if BX_SAVE_RESTORE
 
 #endif // BX_SUPPORT_CLGD54XX

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.76 2004/10/03 20:02:09 vruppert Exp $
+// $Id: devices.cc,v 1.76.2.1 2004/11/05 00:56:43 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -106,7 +106,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.76 2004/10/03 20:02:09 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.76.2.1 2004/11/05 00:56:43 slechta Exp $"));
   mem = newmem;
 
   /* set no-default handlers, will be overwritten by the real default handler */
@@ -305,6 +305,94 @@ bx_devices_c::init(BX_MEM_C *newmem)
 
   /* now perform checksum of CMOS memory */
   DEV_cmos_checksum();
+
+
+#if BX_SAVE_RESTORE
+
+  sr_list_c *dev_list_p = new sr_list_c (SIM->get_sr_root(), "dev", "dev", 100);
+
+#define DEV_REGISTER_STATE(NAME) \
+  if (NAME) NAME->register_state(new sr_list_c (dev_list_p, #NAME, #NAME, 30));
+
+#define PLUG_REGISTER_STATE(NAME) \
+  if (plugin##NAME) plugin##NAME->register_state(new sr_list_c (dev_list_p, #NAME, #NAME, 30));
+
+  PLUG_REGISTER_STATE(Unmapped);
+
+  if (bx_options.Oi440FXSupport->get ()) {
+#if BX_SUPPORT_PCI
+    PLUG_REGISTER_STATE(PciBridge);
+    PLUG_REGISTER_STATE(Pci2IsaBridge);
+    PLUG_REGISTER_STATE(PciIdeController);
+#if BX_SUPPORT_PCIVGA
+    PLUG_REGISTER_STATE(PciVgaAdapter);
+#endif
+#if BX_SUPPORT_PCIUSB
+    PLUG_REGISTER_STATE(PciUSBAdapter);
+#endif
+#if BX_SUPPORT_PCIDEV
+    PLUG_REGISTER_STATE(PciDevAdapter);
+#endif
+#if BX_SUPPORT_PCIPNIC
+  if (bx_options.pnic.Oenabled->get ()) {
+    PLUG_REGISTER_STATE(PciPNicAdapter);
+  }
+#endif
+#endif
+  }
+
+  if (bx_options.ne2k.Opresent->get ()) {
+#if BX_SUPPORT_NE2K
+    PLUG_REGISTER_STATE(NE2kDevice);
+#endif
+  }
+
+#if BX_SUPPORT_APIC
+  DEV_REGISTER_STATE(ioapic);
+#endif
+
+  PLUG_REGISTER_STATE(BiosDevice);
+  PLUG_REGISTER_STATE(CmosDevice);
+  PLUG_REGISTER_STATE(DmaDevice);
+  PLUG_REGISTER_STATE(FloppyDevice);
+
+  if (bx_options.sb16.Opresent->get ()) {
+#if BX_SUPPORT_SB16
+    PLUG_REGISTER_STATE(SB16Device);
+#endif
+  }
+
+#if BX_SUPPORT_PCI
+  PLUG_REGISTER_STATE(PciBridge);
+  PLUG_REGISTER_STATE(Pci2IsaBridge);
+#endif
+
+  PLUG_REGISTER_STATE(VgaDevice);
+  PLUG_REGISTER_STATE(PicDevice);
+  PLUG_REGISTER_STATE(HardDrive);
+  DEV_REGISTER_STATE(pit);
+  DEV_REGISTER_STATE((&bx_virt_timer));
+  DEV_REGISTER_STATE((&bx_slowdown_timer));
+
+#if BX_SUPPORT_IODEBUG
+  DEV_REGISTER_STATE(iodebug);
+#endif
+
+#if BX_SUPPORT_GAME
+  PLUG_REGISTER_STATE(Gameport);
+#endif
+  PLUG_REGISTER_STATE(Keyboard);
+  PLUG_REGISTER_STATE(SerialDevice);
+  PLUG_REGISTER_STATE(ParallelDevice);
+
+#if 0
+  DEV_REGISTER_STATE(g2h);
+#endif
+
+#endif // #if BX_SAVE_RESTORE
+
+
+
 }
 
 

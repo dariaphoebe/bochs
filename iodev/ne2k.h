@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.h,v 1.16 2004/09/05 10:30:19 vruppert Exp $
+// $Id: ne2k.h,v 1.16.2.1 2004/11/05 00:56:45 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -58,7 +58,7 @@ typedef struct {
     // Page 0
     //
     //  Command Register - 00h read/write
-    struct {
+    struct CR_t {
         bx_bool  stop;		// STP - Software Reset command
         bx_bool  start;		// START - start the NIC
         bx_bool  tx_packet;	// TXP - initiate packet transmission
@@ -66,7 +66,7 @@ typedef struct {
 	Bit8u	 pgsel;		// PS0,PS1 - Page select
     } CR;
     // Interrupt Status Register - 07h read/write
-    struct {  
+    struct ISR_t {  
 	bx_bool  pkt_rx;       	// PRX - packet received with no errors
 	bx_bool  pkt_tx;       	// PTX - packet transmitted with no errors
 	bx_bool  rx_err;	// RXE - packet received with 1 or more errors
@@ -77,7 +77,7 @@ typedef struct {
 	bx_bool  reset;		// RST - reset status
     } ISR;
     // Interrupt Mask Register - 0fh write
-    struct {
+    struct IMR_t {
 	bx_bool  rx_inte;	// PRXE - packet rx interrupt enable
 	bx_bool  tx_inte;	// PTXE - packet tx interrput enable
 	bx_bool  rxerr_inte;	// RXEE - rx error interrupt enable
@@ -88,7 +88,7 @@ typedef struct {
 	bx_bool  reserved;	//  D7 - reserved
     } IMR;
     // Data Configuration Register - 0eh write
-    struct {
+    struct DCR_t {
 	bx_bool  wdsize;	// WTS - 8/16-bit select
 	bx_bool  endian;	// BOS - byte-order select
 	bx_bool  longaddr;	// LAS - long-address select
@@ -97,7 +97,7 @@ typedef struct {
         Bit8u    fifo_size;	// FT0,FT1 - fifo threshold
     } DCR;
     // Transmit Configuration Register - 0dh write
-    struct {
+    struct TCR_t {
 	bx_bool  crc_disable;	// CRC - inhibit tx CRC
 	Bit8u    loop_cntl;	// LB0,LB1 - loopback control
 	bx_bool  ext_stoptx;    // ATD - allow tx disable by external mcast
@@ -105,7 +105,7 @@ typedef struct {
 	Bit8u    reserved;      //  D5,D6,D7 - reserved
     } TCR;
     // Transmit Status Register - 04h read
-    struct {
+    struct TSR_t {
 	bx_bool  tx_ok;		// PTX - tx complete without error
 	bx_bool  reserved;	//  D1 - reserved
 	bx_bool  collided;	// COL - tx collided >= 1 times
@@ -116,7 +116,7 @@ typedef struct {
 	bx_bool  ow_coll;	// OWC - out-of-window collision
     } TSR;
     // Receive Configuration Register - 0ch write
-    struct {
+    struct RCR_t {
 	bx_bool  errors_ok;	// SEP - accept pkts with rx errors
 	bx_bool  runts_ok;	// AR  - accept < 64-byte runts
 	bx_bool  broadcast;	// AB  - accept eth broadcast address
@@ -126,7 +126,7 @@ typedef struct {
 	Bit8u    reserved;	//  D6,D7 - reserved
     } RCR;
     // Receive Status Register - 0ch read
-    struct {
+    struct RSR_t {
 	bx_bool  rx_ok;		// PRX - rx complete without error
 	bx_bool  bad_crc;	// CRC - Bad CRC detected
 	bx_bool  bad_falign;	// FAE - frame alignment error
@@ -210,6 +210,12 @@ public:
   virtual void init(void);
   virtual void reset(unsigned type);
   virtual void print_info (FILE *file, int page, int reg, int nodups);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
 
 private:
   bx_ne2k_t s;

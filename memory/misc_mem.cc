@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: misc_mem.cc,v 1.52 2004/10/29 21:15:48 sshwarts Exp $
+// $Id: misc_mem.cc,v 1.52.2.1 2004/11/05 00:56:49 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -95,7 +95,7 @@ void BX_MEM_C::init_memory(int memsize)
 {
   int idx;
 
-  BX_DEBUG(("Init $Id: misc_mem.cc,v 1.52 2004/10/29 21:15:48 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: misc_mem.cc,v 1.52.2.1 2004/11/05 00:56:49 slechta Exp $"));
   // you can pass 0 if memory has been allocated already through
   // the constructor, or the desired size of memory if it hasn't
   // BX_INFO(("%.2fMB", (float)(BX_MEM_THIS megabytes) ));
@@ -122,6 +122,39 @@ void BX_MEM_C::init_memory(int memsize)
 
 }
 
+#if BX_SAVE_RESTORE
+Bit64s mem_vector_restore(sr_param_c *param_p, int set, Bit64s val)
+{
+  if (set) 
+    {
+      // find the bx_shadow_num_c labeled "vector" with the same parent
+      sr_param_c *vector_param_p = param_p->get_parent()->
+        get_by_name("vector");
+      BX_ASSERT((vector_param_p != NULL));
+    }
+  
+  return val;
+}
+
+void BX_MEM_C::register_state(sr_param_c *list_p)
+{
+  BXRS_START(BX_MEM_C, BX_MEM_THIS_PTR, list_p, 10);
+  {
+    BXRS_DARRAYP(vector, BX_MEM_THIS len);
+    BXRS_NUM_H(size_t, len, mem_vector_restore);
+    BXRS_NUM_D(size_t, megabytes, "(len in Megabytes)");
+#if BX_SUPPORT_PCI
+    BXRS_DARRAY_D(shadow, (256*4096), "256k of memory");
+#endif
+#if BX_DEBUGGER
+#warning CHECKME: do we reaslly need to register this??
+    //BXRS_ARRAY_NUM(unsigned char, dbg_dirty_pages,
+    //               ((BX_MAX_DIRTY_PAGE_TABLE_MEGS * 1024 * 1024) / 4096));
+#endif
+  }
+  BXRS_END;
+}
+#endif
 //
 // Values for type:
 //   0 : System Bios

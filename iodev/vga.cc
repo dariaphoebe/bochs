@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.cc,v 1.111 2004/08/24 10:15:56 vruppert Exp $
+// $Id: vga.cc,v 1.111.2.1 2004/11/05 00:56:48 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -3277,3 +3277,160 @@ bx_vga_c::vbe_write(Bit32u address, Bit32u value, unsigned io_len)
 }
 
 #endif
+
+
+#if BX_SAVE_RESTORE
+
+void
+bx_vga_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_vga_c, BX_VGA_THIS_PTR, list_p, 20);
+  {
+    BXRS_STRUCT_START_D(struct s_t, s, "state registration");
+    {
+      BXRS_STRUCT_START(struct s_t::misc_output_t, misc_output);
+      {
+        BXRS_BOOL_D(bx_bool, color_emulation, "1=color emulation,0=mono emulation");
+        BXRS_BOOL_D(bx_bool, enable_ram, "enable CPU access to video memory if set");
+        BXRS_NUM_D (Bit8u  , clock_select, "0=25Mhz 1=28Mhz");
+        BXRS_BOOL_D(bx_bool, select_high_bank, "when in odd/even modes, select"); 
+        BXRS_BOOL_D(bx_bool, horiz_sync_pol, "negative if set");
+        BXRS_BOOL_D(bx_bool, vert_sync_pol, "negative if set");
+      }
+      BXRS_STRUCT_END;
+
+      BXRS_STRUCT_START(struct s_t::CRTC_t, CRTC);
+      {
+        BXRS_NUM(Bit8u, address);
+        BXRS_ARRAY_NUM(Bit8u, reg, 0x19);
+        BXRS_BOOL(bx_bool, write_protect);
+      }
+      BXRS_STRUCT_END;
+
+      BXRS_STRUCT_START(struct s_t::attribute_ctrl_t, attribute_ctrl); 
+      {
+        BXRS_BOOL_D(bx_bool , flip_flop, "0 = address, 1 = data-write");
+        BXRS_NUM_D (unsigned, address, "register number");
+        BXRS_BOOL  (bx_bool , video_enabled);
+        BXRS_ARRAY_NUM(Bit8u, palette_reg, 16);
+        BXRS_NUM   (Bit8u   , overscan_color);
+        BXRS_NUM   (Bit8u   , color_plane_enable);
+        BXRS_NUM   (Bit8u   , horiz_pel_panning);
+        BXRS_NUM   (Bit8u   , color_select);
+        
+        BXRS_STRUCT_START(struct s_t::attribute_ctrl_t::mode_ctrl_t, mode_ctrl); 
+        {
+          BXRS_BOOL(bx_bool, graphics_alpha);
+          BXRS_BOOL(bx_bool, display_type);
+          BXRS_BOOL(bx_bool, enable_line_graphics);
+          BXRS_BOOL(bx_bool, blink_intensity);
+          BXRS_BOOL(bx_bool, pixel_panning_compat);
+          BXRS_BOOL(bx_bool, pixel_clock_select);
+          BXRS_BOOL(bx_bool, internal_palette_size);
+        } 
+        BXRS_STRUCT_END;
+      }
+      BXRS_STRUCT_END;
+      
+      BXRS_STRUCT_START(struct s_t::pel_t, pel);
+      {
+        BXRS_NUM  (Bit8u, write_data_register);
+        BXRS_NUM_D(Bit8u, write_data_cycle, "0, 1, 2");
+        BXRS_NUM  (Bit8u, read_data_register);
+        BXRS_NUM_D(Bit8u, read_data_cycle, "0, 1, 2");
+        BXRS_NUM  (Bit8u, dac_state);
+        BXRS_ARRAY_START(struct s_t::pel_t::data_t, data, 256);
+        {
+          BXRS_NUM(Bit8u, red);
+          BXRS_NUM(Bit8u, green);
+          BXRS_NUM(Bit8u, blue);
+        }
+        BXRS_ARRAY_END;
+        BXRS_NUM(Bit8u, mask);
+      }
+      BXRS_STRUCT_END;
+    
+      BXRS_STRUCT_START(struct s_t::graphics_ctrl_t, graphics_ctrl);
+      {
+        BXRS_NUM (Bit8u  , index);
+        BXRS_NUM (Bit8u  , set_reset);
+        BXRS_NUM (Bit8u  , enable_set_reset);
+        BXRS_NUM (Bit8u  , color_compare);
+        BXRS_NUM (Bit8u  , data_rotate);
+        BXRS_NUM (Bit8u  , raster_op);
+        BXRS_NUM (Bit8u  , read_map_select);
+        BXRS_NUM (Bit8u  , write_mode);
+        BXRS_BOOL(bx_bool, read_mode);
+        BXRS_BOOL(bx_bool, odd_even);
+        BXRS_BOOL(bx_bool, chain_odd_even);
+        BXRS_NUM (Bit8u  , shift_reg);
+        BXRS_BOOL(bx_bool, graphics_alpha);
+        BXRS_NUM (Bit8u  , memory_mapping);
+        BXRS_NUM (Bit8u  , color_dont_care);
+        BXRS_NUM (Bit8u  , bitmask);
+        BXRS_ARRAY_NUM(Bit8u, latch, 4);
+      }
+      BXRS_STRUCT_END;
+    
+      BXRS_STRUCT_START(struct s_t::sequencer_t, sequencer);
+      {
+        BXRS_NUM       (Bit8u  , index);
+        BXRS_NUM       (Bit8u  , map_mask);
+        BXRS_ARRAY_BOOL(bx_bool, map_mask_bit,4);
+        BXRS_BOOL      (bx_bool, reset1);
+        BXRS_BOOL      (bx_bool, reset2);
+        BXRS_NUM       (Bit8u  , reg1);
+        BXRS_NUM       (Bit8u  , char_map_select);
+        BXRS_BOOL      (bx_bool, extended_mem);
+        BXRS_BOOL      (bx_bool, odd_even);
+        BXRS_BOOL      (bx_bool, chain_four);
+      }
+      BXRS_STRUCT_END;
+    
+      BXRS_BOOL  (bx_bool , vga_mem_updated);
+      BXRS_NUM   (unsigned, x_tilesize);
+      BXRS_NUM   (unsigned, y_tilesize);
+      BXRS_NUM   (unsigned, line_offset);
+      BXRS_NUM   (unsigned, line_compare);
+      BXRS_NUM   (unsigned, vertical_display_end);
+      // BJS TODO: should convert this to BOOL, but this works just fine for now...
+      BXRS_ARRAY_ENUM(bx_bool, vga_tile_updated, (BX_NUM_X_TILES*BX_NUM_Y_TILES));
+      BXRS_DARRAY(vga_memory, (256 * 1024));
+      BXRS_DARRAY(text_snapshot, (32 * 1024));
+      BXRS_DARRAY(rgb, (3 * 256));
+      BXRS_DARRAY(tile, (4 * X_TILESIZE * Y_TILESIZE));
+      BXRS_NUM   (Bit16u  , charmap_address);
+      BXRS_BOOL  (bx_bool , x_dotclockdiv2);
+      BXRS_BOOL  (bx_bool , y_doublescan);
+
+#if BX_SUPPORT_VBE    
+      BXRS_ARRAY_NUM (Bit8u  , vbe_memory, (VBE_DISPI_TOTAL_VIDEO_MEMORY_BYTES));
+      BXRS_NUM (Bit16u , vbe_cur_dispi);
+      BXRS_NUM (Bit16u , vbe_xres);
+      BXRS_NUM (Bit16u , vbe_yres);
+      BXRS_NUM (Bit16u , vbe_bpp);
+      BXRS_NUM (Bit16u , vbe_max_xres);
+      BXRS_NUM (Bit16u , vbe_max_yres);
+      BXRS_NUM (Bit16u , vbe_max_bpp);
+      BXRS_NUM (Bit16u , vbe_bank);
+      BXRS_BOOL(bx_bool, vbe_enabled);
+      BXRS_NUM (Bit16u , vbe_curindex);
+      BXRS_NUM (Bit32u , vbe_visable_screen_size); // in bytes
+      BXRS_NUM (Bit16u , vbe_offset_x);
+      BXRS_NUM (Bit16u , vbe_offset_y);
+      BXRS_NUM (Bit16u , vbe_virtual_xres);
+      BXRS_NUM (Bit16u , vbe_virtual_yres);
+      BXRS_NUM (Bit32u , vbe_virtual_start);   
+      BXRS_NUM (Bit8u  , vbe_bpp_multiplier);  
+      BXRS_BOOL(bx_bool, vbe_lfb_enabled);
+      BXRS_BOOL(bx_bool, vbe_get_capabilities);
+      BXRS_BOOL(bx_bool, vbe_8bit_dac);
+#endif    
+    }
+    BXRS_STRUCT_END;
+    BXRS_NUM(int, timer_id);
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE

@@ -1,5 +1,6 @@
+// -*- C++ -*-
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci_ide.cc,v 1.7 2004/08/06 15:49:54 vruppert Exp $
+// $Id: pci_ide.cc,v 1.7.2.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -261,5 +262,25 @@ bx_pci_ide_c::pci_write(Bit8u address, Bit32u value, unsigned io_len)
     }
   }
 }
+
+#if BX_SAVE_RESTORE
+
+void
+bx_pci_ide_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_pci_ide_c, BX_PIDE_THIS_PTR, list_p, 5);
+  {
+    BXRS_STRUCT(struct s_t, s);
+    {
+      BXRS_ARRAY_NUM(Bit8u, pci_conf, 256);
+      BXRS_NUM(Bit32u, bmide_addr);
+      BXRS_ARRAY_NUM(Bit8u, bmide_regs, 16);
+    }
+  }
+  BXRS_END;
+}
+
+#endif // #if BX_SAVE_RESTORE
+
 
 #endif /* BX_SUPPORT_PCI */

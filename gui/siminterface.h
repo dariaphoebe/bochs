@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.127 2004/10/24 20:04:51 vruppert Exp $
+// $Id: siminterface.h,v 1.127.2.1 2004/11/05 00:56:42 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Before I can describe what this file is for, I have to make the
@@ -862,6 +862,7 @@ class bx_param_bool_c;
 class bx_param_string_c;
 class bx_param_filename_c;
 class bx_list_c;
+class sr_param_c;
 
 class BOCHSAPI bx_object_c {
 private:
@@ -1395,6 +1396,11 @@ public:
   virtual char *get_action_name (int action) {return 0;}
   virtual const char *get_log_level_name (int level) {return 0;}
   virtual int get_max_log_level () {return -1;}
+
+  // save/restore functions
+  virtual sr_param_c *get_sr_root() { return NULL; }
+  virtual bool save_state (const char *checkpoint_name) { return false;};
+  virtual bool restore_state (const char *checkpoint_name) {return false;};
 
   // exiting is somewhat complicated!  The preferred way to exit bochs is
   // to call BX_EXIT(exitcode).  That is defined to call 

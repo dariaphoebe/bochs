@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.108 2004/10/16 15:44:00 vruppert Exp $
+// $Id: siminterface.cc,v 1.108.2.1 2004/11/05 00:56:41 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -133,6 +133,14 @@ public:
       bx_gui->set_display_mode (newmode);
   }
   virtual bool test_for_text_console ();
+
+#if BX_SAVE_RESTORE
+  bx_checkpoint_c *chkpnt_p;
+  sr_param_c *root_sr_param_p;
+  virtual sr_param_c *get_sr_root() { return root_sr_param_p; };
+  virtual bool save_state (const char *checkpoint_name);
+  virtual bool restore_state (const char *checkpoint_name);
+#endif 
 };
 
 bx_param_c *
@@ -230,6 +238,11 @@ bx_real_sim_c::bx_real_sim_c ()
     param_registry[i] = NULL;
   quit_context = NULL;
   exit_code = 0;
+
+#if BX_SAVE_RESTORE
+  chkpnt_p = new bx_checkpoint_c();
+  root_sr_param_p = new sr_list_c(NULL, ".", "root sr_param");
+#endif
 }
 
 // called by constructor of bx_param_c, so that every parameter that is
@@ -775,7 +788,31 @@ bx_real_sim_c::test_for_text_console ()
   return true;
 }
 
+#if BX_SAVE_RESTORE
+bool 
+bx_real_sim_c::save_state (const char *checkpoint_name)
+{
+  BX_INFO (("save_state(%s)", checkpoint_name));
 
+  bool status = chkpnt_p && (chkpnt_p->write(checkpoint_name, root_sr_param_p) == 0);
+  // chkpnt_p && chkpnt_p->dump_param_tree (root_sr_param_p);  // debug
+  return status;
+}
+
+bool 
+bx_real_sim_c::restore_state (const char *checkpoint_name)
+{
+  BX_INFO (("restore_state(%s)", checkpoint_name));
+  // some params can only be changed at configure time, not runtime.
+  // Set init_done to 0 so that these values can be changed.
+  set_init_done (0);
+  bool status = chkpnt_p && (chkpnt_p->read(checkpoint_name, root_sr_param_p) == 0);
+  // chkpnt_p && chkpnt_p->write("checkpt2", root_sr_param_p);   // debug
+  set_init_done (1);
+  bx_just_restored_state = 1;
+  return status;
+}
+#endif // BX_SAVE_RESTORE
 /////////////////////////////////////////////////////////////////////////
 // define methods of bx_param_* and family
 /////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,6 @@
+
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.h,v 1.9 2004/09/25 22:15:02 vruppert Exp $
+// $Id: pci2isa.h,v 1.9.2.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -28,9 +29,11 @@
 #if BX_USE_P2I_SMF
 #  define BX_P2I_SMF  static
 #  define BX_P2I_THIS thePci2IsaBridge->
+#  define BX_P2I_THISP thePci2IsaBridge
 #else
 #  define BX_P2I_SMF
 #  define BX_P2I_THIS this->
+#  define BX_P2I_THISP this
 #endif
 
 
@@ -43,9 +46,15 @@ public:
   virtual void   reset(unsigned type);
   virtual void   pci_set_irq(Bit8u devfunc, unsigned line, bx_bool level);
 
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
+
 private:
 
-  struct {
+  struct s_t {
     Bit8u pci_conf[256];
     Bit8u elcr1;
     Bit8u elcr2;

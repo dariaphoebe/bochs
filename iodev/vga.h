@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.h,v 1.43 2004/08/24 10:15:56 vruppert Exp $
+// $Id: vga.h,v 1.43.2.1 2004/11/05 00:56:49 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -103,9 +103,11 @@
 #if BX_USE_VGA_SMF
 #  define BX_VGA_SMF  static
 #  define BX_VGA_THIS theVga->
+#  define BX_VGA_THIS_PTR theVga
 #else
 #  define BX_VGA_SMF
 #  define BX_VGA_THIS this->
+#  define BX_VGA_THIS_PTR this
 #endif
 
 
@@ -116,6 +118,13 @@ public:
   ~bx_vga_c(void);
   virtual void   init(void);
   virtual void   reset(unsigned type);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
+
   BX_VGA_SMF bx_bool mem_read_handler(unsigned long addr, unsigned long len, void *data, void *param);
   BX_VGA_SMF bx_bool mem_write_handler(unsigned long addr, unsigned long len, void *data, void *param);
   virtual Bit8u  mem_read(Bit32u addr);
@@ -149,8 +158,8 @@ protected:
   static void   vbe_write_handler(void *this_ptr, Bit32u address, Bit32u value, unsigned io_len);
 #endif
 
-  struct {
-    struct {
+  struct s_t {
+    struct misc_output_t {
       bx_bool color_emulation;  // 1=color emulation, base address = 3Dx
                                 // 0=mono emulation,  base address = 3Bx
       bx_bool enable_ram;       // enable CPU access to video memory if set
@@ -166,13 +175,13 @@ protected:
                                 //   3 - 480 lines
       } misc_output;
 
-    struct {
+    struct CRTC_t {
       Bit8u   address;
       Bit8u   reg[0x19];
       bx_bool write_protect;
       } CRTC;
 
-    struct {
+    struct attribute_ctrl_t {
       bx_bool  flip_flop; /* 0 = address, 1 = data-write */
       unsigned address;  /* register number */
       bx_bool  video_enabled;
@@ -181,7 +190,7 @@ protected:
       Bit8u    color_plane_enable;
       Bit8u    horiz_pel_panning;
       Bit8u    color_select;
-      struct {
+      struct mode_ctrl_t {
         bx_bool graphics_alpha;
         bx_bool display_type;
         bx_bool enable_line_graphics;
@@ -192,13 +201,13 @@ protected:
         } mode_ctrl;
       } attribute_ctrl;
 
-    struct {
+    struct pel_t {
       Bit8u write_data_register;
       Bit8u write_data_cycle; /* 0, 1, 2 */
       Bit8u read_data_register;
       Bit8u read_data_cycle; /* 0, 1, 2 */
       Bit8u dac_state;
-      struct {
+      struct data_t {
         Bit8u red;
         Bit8u green;
         Bit8u blue;
@@ -207,7 +216,7 @@ protected:
       } pel;
 
 
-    struct {
+    struct graphics_ctrl_t {
       Bit8u   index;
       Bit8u   set_reset;
       Bit8u   enable_set_reset;
@@ -231,7 +240,7 @@ protected:
       Bit8u   latch[4];
       } graphics_ctrl;
 
-    struct {
+    struct sequencer_t {
       Bit8u   index;
       Bit8u   map_mask;
       bx_bool map_mask_bit[4];

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pic.cc,v 1.36 2004/07/08 18:45:03 vruppert Exp $
+// $Id: pic.cc,v 1.36.2.1 2004/11/05 00:56:47 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -905,3 +905,68 @@ dbg_printf("s.slave_pic.irr = %02x\n", BX_PIC_THIS s.slave_pic.irr);
 dbg_printf("s.slave_pic.irq = %02x\n", BX_PIC_THIS s.slave_pic.irq);
 #endif
 }
+
+#if BX_SAVE_RESTORE
+
+void
+bx_pic_c::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_pic_c, BX_PIC_THIS_PTR, list_p, 20);
+  {
+    BXRS_STRUCT_START(struct s_t, s);
+    {
+      BXRS_OBJ(bx_pic_t, master_pic);
+      BXRS_OBJ(bx_pic_t, slave_pic);
+    }
+    BXRS_END;
+  }
+  BXRS_END;
+}
+
+
+void
+bx_pic_t::register_state(sr_param_c *list_p)
+{
+  BXRS_START(bx_pic_t, this, list_p, 25);
+  {
+    BXRS_NUM_D(Bit8u, single_PIC,        "0=cascaded PIC, 1=master only");
+    BXRS_NUM_D(Bit8u, interrupt_offset,  "programmable interrupt vector offset");
+    
+    BXRS_STRUCT_START(u_t, u);  // BXRS_UNION_START
+    {
+      BXRS_NUM_D(Bit8u, slave_connect_mask, "for master, a bit for each interrupt line 0=not connect to a slave, 1=connected");
+      BXRS_NUM_D(Bit8u, slave_id,           "for slave, id number of slave PIC");
+    }
+    BXRS_STRUCT_END;  // BXRS_UNION_END
+      
+    BXRS_NUM_D (Bit8u, sfnm,           "specially fully nested mode: 0=no, 1=yes");
+    BXRS_NUM_D (Bit8u, buffered_mode,  "0=no buffered mode, 1=buffered mode");
+    BXRS_NUM_D (Bit8u, master_slave,   "master/slave: 0=slave PIC, 1=master PIC");
+    BXRS_NUM_D (Bit8u, auto_eoi,       "0=manual EOI, 1=automatic EOI");
+    BXRS_NUM_D (Bit8u, imr,            "interrupt mask register, 1=masked");
+    BXRS_NUM_D (Bit8u, isr,            "in service register");
+    BXRS_NUM_D (Bit8u, irr,            "interrupt request register");
+    BXRS_NUM_D (Bit8u, read_reg_select,"0=IRR, 1=ISR");
+    BXRS_NUM_D (Bit8u, irq,            "current IRQ number");
+    BXRS_NUM_D (Bit8u, lowest_priority,"current lowest priority irq");
+    BXRS_BOOL_D(bx_bool, INT,          "INT request pin of PIC");
+
+    BXRS_ARRAY_BOOL_D(bx_bool, IRQ_line, 8 ,"IRQ pins of PIC");
+    BXRS_STRUCT_START(struct init_t, init);
+    {
+      BXRS_BOOL(bx_bool, in_init);
+      BXRS_BOOL(bx_bool, requires_4);
+      BXRS_NUM (int    , byte_expected);
+    }
+    BXRS_STRUCT_END;
+
+    BXRS_BOOL  (bx_bool, special_mask);
+    BXRS_BOOL_D(bx_bool, polled,            "Set when poll command is issued.");
+    BXRS_BOOL_D(bx_bool, rotate_on_autoeoi, "Set when should rotate in auto-eoi mode.");
+    BXRS_NUM_D (Bit8u  , edge_level,        "bitmap for irq mode (0=edge, 1=level)");
+  }
+  BXRS_END;
+  
+}
+
+#endif // #if BX_SAVE_RESTORE

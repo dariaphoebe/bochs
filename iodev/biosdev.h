@@ -1,5 +1,5 @@
 
-// $Id: biosdev.h,v 1.4 2004/09/05 17:55:12 vruppert Exp $
+// $Id: biosdev.h,v 1.4.2.1 2004/11/05 00:56:43 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -31,9 +31,11 @@
 #if BX_USE_BIOS_SMF
 #  define BX_BIOS_SMF  static
 #  define BX_BIOS_THIS theBiosDevice->
+#  define BX_BIOS_THISP theBiosDevice
 #else
 #  define BX_BIOS_SMF
 #  define BX_BIOS_THIS this->
+#  define BX_BIOS_THISP this
 #endif
 
 
@@ -45,6 +47,12 @@ public:
   virtual void init(void);
   virtual void reset (unsigned type);
 
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif
+
 private:
 
   static void   write_handler(void *this_ptr, Bit32u address, Bit32u value, unsigned io_len);
@@ -52,7 +60,7 @@ private:
   void   write(Bit32u address, Bit32u value, unsigned io_len);
 #endif
 
-  struct {
+  struct s_t {
     Bit8u bios_message[BX_BIOS_MESSAGE_SIZE];
     unsigned int bios_message_i;
     bx_bool bios_panic_flag;

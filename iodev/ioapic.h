@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.h,v 1.7 2004/10/16 19:34:17 sshwarts Exp $
+// $Id: ioapic.h,v 1.7.2.1 2004/11/05 00:56:45 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 
 extern class bx_ioapic_c bx_ioapic;
@@ -27,6 +27,9 @@ public:
   // these fields except by calling parse_value.
   Bit8u dest, masked, trig_mode, remote_irr, polarity, delivery_status, dest_mode, delivery_mode, vector;
   void sprintf_self (char *buf);
+#if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+#endif
 };
 
 class bx_ioapic_c : public bx_generic_apic_c {
@@ -51,4 +54,10 @@ public:
   virtual bx_bool match_logical_addr (Bit8u address) { return false; }
   virtual bx_bool is_local_apic () { return false; }
   virtual bx_apic_type_t get_type () { return APIC_TYPE_IOAPIC; }
+
+#if BX_SAVE_RESTORE
+  virtual void   register_state(sr_param_c *list_p);
+  virtual void   before_save_state () {};
+  virtual void   after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
 };

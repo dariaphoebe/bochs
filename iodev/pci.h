@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.h,v 1.20 2004/07/11 20:38:48 vruppert Exp $
+// $Id: pci.h,v 1.20.2.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -35,9 +35,11 @@ typedef void   (*bx_pci_write_handler_t)(void *, Bit8u, Bit32u, unsigned);
 #if BX_USE_PCI_SMF
 #  define BX_PCI_SMF  static
 #  define BX_PCI_THIS thePciBridge->
+#  define BX_PCI_THISP thePciBridge
 #else
 #  define BX_PCI_SMF
 #  define BX_PCI_THIS this->
+#  define BX_PCI_THISP this
 #endif
 
 
@@ -77,6 +79,12 @@ public:
   virtual void   print_i440fx_state(void);
   virtual Bit8u rd_memType (Bit32u addr);
   virtual Bit8u wr_memType (Bit32u addr);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
 
 private:
   Bit8u pci_handler_id[0x100];  // 256 devices/functions

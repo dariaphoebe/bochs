@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.h,v 1.3 2003/01/27 21:11:55 vruppert Exp $
+// $Id: pcivga.h,v 1.3.20.1 2004/11/05 00:56:47 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003  Mike Nordell
@@ -20,8 +20,10 @@
 
 #if BX_USE_PCIVGA_SMF
 #  define BX_PCIVGA_THIS thePciVgaAdapter->
+#  define BX_PCIVGA_THIS_PTR thePciVgaAdapter
 #else
 #  define BX_PCIVGA_THIS this->
+#  define BX_PCIVGA_THIS_PTR this
 #endif
 
 
@@ -33,9 +35,15 @@ public:
   virtual void   init(void);
   virtual void   reset(unsigned type);
 
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
+
 private:
 
-  struct {
+  struct s_t {
     Bit8u pci_conf[256];
   } s;
 

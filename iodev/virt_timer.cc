@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// $Id: virt_timer.cc,v 1.21 2004/06/19 15:20:15 sshwarts Exp $
+// $Id: virt_timer.cc,v 1.21.2.1 2004/11/05 00:56:49 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -549,4 +549,9 @@ void
 bx_virt_timer_c::pc_system_timer_handler(void* this_ptr) {
   ((bx_virt_timer_c *)this_ptr)->timer_handler();
 }
+
+#if BX_SAVE_RESTORE
+void bx_virt_timer_c::register_state(sr_param_c *list_p) {;};
+#warning virtual timer is currently not save/restored.  should it be?
+#endif 
 

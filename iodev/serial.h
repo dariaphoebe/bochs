@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: serial.h,v 1.22 2004/09/11 15:39:52 vruppert Exp $
+// $Id: serial.h,v 1.22.2.1 2004/11/05 00:56:48 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -31,9 +31,11 @@
 #if BX_USE_SER_SMF
 #  define BX_SER_SMF  static
 #  define BX_SER_THIS theSerialDevice->
+#  define BX_SER_THIS_PTR theSerialDevice
 #else
 #  define BX_SER_SMF
 #  define BX_SER_THIS this->
+#  define BX_SER_THIS_PTR this
 #endif
 
 #if defined(__NetBSD__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__linux__) || defined(__GNU__) || defined(__GLIBC__) || defined(__APPLE__)
@@ -123,24 +125,24 @@ typedef struct {
   Bit8u     rxbuffer;     /* receiver buffer register (r/o) */
   Bit8u     thrbuffer;    /* transmit holding register (w/o) */
   /* Interrupt Enable Register */
-  struct {
+  struct int_enable_t {
     bx_bool    rxdata_enable;      /* 1=enable receive data interrupts */
     bx_bool    txhold_enable;      /* 1=enable tx. holding reg. empty ints */
     bx_bool    rxlstat_enable;     /* 1=enable rx line status interrupts */
     bx_bool    modstat_enable;     /* 1=enable modem status interrupts */
   } int_enable;
   /* Interrupt Identification Register (r/o) */
-  struct {
+  struct int_ident_t {
     bx_bool    ipending;           /* 0=interrupt pending */
     Bit8u      int_ID;             /* 3-bit interrupt ID */
   } int_ident;
   /* FIFO Control Register (w/o) */
-  struct {
+  struct fifo_cntl_t {
     bx_bool    enable;             /* 1=enable tx and rx FIFOs */
     Bit8u      rxtrigger;          /* 2-bit code for rx fifo trigger level */
   } fifo_cntl;
   /* Line Control Register (r/w) */
-  struct {
+  struct line_cntl_t {
     Bit8u      wordlen_sel;        /* 2-bit code for char length */
     bx_bool    stopbits;           /* select stop bit len */
     bx_bool    parity_enable;      /* ... */
@@ -150,7 +152,7 @@ typedef struct {
     bx_bool    dlab;               /* divisor latch access bit */
   } line_cntl;
   /* MODEM Control Register (r/w) */
-  struct {
+  struct modem_cntl_t {
     bx_bool    dtr;                /* DTR output value */
     bx_bool    rts;                /* RTS output value */
     bx_bool    out1;               /* OUTPUT1 value */
@@ -158,7 +160,7 @@ typedef struct {
     bx_bool    local_loopback;     /* 1=loopback mode */
   } modem_cntl;
   /* Line Status Register (r/w) */
-  struct {
+  struct line_status_t  {
     bx_bool    rxdata_ready;       /* 1=receiver data ready */
     bx_bool    overrun_error;      /* 1=receive overrun detected */
     bx_bool    parity_error;       /* 1=rx char has a bad parity bit */
@@ -169,7 +171,7 @@ typedef struct {
     bx_bool    fifo_error;         /* 1=at least 1 err condition in fifo */
   } line_status;
   /* Modem Status Register (r/w) */
-  struct {
+  struct modem_status_t {
     bx_bool    delta_cts;          /* 1=CTS changed since last read */
     bx_bool    delta_dsr;          /* 1=DSR changed since last read */
     bx_bool    ri_trailedge;       /* 1=RI moved from low->high */
@@ -196,6 +198,12 @@ public:
   ~bx_serial_c(void);
   virtual void   init(void);
   virtual void   reset(unsigned type);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
 
 private:
   bx_serial_t s[BX_SERIAL_MAXDEV];

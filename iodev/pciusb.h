@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.h,v 1.3 2004/07/12 17:34:28 vruppert Exp $
+// $Id: pciusb.h,v 1.3.2.1 2004/11/05 00:56:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -69,7 +69,7 @@ typedef struct {
   //  Bit 2 = global reset
   //  Bit 1 = host controller reset
   //  Bit 0 = run/stop schedule
-  struct {
+  struct usb_command_t {
     bx_bool max_packet_size; //(bit 7) 0 = 32 bytes, 1 = 64 bytes
     bx_bool configured;      //(bit 6)
     bx_bool debug;           //(bit 5)
@@ -88,7 +88,7 @@ typedef struct {
   //  Bit 2 = resume received
   //  Bit 1 = USB error interrupt
   //  Bit 0 = USB interrupt
-  struct {
+  struct usb_status_t {
     bx_bool host_halted;     //(bit 5)
     bx_bool host_error;      //(bit 4)
     bx_bool pci_error;       //(bit 3)
@@ -103,7 +103,7 @@ typedef struct {
   //  Bit 2 = enable interrupt On Complete
   //  Bit 1 = enable resume
   //  Bit 0 = enable timeout/crc
-  struct {
+  struct usb_enable_t {
     bx_bool short_packet; //(bit 3)
     bx_bool on_complete;  //(bit 2)
     bx_bool resume;       //(bit 1)
@@ -113,14 +113,14 @@ typedef struct {
   // Frame Number Register
   //  Bits 15-11 are reserved
   //  Bits 10-0  Frame List Current Index/Frame Number
-  struct {
+  struct usb_frame_num_t {
     Bit16u frame_num;
   } usb_frame_num;
 
   // Frame List Base Address Register
   //  Bits 31-12  Base
   //  Bits 11-0   *must* be zeros when written to
-  struct {
+  struct usb_frame_base_t {
     Bit32u frame_base;
   } usb_frame_base;
 
@@ -128,7 +128,7 @@ typedef struct {
   //  Bit    7 reserved
   //  Bits 6-0 SOF timing value (default 64)
   // SOF cycle time equals 11936+timing value
-  struct {
+  struct usb_sof_t {
     Bit8u sof_timing;
   } usb_sof;
 
@@ -149,7 +149,7 @@ typedef struct {
   //               (write 1 to this bit to clear it)
   //  Bit      0  current connect status (read-only)
   //  Can only write in WORD sizes (Read in byte sizes???)
-  struct {
+  struct usb_port_t {
     bx_bool suspend;
     bx_bool reset;
     bx_bool low_speed;
@@ -174,6 +174,12 @@ public:
   ~bx_pciusb_c(void);
   virtual void   init(void);
   virtual void   reset(unsigned type);
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
 
 private:
 

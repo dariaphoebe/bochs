@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.26 2004/09/05 10:30:19 vruppert Exp $
+// $Id: harddrv.h,v 1.26.2.1 2004/11/05 00:56:44 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -565,7 +565,7 @@ class z_volatile_image_t : public device_image_t
 
 
 typedef struct {
-  struct {
+  struct status_t {
     bx_bool busy;
     bx_bool drive_ready;
     bx_bool write_fault;
@@ -605,34 +605,43 @@ typedef struct {
   Bit8u    current_command;
   Bit8u    sectors_per_block;
   Bit8u    lba_mode;
-  struct {
+  struct control_t {
     bx_bool reset;       // 0=normal, 1=reset controller
     bx_bool disable_irq; // 0=allow irq, 1=disable irq
     } control;
   Bit8u    reset_in_progress;
   Bit8u    features;
+#if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+#endif
   } controller_t;
 
 struct sense_info_t {
   sense_t sense_key;
-  struct {
+  struct information_t {
     Bit8u arr[4];
   } information;
-  struct {
+  struct specific_inf_t {
     Bit8u arr[4];
   } specific_inf;
-  struct {
+  struct key_spec_t {
     Bit8u arr[3];
   } key_spec;
   Bit8u fruc;
   Bit8u asc;
   Bit8u ascq;
+#if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+#endif // #if BX_SAVE_RESTORE
 };
 
 struct error_recovery_t {
   unsigned char data[8];
 
   error_recovery_t ();
+#if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+#endif // #if BX_SAVE_RESTORE
 };
 
 uint16 read_16bit(const uint8* buf) BX_CPP_AttrRegparmN(1);
@@ -652,6 +661,9 @@ struct cdrom_t
   struct currentStruct {
     error_recovery_t error_recovery;
   } current;
+#if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+#endif // #if BX_SAVE_RESTORE
 };
 
 struct atapi_t
@@ -659,14 +671,19 @@ struct atapi_t
   uint8 command;
   int drq_bytes;
   int total_bytes_remaining;
+#if BX_SAVE_RESTORE
+  void register_state(sr_param_c *list_p);
+#endif // #if BX_SAVE_RESTORE
 };
 
 #if BX_USE_HD_SMF
 #  define BX_HD_SMF  static
 #  define BX_HD_THIS theHardDrive->
+#  define BX_HD_THISP theHardDrive
 #else
 #  define BX_HD_SMF
 #  define BX_HD_THIS this->
+#  define BX_HD_THISP this
 #endif
 
 typedef enum {
@@ -685,6 +702,12 @@ public:
   virtual Bit32u   get_first_cd_handle(void);
   virtual unsigned get_cd_media_status(Bit32u handle);
   virtual unsigned set_cd_media_status(Bit32u handle, unsigned status);
+
+#if BX_SAVE_RESTORE
+  virtual void   register_state(sr_param_c *list_p);
+  virtual void   before_save_state () {};
+  virtual void   after_restore_state () {};
+#endif 
 
   virtual Bit32u virt_read_handler(Bit32u address, unsigned io_len) {
     return read_handler (this, address, io_len);

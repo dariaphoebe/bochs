@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit.h,v 1.12 2004/02/01 23:42:04 cbothamy Exp $
+// $Id: pit.h,v 1.12.12.1 2004/11/05 00:56:47 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -34,9 +34,11 @@
 #if BX_USE_PIT_SMF
 #  define BX_PIT_SMF  static
 #  define BX_PIT_THIS bx_pit.
+#  define BX_PIT_THIS_PTR (&bx_pit)
 #else
 #  define BX_PIT_SMF
 #  define BX_PIT_THIS this->
+#  define BX_PIT_THIS_PTR this
 #endif
 
 #ifdef OUT
@@ -70,6 +72,12 @@ public:
   BX_PIT_SMF int init(void);
   BX_PIT_SMF void reset( unsigned type);
   BX_PIT_SMF bx_bool periodic( Bit32u   usec_delta );
+
+#if BX_SAVE_RESTORE
+  virtual void register_state(sr_param_c *list_p);
+  virtual void before_save_state () {};
+  virtual void after_restore_state () {};
+#endif // #if BX_SAVE_RESTORE
 
   BX_PIT_SMF int SaveState( class state_file *fd );
   BX_PIT_SMF int LoadState( class state_file *fd );
