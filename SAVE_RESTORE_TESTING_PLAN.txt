@@ -10,13 +10,10 @@ Testing phases:
    Then, use diff to compare the files in the check1 and check2 directories.
    There should be no differences.
    STATUS:
-   - many panics during CPU param registration
+   - many panics during CPU param registration. just type alwayscont!
    - memory and CPU registration are still commented in CVS.  In my
      local copy I enabled them, but I had to disable registration
      of dbg_dirty_pages in misc_mem.cc because it was taking forever.
-   - only one difference found, in ata.0.master.present.  This may be
-     happening because of side effects in a handler, but we haven't
-     been able to explain it yet.
 
 2. Test that a saved checkpoint can be restored later within the same
    Bochs run.  This is considerably easier than the most general case
@@ -64,7 +61,8 @@ Testing phases:
 	wait a while, press control-C
 	restore-state "c1"
 	continue
-      The simulation should jump back to the earlier point.
+      The simulation should jump back to the earlier point and continue
+      just as it did before.
       STATUS:
       - on restore, CPU panic: prefetch: running in bogus memory
       - on restore, CPU panic: exception(): 3rd (14) exception with no
@@ -86,7 +84,7 @@ Testing phases:
      step or continue, and see if it restored properly
 
 4. Test that you can save state with one bochsrc, quit Bochs, restart with a
-   totally different configuration, restore state again, and continue.  This
+   very different configuration, restore state again, and continue.  This
    tests whether we can close files and devices and open the new ones,
    reallocate new memory structures if they have changed size, etc.
    Same as #3 except that you have a very different bochsrc when you first
