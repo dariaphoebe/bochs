@@ -69,9 +69,7 @@ Bit32s roundAndPackInt32(int zSign, Bit64u absZ, float_status_t &status)
     int roundNearestEven = (roundingMode == float_round_nearest_even);
     int roundIncrement = 0x40;
     if (! roundNearestEven) {
-        if (roundingMode == float_round_to_zero) {
-            roundIncrement = 0;
-        }
+        if (roundingMode == float_round_to_zero) roundIncrement = 0;
         else {
             roundIncrement = 0x7F;
             if (zSign) {
@@ -185,9 +183,7 @@ float32 roundAndPackFloat32(int zSign, Bit16s zExp, Bit32u zSig, float_status_t 
     roundMask = 0x7F;
 
     if (! roundNearestEven) {
-        if (roundingMode == float_round_to_zero) {
-            roundIncrement = 0;
-        }
+        if (roundingMode == float_round_to_zero) roundIncrement = 0;
         else {
             roundIncrement = roundMask;
             if (zSign) {
@@ -409,9 +405,7 @@ floatx80 roundAndPackFloatx80(int roundingPrecision,
 
     zSig0 |= (zSig1 != 0);
     if (! roundNearestEven) {
-        if (roundingMode == float_round_to_zero) {
-            roundIncrement = 0;
-        }
+        if (roundingMode == float_round_to_zero) roundIncrement = 0;
         else {
             roundIncrement = roundMask;
             if (zSign) {
@@ -463,9 +457,7 @@ floatx80 roundAndPackFloatx80(int roundingPrecision,
  precision80:
     increment = ((Bit64s) zSig1 < 0);
     if (! roundNearestEven) {
-        if (roundingMode == float_round_to_zero) {
-            increment = 0;
-        }
+        if (roundingMode == float_round_to_zero) increment = 0;
         else {
             if (zSign) {
                 increment = (roundingMode == float_round_down) && zSig1;
@@ -504,9 +496,7 @@ floatx80 roundAndPackFloatx80(int roundingPrecision,
             if (isTiny && zSig1) float_raise(status, float_flag_underflow);
             if (zSig1) float_raise(status, float_flag_inexact);
             if (roundNearestEven) 
-            {
                 increment = ((Bit64s) zSig1 < 0);
-            }
             else {
                 if (zSign) {
                     increment = (roundingMode == float_round_down) && zSig1;

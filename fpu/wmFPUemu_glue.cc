@@ -77,12 +77,12 @@ void BX_CPU_C::print_state_FPU()
   // print stack too
   for (int i=0; i<8; i++) {
     FPU_REG *fpr = &BX_FPU_READ_RAW_FPU_REG(i);
-    double f1 = pow(2.0, ((0x7fff&fpr->exp) - EXTENDED_Ebias));
-    if (fpr->exp & SIGN_Negative) f1 = -f1;
+    double f1 = pow(2.0, ((0x7fff & fpr->exp) - EXTENDED_Ebias));
+    if (fpr->exp & 0x8000) f1 = -f1;
     double f2 = ((double)fpr->sigh * sigh_scale_factor);
     double f3 = ((double)fpr->sigl * sigl_scale_factor);
     double f = f1*(f2+f3);
-    fprintf(stderr, "st%d            %.10f (raw 0x%04x%08x%08x)\n", i, f, 0xffff&fpr->exp, fpr->sigh, fpr->sigl);
+    fprintf(stderr, "st%d            %.10f (raw 0x%04x%08x%08x)\n", i, f, 0xffff & fpr->exp, fpr->sigh, fpr->sigl);
   }
 }
 

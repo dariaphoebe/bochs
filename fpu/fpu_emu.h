@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.23.6.7 2004/04/06 13:41:30 sshwarts Exp $
+ |  $Id: fpu_emu.h,v 1.23.6.8 2004/04/06 19:30:20 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -32,9 +32,6 @@
 
 #define SIGN_POS	(0)
 #define SIGN_NEG	(0x80)
-
-#define SIGN_Positive	(0)
-#define SIGN_Negative	(0x8000)
 
 /* Keep the order TAG_Valid, TAG_Zero, TW_Denormal */
 /* The following fold to 2 (Special) in the Tag Word */
@@ -82,8 +79,6 @@
 
 #define getsign(a) (signbyte(a) & 0x80)
 #define setsign(a,b) { if (b) signbyte(a) |= 0x80; else signbyte(a) &= 0x7f; }
-#define copysign(a,b) { if (getsign(a)) signbyte(b) |= 0x80; \
-                        else signbyte(b) &= 0x7f; }
 #define changesign(a) { signbyte(a) ^= 0x80; }
 #define setpositive(a) { signbyte(a) &= 0x7f; }
 #define setnegative(a) { signbyte(a) |= 0x80; }
@@ -102,8 +97,6 @@ BX_C_INLINE void reg_copy(FPU_REG const *x, FPU_REG *y)
 #define setexponent16(x,y)  { (x)->exp = (y); }
 #define addexponent(x,y)    { (x)->exp += (y); }
 #define stdexp(x)           { (x)->exp += EXTENDED_Ebias; }
-
-#define isdenormal(ptr)   (exponent(ptr) == EXP_BIAS+EXP_UNDER)
 
 /*----- Prototypes for functions written in assembler -----*/
 asmlinkage int FPU_normalize_nuo(FPU_REG *x, int bias);
