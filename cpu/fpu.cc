@@ -91,10 +91,9 @@ void BX_CPU_C::FLDCW(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i, CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
-  Bit16u swd;
-  read_virtual_word(i->seg(), RMAddr(i), &swd);
-  FPU_PARTIAL_STATUS = swd;
-  FPU_TOS = (swd >> 11) & 0x07;
+  Bit16u cwd;
+  read_virtual_word(i->seg(), RMAddr(i), &cwd);
+  FPU_CONTROL_WORD = cwd;
 #else
   BX_INFO(("FLDCW: required FPU, configure --enable-fpu"));
 #endif

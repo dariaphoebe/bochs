@@ -65,7 +65,7 @@ typedef struct bx_fpu_reg_t FPU_REG;
 #define FPU_Tag_Empty   0x03
 
 #define BX_FPU_REG(index) \
-    (BX_CPU_THIS_PTR the_i387.st_space[index*2])
+    (BX_CPU_THIS_PTR the_i387.st_space[index])
 
 #if defined(NEED_CPU_REG_SHORTCUTS)
 #define FPU_PARTIAL_STATUS     (BX_CPU_THIS_PTR the_i387.swd)
@@ -104,8 +104,6 @@ typedef struct bx_fpu_reg_t FPU_REG;
 #define FPU_EX_Denormal		(0x0002)  /* denormalized operand */
 #define FPU_EX_Invalid		(0x0001)  /* invalid operation */
 
-#define clear_C1() { FPU_PARTIAL_STATUS &= ~FPU_SW_C1; }
-
 /* Control Word */
 #define FPU_CW_RC		(0x0C00)  /* rounding control */
 #define FPU_CW_PC		(0x0300)  /* precision control */
@@ -142,12 +140,14 @@ struct i387_t
     unsigned char rm;
     unsigned char align8;
 
-    Bit64u st_space[16]; // 8*16 bytes per FP-reg (aligned) = 128 bytes
+    FPU_REG st_space[8];
 };
 
 // for now solution, will be merged with i387_t when FPU 
 // replacement will be done
 #ifdef __cplusplus
+
+#define clear_C1() { FPU_PARTIAL_STATUS &= ~FPU_SW_C1; }
 
 extern "C" int FPU_tagof(FPU_REG *reg) BX_CPP_AttrRegparmN(1);
 
@@ -185,13 +185,11 @@ public:
     void  	FPU_save_regi(floatx80 reg, int tag, int stnr) { FPU_save_reg(reg, tag, (tos+stnr) & 0x07); }
 };
 
-#define BX_FPU_REG_PTR(index) (&(st_space[index*2]))
-
 #define IS_TAG_EMPTY(i) 		\
   ((BX_CPU_THIS_PTR the_i387.FPU_gettagi(i)) == FPU_Tag_Empty)
 
 #define BX_READ_FPU_REG(i)		\
-  BX_CPU_THIS_PTR the_i387.FPU_read_regi(i)
+  (BX_CPU_THIS_PTR the_i387.FPU_read_regi(i))
 
 #define BX_WRITE_FPU_REGISTER_AND_TAG(value, tag, i)			\
 {                                                               	\
@@ -229,13 +227,13 @@ BX_CPP_INLINE void i387_structure_t::FPU_pop(void)
 BX_CPP_INLINE floatx80 i387_structure_t::FPU_read_reg(int regnr)
 {
   FPU_REG reg;
-  memcpy(&reg, BX_FPU_REG_PTR(regnr), sizeof(FPU_REG));
+  memcpy(&reg, &st_space[regnr], sizeof(FPU_REG));
 
   floatx80 result;
   result.exp = reg.exp;
   result.fraction = (((Bit64u)(reg.sigh)) << 32) | ((Bit64u)(reg.sigl));
 
-printf("load x80 register: %08lx.%08lx%08lx\n", (Bit32u)result.exp, (Bit32u)(result.fraction >> 32), (Bit32u)(result.fraction & 0xFFFFFFFF));
+//printf("load x80 register: %08lx.%08lx%08lx\n", (Bit32u)result.exp, (Bit32u)(result.fraction >> 32), (Bit32u)(result.fraction & 0xFFFFFFFF));
 
   return result;
 }
@@ -248,9 +246,9 @@ BX_CPP_INLINE void i387_structure_t::FPU_save_reg (floatx80 reg, int regnr)
   result.sigl = reg.fraction & 0xFFFFFFFF;
   result.sigh = reg.fraction >> 32;
 
-printf("save FPU register: %08lx.%08lx%08lx\n", (Bit32u)result.exp, result.sigh, result.sigl);
+//printf("save FPU register: %08lx.%08lx%08lx\n", (Bit32u)result.exp, result.sigh, result.sigl);
 
-  memcpy(BX_FPU_REG_PTR(regnr), &result, sizeof(FPU_REG));
+  memcpy(&st_space[regnr], &result, sizeof(FPU_REG));
   FPU_settag(FPU_tagof(&result), regnr);
 }
 
@@ -262,9 +260,9 @@ BX_CPP_INLINE void i387_structure_t::FPU_save_reg (floatx80 reg, int tag, int re
   result.sigl = reg.fraction & 0xFFFFFFFF;
   result.sigh = reg.fraction >> 32;
 
-printf("save FPU register: %08lx.%08lx%08lx\n", (Bit32u)result.exp, result.sigh, result.sigl);
+//printf("save FPU register: %08lx.%08lx%08lx\n", (Bit32u)result.exp, result.sigh, result.sigl);
 
-  memcpy(BX_FPU_REG_PTR(regnr), &result, sizeof(FPU_REG));
+  memcpy(&st_space[regnr], &result, sizeof(FPU_REG));
   FPU_settag(tag, regnr);
 }
 

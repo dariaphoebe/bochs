@@ -144,7 +144,7 @@ void BX_CPU_C::FADD_ST0_STj(bxInstruction_c *i)
       return;
 
   BX_WRITE_FPU_REG(result, 0);
-//#else
+#else
   BX_INFO(("FADD_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -177,7 +177,7 @@ void BX_CPU_C::FADD_STi_ST0(bxInstruction_c *i)
 
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
-//#else
+#else
   BX_INFO(("FADD(P)_STi_ST0: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -188,7 +188,7 @@ void BX_CPU_C::FADD_SINGLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FADD_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -199,7 +199,7 @@ void BX_CPU_C::FADD_DOUBLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FADD_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -210,7 +210,7 @@ void BX_CPU_C::FIADD_WORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FIADD_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -221,7 +221,7 @@ void BX_CPU_C::FIADD_DWORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FIADD_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -249,7 +249,7 @@ void BX_CPU_C::FMUL_ST0_STj(bxInstruction_c *i)
       return;
 
   BX_WRITE_FPU_REG(result, 0);
-//#else
+#else
   BX_INFO(("FMUL_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -282,7 +282,7 @@ void BX_CPU_C::FMUL_STi_ST0(bxInstruction_c *i)
 
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
-//#else
+#else
   BX_INFO(("FMUL(P)_STi_ST0: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -293,7 +293,7 @@ void BX_CPU_C::FMUL_SINGLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FMUL_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -304,7 +304,7 @@ void BX_CPU_C::FMUL_DOUBLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FMUL_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -315,7 +315,7 @@ void BX_CPU_C::FIMUL_WORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FIMUL_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -326,7 +326,7 @@ void BX_CPU_C::FIMUL_DWORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FIMUL_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -354,7 +354,7 @@ void BX_CPU_C::FSUB_ST0_STj(bxInstruction_c *i)
       return;
 
   BX_WRITE_FPU_REG(result, 0);
-//#else
+#else
   BX_INFO(("FSUB_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -382,7 +382,7 @@ void BX_CPU_C::FSUBR_ST0_STj(bxInstruction_c *i)
       return;
 
   BX_WRITE_FPU_REG(result, 0);
-//#else
+#else
   BX_INFO(("FSUBR_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -415,7 +415,7 @@ void BX_CPU_C::FSUB_STi_ST0(bxInstruction_c *i)
 
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
-//#else
+#else
   BX_INFO(("FSUB(P)_STi_ST0: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -448,7 +448,7 @@ void BX_CPU_C::FSUBR_STi_ST0(bxInstruction_c *i)
 
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
-//#else
+#else
   BX_INFO(("FSUBR(P)_STi_ST0: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -459,7 +459,7 @@ void BX_CPU_C::FSUB_SINGLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FSUB_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -470,7 +470,7 @@ void BX_CPU_C::FSUBR_SINGLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FSUBR_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -481,7 +481,7 @@ void BX_CPU_C::FSUB_DOUBLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FSUB_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -492,7 +492,7 @@ void BX_CPU_C::FSUBR_DOUBLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FSUBR_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -503,7 +503,7 @@ void BX_CPU_C::FISUB_WORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FISUB_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -514,7 +514,7 @@ void BX_CPU_C::FISUBR_WORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FISUBR_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -525,7 +525,7 @@ void BX_CPU_C::FISUB_DWORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FISUB_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -536,7 +536,7 @@ void BX_CPU_C::FISUBR_DWORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FISUBR_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -564,7 +564,7 @@ void BX_CPU_C::FDIV_ST0_STj(bxInstruction_c *i)
       return;
 
   BX_WRITE_FPU_REG(result, 0);
-//#else
+#else
   BX_INFO(("FDIV_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -592,7 +592,7 @@ void BX_CPU_C::FDIVR_ST0_STj(bxInstruction_c *i)
       return;
 
   BX_WRITE_FPU_REG(result, 0);
-//#else
+#else
   BX_INFO(("FDIVR_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -625,7 +625,7 @@ void BX_CPU_C::FDIV_STi_ST0(bxInstruction_c *i)
 
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
-//#else
+#else
   BX_INFO(("FDIV(P)_STi_ST0: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -658,7 +658,7 @@ void BX_CPU_C::FDIVR_STi_ST0(bxInstruction_c *i)
 
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
-//#else
+#else
   BX_INFO(("FDIVR(P)_STi_ST0: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -669,7 +669,7 @@ void BX_CPU_C::FDIV_SINGLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FDIV_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -680,7 +680,7 @@ void BX_CPU_C::FDIVR_SINGLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FDIVR_SINGLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -691,7 +691,7 @@ void BX_CPU_C::FDIV_DOUBLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FDIV_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -702,7 +702,7 @@ void BX_CPU_C::FDIVR_DOUBLE_REAL(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FDIVR_DOUBLE_REAL: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -713,7 +713,7 @@ void BX_CPU_C::FIDIV_WORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FIDIV_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -724,7 +724,7 @@ void BX_CPU_C::FIDIVR_WORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FIDIVR_WORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -735,7 +735,7 @@ void BX_CPU_C::FIDIV_DWORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FIDIV_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -746,7 +746,7 @@ void BX_CPU_C::FIDIVR_DWORD_INTEGER(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FIDIVR_DWORD_INTEGER: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -757,7 +757,7 @@ void BX_CPU_C::FXTRACT(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FXTRACT: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -768,7 +768,7 @@ void BX_CPU_C::FPREM1(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FPREM1: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -779,7 +779,7 @@ void BX_CPU_C::FPREM(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FPREM: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -790,7 +790,7 @@ void BX_CPU_C::FSQRT(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FSQRT: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -801,7 +801,7 @@ void BX_CPU_C::FRNDINT(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FRNDINT: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -812,7 +812,7 @@ void BX_CPU_C::FSCALE(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
-//#else
+#else
   BX_INFO(("FSCALE: required FPU, configure --enable-fpu"));
 #endif
 }
