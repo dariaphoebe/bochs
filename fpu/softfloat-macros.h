@@ -259,7 +259,7 @@ static Bit32u estimateSqrt32(Bit16s aExp, Bit32u a)
 
 static int countLeadingZeros32(Bit32u a)
 {
-    static const Bit8s countLeadingZerosHigh[] = {
+    static const int countLeadingZerosHigh[] = {
         8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
         3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -418,7 +418,7 @@ BX_CPP_INLINE void add192(
 )
 {
     Bit64u z0, z1, z2;
-    Bit8s carry0, carry1;
+    int carry0, carry1;
 
     z2 = a2 + b2;
     carry1 = (z2 < a2);
@@ -454,7 +454,7 @@ BX_CPP_INLINE void sub192(
 )
 {
     Bit64u z0, z1, z2;
-    Bit8s borrow0, borrow1;
+    int borrow0, borrow1;
 
     z2 = a2 - b2;
     borrow1 = (a2 < b2);

@@ -654,10 +654,7 @@ float32 float32_div(float32 a, float32 b, float_status_t &status)
     }
     if (bExp == 0) {
         if (bSig == 0) {
-            if ((aExp | aSig) == 0) {
-                float_raise(status, float_flag_invalid);
-                return float32_default_nan;
-            }
+            if ((aExp | aSig) == 0) goto invalid;
             float_raise(status, float_flag_divbyzero);
             return packFloat32(zSign, 0xFF, 0);
         }
@@ -1579,10 +1576,7 @@ float64 float64_div(float64 a, float64 b, float_status_t &status)
     }
     if (bExp == 0) {
         if (bSig == 0) {
-            if ((aExp | aSig) == 0) {
-                float_raise(status, float_flag_invalid);
-                return float64_default_nan;
-            }
+            if ((aExp | aSig) == 0) goto invalid;
             float_raise(status, float_flag_divbyzero);
             return packFloat64(zSign, 0x7FF, 0);
         }

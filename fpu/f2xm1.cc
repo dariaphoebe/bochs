@@ -33,6 +33,8 @@ static const floatx80 floatx80_neghalf = packFloatx80(1, 0x3ffe, BX_CONST64(0x80
 static const float128 float128_ln2     = 
     packFloat128(BX_CONST64(0x3ffe62e42fefa39e), BX_CONST64(0xf35793c7673007e6));
 
+#define LN2_SIG        BX_CONST64(0xb17217f7d1cf79ac)
+
 #define EXP_ARR_SIZE 15
 
 static float128 exp_arr[EXP_ARR_SIZE] =
@@ -125,8 +127,7 @@ floatx80 f2xm1(floatx80 a, float_status_t &status)
         normalizeFloatx80Subnormal(aSig, &aExp, &aSig);
 
     tiny_argument:
-        Bit64u ln2 = BX_CONST64(0xb17217f7d1cf79ac);
-        mul64To128(aSig, ln2, &zSig0, &zSig1);
+        mul64To128(aSig, LN2_SIG, &zSig0, &zSig1);
         if (0 < (Bit64s) zSig0) {
             shortShift128Left(zSig0, zSig1, 1, &zSig0, &zSig1);
             --aExp;
