@@ -18,8 +18,8 @@
  +---------------------------------------------------------------------------*/
 
 #include <linux/signal.h>
+
 #include <asm/uaccess.h>
-#include <stdio.h>
 
 #include "fpu_emu.h"
 #include "fpu_system.h"
@@ -654,13 +654,13 @@ asmlinkage int arith_round_overflow(FPU_REG *dest, u8 sign)
 	    {
 	    case 01:
 	    case PR_64_BITS:
-	      significand(dest) = BX_CONST64(0xffffffffffffffff);
+	      significand(dest) = 0xffffffffffffffffLL;
 	      break;
 	    case PR_53_BITS:
-	      significand(dest) = BX_CONST64(0xfffffffffffff800);
+	      significand(dest) = 0xfffffffffffff800LL;
 	      break;
 	    case PR_24_BITS:
-	      significand(dest) = BX_CONST64(0xffffff0000000000);
+	      significand(dest) = 0xffffff0000000000LL;
 	      break;
 	    }
 	}

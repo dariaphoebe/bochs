@@ -108,7 +108,7 @@ typedef Bit32s s32;
 typedef Bit64u u64;
 typedef Bit64s s64;
 
-/* bbd: include ported linux headers after config.h for GCC_ATTRIBUTE macro */
+/* include ported linux headers after config.h for a few definitions */
 #include <linux/kernel.h>
 #include <linux/mm.h>
 #include <asm/math_emu.h>
@@ -136,9 +136,7 @@ extern void fpu_set_ax(u16);
 #ifndef __ASSEMBLY__
 
 struct info {
-#ifdef BX_NO_EMPTY_STRUCTS
-  unsigned char donotindexme;
-#endif
+unsigned char empty_struct_not_portable;
   };
 
 #define FPU_info ((struct info *) NULL)
@@ -203,16 +201,6 @@ extern i387_t i387;
 
 #endif  /* USE_WITH_CPU_SIM */
 
-// bbd: Change a pointer to an int, with type conversions that make it legal.
-// First make it a void pointer, then convert to an integer of the same
-// size as the pointer.  Otherwise, on machines with 64-bit pointers, 
-// compilers complain when you typecast a 64-bit pointer into a 32-bit integer.
-#define PTR2INT(x) ((bx_ptr_equiv_t)(void *)(x))
-
-// bbd: Change an int to a pointer, with type conversions that make it legal.
-// Same strategy as PTR2INT: change to bx_ptr_equiv_t which is an integer
-// type of the same size as FPU_REG*.  Then the conversion to pointer
-// is legal.
-#define REGNO2PTR(x)		((FPU_REG*)((bx_ptr_equiv_t)(x)))
+#define REGNO2PTR(n)		((FPU_REG*)((long)(n)))
 
 #endif

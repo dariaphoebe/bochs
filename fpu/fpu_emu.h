@@ -20,11 +20,6 @@
  */
 #define PECULIAR_486
 
-// change a pointer to an int, with type conversions that make it legal.
-// On machines with 64-bit pointers, compilers complain when you typecast
-// a 64-bit pointer into a 32-bit integer.
-#define PTR2INT(x) ((bx_ptr_equiv_t)(void *)(x))
-
 #ifdef __ASSEMBLY__
 #include "fpu_asm.h"
 #define	Const(x)	$##x
@@ -203,8 +198,7 @@ extern u_char const data_sizes_16[32];
 #define significand(x) ( ((u64 *)&((x)->sigl))[0] )
 #endif
 
-BX_C_INLINE
-void reg_copy(FPU_REG const *x, FPU_REG *y)
+static inline void reg_copy(FPU_REG const *x, FPU_REG *y)
 {
   y->exp = x->exp;
   significand(y) = significand(x);

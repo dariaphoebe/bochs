@@ -913,7 +913,7 @@ int FPU_store_int64(FPU_REG *st0_ptr, u_char st0_tag, s64 *d)
       if ( control_word & EX_Invalid )
 	{
 	  /* Produce something like QNaN "indefinite" */
-	  tll = BX_CONST64(0x8000000000000000);
+	  tll = 0x8000000000000000LL;
 	}
       else
 	return 0;
