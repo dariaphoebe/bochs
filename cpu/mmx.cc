@@ -1,6 +1,29 @@
+/////////////////////////////////////////////////////////////////////////
+//
+//   Copyright (c) 2002 Stanislav Shwartsman
+//          Written by Stanislav Shwartsman <gate@fidonet.org.il>
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+//
+
+
+
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
+
 
 #if BX_SUPPORT_MMX || BX_SUPPORT_SSE || BX_SUPPORT_SSE2
 
@@ -16,7 +39,6 @@
    MMX_REGFILE.mmx[index].packed_mmx_register = value; \
    MMX_REGFILE.mmx[index].exp = 0xffff; \
 }                                                      
-
 
 static Bit8s SaturateWordSToByteS(Bit16s value)
 {
@@ -77,7 +99,7 @@ static Bit16u SelectMmxWord(BxPackedMmxRegister mmx, unsigned index)
   return (MMXUQ(mmx) >> ((index & 0x3) * 16)) & 0xffff;
 }
 
-void BX_CPU_C::PrintMmxRegisters(void)
+void BX_CPU_C::printMmxRegisters(void)
 {
   for(int i=0;i<8;i++) {
       BxPackedMmxRegister mm = BX_READ_MMX_REG(i);
@@ -85,7 +107,7 @@ void BX_CPU_C::PrintMmxRegisters(void)
   }
 }
 
-void BX_CPU_C::PrepareMmxInstruction(void)
+void BX_CPU_C::prepareMMX(void)
 {
   if(BX_CPU_THIS_PTR cr0.ts)
     exception(BX_NM_EXCEPTION, 0, 0);
@@ -99,11 +121,12 @@ void BX_CPU_C::PrepareMmxInstruction(void)
 }
 #endif
 
+
 /* 0F 60 */
 void BX_CPU_C::PUNPCKLBW_PqQd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), result;
   Bit32u op2;
@@ -138,7 +161,7 @@ void BX_CPU_C::PUNPCKLBW_PqQd(bxInstruction_c *i)
 void BX_CPU_C::PUNPCKLWD_PqQd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), result;
   Bit32u op2;
@@ -169,7 +192,7 @@ void BX_CPU_C::PUNPCKLWD_PqQd(bxInstruction_c *i)
 void BX_CPU_C::PUNPCKLDQ_PqQd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn());
   Bit32u op2;
@@ -197,7 +220,7 @@ void BX_CPU_C::PUNPCKLDQ_PqQd(bxInstruction_c *i)
 void BX_CPU_C::PACKSSWB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -231,7 +254,7 @@ void BX_CPU_C::PACKSSWB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PCMPGTB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -265,7 +288,7 @@ void BX_CPU_C::PCMPGTB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PCMPGTW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -295,7 +318,7 @@ void BX_CPU_C::PCMPGTW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PCMPGTD_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -323,7 +346,7 @@ void BX_CPU_C::PCMPGTD_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PACKUSWB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -357,7 +380,7 @@ void BX_CPU_C::PACKUSWB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PUNPCKHBW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -391,7 +414,7 @@ void BX_CPU_C::PUNPCKHBW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PUNPCKHWD_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -421,7 +444,7 @@ void BX_CPU_C::PUNPCKHWD_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PUNPCKHDQ_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -449,7 +472,7 @@ void BX_CPU_C::PUNPCKHDQ_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PACKSSDW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -479,7 +502,7 @@ void BX_CPU_C::PACKSSDW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::MOVD_PqEd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op;
   MMXUD1(op) = 0;
@@ -505,7 +528,7 @@ void BX_CPU_C::MOVD_PqEd(bxInstruction_c *i)
 void BX_CPU_C::MOVQ_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op;
 
@@ -530,7 +553,7 @@ void BX_CPU_C::MOVQ_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSHUFW_PqQqIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op, result;
   Bit16u order = i->Ib();
@@ -560,7 +583,7 @@ void BX_CPU_C::PSHUFW_PqQqIb(bxInstruction_c *i)
 void BX_CPU_C::PCMPEQB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -594,7 +617,7 @@ void BX_CPU_C::PCMPEQB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PCMPEQW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -624,7 +647,7 @@ void BX_CPU_C::PCMPEQW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PCMPEQD_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -673,7 +696,7 @@ void BX_CPU_C::EMMS(bxInstruction_c *i)
 void BX_CPU_C::MOVD_EdPd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op = BX_READ_MMX_REG(i->nnn());
 
@@ -694,7 +717,7 @@ void BX_CPU_C::MOVD_EdPd(bxInstruction_c *i)
 void BX_CPU_C::MOVQ_QqPq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op = BX_READ_MMX_REG(i->nnn());
 
@@ -715,7 +738,7 @@ void BX_CPU_C::MOVQ_QqPq(bxInstruction_c *i)
 void BX_CPU_C::PSRLW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -751,7 +774,7 @@ void BX_CPU_C::PSRLW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSRLD_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -785,7 +808,7 @@ void BX_CPU_C::PSRLD_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSRLQ_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -817,7 +840,7 @@ void BX_CPU_C::PSRLQ_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PADDQ_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE2
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -844,7 +867,7 @@ void BX_CPU_C::PADDQ_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PMULLW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -879,7 +902,7 @@ void BX_CPU_C::PMULLW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSUBUSB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -915,7 +938,7 @@ void BX_CPU_C::PSUBUSB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSUBUSW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -947,7 +970,7 @@ void BX_CPU_C::PSUBUSW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PMINUB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -981,7 +1004,7 @@ void BX_CPU_C::PMINUB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PAND_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1008,7 +1031,7 @@ void BX_CPU_C::PAND_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PADDUSB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1042,7 +1065,7 @@ void BX_CPU_C::PADDUSB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PADDUSW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1072,7 +1095,7 @@ void BX_CPU_C::PADDUSW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PMAXUB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1106,7 +1129,7 @@ void BX_CPU_C::PMAXUB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PANDN_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1133,7 +1156,7 @@ void BX_CPU_C::PANDN_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PAVGB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1167,7 +1190,7 @@ void BX_CPU_C::PAVGB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSRAW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1212,7 +1235,7 @@ void BX_CPU_C::PSRAW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSRAD_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1254,7 +1277,7 @@ void BX_CPU_C::PSRAD_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PAVGW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1284,7 +1307,7 @@ void BX_CPU_C::PAVGW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PMULHUW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1319,7 +1342,7 @@ void BX_CPU_C::PMULHUW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PMULHW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1354,7 +1377,7 @@ void BX_CPU_C::PMULHW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSUBSB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1388,7 +1411,7 @@ void BX_CPU_C::PSUBSB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSUBSW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1418,7 +1441,7 @@ void BX_CPU_C::PSUBSW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PMINSW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1448,7 +1471,7 @@ void BX_CPU_C::PMINSW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::POR_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1475,7 +1498,7 @@ void BX_CPU_C::POR_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PADDSB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1509,7 +1532,7 @@ void BX_CPU_C::PADDSB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PADDSW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1539,7 +1562,7 @@ void BX_CPU_C::PADDSW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PMAXSW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1569,7 +1592,7 @@ void BX_CPU_C::PMAXSW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PXOR_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1596,7 +1619,7 @@ void BX_CPU_C::PXOR_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSLLW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1632,7 +1655,7 @@ void BX_CPU_C::PSLLW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSLLD_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1666,7 +1689,7 @@ void BX_CPU_C::PSLLD_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSLLQ_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1698,7 +1721,7 @@ void BX_CPU_C::PSLLQ_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PMULUDQ_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE2
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1725,7 +1748,7 @@ void BX_CPU_C::PMULUDQ_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PMADDWD_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
 
@@ -1764,7 +1787,7 @@ void BX_CPU_C::PMADDWD_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSADBW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
   Bit16u temp = 0;
@@ -1801,7 +1824,7 @@ void BX_CPU_C::PSADBW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSUBB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1835,7 +1858,7 @@ void BX_CPU_C::PSUBB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSUBW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1865,7 +1888,7 @@ void BX_CPU_C::PSUBW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSUBD_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1893,7 +1916,7 @@ void BX_CPU_C::PSUBD_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSUBQ_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE2
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1920,7 +1943,7 @@ void BX_CPU_C::PSUBQ_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PADDB_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1955,7 +1978,7 @@ void BX_CPU_C::PADDB_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PADDW_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -1985,7 +2008,7 @@ void BX_CPU_C::PADDW_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PADDD_PqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
 
@@ -2013,7 +2036,7 @@ void BX_CPU_C::PADDD_PqQq(bxInstruction_c *i)
 void BX_CPU_C::PSRLW_PqIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->rm());
   Bit8u shift = i->Ib();
@@ -2039,7 +2062,7 @@ void BX_CPU_C::PSRLW_PqIb(bxInstruction_c *i)
 void BX_CPU_C::PSRAW_PqIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->rm()), result;
   Bit8u shift = i->Ib();
@@ -2074,7 +2097,7 @@ void BX_CPU_C::PSRAW_PqIb(bxInstruction_c *i)
 void BX_CPU_C::PSLLW_PqIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->rm());
   Bit8u shift = i->Ib();
@@ -2101,7 +2124,7 @@ void BX_CPU_C::PSLLW_PqIb(bxInstruction_c *i)
 void BX_CPU_C::PSRLD_PqIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->rm());
   Bit8u shift = i->Ib();
@@ -2125,7 +2148,7 @@ void BX_CPU_C::PSRLD_PqIb(bxInstruction_c *i)
 void BX_CPU_C::PSRAD_PqIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->rm()), result;
   Bit8u shift = i->Ib();
@@ -2157,7 +2180,7 @@ void BX_CPU_C::PSRAD_PqIb(bxInstruction_c *i)
 void BX_CPU_C::PSLLD_PqIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->rm());
   Bit8u shift = i->Ib();
@@ -2181,7 +2204,7 @@ void BX_CPU_C::PSLLD_PqIb(bxInstruction_c *i)
 void BX_CPU_C::PSRLQ_PqIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->rm());
   Bit8u shift = i->Ib();
@@ -2205,7 +2228,7 @@ void BX_CPU_C::PSRLQ_PqIb(bxInstruction_c *i)
 void BX_CPU_C::PSLLQ_PqIb(bxInstruction_c *i)
 {
 #if BX_SUPPORT_MMX
-  BX_CPU_THIS_PTR PrepareMmxInstruction();
+  BX_CPU_THIS_PTR prepareMMX();
 
   BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->rm());
   Bit8u shift = i->Ib();

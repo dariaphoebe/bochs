@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.102.2.2 2002/10/12 13:42:19 sshwarts Exp $
+// $Id: cpu.h,v 1.102.2.3 2002/10/12 14:14:10 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1428,6 +1428,7 @@ union {
 
 #if BX_SUPPORT_SSE || BX_SUPPORT_SSE2
   bx_xmm_reg_t xmm[BX_XMM_REGISTERS];
+  bx_mxcsr_t mxcsr;
 #endif
 
   // pointer to the address space that this processor uses.
@@ -2045,12 +2046,12 @@ union {
   /* MMX */
 
 #if BX_SUPPORT_MMX || BX_SUPPORT_SSE || BX_SUPPORT_SSE2
-  BX_SMF void PrepareMmxInstruction(void);
-  BX_SMF void PrintMmxRegisters(void);
+  BX_SMF void prepareMMX(void);
+  BX_SMF void printMmxRegisters(void);
 #endif
 
-#if BX_SUPPORT_SSE
-  BX_SMF void PrepareSseInstruction(void);
+#if BX_SUPPORT_SSE || BX_SUPPORT_SSE2
+  BX_SMF void prepareSSE(void);
 #endif
 
   /* SSE */

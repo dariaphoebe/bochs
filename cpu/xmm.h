@@ -57,7 +57,7 @@ typedef union bx_xmm_reg_t {
  */
 
 struct bx_mxcsr_t {
-   Bit32u mxcsr;      /* define bitfields later */
+   Bit32u mxcsr;      /* define bitfields accessors later */
 };
 
 #define MXCSR_MASK  0x00FF  /* reset reserved bits */
