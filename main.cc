@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.1 2003/03/20 05:15:28 bdenney Exp $
+// $Id: main.cc,v 1.223.4.2 2003/03/20 06:59:15 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -2075,7 +2075,7 @@ bx_bool load_and_init_display_lib () {
     return true;
   }
   BX_ASSERT (bx_gui == NULL);
-  bx_param_enum_c *gui_param = SIM->get_param_enum(BXP_SEL_DISPLAY_LIBRARY);
+  bx_param_enum_c *gui_param = SIM->get_param_enum("display.display_library");
   char *gui_name = gui_param->get_choice (gui_param->get ());
   if (!strcmp (gui_name, "wx")) {
     // they must not have used wx as the configuration interface, or bx_gui
