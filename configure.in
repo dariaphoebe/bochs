@@ -13,6 +13,65 @@ REL_STRING="March 5, 2002"
 changequote(<<, >>)
 changequote([, ])
 
+dnl Detect host and target
+AC_CANONICAL_HOST
+AC_CANONICAL_TARGET
+
+# this case statement defines the compile flags which are needed to
+# compile bochs on a platform.  Don't put things like optimization settings 
+# into the configure.in file, since people will want to be able to change
+# those settings by defining CFLAGS and CXXFLAGS before running configure.
+case "$target" in
+  *-pc-windows* | *-pc-winnt*)
+    DEFAULT_GUI=win32                 # default to win32 gui
+    ;;
+  *-pc-cygwin*)
+    ADD_FLAGS="-mno-cygwin -DWIN32"   # required for cygwin compile
+    DEFAULT_GUI=win32                 # default to win32 gui
+    ;;
+  *-macosx* | *-darwin*)
+    ADD_FLAGS="-fpascal-strings -fno-common -arch ppc -Wno-four-char-constants -Wno-unknown-pragmas -Dmacintosh"      # required for macosx compile
+    DEFAULT_GUI=carbon                # default to carbon
+    ;;
+  *-macos*)
+    DEFAULT_GUI=macos                 # macos defaults to macos
+    ;;
+  *-beos*)
+    DEFAULT_GUI=beos                  # beos defaults to beos
+    ;;
+  *-amigaos*)
+    DEFAULT_GUI=amigaos               # amigaos defaults to amigaos
+    ;;
+  *)
+    DEFAULT_GUI=x11
+    ;;
+esac
+CFLAGS="$CFLAGS $ADD_FLAGS"
+CXXFLAGS="$CXXFLAGS $ADD_FLAGS"
+
+AC_MSG_CHECKING(for standard CFLAGS on this platform)
+AC_MSG_RESULT($ADD_FLAGS)
+AC_MSG_CHECKING(for default library on this platform)
+AC_MSG_RESULT($DEFAULT_GUI)
+
+dnl // make sure X Windows is default if no other chosen
+if (test "$with_sdl" != yes) && \
+   (test "$with_x11" != yes) && \
+   (test "$with_beos" != yes) && \
+   (test "$with_win32" != yes) && \
+   (test "$with_nogui" != yes) && \
+   (test "$with_win32_vcpp" != yes) && \
+   (test "$with_term" != yes) && \
+   (test "$with_rfb" != yes) && \
+   (test "$with_amigaos" != yes) && \
+   (test "$with_carbon" != yes) && \
+   (test "$with_macos" != yes); then
+  # use DEFAULT_GUI.  Set the appropriate variable.
+  # DEFAULT_GUI must be set to one of the names above.  Otherwise, no
+  # valid $with_* variable will be set and who knows what will happen?
+  eval "with_${DEFAULT_GUI}=yes"
+fi
+
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_MAKE_SET
@@ -928,23 +987,6 @@ AC_ARG_WITH(sdl,
   [  --with-sdl                        use SDL libraries],
   )
 
-AC_MSG_CHECKING(for gui library to use)
-
-dnl // make sure X Windows is default if no other chosen
-if (test "$with_sdl" != yes) && \
-   (test "$with_x11" != yes) && \
-   (test "$with_beos" != yes) && \
-   (test "$with_win32" != yes) && \
-   (test "$with_nogui" != yes) && \
-   (test "$with_win32_vcpp" != yes) && \
-   (test "$with_term" != yes) && \
-   (test "$with_rfb" != yes) && \
-   (test "$with_amigaos" != yes) && \
-   (test "$with_carbon" != yes) && \
-   (test "$with_macos" != yes); then
-  with_x11=yes
-fi
-
 dnl // DASH is option prefix for your platform
 dnl // SLASH is directory for your platform
 dnl // CXXFP is C++ File Prefix; the flag that tells the compiler
@@ -968,6 +1010,8 @@ CD_UP_TWO="echo done"
 
 INSTALL_TARGET=install_unix
 INSTALL_LIST_FOR_PLATFORM=
+
+AC_MSG_CHECKING(for gui library to use)
 
 if test "$with_x11" = yes; then
   AC_MSG_RESULT(X windows)
