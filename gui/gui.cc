@@ -158,7 +158,7 @@ bx_gui_c::floppyB_handler(void)
   void
 bx_gui_c::reset_handler(void)
 {
-  BX_INFO(( "# RESET callback (unimplemented).\n" ));
+  BX_PANIC(( "RESET button was pressed.\n" ));
 }
 
   void
