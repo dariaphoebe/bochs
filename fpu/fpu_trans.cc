@@ -38,8 +38,6 @@ extern "C"
   void fsincos(FPU_REG *st0_ptr, Bit8u st0_tag);
   void fptan  (FPU_REG *st0_ptr, Bit8u st0_tag);
   void fpatan (FPU_REG *st0_ptr, Bit8u st0_tag);
-  void fprem  (FPU_REG *st0_ptr, Bit8u st0_tag);
-  void fprem1 (FPU_REG *st0_ptr, Bit8u st0_tag);
   void fyl2xp1(FPU_REG *st0_ptr, Bit8u st0_tag);
   void f2xm1  (FPU_REG *st0_ptr, Bit8u st0_tag);
   void fyl2x  (FPU_REG *st0_ptr, Bit8u st0_tag);
@@ -175,33 +173,7 @@ void BX_CPU_C::FYL2X(bxInstruction_c *i)
 #endif
 }
 
-void BX_CPU_C::FSCALE(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  clear_C1();
-
-  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(1))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
-
-  softfloat_status_word_t status = 
-	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
-
-  floatx80 result = floatx80_scale(BX_READ_FPU_REG(0), BX_READ_FPU_REG(1), status);
-
-  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-      return;
-
-  BX_WRITE_FPU_REG(result, 0);
-#else
-  BX_INFO(("FSCALE: required FPU, configure --enable-fpu"));
-#endif
-}
-
+/* D9 F4 */
 void BX_CPU_C::FXTRACT(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
@@ -241,6 +213,7 @@ void BX_CPU_C::FXTRACT(bxInstruction_c *i)
 #endif
 }
 
+/* D9 F5 */
 void BX_CPU_C::FPREM1(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
@@ -248,15 +221,42 @@ void BX_CPU_C::FPREM1(bxInstruction_c *i)
 
   clear_C1();
 
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(1))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
 
-  fprem1(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+  softfloat_status_word_t status = 
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  Bit64u quotient;
+
+  floatx80 a = BX_READ_FPU_REG(0);
+  floatx80 b = BX_READ_FPU_REG(1);
+
+  floatx80 result = floatx80_ieee754_remainder(a, b, quotient, status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  int cc = 0;
+  if (quotient == (Bit64u) -1) cc = FPU_SW_C2;
+  else
+  {
+      if (quotient & 1) cc |= FPU_SW_C1;
+      if (quotient & 2) cc |= FPU_SW_C3;
+      if (quotient & 4) cc |= FPU_SW_C0;
+  }
+  SETCC(cc);
+
+  BX_WRITE_FPU_REG(result, 0);
 #else
   BX_INFO(("FPREM1: required FPU, configure --enable-fpu"));
 #endif
 }
 
+/* D9 F8 */
 void BX_CPU_C::FPREM(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
@@ -264,11 +264,65 @@ void BX_CPU_C::FPREM(bxInstruction_c *i)
 
   clear_C1();
 
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(1))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
 
-  fprem(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+  softfloat_status_word_t status = 
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  Bit64u quotient;
+
+  floatx80 a = BX_READ_FPU_REG(0);
+  floatx80 b = BX_READ_FPU_REG(1);
+
+  floatx80 result = floatx80_remainder(a, b, quotient, status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  int cc = 0;
+  if (quotient == (Bit64u) -1) cc = FPU_SW_C2;
+  else
+  {
+      if (quotient & 1) cc |= FPU_SW_C1;
+      if (quotient & 2) cc |= FPU_SW_C3;
+      if (quotient & 4) cc |= FPU_SW_C0;
+  }
+  SETCC(cc);
+
+  BX_WRITE_FPU_REG(result, 0);
 #else
   BX_INFO(("FPREM: required FPU, configure --enable-fpu"));
+#endif
+}
+
+/* D9 FD */
+void BX_CPU_C::FSCALE(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(1))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  softfloat_status_word_t status = 
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+  floatx80 result = floatx80_scale(BX_READ_FPU_REG(0), BX_READ_FPU_REG(1), status);
+
+  if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+      return;
+
+  BX_WRITE_FPU_REG(result, 0);
+#else
+  BX_INFO(("FSCALE: required FPU, configure --enable-fpu"));
 #endif
 }

@@ -19,8 +19,8 @@ these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
 /*============================================================================
- * Adapted for Bochs (x86 achitecture simulator) by
- *            Stanislav Shwartsman (gate@fidonet.org.il)
+ * Written for Bochs (x86 achitecture simulator) by
+ *            Stanislav Shwartsman (gate at fidonet.org.il)
  * ==========================================================================*/ 
 
 #ifndef SOFTFLOATX80_EXTENSIONS_H
@@ -43,6 +43,8 @@ Bit16s floatx80_to_int16_round_to_zero(floatx80, float_status_t &status);
 floatx80 floatx80_extract(floatx80 &a, float_status_t &status);
 float_class_t floatx80_class(floatx80);
 floatx80 floatx80_scale(floatx80 a, floatx80 b, float_status_t &status);
+floatx80 floatx80_remainder(floatx80 a, floatx80 b, Bit64u &q, float_status_t &status);
+floatx80 floatx80_ieee754_remainder(floatx80 a, floatx80 b, Bit64u &q, float_status_t &status);
 
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE extended double-precision compare.

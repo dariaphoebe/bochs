@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.8.8 2004/04/06 13:50:55 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.8.9 2004/04/08 19:44:07 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -188,7 +188,6 @@ static void single_arg_error(FPU_REG *st0_ptr, u_char st0_tag)
 #endif /* PARANOID */
 }
 
-
 static void single_arg_2_error(FPU_REG *st0_ptr, u_char st0_tag)
 {
   int isNaN;
@@ -237,6 +236,34 @@ static void single_arg_2_error(FPU_REG *st0_ptr, u_char st0_tag)
 
 
 /*---------------------------------------------------------------------------*/
+
+/* A lean, mean kernel for the fprem instructions. This relies upon
+   the division and rounding to an integer in do_fprem giving an
+   exact result. Because of this, rem_kernel() needs to deal only with
+   the least significant 64 bits, the more significant bits of the
+   result must be zero.
+ */
+static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n)
+{
+  u64 x;
+  u64 work;
+
+  x = st0 << n;
+
+  work = (u32)st1;
+  work *= (u32)q;
+  x -= work;
+
+  work = st1 >> 32;
+  work *= (u32)q;
+  x -= work << 32;
+
+  work = (u32)st1;
+  work *= q >> 32;
+  x -= work << 32;
+  
+  *y = x;
+}
 
 void f2xm1(FPU_REG *st0_ptr, u_char tag)
 {
@@ -597,297 +624,8 @@ void fsincos(FPU_REG *st0_ptr, u_char st0_tag)
     }
 }
 
-
 /*---------------------------------------------------------------------------*/
 /* The following all require two arguments: st(0) and st(1) */
-
-/* A lean, mean kernel for the fprem instructions. This relies upon
-   the division and rounding to an integer in do_fprem giving an
-   exact result. Because of this, rem_kernel() needs to deal only with
-   the least significant 64 bits, the more significant bits of the
-   result must be zero.
- */
-static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n)
-{
-  u64 x;
-  u64 work;
-
-  x = st0 << n;
-
-  work = (u32)st1;
-  work *= (u32)q;
-  x -= work;
-
-  work = st1 >> 32;
-  work *= (u32)q;
-  x -= work << 32;
-
-  work = (u32)st1;
-  work *= q >> 32;
-  x -= work << 32;
-  
-  *y = x;
-}
-
-
-/* Remainder of st(0) / st(1) */
-/* This routine produces exact results, i.e. there is never any
-   rounding or truncation, etc of the result. */
-static void do_fprem(FPU_REG *st0_ptr, u_char st0_tag, int round)
-{
-  FPU_REG *st1_ptr = &st(1);
-  u_char st1_tag = FPU_gettagi(1);
-
-  if (!((st0_tag ^ TAG_Valid) | (st1_tag ^ TAG_Valid)))
-    {
-      FPU_REG tmp, st0, st1;
-      u_char st0_sign, st1_sign;
-      u_char tmptag;
-      int tag;
-      int old_cw;
-      int expdif;
-      s64 q;
-      u16 saved_status;
-      int cc;
-
-    fprem_valid:
-      /* Convert registers for internal use. */
-      st0_sign = FPU_to_exp16(st0_ptr, &st0);
-      st1_sign = FPU_to_exp16(st1_ptr, &st1);
-      expdif = exponent16(&st0) - exponent16(&st1);
-
-      old_cw = FPU_control_word;
-      cc = 0;
-
-      /* We want the status following the denorm tests, but don't want
-	 the status changed by the arithmetic operations. */
-      saved_status = FPU_partial_status;
-      FPU_control_word &= ~FPU_CW_RC;
-      FPU_control_word |= FPU_RC_CHOP;
-
-      if (expdif < 64)
-	{
-	  /* This should be the most common case */
-
-	  if (expdif > -2)
-	    {
-	      u_char sign = st0_sign ^ st1_sign;
-	      tag = FPU_u_div(&st0, &st1, &tmp,
-			      FPU_PR_80_BITS | FPU_RC_CHOP | 0x3f,
-			      sign);
-	      setsign(&tmp, sign);
-
-	      if (exponent(&tmp) >= 0)
-		{
-		  FPU_round_to_int(&tmp, tag);  /* Fortunately, this can't
-						   overflow to 2^64 */
-		  q = significand(&tmp);
-
-		  rem_kernel(significand(&st0),
-			     &significand(&tmp),
-			     significand(&st1),
-			     q, expdif);
-
-		  setexponent16(&tmp, exponent16(&st1));
-		}
-	      else
-		{
-		  reg_copy(&st0, &tmp);
-		  q = 0;
-		}
-
-	      if ((round == FPU_RC_RND) && (tmp.sigh & 0xc0000000))
-		{
-		  /* We may need to subtract st(1) once more,
-		     to get a result <= 1/2 of st(1). */
-		  u64 x;
-		  expdif = exponent16(&st1) - exponent16(&tmp);
-		  if (expdif <= 1)
-		    {
-		      if (expdif == 0)
-			x = significand(&st1) - significand(&tmp);
-		      else /* expdif is 1 */
-			x = (significand(&st1) << 1) - significand(&tmp);
-		      if ((x < significand(&tmp)) ||
-			  /* or equi-distant (from 0 & st(1)) and q is odd */
-			  ((x == significand(&tmp)) && (q & 1)))
-			{
-			  st0_sign = ! st0_sign;
-			  significand(&tmp) = x;
-			  q++;
-			}
-		    }
-		}
-
-	      if (q & 4) cc |= SW_C0;
-	      if (q & 2) cc |= SW_C3;
-	      if (q & 1) cc |= SW_C1;
-	    }
-	  else
-	    {
-	      FPU_control_word = old_cw;
-	      setcc(0);
-	      return;
-	    }
-	}
-      else
-	{
-	  /* There is a large exponent difference (>= 64) */
-	  /* To make much sense, the code in this section should
-	     be done at high precision. */
-	  int exp_1, N;
-	  u_char sign;
-
-	  /* prevent overflow here */
-	  /* N is 'a number between 32 and 63' (p26-113) */
-	  reg_copy(&st0, &tmp);
-	  tmptag = st0_tag;
-	  N = (expdif & 0x0000001f) + 32;  /* This choice gives results
-					      identical to an AMD 486 */
-	  setexponent16(&tmp, N);
-	  exp_1 = exponent16(&st1);
-	  setexponent16(&st1, 0);
-	  expdif -= N;
-
-	  sign = getsign(&tmp) ^ st1_sign;
-	  tag = FPU_u_div(&tmp, &st1, &tmp, FPU_PR_80_BITS | FPU_RC_CHOP | 0x3f, sign);
-	  setsign(&tmp, sign);
-
-	  FPU_round_to_int(&tmp, tag);  /* Fortunately, this can't
-					   overflow to 2^64 */
-
-	  rem_kernel(significand(&st0),
-		     &significand(&tmp),
-		     significand(&st1),
-		     significand(&tmp),
-		     exponent(&tmp)
-		    ); 
-	  setexponent16(&tmp, exp_1 + expdif);
-
-	  /* It is possible for the operation to be complete here.
-	     What does the IEEE standard say? The Intel 80486 manual
-	     implies that the operation will never be completed at this
-	     point, and the behaviour of a real 80486 confirms this.
-	   */
-	  if (!(tmp.sigh | tmp.sigl))
-	    {
-	      /* The result is zero */
-	      FPU_control_word = old_cw;
-	      FPU_partial_status = saved_status;
-	      FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
-	      setsign(&st0, st0_sign);
-	      setcc(SW_C2);
-	      return;
-	    }
-	  cc = SW_C2;
-	}
-
-      FPU_control_word = old_cw;
-      FPU_partial_status = saved_status;
-      tag = FPU_normalize_nuo(&tmp, 0);
-      reg_copy(&tmp, st0_ptr);
-
-      /* The only condition to be looked for is underflow,
-	 and it can occur here only if underflow is unmasked. */
-      if ((exponent16(&tmp) <= EXP_UNDER) && (tag != TAG_Zero)
-	  && !(FPU_control_word & FPU_CW_Underflow))
-	{
-	  setcc(cc);
-	  tag = arith_underflow(st0_ptr);
-	  setsign(st0_ptr, st0_sign);
-	  FPU_settag0(tag);
-	  return;
-	}
-      else if ((exponent16(&tmp) > EXP_UNDER) || (tag == TAG_Zero))
-	{
-	  stdexp(st0_ptr);
-	  setsign(st0_ptr, st0_sign);
-	}
-      else
-	{
-	  tag = FPU_round(st0_ptr, 0, FULL_PRECISION, st0_sign);
-	}
-      FPU_settag0(tag);
-      setcc(cc);
-
-      return;
-    }
-
-  if (st0_tag == TAG_Special)
-    st0_tag = FPU_Special(st0_ptr);
-  if (st1_tag == TAG_Special)
-    st1_tag = FPU_Special(st1_ptr);
-
-  if (((st0_tag == TAG_Valid) && (st1_tag == TW_Denormal))
-	    || ((st0_tag == TW_Denormal) && (st1_tag == TAG_Valid))
-	    || ((st0_tag == TW_Denormal) && (st1_tag == TW_Denormal)))
-    {
-      if (denormal_operand() < 0)
-	return;
-      goto fprem_valid;
-    }
-  else if ((st0_tag == TAG_Empty) | (st1_tag == TAG_Empty))
-    {
-      FPU_stack_underflow();
-      return;
-    }
-  else if (st0_tag == TAG_Zero)
-    {
-      if (st1_tag == TAG_Valid)
-	{
-	  setcc(0); return;
-	}
-      else if (st1_tag == TW_Denormal)
-	{
-	  if (denormal_operand() < 0)
-	    return;
-	  setcc(0); return;
-	}
-      else if (st1_tag == TAG_Zero)
-	{ arith_invalid(0); return; } /* fprem(?,0) always invalid */
-      else if (st1_tag == TW_Infinity)
-	{ setcc(0); return; }
-    }
-  else if ((st0_tag == TAG_Valid) || (st0_tag == TW_Denormal))
-    {
-      if (st1_tag == TAG_Zero)
-	{
-	  arith_invalid(0); /* fprem(Valid,Zero) is invalid */
-	  return;
-	}
-      else if (st1_tag != TW_NaN)
-	{
-	  if (((st0_tag == TW_Denormal) || (st1_tag == TW_Denormal))
-	       && (denormal_operand() < 0))
-	    return;
-
-	  if (st1_tag == TW_Infinity)
-	    {
-	      /* fprem(Valid,Infinity) is o.k. */
-	      setcc(0); return;
-	    }
-	}
-    }
-  else if (st0_tag == TW_Infinity)
-    {
-      if (st1_tag != TW_NaN)
-	{
-	  arith_invalid(0); /* fprem(Infinity,?) is invalid */
-	  return;
-	}
-    }
-
-  /* One of the registers must contain a NaN if we got here. */
-
-#ifdef PARANOID
-  if ((st0_tag != TW_NaN) && (st1_tag != TW_NaN))
-      INTERNAL(0x118);
-#endif /* PARANOID */
-
-  real_2op_NaN(st1_ptr, st1_tag, 0, st1_ptr);
-
-}
-
 
 /* ST(1) <- ST(1) * log ST;  pop ST */
 void fyl2x(FPU_REG *st0_ptr, u_char st0_tag)
@@ -1223,17 +961,6 @@ void fpatan(FPU_REG *st0_ptr, u_char st0_tag)
 
   FPU_pop();
   set_precision_flag_up();  /* We do not really know if up or down */
-}
-
-
-void fprem(FPU_REG *st0_ptr, u_char st0_tag)
-{
-  do_fprem(st0_ptr, st0_tag, FPU_RC_CHOP);
-}
-
-void fprem1(FPU_REG *st0_ptr, u_char st0_tag)
-{
-  do_fprem(st0_ptr, st0_tag, FPU_RC_RND);
 }
 
 void fyl2xp1(FPU_REG *st0_ptr, u_char st0_tag)

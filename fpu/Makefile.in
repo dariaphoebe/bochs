@@ -55,7 +55,7 @@ BX_INCDIRS = -I.. -I$(srcdir)/.. -I../@INSTRUMENT_DIR@ -I$(srcdir)/../@INSTRUMEN
 FPU_FLAGS = -DUSE_WITH_CPU_SIM $(PARANOID) $(DEBUG)
 FPU_GLUE_OBJ = wmFPUemu_glue.o fpu.o fpu_arith.o fpu_compare.o \
                fpu_const.o fpu_load_store.o fpu_misc.o fpu_trans.o \
-               softfloat.o softfloatx80.o softfloat-round-pack.o
+               fprem.o softfloat.o softfloatx80.o softfloat-round-pack.o
 
 # From 'C' language sources:
 C_OBJS = errors.o fpu_tags.o fpu_trig.o \
@@ -270,6 +270,8 @@ fpu_trans.o: fpu_trans.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h \
   ../iodev/unmapped.h ../iodev/eth.h ../iodev/ne2k.h \
   ../iodev/guest2host.h ../iodev/slowdown_timer.h ../iodev/extfpuirq.h \
   ../iodev/gameport.h ../iodev/speaker.h ../instrument/stubs/instrument.h
+fprem.o: fprem.@CPP_SUFFIX@ softfloat.h ../config.h \
+  softfloat-round-pack.h softfloat-macros.h softfloat-specialize.h
 softfloat-round-pack.o: softfloat-round-pack.@CPP_SUFFIX@ softfloat.h ../config.h \
   softfloat-round-pack.h softfloat-macros.h softfloat-specialize.h
 softfloat.o: softfloat.@CPP_SUFFIX@ softfloat.h ../config.h softfloat-round-pack.h \
