@@ -34,6 +34,8 @@
 #include "softfloatx80.h"
 #endif
 
+#define EXP_BIAS 0x3FFF
+
 #if BX_SUPPORT_FPU
 static const floatx80 floatx80_one = packFloatx80(0, 0x3fff, BX_CONST64(0x8000000000000000));
 static const floatx80 floatx80_pi2 = packFloatx80(0, 0x3fff, BX_CONST64(0xc90fdaa22168c235));
@@ -112,6 +114,9 @@ static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
 /* 0 <= x <= pi/4 */
 static float128 poly_sin(float128 x, float_status_t &status)
 {
+    if (float128_exp(x) <= EXP_BIAS - 68)
+        return x;
+
     float128 t = poly_sincos(x, sin_arr, status);
     t = float128_mul(t, x, status);
     return t;
@@ -120,6 +125,9 @@ static float128 poly_sin(float128 x, float_status_t &status)
 /* 0 <= x <= pi/4 */
 static float128 poly_cos(float128 x, float_status_t &status)
 {
+    if (float128_exp(x) <= EXP_BIAS - 68)
+        return float128_one;
+
     return poly_sincos(x, cos_arr, status);
 }
 
@@ -142,8 +150,6 @@ static void sincos_approximation(floatx80 &x, int quotient, float_status_t &stat
       floatx80_chs(x);
 }
 #endif
-
-#define EXP_BIAS 0x3FFF
 
 /* D9 FE */
 void BX_CPU_C::FSIN(bxInstruction_c *i)
@@ -187,14 +193,6 @@ print("after  arg reduction: ", y);
   {   
       if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
           BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
-
-      return;
-  }
-
-  if (floatx80_exp(y) <= EXP_BIAS - 68)
-  {
-      if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-          BX_WRITE_FPU_REG(y, 0);
 
       return;
   }
@@ -245,14 +243,6 @@ void BX_CPU_C::FCOS(bxInstruction_c *i)
   {
       if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
           BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
-
-      return;
-  }
-
-  if (floatx80_exp(y) <= EXP_BIAS - 68)
-  {
-      if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-          BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_one, FPU_Tag_Valid, 0);
 
       return;
   }
@@ -315,18 +305,6 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
           BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
           BX_CPU_THIS_PTR the_i387.FPU_push();
           BX_WRITE_FPU_REGISTER_AND_TAG(y, FPU_Tag_Special, 0);
-      }
-
-      return;
-  }
-
-  if (floatx80_exp(y) <= EXP_BIAS - 68)
-  {
-      if (! BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-      {
-          BX_WRITE_FPU_REG(y, 0);
-          BX_CPU_THIS_PTR the_i387.FPU_push();
-          BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_one, FPU_Tag_Valid, 0);
       }
 
       return;
@@ -401,27 +379,25 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
       return;
   }
 
-  if (floatx80_exp(y) > EXP_BIAS - 68)
-  {
-      int neg = floatx80_sign(y);
-      float128 r = floatx80_to_float128(floatx80_abs(y), status);
-      float128 sin_r = poly_sin(r, status);
-      float128 cos_r = poly_cos(r, status);
+  int neg = floatx80_sign(y);
+  float128 r = floatx80_to_float128(floatx80_abs(y), status);
+  float128 sin_r = poly_sin(r, status);
+  float128 cos_r = poly_cos(r, status);
 
-      if (quotient & 0x1) {
-          r = float128_div(cos_r, sin_r, status);
-          neg = ! neg;
-      } else {
-          r = float128_div(sin_r, cos_r, status);
-      }
-
-      y = float128_to_floatx80(r, status);
-      if (neg)
-          floatx80_chs(y);
+  if (quotient & 0x1) {
+      r = float128_div(cos_r, sin_r, status);
+      neg = ! neg;
+  } else {
+      r = float128_div(sin_r, cos_r, status);
   }
+
+  y = float128_to_floatx80(r, status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
+
+  if (neg)
+      floatx80_chs(y);
 
   BX_WRITE_FPU_REG(y, 0);
   BX_CPU_THIS_PTR the_i387.FPU_push();
