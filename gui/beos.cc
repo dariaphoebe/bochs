@@ -178,7 +178,6 @@ static BBitmap *vgafont[256];
 
 static bx_gui_c *bx_gui_c_ptr;
 
-
   void
 bx_gui_c::specific_init(bx_gui_c *th, int argc, char **argv,
                         unsigned tilewidth, unsigned tileheight,
@@ -199,6 +198,7 @@ bx_gui_c::specific_init(bx_gui_c *th, int argc, char **argv,
 UNUSED(argc);
 UNUSED(argv);
 UNUSED(window_name);
+  th->setprefix("[BGUI]");
 
 if (bx_options.private_colormap) {
   fprintf(stderr, "#WARNING: BeOS: private_colormap option not handled yet.\n");
