@@ -27,6 +27,7 @@ these four paragraphs for those parts of this code that are retained.
 
 #include "softfloatx80.h"
 #include "softfloat-round-pack.h"
+#include "fpu_constant.h"
 
 #define FPATAN_ARR_SIZE 11
 
@@ -120,10 +121,12 @@ floatx80 fpatan(floatx80 a, floatx80 b, float_status_t &status)
                 return propagateFloatx80NaN(a, b, status);
 
             if (aSign) {   /* return 3PI/4 */
-                return packFloatx80(bSign, 0x3FFF, BX_CONST64(0x990e91a896cbe3f9));
-            }
+                return roundAndPackFloatx80(80, bSign, 
+                        FLOATX80_3PI4_EXP, FLOAT_3PI4_HI, FLOAT_3PI4_LO, status);
+            }                        
             else {         /* return  PI/4 */
-                return packFloatx80(bSign, 0x3FFE, BX_CONST64(0xc90fdaa22168c235));
+                return roundAndPackFloatx80(80, bSign, 
+                        FLOATX80_PI4_EXP, FLOAT_PI_HI, FLOAT_PI_LO, status);
             }
         }
 
@@ -131,27 +134,30 @@ floatx80 fpatan(floatx80 a, floatx80 b, float_status_t &status)
             float_raise(status, float_flag_denormal);
 
         /* return PI/2 */
-        return packFloatx80(bSign, 0x3FFF, BX_CONST64(0xc90fdaa22168c235));
+        return roundAndPackFloatx80(80, bSign, FLOATX80_PI2_EXP, FLOAT_PI_HI, FLOAT_PI_LO, status);
     }
     if (aExp == 0x7FFF)
     {
         if ((Bit64u) (aSig<<1)) 
             return propagateFloatx80NaN(a, b, status);
 
-return_PI_or_ZERO:
         if (bSig && (bExp == 0)) 
             float_raise(status, float_flag_denormal);
 
+return_PI_or_ZERO:
+
         if (aSign) {   /* return PI */
-            return packFloatx80(bSign, 0x4000, BX_CONST64(0xc90fdaa22168c235));
+            return roundAndPackFloatx80(80, bSign, FLOATX80_PI_EXP, FLOAT_PI_HI, FLOAT_PI_LO, status);
         } else {       /* return  0 */
             return packFloatx80(bSign, 0, 0);
         }
     }
     if (bExp == 0)
     {
-        if (bSig == 0) 
+        if (bSig == 0) {
+             if (aSig && (aExp == 0)) float_raise(status, float_flag_denormal);
              goto return_PI_or_ZERO;
+        }
 
         float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(bSig, &bExp, &bSig);
@@ -159,7 +165,7 @@ return_PI_or_ZERO:
     if (aExp == 0)
     {
         if (aSig == 0)   /* return PI/2 */
-            return packFloatx80(bSign, 0x3FFF, BX_CONST64(0xc90fdaa22168c235));
+            return roundAndPackFloatx80(80, bSign, FLOATX80_PI2_EXP, FLOAT_PI_HI, FLOAT_PI_LO, status);
 
         float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(aSig, &aExp, &aSig);
@@ -167,9 +173,9 @@ return_PI_or_ZERO:
 
     float_raise(status, float_flag_inexact);
 
-    /* |a| = |b| */
+    /* |a| = |b| ==> return PI/4 */
     if (aSig == bSig && aExp == bExp)
-        return packFloatx80(zSign, 0x3FFE, BX_CONST64(0xc90fdaa22168c235));
+        return roundAndPackFloatx80(80, bSign, FLOATX80_PI4_EXP, FLOAT_PI_HI, FLOAT_PI_LO, status);
          
     /* ******************************** */
     /* using float128 for approximation */
@@ -192,7 +198,7 @@ return_PI_or_ZERO:
     Bit32s xExp = extractFloat128Exp(x);
     floatx80 result;
 
-    if (xExp <= 0x3FBB) {
+    if (xExp <= EXP_BIAS-68) {
         result = float128_to_floatx80(x, status);
         goto approximation_completed;
     }

@@ -277,9 +277,9 @@ invalid:
     /* ******************************** */
 
     float128 x = normalizeRoundAndPackFloat128(aSign, aExp-0x10, aSig, 0, status);
-    if (aExp < 0x3FB9)  // handle tiny argument
+    if (aExp < EXP_BIAS-70) // handle tiny argument
         x = float128_mul(x, float128_ln2inv, status);
-    else                // regular polynomial approximation
+    else                    // regular polynomial approximation
         x = poly_l2p1(x, status);
     floatx80 r = float128_to_floatx80(x, status);
     return floatx80_mul(r, b, status);

@@ -300,6 +300,8 @@ BX_CPP_INLINE float64 propagateFloat64NaN(float64 a, float_status_t &status)
 #define floatx80_exp extractFloatx80Exp
 #define floatx80_sign extractFloatx80Sign
 
+#define EXP_BIAS 0x3FFF
+
 /*----------------------------------------------------------------------------
 | Returns the fraction bits of the extended double-precision floating-point
 | value `a'.

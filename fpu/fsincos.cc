@@ -18,9 +18,6 @@ the work is derivative, and (2) the source code includes prominent notice with
 these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
-// Pentium CPU uses only 68-bit precision M_PI approximation
-// #define BETTER_THAN_PENTIUM
-
 /*============================================================================
  * Written for Bochs (x86 achitecture simulator) by
  *            Stanislav Shwartsman (gate at fidonet.org.il)
@@ -30,15 +27,9 @@ these four paragraphs for those parts of this code that are retained.
 
 #include "softfloatx80.h"
 #include "softfloat-round-pack.h"
+#include "fpu_constant.h"
 
-/* 128-bit PI/2 fraction */
-#ifdef BETTER_THAN_PENTIUM
-static const Bit64u Hi = BX_CONST64(0xC90FDAA22168C234);
-static const Bit64u Lo = BX_CONST64(0xC4C6628B80DC1CD1);
-#else
-static const Bit64u Hi = BX_CONST64(0xC90FDAA22168C234);
-static const Bit64u Lo = BX_CONST64(0xC000000000000000);
-#endif
+static const floatx80 floatx80_one = packFloatx80(0, 0x3fff, BX_CONST64(0x8000000000000000));
 
 /* reduce trigonometric function argument using 128-bit precision 
    M_PI approximation */
@@ -48,12 +39,12 @@ static Bit64u argument_reduction_kernel(Bit64u aSig0, int Exp, Bit64u *zSig0, Bi
     Bit64u aSig1 = 0;
 
     shortShift128Left(aSig1, aSig0, Exp, &aSig1, &aSig0);
-    Bit64u q = estimateDiv128To64(aSig1, aSig0, Hi);
-    mul128By64To192(Hi, Lo, q, &term0, &term1, &term2);
+    Bit64u q = estimateDiv128To64(aSig1, aSig0, FLOAT_PI_HI);
+    mul128By64To192(FLOAT_PI_HI, FLOAT_PI_LO, q, &term0, &term1, &term2);
     sub128(aSig1, aSig0, term0, term1, zSig1, zSig0);
     while ((Bit64s)(*zSig1) < 0) {
         --q;
-        add192(*zSig1, *zSig0, term2, 0, Hi, Lo, zSig1, zSig0, &term2);
+        add192(*zSig1, *zSig0, term2, 0, FLOAT_PI_HI, FLOAT_PI_LO, zSig1, zSig0, &term2);
     }
     *zSig1 = term2;
     return q;
@@ -71,13 +62,13 @@ static int reduce_trig_arg(int expDiff, int &zSign, Bit64u &aSig0, Bit64u &aSig1
         q = argument_reduction_kernel(aSig0, expDiff, &aSig0, &aSig1);
     }
     else {
-        if (Hi <= aSig0) {
-            aSig0 -= Hi;
+        if (FLOAT_PI_HI <= aSig0) {
+            aSig0 -= FLOAT_PI_HI;
             q = 1;
         }
     }
 
-    shift128Right(Hi, Lo, 1, &term0, &term1);
+    shift128Right(FLOAT_PI_HI, FLOAT_PI_LO, 1, &term0, &term1);
     if (! lt128(aSig0, aSig1, term0, term1))
     {
         int lt = lt128(term0, term1, aSig0, aSig1);
@@ -87,13 +78,11 @@ static int reduce_trig_arg(int expDiff, int &zSign, Bit64u &aSig0, Bit64u &aSig1
             zSign = !zSign;
             ++q;
         }
-        if (lt) sub128(Hi, Lo, aSig0, aSig1, &aSig0, &aSig1);
+        if (lt) sub128(FLOAT_PI_HI, FLOAT_PI_LO, aSig0, aSig1, &aSig0, &aSig1);
     }
 
     return (int)(q & 3);
 }
-
-static const floatx80 floatx80_one = packFloatx80(0, 0x3fff, BX_CONST64(0x8000000000000000));
 
 #define SIN_ARR_SIZE 9
 #define COS_ARR_SIZE 9
@@ -250,7 +239,7 @@ int fsincos(floatx80 a, floatx80 *sin_a, floatx80 *cos_a, float_status_t &status
     }
     
     zSign = aSign;
-    zExp = 0x3FFF;
+    zExp = EXP_BIAS;
     expDiff = aExp - zExp;
 
     /* argument is out-of-range */
@@ -339,7 +328,7 @@ int ftan(floatx80 &a, float_status_t &status)
     }
     
     zSign = aSign;
-    zExp = 0x3FFF;
+    zExp = EXP_BIAS;
     expDiff = aExp - zExp;
 
     /* argument is out-of-range */

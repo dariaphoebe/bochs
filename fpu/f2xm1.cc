@@ -140,7 +140,7 @@ floatx80 f2xm1(floatx80 a, float_status_t &status)
 
     if (aExp < 0x3FFF)
     {
-        if (aExp < 0x3FBB)
+        if (aExp < EXP_BIAS-68)
             goto tiny_argument;
 
         /* ******************************** */
