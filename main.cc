@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.151.2.1 2002/10/20 22:25:59 zwane Exp $
+// $Id: main.cc,v 1.151.2.2 2002/10/21 00:10:38 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -1612,7 +1612,7 @@ bx_init_hardware()
   BX_CPU(0)->reset(BX_RESET_HARDWARE);
 #else
   // SMP initialization
-  bx_mem_array[0] = new BX_MEM_C (bx_options.memory.Osize->get() * 1024*1024);
+  bx_mem_array[0] = new BX_MEM_C ();
   bx_mem_array[0]->init_memory(bx_options.memory.Osize->get () * 1024*1024);
 
   // First load the optional ROM images

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: memory.h,v 1.11 2002/09/19 19:17:20 kevinlawton Exp $
+// $Id: memory.h,v 1.11.2.1 2002/10/21 00:10:38 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -58,7 +58,6 @@ public:
 #endif
 
   BX_MEM_C(void);
-  BX_MEM_C(size_t memsize);
   ~BX_MEM_C(void);
   BX_MEM_SMF void    alloc_vector_aligned (size_t bytes, size_t alignment);
   BX_MEM_SMF void    init_memory(int memsize);

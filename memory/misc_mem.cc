@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: misc_mem.cc,v 1.30.2.1 2002/10/20 22:26:08 zwane Exp $
+// $Id: misc_mem.cc,v 1.30.2.2 2002/10/21 00:10:38 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -88,19 +88,6 @@ BX_MEM_C::alloc_vector_aligned (size_t bytes, size_t alignment)
 #endif
 
 #if BX_PROVIDE_CPU_MEMORY
-  // BX_MEM_C constructor
-BX_MEM_C::BX_MEM_C(size_t memsize)
-{
-  vector = NULL;
-  actual_vector = NULL;
-  alloc_vector_aligned (memsize, BX_MEM_VECTOR_ALIGN);
-  len    = memsize;
-  megabytes = len / (1024*1024);
-}
-#endif // #if BX_PROVIDE_CPU_MEMORY
-
-
-#if BX_PROVIDE_CPU_MEMORY
 // BX_MEM_C destructor
 BX_MEM_C::~BX_MEM_C(void)
 {
@@ -120,7 +107,7 @@ BX_MEM_C::~BX_MEM_C(void)
   void
 BX_MEM_C::init_memory(int memsize)
 {
-	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.30.2.1 2002/10/20 22:26:08 zwane Exp $"));
+	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.30.2.2 2002/10/21 00:10:38 bdenney Exp $"));
   // you can pass 0 if memory has been allocated already through
   // the constructor, or the desired size of memory if it hasn't
   BX_INFO(("%.2fMB", (float)(BX_MEM_THIS megabytes) ));
