@@ -374,7 +374,7 @@ void BX_CPU_C::FRSTOR(bxInstruction_c *i)
      // read register only if its tag is not empty
      if (! IS_TAG_EMPTY(n))
      {
-         read_virtual_tword(i->seg(), RMAddr(i) + offset, &tmp);
+         read_virtual_tword(i->seg(), RMAddr(i) + offset + n*10, &tmp);
          BX_WRITE_FPU_REG(tmp, n);
      }
   }
@@ -393,7 +393,7 @@ void BX_CPU_C::FNSAVE(bxInstruction_c *i)
   for(int n=0;n<8;n++)
   {
      floatx80 stn = BX_READ_FPU_REG(n);
-     write_virtual_tword(i->seg(), RMAddr(i) + offset, &stn);
+     write_virtual_tword(i->seg(), RMAddr(i) + offset + n*10, &stn);
   }
 
   BX_CPU_THIS_PTR the_i387.init();
