@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.2 2003/03/20 06:59:15 bdenney Exp $
+// $Id: main.cc,v 1.223.4.3 2003/03/20 10:14:30 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -52,7 +52,6 @@
 #ifndef BX_SHARE_PATH
 #define BX_SHARE_PATH NULL
 #endif
-void print_tree (bx_param_c *node, int level = 0);
 
 
 int bochsrc_include_count = 0;
@@ -1326,7 +1325,8 @@ void bx_init_options ()
   menu->get_options ()->set (menu->SHOW_PARENT);
 
   printf ("parameter tree:\n");
-  print_tree (param_root, 0);
+#warning FIXME: slechta disabled because it segfaults
+  // FIXME:print_tree (param_root, 0);
 }
 
 void bx_reset_options ()
@@ -1556,58 +1556,6 @@ void bx_test_params () {
   printf ("End\n");
 }
 
-void print_tree (bx_param_c *node, int level)
-{
-  int i;
-  for (i=0; i<level; i++)
-    printf ("  ");
-  if (node == NULL) {
-      printf ("NULL pointer\n");
-      return;
-  }
-  switch (node->get_type()) {
-    case BXT_PARAM_NUM:
-      {
-	bx_param_num_c *num = (bx_param_num_c *) node;
-	int base = num->get_base ();
-	BX_ASSERT (base==10 || base==16);
-	printf ("%s = ", node->get_name ());
-	if (base==10)
-	  printf ("%d  (number)\n", num->get ());
-	else
-	  printf ("0x%x  (number)\n", num->get ());
-      }
-      break;
-    case BXT_PARAM_BOOL:
-      printf ("%s = %s  (boolean)\n", node->get_name(), ((bx_param_bool_c*)node)->get()?"true":"false");
-      break;
-    case BXT_PARAM_STRING:
-      printf ("%s = '%s'  (string)\n", node->get_name(), ((bx_param_string_c*)node)->getptr());
-      break;
-    case BXT_LIST:
-      {
-	printf ("%s = \n", node->get_name ());
-	bx_list_c *list = (bx_list_c*)node;
-	for (i=0; i < list->get_size (); i++) {
-	  // should distinguish between real children and 'links'
-	  // where the child's parent does not point to me.
-	  print_tree (list->get(i), level+1);
-	}
-	break;
-      }
-    case BXT_PARAM_ENUM:
-      {
-	bx_param_enum_c *e = (bx_param_enum_c*) node;
-	int val = e->get ();
-	char *choice = e->get_choice(val);
-	printf ("%s = '%s'  (enum)\n", node->get_name (), choice);
-      }
-      break;
-    case BXT_PARAM:
-    default:
-      printf ("%s = <PRINTING TYPE %d NOT SUPPORTED>\n", node->get_name (), node->get_type ());
-  }
-}
 
 void test_lookup (const char *pname) 
 {

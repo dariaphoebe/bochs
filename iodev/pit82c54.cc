@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.cc,v 1.21.2.2 2003/03/20 05:56:26 bdenney Exp $
+// $Id: pit82c54.cc,v 1.21.2.3 2003/03/20 10:14:32 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -92,7 +92,7 @@ void pit_82C54::print_cnum(Bit8u cnum) {
     }
   }
 
-  void pit_82C54::set_OUT (counter_type & thisctr, bool data) {
+  void pit_82C54::set_OUT (counter_type & thisctr, bx_bool data) {
     //This will probably have a callback, so I put it here.
     thisctr.OUTpin=data;
   }
@@ -176,6 +176,9 @@ pit_82C54::decrement (counter_type & thisctr) {
       counter[i].next_change_time=0;
     }
     seen_problems=0;
+
+    //BX_REGISTER_LIST(list_p, "root", "", (bx_list_c*)0, 15);  
+    //register_state("pit", "new pit", list_p);
   }
 
 void
@@ -184,39 +187,42 @@ pit_82C54::register_state(char *name, char *desc, bx_param_c *parent_p)
   BX_REGISTER_LIST(counter_list_p, name, desc, parent_p, 15);  
   BX_REGISTER_ARRAY(array_p, i, iname, "counter", "", counter_list_p, 3) 
     {
-      BX_REGISTER_BOOL(&(counter[i].GATE             ), "GATE"             , "", array_p);
-      BX_REGISTER_BOOL(&(counter[i].OUTpin           ), "OUTpin"           , "", array_p);
-      BX_REGISTER_NUM (&(counter[i].count            ), "count"            , "", array_p);
-      BX_REGISTER_NUM (&(counter[i].outlatch         ), "outlatch"         , "", array_p);
-      BX_REGISTER_NUM (&(counter[i].inlatch          ), "inlatch"          , "", array_p);
-      BX_REGISTER_NUM (&(counter[i].status_latch     ), "status_latch"     , "", array_p);
-      BX_REGISTER_NUM (&(counter[i].rw_mode          ), "rw_mode"          , "", array_p);
-      BX_REGISTER_NUM (&(counter[i].mode             ), "mode"             , "", array_p);
-      BX_REGISTER_BOOL(&(counter[i].bcd_mode         ), "bcd_mode"         , "", array_p);
-      BX_REGISTER_BOOL(&(counter[i].null_count       ), "null_count"       , "", array_p);
-      BX_REGISTER_BOOL(&(counter[i].count_LSB_latched), "count_LSB_latched", "", array_p);
-      BX_REGISTER_BOOL(&(counter[i].count_MSB_latched), "count_MSB_latched", "", array_p);
-      BX_REGISTER_BOOL(&(counter[i].status_latched   ), "status_latched"   , "", array_p);
-      BX_REGISTER_NUM (&(counter[i].count_binary     ), "count_binary"     , "", array_p);
-      BX_REGISTER_BOOL(&(counter[i].triggerGATE      ), "triggerGATE"      , "", array_p);
-      BX_REGISTER_ENUM(&(counter[i].write_state      ), "write_state"      , "", array_p);
-      BX_REGISTER_ENUM(&(counter[i].read_state       ), "read_state"       , "", array_p);
-      BX_REGISTER_BOOL(&(counter[i].count_written    ), "count_written"    , "", array_p);
-      BX_REGISTER_BOOL(&(counter[i].first_pass       ), "first_pass"       , "", array_p);
-      BX_REGISTER_BOOL(&(counter[i].state_bit_1      ), "state_bit_1"      , "", array_p);
-      BX_REGISTER_BOOL(&(counter[i].state_bit_2      ), "state_bit_2"      , "", array_p);
-      BX_REGISTER_NUM (&(counter[i].next_change_time ), "next_change_time" , "", array_p);
+      BX_REGISTER_LIST(array_itr_p, iname, "", array_p, 50);
+        {
+          BX_REGISTER_BOOL(&(counter[i].GATE             ), "GATE"             , "", array_itr_p);
+          BX_REGISTER_BOOL(&(counter[i].OUTpin           ), "OUTpin"           , "", array_itr_p);
+          BX_REGISTER_NUM (&(counter[i].count            ), "count"            , "", array_itr_p);
+          BX_REGISTER_NUM (&(counter[i].outlatch         ), "outlatch"         , "", array_itr_p);
+          BX_REGISTER_NUM (&(counter[i].inlatch          ), "inlatch"          , "", array_itr_p);
+          BX_REGISTER_NUM (&(counter[i].status_latch     ), "status_latch"     , "", array_itr_p);
+          BX_REGISTER_NUM (&(counter[i].rw_mode          ), "rw_mode"          , "", array_itr_p);
+          BX_REGISTER_NUM (&(counter[i].mode             ), "mode"             , "", array_itr_p);
+          BX_REGISTER_BOOL(&(counter[i].bcd_mode         ), "bcd_mode"         , "", array_itr_p);
+          BX_REGISTER_BOOL(&(counter[i].null_count       ), "null_count"       , "", array_itr_p);
+          BX_REGISTER_BOOL(&(counter[i].count_LSB_latched), "count_LSB_latched", "", array_itr_p);
+          BX_REGISTER_BOOL(&(counter[i].count_MSB_latched), "count_MSB_latched", "", array_itr_p);
+          BX_REGISTER_BOOL(&(counter[i].status_latched   ), "status_latched"   , "", array_itr_p);
+          BX_REGISTER_NUM (&(counter[i].count_binary     ), "count_binary"     , "", array_itr_p);
+          BX_REGISTER_BOOL(&(counter[i].triggerGATE      ), "triggerGATE"      , "", array_itr_p);
+          BX_REGISTER_ENUM(&(counter[i].write_state      ), "write_state"      , "", array_itr_p);
+          BX_REGISTER_ENUM(&(counter[i].read_state       ), "read_state"       , "", array_itr_p);
+          BX_REGISTER_BOOL(&(counter[i].count_written    ), "count_written"    , "", array_itr_p);
+          BX_REGISTER_BOOL(&(counter[i].first_pass       ), "first_pass"       , "", array_itr_p);
+          BX_REGISTER_BOOL(&(counter[i].state_bit_1      ), "state_bit_1"      , "", array_itr_p);
+          BX_REGISTER_BOOL(&(counter[i].state_bit_2      ), "state_bit_2"      , "", array_itr_p);
+          BX_REGISTER_NUM (&(counter[i].next_change_time ), "next_change_time" , "", array_itr_p);
+        }
     }
   BX_REGISTER_NUM (&(controlword  ), "controlword"  , "", counter_list_p);
   BX_REGISTER_NUM (&(seen_problems), "seen_problems", "", counter_list_p);
 }
 
-  pit_82C54::pit_82C54 (void) {
-    init();
-  }
+pit_82C54::pit_82C54 (void) {
+  init();
+}
 
-  void pit_82C54::reset (unsigned type) {
-  }
+void pit_82C54::reset (unsigned type) {
+}
 
 void  BX_CPP_AttrRegparmN(2)
 pit_82C54::decrement_multiple(counter_type & thisctr, Bit32u cycles) {
@@ -789,7 +795,7 @@ pit_82C54::clock(Bit8u cnum) {
     }
   }
 
-  void pit_82C54::set_GATE(Bit8u cnum, bool data) {
+  void pit_82C54::set_GATE(Bit8u cnum, bx_bool data) {
     if(cnum>MAX_COUNTER) {
       BX_ERROR(("Counter number incorrect in 82C54 set_GATE"));
     } else {
@@ -887,7 +893,7 @@ pit_82C54::clock(Bit8u cnum) {
     }
   }
 
-  bool pit_82C54::read_OUT(Bit8u cnum) {
+  bx_bool pit_82C54::read_OUT(Bit8u cnum) {
     if(cnum>MAX_COUNTER) {
       BX_ERROR(("Counter number incorrect in 82C54 read_OUT"));
       return 0;
@@ -896,7 +902,7 @@ pit_82C54::clock(Bit8u cnum) {
     }
   }
 
-  bool pit_82C54::read_GATE(Bit8u cnum) {
+  bx_bool pit_82C54::read_GATE(Bit8u cnum) {
     if(cnum>MAX_COUNTER) {
       BX_ERROR(("Counter number incorrect in 82C54 read_GATE"));
       return 0;

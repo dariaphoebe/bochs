@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.52.2.2 2003/03/20 07:00:29 bdenney Exp $
+// $Id: devices.cc,v 1.52.2.3 2003/03/20 10:14:32 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -93,7 +93,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.2 2003/03/20 07:00:29 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.3 2003/03/20 10:14:32 slechta Exp $"));
   mem = newmem;
 
   /* no read / write handlers defined */
@@ -203,6 +203,11 @@ bx_devices_c::init(BX_MEM_C *newmem)
   pit->init();
   bx_param_c *param_root = SIM->get_param (".");
   pit->register_state ("pit", "8254 PIT", param_root);
+  
+#warning FIXME: slechta added for his debugging
+  BX_REGISTER_LIST(parent_p, "root", "slechta's fancy root", (bx_list_c*)0, 15);
+  pit->register_state ("pit", "8254 PIT", parent_p);
+  print_tree(parent_p,0);
 
   bx_virt_timer.init();
 

@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// $Id: pit_wrap.cc,v 1.48.2.2 2003/03/20 05:56:26 bdenney Exp $
+// $Id: pit_wrap.cc,v 1.48.2.3 2003/03/20 10:14:32 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -262,7 +262,7 @@ bx_pit_c::register_state(char *name, char *desc, bx_param_c *parent_p)
       BX_REGISTER_BOOL(&(BX_PIT_THIS s.refresh_clock_div2  ), "refresh_clock_div2"  , "", s_list_p);
       
       BX_REGISTER_ARRAY(array_p, i, index_name, "timer_handle", "", s_list_p, 3) 
-        BX_REGISTER_NUM(&(BX_PIT_THIS s.last_usec/*FIXME:timer_handle*/), index_name, "", array_p);
+        BX_REGISTER_NUM(&(BX_PIT_THIS s.timer_handle[i]), index_name, "", array_p);
 
       BX_REGISTER_NUM (&(BX_PIT_THIS s.last_usec           ), "last_usec"           , "", s_list_p);
       BX_REGISTER_NUM (&(BX_PIT_THIS s.last_next_event_time), "last_next_event_time", "", s_list_p);

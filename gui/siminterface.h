@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.3 2003/03/20 05:53:56 bdenney Exp $
+// $Id: siminterface.h,v 1.99.4.4 2003/03/20 10:14:31 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -1185,7 +1185,7 @@ typedef struct {
   bx_param_num_c *Oirq;
   } bx_usb_options;
 
-
+void print_tree (bx_param_c *node, int level = 0);
 
 // NOTE:  The following set of BX_REGISTER macros are for use in registering system state for the
 // purposes of debugging visibility and save/restore functions.  The goal of the macros is to
@@ -1209,12 +1209,11 @@ typedef struct {
 #define BX_REGISTER_ARRAY(_this_list_p, _itr, _index_name, _name, _desc, _parent_p, _size)\
   static char foobar##_this_list_p[_size][30];                                \
   char *_index_name = foobar##_this_list_p[0];                                \
-  bx_list_c *_this_list_p;                                                    \
+  bx_list_c *_this_list_p = new bx_list_c(_parent_p, _name, _desc, _size);    \
   for (int _itr = 0;                                                          \
        (_itr < _size) &&                                                      \
          (sprintf(foobar##_this_list_p[_itr], "%d", _itr),                    \
           _index_name = foobar##_this_list_p[_itr],                           \
-          _this_list_p= new bx_list_c(_parent_p, _name, _desc, _size),        \
           true);                                                              \
        _itr++)
     

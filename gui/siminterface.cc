@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94.4.2 2003/03/20 07:01:29 bdenney Exp $
+// $Id: siminterface.cc,v 1.94.4.3 2003/03/20 10:14:31 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1063,7 +1063,7 @@ bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     Bit32s *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c (parent, name, description, BX_MIN_BIT32S, BX_MAX_BIT32S, *ptr_to_real_val)
+: bx_param_num_c (parent, name, description, (Bit32s)BX_MIN_BIT32S, (Bit32s)BX_MAX_BIT32S, *ptr_to_real_val)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -1509,3 +1509,55 @@ bx_list_c::get_by_name (const char *name)
   return NULL;
 }
 
+void print_tree (bx_param_c *node, int level)
+{
+  int i;
+  for (i=0; i<level; i++)
+    printf ("  ");
+  if (node == NULL) {
+      printf ("NULL pointer\n");
+      return;
+  }
+  switch (node->get_type()) {
+    case BXT_PARAM_NUM:
+      {
+	bx_param_num_c *num = (bx_param_num_c *) node;
+	int base = num->get_base ();
+	BX_ASSERT (base==10 || base==16);
+	printf ("%s = ", node->get_name ());
+	if (base==10)
+	  printf ("%d  (number)\n", num->get ());
+	else
+	  printf ("0x%x  (number)\n", num->get ());
+      }
+      break;
+    case BXT_PARAM_BOOL:
+      printf ("%s = %s  (boolean)\n", node->get_name(), ((bx_param_bool_c*)node)->get()?"true":"false");
+      break;
+    case BXT_PARAM_STRING:
+      printf ("%s = '%s'  (string)\n", node->get_name(), ((bx_param_string_c*)node)->getptr());
+      break;
+    case BXT_LIST:
+      {
+	printf ("%s = \n", node->get_name ());
+	bx_list_c *list = (bx_list_c*)node;
+	for (i=0; i < list->get_size (); i++) {
+	  // should distinguish between real children and 'links'
+	  // where the child's parent does not point to me.
+	  print_tree (list->get(i), level+1);
+	}
+	break;
+      }
+    case BXT_PARAM_ENUM:
+      {
+	bx_param_enum_c *e = (bx_param_enum_c*) node;
+	int val = e->get ();
+	char *choice = e->get_choice(val);
+	printf ("%s = '%s'  (enum)\n", node->get_name (), choice);
+      }
+      break;
+    case BXT_PARAM:
+    default:
+      printf ("%s = <PRINTING TYPE %d NOT SUPPORTED>\n", node->get_name (), node->get_type ());
+  }
+}
