@@ -74,14 +74,14 @@ static BxOpcodeInfo_t BxOpcodeInfo_FPGroupD8[8] = {
 
   // D9 (modrm is outside 00h - BFh) (mod != 11)
 static BxOpcodeInfo_t BxOpcodeInfo_FPGroupD9[8] = { 
-  /* 0 */  { 0,  &BX_CPU_C::FLD_SINGLE_REAL   },
-  /* 1 */  { 0,  &BX_CPU_C::BxError           },
-  /* 2 */  { 0,  &BX_CPU_C::FST_SINGLE_REAL   },
-  /* 3 */  { 0,  &BX_CPU_C::FSTP_SINGLE_REAL  },
-  /* 4 */  { 0,  &BX_CPU_C::FLDENV            },
-  /* 5 */  { 0,  &BX_CPU_C::FLDCW             },
-  /* 6 */  { 0,  &BX_CPU_C::FNSTENV           },
-  /* 7 */  { 0,  &BX_CPU_C::FNSTCW            }
+  /* 0 */  { 0,  &BX_CPU_C::FLD_SINGLE_REAL  },
+  /* 1 */  { 0,  &BX_CPU_C::BxError          },
+  /* 2 */  { 0,  &BX_CPU_C::FST_SINGLE_REAL  },
+  /* 3 */  { 0,  &BX_CPU_C::FST_SINGLE_REAL  },	// FSTP_SINGLE_REAL
+  /* 4 */  { 0,  &BX_CPU_C::FLDENV           },
+  /* 5 */  { 0,  &BX_CPU_C::FLDCW            },
+  /* 6 */  { 0,  &BX_CPU_C::FNSTENV          },
+  /* 7 */  { 0,  &BX_CPU_C::FNSTCW           }
   };
 
   // DA (modrm is outside 00h - BFh) (mod != 11)
@@ -122,14 +122,14 @@ static BxOpcodeInfo_t BxOpcodeInfo_FPGroupDC[8] = {
 
   // DD (modrm is outside 00h - BFh) (mod != 11)
 static BxOpcodeInfo_t BxOpcodeInfo_FPGroupDD[8] = { 
-  /* 0 */  { 0,  &BX_CPU_C::FLD_DOUBLE_REAL  },
-  /* 1 */  { 0,  &BX_CPU_C::FISTTP32         },
-  /* 2 */  { 0,  &BX_CPU_C::FST_DOUBLE_REAL  },
-  /* 3 */  { 0,  &BX_CPU_C::FSTP_DOUBLE_REAL },
-  /* 4 */  { 0,  &BX_CPU_C::FRSTOR           },
-  /* 5 */  { 0,  &BX_CPU_C::BxError          },
-  /* 6 */  { 0,  &BX_CPU_C::FNSAVE           },
-  /* 7 */  { 0,  &BX_CPU_C::FNSTSW           }
+  /* 0 */  { 0,  &BX_CPU_C::FLD_DOUBLE_REAL },
+  /* 1 */  { 0,  &BX_CPU_C::FISTTP32        },
+  /* 2 */  { 0,  &BX_CPU_C::FST_DOUBLE_REAL },
+  /* 3 */  { 0,  &BX_CPU_C::FST_DOUBLE_REAL },		// FSTP_DOUBLE_REAL
+  /* 4 */  { 0,  &BX_CPU_C::FRSTOR          },
+  /* 5 */  { 0,  &BX_CPU_C::BxError         },
+  /* 6 */  { 0,  &BX_CPU_C::FNSAVE          },
+  /* 7 */  { 0,  &BX_CPU_C::FNSTSW          }
   };
 
   // DE (modrm is outside 00h - BFh) (mod != 11)
@@ -513,14 +513,14 @@ static BxOpcodeInfo_t BxOpcodeInfo_FloatingPoint[512] = {
   /* DD D5 */  { 0,  &BX_CPU_C::FST_STi    },
   /* DD D6 */  { 0,  &BX_CPU_C::FST_STi    },
   /* DD D7 */  { 0,  &BX_CPU_C::FST_STi    },
-  /* DD D8 */  { 0,  &BX_CPU_C::FSTP_STi   },
-  /* DD D9 */  { 0,  &BX_CPU_C::FSTP_STi   },
-  /* DD DA */  { 0,  &BX_CPU_C::FSTP_STi   },
-  /* DD DB */  { 0,  &BX_CPU_C::FSTP_STi   },
-  /* DD DC */  { 0,  &BX_CPU_C::FSTP_STi   },
-  /* DD DD */  { 0,  &BX_CPU_C::FSTP_STi   },
-  /* DD DE */  { 0,  &BX_CPU_C::FSTP_STi   },
-  /* DD DF */  { 0,  &BX_CPU_C::FSTP_STi   },
+  /* DD D8 */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
+  /* DD D9 */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
+  /* DD DA */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
+  /* DD DB */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
+  /* DD DC */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
+  /* DD DD */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
+  /* DD DE */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
+  /* DD DF */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
   /* DD E0 */  { 0,  &BX_CPU_C::FUCOM_STi  },
   /* DD E1 */  { 0,  &BX_CPU_C::FUCOM_STi  },
   /* DD E2 */  { 0,  &BX_CPU_C::FUCOM_STi  },

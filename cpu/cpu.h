@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.160.2.2 2004/02/21 17:38:54 sshwarts Exp $
+// $Id: cpu.h,v 1.160.2.3 2004/02/25 19:17:06 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1885,11 +1885,8 @@ union {
 
   // store
   BX_SMF void FST_STi(bxInstruction_c *);
-  BX_SMF void FSTP_STi(bxInstruction_c *);
   BX_SMF void FST_SINGLE_REAL(bxInstruction_c *);
-  BX_SMF void FSTP_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FST_DOUBLE_REAL(bxInstruction_c *);
-  BX_SMF void FSTP_DOUBLE_REAL(bxInstruction_c *);
   BX_SMF void FSTP_EXTENDED_REAL(bxInstruction_c *);
 
   BX_SMF void FIST_WORD_INTEGER(bxInstruction_c *);

@@ -185,6 +185,9 @@ public:
 #define IS_TAG_EMPTY(i) 		\
   ((BX_CPU_THIS_PTR the_i387.FPU_gettagi(i)) == FPU_Tag_Empty)
 
+#define IS_IA_MASKED()			\
+  (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+
 #define BX_READ_FPU_REG(i)		\
   (BX_CPU_THIS_PTR the_i387.FPU_read_regi(i))
 

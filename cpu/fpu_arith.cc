@@ -86,7 +86,7 @@ void BX_CPU_C::FPU_stack_underflow(int stnr, int pop_stack)
   BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 }
 
-static softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word)
+softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word)
 {
   softfloat_status_word_t status;
 
