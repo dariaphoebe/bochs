@@ -47,6 +47,7 @@ Detailed description:
 
   Still to do :
     - implement additionnal mode split
+    - implement additionnal mode compressed
     - update bximage to create split disks
     - add command line switches to bximage
     - handle new "mode" option in wxwindow config interface
@@ -16151,7 +16152,7 @@ diff -u -r1.17 bximage.c
 -/* 
 +/*
   * misc/bximage.c
-  * $Id: patch.harddisk-modes,v 1.7 2003/03/19 23:39:40 cbothamy Exp $
+  * $Id: patch.harddisk-modes,v 1.7.2.1 2003/03/26 01:51:37 cbothamy Exp $
   *
 @@ -16,6 +16,15 @@
  #endif
@@ -16167,7 +16168,7 @@ diff -u -r1.17 bximage.c
 +#include "../iodev/harddrv.h"
 +
  char *EOF_ERR = "ERROR: End of input";
- char *rcsid = "$Id: patch.harddisk-modes,v 1.7 2003/03/19 23:39:40 cbothamy Exp $";
+ char *rcsid = "$Id: patch.harddisk-modes,v 1.7.2.1 2003/03/26 01:51:37 cbothamy Exp $";
  char *divider = "========================================================================";
 @@ -30,6 +39,11 @@
  char *fdsize_choices[] = { "0.36","0.72","1.2","1.44","2.88" };
