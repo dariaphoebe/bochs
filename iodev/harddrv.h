@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.12 2002/08/27 19:54:46 bdenney Exp $
+// $Id: harddrv.h,v 1.9.6.1 2002/09/10 17:45:38 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -95,9 +95,6 @@ class default_image_t : public device_image_t
 class concat_image_t : public device_image_t
 {
   public:
-      // Default constructor
-      concat_image_t();
-      
       // Open a image. Returns non-negative if successful.
       int open (const char* pathname);
 
@@ -142,6 +139,35 @@ class concat_image_t : public device_image_t
 #include "external-disk-simulator.h"
 #endif
 
+#if DLL_HD_SUPPORT
+class dll_image_t : public device_image_t
+{
+  public:
+      // Open a image. Returns non-negative if successful.
+      int open (const char* pathname);
+
+      // Close the image.
+      void close ();
+
+      // Position ourselves. Return the resulting offset from the
+      // beginning of the file.
+      off_t lseek (off_t offset, int whence);
+
+      // Read count bytes to the buffer buf. Return the number of
+      // bytes read (count).
+      ssize_t read (void* buf, size_t count);
+
+      // Write count bytes from buf. Return the number of bytes
+      // written (count).
+      ssize_t write (const void* buf, size_t count);
+
+  private:
+      int vunit,vblk;
+
+};
+#endif
+
+
 typedef struct {
   struct {
     Boolean busy;
@@ -179,8 +205,7 @@ typedef struct {
     Bit16u   byte_count;
   };
   Bit8u    buffer[2048];
-  Bit32u   buffer_index;
-  Bit32u   drq_index;
+  unsigned buffer_index;
   Bit8u    current_command;
   Bit8u    sectors_per_block;
   Bit8u    lba_mode;
@@ -268,7 +293,6 @@ public:
   ~bx_hard_drive_c(void);
   BX_HD_SMF void   close_harddrive(void);
   BX_HD_SMF void   init(bx_devices_c *d, bx_cmos_c *cmos);
-  BX_HD_SMF void   reset(unsigned type);
   BX_HD_SMF unsigned get_cd_media_status(void);
   BX_HD_SMF unsigned set_cd_media_status(unsigned status);
 
