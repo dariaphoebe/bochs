@@ -102,7 +102,7 @@ dist-clean: clean
 ###########################################
 div_Xsig.o: div_Xsig.c exception.h fpu_emu.h linkage.h \
   fpu_system.h ../config.h ../cpu/i387.h fpu_proto.h poly.h
-errors.o: errors.c stubs/linux/signal.h fpu_emu.h linkage.h \
+errors.o: errors.c fpu_emu.h linkage.h \
   fpu_system.h ../config.h ../cpu/i387.h fpu_proto.h exception.h \
   status_w.h control_w.h reg_constant.h
 fpu_tags.o: fpu_tags.c fpu_emu.h linkage.h fpu_system.h \
@@ -171,5 +171,4 @@ wmFPUemu_glue.o: wmFPUemu_glue.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h \
   ../iodev/serial.h ../iodev/unmapped.h ../iodev/eth.h ../iodev/ne2k.h \
   ../iodev/guest2host.h ../iodev/slowdown_timer.h ../iodev/extfpuirq.h \
   ../iodev/gameport.h ../iodev/speaker.h ../instrument/stubs/instrument.h \
-  fpu_emu.h linkage.h fpu_system.h fpu_proto.h \
-  stubs/linux/signal.h
+  fpu_emu.h linkage.h fpu_system.h fpu_proto.h
