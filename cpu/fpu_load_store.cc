@@ -418,7 +418,7 @@ void BX_CPU_C::FIST_DWORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  Bit32s save_reg = 0x80000000U; /* The masked response */
+  Bit32s save_reg = int32_indefinite; /* The masked response */
 
   int pop_stack = (i->b1() & 0x10) >> 1;
 
@@ -456,7 +456,7 @@ void BX_CPU_C::FISTP_QWORD_INTEGER(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  Bit64s save_reg = BX_CONST64(0x8000000000000000U); /* The masked response */
+  Bit64s save_reg = int64_indefinite; /* The masked response */
 
   clear_C1();
 
@@ -552,7 +552,7 @@ void BX_CPU_C::FISTTP32(bxInstruction_c *i)
 #if BX_SUPPORT_PNI
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  Bit32s save_reg = 0x80000000U; /* The masked response */
+  Bit32s save_reg = int32_indefinite; /* The masked response */
 
   clear_C1();
 
@@ -588,7 +588,7 @@ void BX_CPU_C::FISTTP64(bxInstruction_c *i)
 #if BX_SUPPORT_PNI
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  Bit64s save_reg = BX_CONST64(0x8000000000000000U); /* The masked response */
+  Bit64s save_reg = int64_indefinite; /* The masked response */
 
   clear_C1();
 

@@ -48,7 +48,7 @@ const floatx80 Const_LN2  = packFloatx80(0, 0x3ffe, BX_CONST64(0xb17217f7d1cf79a
    */
 #define DOWN_OR_CHOP()  (FPU_CONTROL_WORD & FPU_CW_RC & FPU_RC_DOWN)
 
-floatx80 FPU_round_const(const floatx80 &a, int adj)
+BX_CPP_INLINE floatx80 FPU_round_const(const floatx80 &a, int adj)
 {
   floatx80 result = a;
   result.fraction += adj;

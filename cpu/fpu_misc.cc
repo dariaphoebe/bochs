@@ -29,18 +29,18 @@
 
 
 #if BX_SUPPORT_FPU
-static floatx80& floatx80_abs(floatx80 &reg)
+BX_CPP_INLINE floatx80& floatx80_abs(floatx80 &reg)
 {
     reg.exp &= 0x7FFF;
     return reg;   
 }
 
-static floatx80& floatx80_chs(floatx80 &reg)
+BX_CPP_INLINE floatx80& floatx80_chs(floatx80 &reg)
 {
     reg.exp ^= 0x8000;
     return reg;   
 }
-#endif 
+#endif
 
 /* D9 C8 */
 void BX_CPU_C::FXCH_STi(bxInstruction_c *i)
