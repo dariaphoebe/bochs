@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: bochs.h,v 1.120 2003/02/26 02:41:29 ptrumpet Exp $
+// $Id: bochs.h,v 1.120.2.1 2003/03/20 03:52:46 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -94,6 +94,7 @@ int bx_begin_simulation (int argc, char *argv[]);
 // so that these functions can be redirected to the debugger when
 // needed.
 //
+
 
 #if ((BX_DEBUGGER == 1) && (BX_NUM_SIMULATORS >= 2))
 // =-=-=-=-=-=-=- Redirected to cosimulation debugger -=-=-=-=-=-=-=
