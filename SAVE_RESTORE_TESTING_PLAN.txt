@@ -1,0 +1,109 @@
+Testing phases:
+
+1. Test that save,restore,save produces the same result twice.  This 
+   should locate the most blatant save/restore errors.  Compile Bochs
+   with debugger, boot up a disk image to some arbitrary point and
+   press control-C.  Then type
+     save-state "check1"
+     restore-state "check1"
+     save-state "check2"
+   Then, use diff to compare the files in the check1 and check2 directories.
+   There should be no differences.
+   STATUS:
+   - many panics during CPU param registration
+   - memory and CPU registration are still commented in CVS.  In my
+     local copy I enabled them, but I had to disable registration
+     of dbg_dirty_pages in misc_mem.cc because it was taking forever.
+   - only one difference found, in ata.0.master.present.  This may be
+     happening because of side effects in a handler, but we haven't
+     been able to explain it yet.
+
+2. Test that a saved checkpoint can be restored later within the same
+   Bochs run.  This is considerably easier than the most general case
+   because it guarantees the same machine configuration, memory size,
+   open files, etc.  Compile Bochs with debugger, boot up a disk image
+   to some arbitrary point and press control-C.  Then we can check at
+   a microscopic scale or a macroscopic scale.
+
+   a) This procedure tests, one an instruction-by-instruction level,
+      whether execution after a checkpoint follows the same path as
+      the original execution.  Save state and step one instruction, save state
+      and step, etc.  Then restore to the first recorded checkpoint, save
+      state to a different file and step, save state and step, etc.
+      In the debugger, type:
+        save-state "c1"
+	step
+        save-state "c2"
+	step
+        save-state "c3"
+	step
+        save-state "c4"
+	step
+        save-state "c5"
+	restore-state "c1"
+	save-state "c1new"
+	step
+        save-state "c2new"
+	step
+        save-state "c3new"
+	step
+        save-state "c4new"
+	step
+        save-state "c5new"
+      The checkpoints c1 and c1new should be identical, c2 and c2new should
+      be identical, etc.
+      STATUS:
+      - c1 and c1new differ only in ata.0.master.present, as in phase 1.
+      - c2 and c2new: significant differences within CPU
+
+   b) Instead of looking one instruction at a time, just continue and
+      see if everything looks and works right on the VGA screen.
+        start bochs, press control-C at some point
+        save-state "c1"
+	continue
+	wait a while, press control-C
+	restore-state "c1"
+	continue
+      The simulation should jump back to the earlier point.
+      STATUS:
+      - on restore, CPU panic: prefetch: running in bogus memory
+      - on restore, CPU panic: exception(): 3rd (14) exception with no
+	resolution
+
+3. Test that you can save state, quit Bochs, restart with the same
+   configuration, restore state again, and continue.  This is a lot 
+   like phase 2, except that we actually quit the entire simulator
+   between the save and the restore.  This would find problems if we
+   have accidently saved a pointer or something.  Still, since the
+   configuration is the same, this is simpler than if we have to deal
+   with reallocating memory, or closing and reopening files and devices.
+   Compile Bochs with debugger, run with a disk image and then:
+     press control-C to interrupt
+     save-state "s1"
+     quit    (immediately, do not step or continue any further)
+     start bochs again with identical bochsrc
+     restore-state "s2"
+     step or continue, and see if it restored properly
+
+4. Test that you can save state with one bochsrc, quit Bochs, restart with a
+   totally different configuration, restore state again, and continue.  This
+   tests whether we can close files and devices and open the new ones,
+   reallocate new memory structures if they have changed size, etc.
+   Same as #3 except that you have a very different bochsrc when you first
+   start simulation.  The restore-state should replace the configuration 
+   with the configuration that was saved in the checkpoint.
+
+5. Test that a checkpoint file can be sent to another computer, running
+   a different operating system, possibly with different endian, and
+   that you can restore the simulation and run.  We would only expect
+   this to work if the disk images are copied exactly, and they must
+   be accessible with the same path names.  The Bochs version must match
+   as well.
+
+6. Eventually we may need to deal with restoring from a different Bochs
+   version or configuration than the original.  For example, a user may
+   send a bug report with a checkpoint file, and the developer may not
+   be able to exactly duplicate the Bochs version and configure options.
+   It would be useful if it is still possible to load the state file
+   into the developer's Bochs, despite minor differences in which
+   devices exist, etc.
