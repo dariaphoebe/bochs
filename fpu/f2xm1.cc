@@ -120,9 +120,7 @@ floatx80 f2xm1(floatx80 a, float_status_t &status)
     }
 
     if (aExp == 0) {
-        if ((Bit64u) (aSig<<1) == 0) 
-            return a;
-
+        if (aSig == 0) return a;
         float_raise(status, float_flag_denormal | float_flag_inexact);
         normalizeFloatx80Subnormal(aSig, &aExp, &aSig);
 

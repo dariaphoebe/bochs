@@ -229,7 +229,7 @@ int fsincos(floatx80 a, floatx80 *sin_a, floatx80 *cos_a, float_status_t &status
     }
 
     if (aExp == 0) {
-        if ((Bit64u) (aSig0<<1) == 0) {
+        if (aSig0 == 0) {
             sincos_tiny_argument(sin_a, cos_a, a);
             return 0;
         }
@@ -327,18 +327,14 @@ int ftan(floatx80 &a, float_status_t &status)
     }
 
     if (aExp == 0) {
-        if ((Bit64u) (aSig0<<1) == 0)
-            return 0;
-
+        if (aSig0 == 0) return 0;
         float_raise(status, float_flag_denormal);
-
         /* handle pseudo denormals */
         if (! (aSig0 & BX_CONST64(0x8000000000000000)))
         {
             float_raise(status, float_flag_inexact | float_flag_underflow);
             return 0;
         }
-
         normalizeFloatx80Subnormal(aSig0, &aExp, &aSig0);
     }
     

@@ -4,7 +4,7 @@ TODO:
 1. Check for denormal and pseudodenormal operands in ALL instructions
    I hope all instructions return the same values as real CPU.
 
-2. Unmasked underflow should correct the result by magic number
+2. Unmasked underflow/overflow should correct the result by magic number
    for all operations, including float32 and float64.
 
 3. The instructions still implemented using old FPU library:

@@ -25,13 +25,6 @@ these four paragraphs for those parts of this code that are retained.
 
 #include "softfloatx80.h"
 #include "softfloat-round-pack.h"
-
-/*----------------------------------------------------------------------------
-| Primitive arithmetic functions, including multi-word arithmetic, and
-| division and square root approximations. (Can be specialized to target
-| if desired).
-*----------------------------------------------------------------------------*/
-
 #include "softfloat-macros.h"
 
 /*----------------------------------------------------------------------------

@@ -375,16 +375,15 @@ static float32 addFloat32Sigs(float32 a, float32 b, int zSign, float_status_t &s
             if (bSig && (bExp == 0)) float_raise(status, float_flag_denormal);
             return a;
         }
-        if ((aExp == 0) && aSig) {
+        if ((aExp == 0) && aSig)
             float_raise(status, float_flag_denormal);
-        }
+
         if (bExp == 0) {
             if (bSig) float_raise(status, float_flag_denormal);
             --expDiff;
         }
-        else {
-            bSig |= 0x20000000;
-        }
+        else bSig |= 0x20000000;
+
         shift32RightJamming(bSig, expDiff, &bSig);
         zExp = aExp;
     }
@@ -394,16 +393,15 @@ static float32 addFloat32Sigs(float32 a, float32 b, int zSign, float_status_t &s
             if (aSig && (aExp == 0)) float_raise(status, float_flag_denormal);
             return packFloat32(zSign, 0xFF, 0);
         }
-        if ((bExp == 0) && bSig) {
+        if ((bExp == 0) && bSig)
             float_raise(status, float_flag_denormal);
-        }
+
         if (aExp == 0) {
             if (aSig) float_raise(status, float_flag_denormal);
             ++expDiff;
         }
-        else {
-            aSig |= 0x20000000;
-        }
+        else aSig |= 0x20000000;
+
         shift32RightJamming(aSig, -expDiff, &aSig);
         zExp = bExp;
     }
@@ -474,16 +472,15 @@ static float32 subFloat32Sigs(float32 a, float32 b, int zSign, float_status_t &s
         if (aSig && (aExp == 0)) float_raise(status, float_flag_denormal);
         return packFloat32(zSign ^ 1, 0xFF, 0);
     }
-    if ((bExp == 0) && bSig) {
+    if ((bExp == 0) && bSig)
         float_raise(status, float_flag_denormal);
-    }
+
     if (aExp == 0) {
         if (aSig) float_raise(status, float_flag_denormal);
         ++expDiff;
     }
-    else {
-        aSig |= 0x40000000;
-    }
+    else aSig |= 0x40000000;
+
     shift32RightJamming(aSig, -expDiff, &aSig);
     bSig |= 0x40000000;
  bBigger:
@@ -497,16 +494,15 @@ static float32 subFloat32Sigs(float32 a, float32 b, int zSign, float_status_t &s
         if (bSig && (bExp == 0)) float_raise(status, float_flag_denormal);
         return a;
     }
-    if ((aExp == 0) && aSig) {
+    if ((aExp == 0) && aSig)
         float_raise(status, float_flag_denormal);
-    }
+
     if (bExp == 0) {
         if (bSig) float_raise(status, float_flag_denormal);
         --expDiff;
     }
-    else {
-        bSig |= 0x40000000;
-    }
+    else bSig |= 0x40000000;
+
     shift32RightJamming(bSig, expDiff, &bSig);
     aSig |= 0x40000000;
  aBigger:
@@ -577,9 +573,9 @@ float32 float32_mul(float32 a, float32 b, float_status_t &status)
     bSign = extractFloat32Sign(b);
     zSign = aSign ^ bSign;
     if (aExp == 0xFF) {
-        if (aSig || ((bExp == 0xFF) && bSig)) {
+        if (aSig || ((bExp == 0xFF) && bSig))
             return propagateFloat32NaN(a, b, status);
-        }
+
         if ((bExp | bSig) == 0) {
             float_raise(status, float_flag_invalid);
             return float32_default_nan;
@@ -644,6 +640,7 @@ float32 float32_div(float32 a, float32 b, float_status_t &status)
         if (aSig) return propagateFloat32NaN(a, b, status);
         if (bExp == 0xFF) {
             if (bSig) return propagateFloat32NaN(a, b, status);
+   invalid:
             float_raise(status, float_flag_invalid);
             return float32_default_nan;
         }
@@ -1303,16 +1300,15 @@ static float64 addFloat64Sigs(float64 a, float64 b, int zSign, float_status_t &s
             if (bSig && (bExp == 0)) float_raise(status, float_flag_denormal);
             return a;
         }
-        if ((aExp == 0) && aSig) {
+        if ((aExp == 0) && aSig)
             float_raise(status, float_flag_denormal);
-        }
+
         if (bExp == 0) {
             if (bSig) float_raise(status, float_flag_denormal);
             --expDiff;
         }
-        else {
-            bSig |= BX_CONST64(0x2000000000000000);
-        }
+        else bSig |= BX_CONST64(0x2000000000000000);
+
         shift64RightJamming(bSig, expDiff, &bSig);
         zExp = aExp;
     }
@@ -1322,16 +1318,15 @@ static float64 addFloat64Sigs(float64 a, float64 b, int zSign, float_status_t &s
             if (aSig && (aExp == 0)) float_raise(status, float_flag_denormal);
             return packFloat64(zSign, 0x7FF, 0);
         }
-        if ((bExp == 0) && bSig) {
+        if ((bExp == 0) && bSig)
             float_raise(status, float_flag_denormal);
-        }
+
         if (aExp == 0) {
             if (aSig) float_raise(status, float_flag_denormal);
             ++expDiff;
         }
-        else {
-            aSig |= BX_CONST64(0x2000000000000000);
-        }
+        else aSig |= BX_CONST64(0x2000000000000000);
+
         shift64RightJamming(aSig, -expDiff, &aSig);
         zExp = bExp;
     }
@@ -1402,16 +1397,15 @@ static float64 subFloat64Sigs(float64 a, float64 b, int zSign, float_status_t &s
         if (aSig && (aExp == 0)) float_raise(status, float_flag_denormal);
         return packFloat64(zSign ^ 1, 0x7FF, 0);
     }
-    if ((bExp == 0) && bSig) {
+    if ((bExp == 0) && bSig)
         float_raise(status, float_flag_denormal);
-    }
+
     if (aExp == 0) {
         if (aSig) float_raise(status, float_flag_denormal);
         ++expDiff;
     }
-    else {
-        aSig |= BX_CONST64(0x4000000000000000);
-    }
+    else aSig |= BX_CONST64(0x4000000000000000);
+
     shift64RightJamming(aSig, -expDiff, &aSig);
     bSig |= BX_CONST64(0x4000000000000000);
  bBigger:
@@ -1425,16 +1419,15 @@ static float64 subFloat64Sigs(float64 a, float64 b, int zSign, float_status_t &s
         if (bSig && (bExp == 0)) float_raise(status, float_flag_denormal);
         return a;
     }
-    if ((aExp == 0) && aSig) {
+    if ((aExp == 0) && aSig)
         float_raise(status, float_flag_denormal);
-    }
+
     if (bExp == 0) {
         if (bSig) float_raise(status, float_flag_denormal);
         --expDiff;
     }
-    else {
-        bSig |= BX_CONST64(0x4000000000000000);
-    }
+    else bSig |= BX_CONST64(0x4000000000000000);
+
     shift64RightJamming(bSig, expDiff, &bSig);
     aSig |= BX_CONST64(0x4000000000000000);
  aBigger:
@@ -1572,6 +1565,7 @@ float64 float64_div(float64 a, float64 b, float_status_t &status)
         if (aSig) return propagateFloat64NaN(a, b, status);
         if (bExp == 0x7FF) {
             if (bSig) return propagateFloat64NaN(a, b, status);
+   invalid:
             float_raise(status, float_flag_invalid);
             return float64_default_nan;
         }
@@ -2391,31 +2385,48 @@ static floatx80 addFloatx80Sigs(floatx80 a, floatx80 b, int zSign, float_status_
     if (0 < expDiff) {
         if (aExp == 0x7FFF) {
             if ((Bit64u) (aSig<<1)) return propagateFloatx80NaN(a, b, status);
+            if (bSig && (bExp == 0)) float_raise(status, float_flag_denormal);
             return a;
         }
-        if (bExp == 0) --expDiff;
+        if ((aExp == 0) && aSig)
+            float_raise(status, float_flag_denormal);
+
+        if (bExp == 0) {
+            if (bSig) float_raise(status, float_flag_denormal);
+            --expDiff;
+        }
+
         shift64ExtraRightJamming(bSig, 0, expDiff, &bSig, &zSig1);
         zExp = aExp;
     }
     else if (expDiff < 0) {
         if (bExp == 0x7FFF) {
             if ((Bit64u) (bSig<<1)) return propagateFloatx80NaN(a, b, status);
+            if (aSig && (aExp == 0)) float_raise(status, float_flag_denormal);
             return packFloatx80(zSign, 0x7FFF, BX_CONST64(0x8000000000000000));
         }
-        if (aExp == 0) ++expDiff;
+        if ((bExp == 0) && bSig)
+            float_raise(status, float_flag_denormal);
+
+        if (aExp == 0) {
+            if (aSig) float_raise(status, float_flag_denormal);
+            ++expDiff;
+        }
+
         shift64ExtraRightJamming(aSig, 0, - expDiff, &aSig, &zSig1);
         zExp = bExp;
     }
     else {
         if (aExp == 0x7FFF) {
-            if ((Bit64u) ((aSig | bSig)<<1)) {
+            if ((Bit64u) ((aSig | bSig)<<1))
                 return propagateFloatx80NaN(a, b, status);
-            }
+
             return a;
         }
         zSig1 = 0;
         zSig0 = aSig + bSig;
         if (aExp == 0) {
+            if (aSig | bSig) float_raise(status, float_flag_denormal);
             normalizeFloatx80Subnormal(zSig0, &zExp, &zSig0);
             goto roundAndPack;
         }
@@ -2464,13 +2475,13 @@ static floatx80 subFloatx80Sigs(floatx80 a, floatx80 b, int zSign, float_status_
     if (0 < expDiff) goto aExpBigger;
     if (expDiff < 0) goto bExpBigger;
     if (aExp == 0x7FFF) {
-        if ((Bit64u) ((aSig | bSig)<<1)) {
+        if ((Bit64u) ((aSig | bSig)<<1))
             return propagateFloatx80NaN(a, b, status);
-        }
         float_raise(status, float_flag_invalid);
         return floatx80_default_nan;
     }
     if (aExp == 0) {
+        if (aSig | bSig) float_raise(status, float_flag_denormal);
         aExp = 1;
         bExp = 1;
     }
@@ -2481,9 +2492,15 @@ static floatx80 subFloatx80Sigs(floatx80 a, floatx80 b, int zSign, float_status_
  bExpBigger:
     if (bExp == 0x7FFF) {
         if ((Bit64u) (bSig<<1)) return propagateFloatx80NaN(a, b, status);
+        if (aSig && (aExp == 0)) float_raise(status, float_flag_denormal);
         return packFloatx80(zSign ^ 1, 0x7FFF, BX_CONST64(0x8000000000000000));
     }
-    if (aExp == 0) ++expDiff;
+    if ((bExp == 0) && bSig)
+        float_raise(status, float_flag_denormal);
+    if (aExp == 0) {
+        if (aSig) float_raise(status, float_flag_denormal);
+        ++expDiff;
+    }
     shift128RightJamming(aSig, 0, - expDiff, &aSig, &zSig1);
  bBigger:
     sub128(bSig, 0, aSig, zSig1, &zSig0, &zSig1);
@@ -2493,9 +2510,16 @@ static floatx80 subFloatx80Sigs(floatx80 a, floatx80 b, int zSign, float_status_
  aExpBigger:
     if (aExp == 0x7FFF) {
         if ((Bit64u) (aSig<<1)) return propagateFloatx80NaN(a, b, status);
+        if (bSig && (bExp == 0)) float_raise(status, float_flag_denormal);
         return a;
     }
-    if (bExp == 0) --expDiff;
+    if ((aExp == 0) && aSig)
+        float_raise(status, float_flag_denormal);
+
+    if (bExp == 0) {
+        if (bSig) float_raise(status, float_flag_denormal);
+        --expDiff;
+    }
     shift128RightJamming(bSig, 0, expDiff, &bSig, &zSig1);
  aBigger:
     sub128(aSig, 0, bSig, zSig1, &zSig0, &zSig1);
@@ -2588,7 +2612,10 @@ floatx80 floatx80_mul(floatx80 a, floatx80 b, float_status_t &status)
         return packFloatx80(zSign, 0x7FFF, BX_CONST64(0x8000000000000000));
     }
     if (aExp == 0) {
-        if (aSig == 0) return packFloatx80(zSign, 0, 0);
+        if (aSig == 0) {
+            if (bSig && (bExp == 0)) float_raise(status, float_flag_denormal);
+            return packFloatx80(zSign, 0, 0);
+        }
         float_raise(status, float_flag_denormal);
         normalizeFloatx80Subnormal(aSig, &aExp, &aSig);
     }
@@ -2822,6 +2849,7 @@ floatx80 float128_to_floatx80(float128 a, float_status_t &status)
 
     if (aExp == 0) {
         if ((aSig0 | aSig1) == 0) return packFloatx80(aSign, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat128Subnormal(aSig0, aSig1, &aExp, &aSig0, &aSig1);
     }
     else aSig0 |= BX_CONST64(0x0001000000000000);
@@ -2870,9 +2898,7 @@ static float128 addFloat128Sigs(float128 a, float128 b, int zSign, float_status_
             return packFloat128(zSign, 0x7FFF, 0, 0);
         }
         if (aExp == 0) ++expDiff;
-        else {
-            aSig0 |= BX_CONST64(0x0001000000000000);
-        }
+        else aSig0 |= BX_CONST64(0x0001000000000000);
         shift128ExtraRightJamming(
             aSig0, aSig1, 0, - expDiff, &aSig0, &aSig1, &zSig2);
         zExp = bExp;
@@ -2943,7 +2969,7 @@ static float128 subFloat128Sigs(float128 a, float128 b, int zSign, float_status_
     if (aSig0 < bSig0) goto bBigger;
     if (bSig1 < aSig1) goto aBigger;
     if (aSig1 < bSig1) goto bBigger;
-    return packFloat128(0, 0, 0, 0);
+    return packFloat128(0, 0);
 
  bExpBigger:
     if (bExp == 0x7FFF) {
@@ -3059,10 +3085,12 @@ float128 float128_mul(float128 a, float128 b, float_status_t &status)
     }
     if (aExp == 0) {
         if ((aSig0 | aSig1) == 0) return packFloat128(zSign, 0, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat128Subnormal(aSig0, aSig1, &aExp, &aSig0, &aSig1);
     }
     if (bExp == 0) {
         if ((bSig0 | bSig1) == 0) return packFloat128(zSign, 0, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat128Subnormal(bSig0, bSig1, &bExp, &bSig0, &bSig1);
     }
     zExp = aExp + bExp - 0x4000;
@@ -3124,10 +3152,12 @@ float128 float128_div(float128 a, float128 b, float_status_t &status)
             float_raise(status, float_flag_divbyzero);
             return packFloat128(zSign, 0x7FFF, 0, 0);
         }
+        float_raise(status, float_flag_denormal);
         normalizeFloat128Subnormal(bSig0, bSig1, &bExp, &bSig0, &bSig1);
     }
     if (aExp == 0) {
         if ((aSig0 | aSig1) == 0) return packFloat128(zSign, 0, 0, 0);
+        float_raise(status, float_flag_denormal);
         normalizeFloat128Subnormal(aSig0, aSig1, &aExp, &aSig0, &aSig1);
     }
     zExp = aExp - bExp + 0x3FFD;
