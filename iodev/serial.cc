@@ -67,7 +67,7 @@ static int tty_id;
 
 bx_serial_c::bx_serial_c(void)
 {
-  setprefix("[SER ]",__FILE__,__LINE__);
+  setprefix("[SER ]");
   settype(SERLOG);
 #ifdef __FreeBSD__
   tcgetattr(0, &term_orig);

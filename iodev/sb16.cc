@@ -48,7 +48,7 @@ bx_sb16_c bx_sb16;
 
 bx_sb16_c::bx_sb16_c(void)
 {
-  setprefix("[SB16]",__FILE__,__LINE__);
+  setprefix("[SB16]");
   settype(SB16LOG);
 }
 

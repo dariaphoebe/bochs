@@ -256,7 +256,7 @@ iofunctions::~iofunctions(void)
 
 logfunctions::logfunctions(void)
 {
-	setprefix("[GEN ]", __FILE__, __LINE__);
+	setprefix("[GEN ]");
 	settype(GENLOG);
 	if(io == NULL)
 		io = new iofunc_t(stderr);
@@ -265,14 +265,13 @@ logfunctions::logfunctions(void)
 
 logfunctions::logfunctions(iofunc_t *iofunc)
 {
-	setprefix("[GEN ]", __FILE__, __LINE__);
+	setprefix("[GEN ]");
 	settype(GENLOG);
 	setio(iofunc);
 }
 
 logfunctions::~logfunctions(void)
 {
-  //fprintf (stderr, "logfunctions::~logfunctions was called for object at 0x%x\n", this);
 }
 
 void
@@ -282,9 +281,8 @@ logfunctions::setio(iofunc_t *i)
 }
 
 void
-logfunctions::setprefix(char *p,char *file, int line)
+logfunctions::setprefix(char *p)
 {
-	//fprintf(stderr,"(this:0x%x) file:line -> %s,%d prefix:%s\n",this,file,line,p);
 	this->prefix=strdup(p);
 }
 

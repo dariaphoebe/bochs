@@ -47,7 +47,7 @@ BX_MEM_C::get_memory_in_k(void)
   // BX_MEM_C constructor
 BX_MEM_C::BX_MEM_C(void)
 {
-  setprefix("[MEM ]",__FILE__,__LINE__);
+  setprefix("[MEM ]");
   settype(MEMLOG);
 
   BX_MEM.vector = NULL;

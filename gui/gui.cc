@@ -43,7 +43,7 @@ bx_gui_c   bx_gui;
 
 bx_gui_c::bx_gui_c(void)
 {
-  setprefix("[GUI ]",__FILE__,__LINE__);
+  setprefix("[GUI ]");
   settype(GUILOG);
 }
 

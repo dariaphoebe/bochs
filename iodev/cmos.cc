@@ -44,7 +44,7 @@ bx_cmos_c bx_cmos;
 
 bx_cmos_c::bx_cmos_c(void)
 {
-	setprefix("[CMOS]",__FILE__,__LINE__);
+	setprefix("[CMOS]");
 	settype(CMOSLOG);
 }
 

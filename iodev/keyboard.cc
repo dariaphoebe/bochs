@@ -50,7 +50,7 @@ bx_keyb_c bx_keyboard;
 
 bx_keyb_c::bx_keyb_c(void)
 {
-  setprefix("[KBD ]",__FILE__,__LINE__);
+  setprefix("[KBD ]");
   settype(KBDLOG);
   // constructor
   // should zero out state info here???

@@ -135,7 +135,7 @@ bx_pit_c bx_pit;
 
 bx_pit_c::bx_pit_c( void )
 {
-  setprefix("[PIT ]",__FILE__,__LINE__);
+  setprefix("[PIT ]");
   settype(PITLOG);
   memset(&s, 0, sizeof(s));
 

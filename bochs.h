@@ -310,7 +310,7 @@ public:
 	void error(char *fmt, ...);
 	void panic(char *fmt, ...);
 	void ldebug(char *fmt, ...);
-	void setprefix(char *, char *, int );
+	void setprefix(char *);
 	void settype(int);
 	void setio(iofunc_t *);
 } logfunc_t;

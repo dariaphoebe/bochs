@@ -54,7 +54,7 @@ bx_floppy_ctrl_c bx_floppy;
 
 bx_floppy_ctrl_c::bx_floppy_ctrl_c(void)
 {
-	setprefix("[FDD ]",__FILE__,__LINE__);
+	setprefix("[FDD ]");
 	settype(FDLOG);
 }
 

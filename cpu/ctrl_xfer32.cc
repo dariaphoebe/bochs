@@ -290,8 +290,7 @@ BX_CPU_C::CALL_Ed(BxInstruction_t *i)
 
     if (protected_mode()) {
       if (op1_32 > BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.limit_scaled) {
-        BX_CPU_THIS_PTR ldebug("call_ev: EIP out of CS limits! at %s:%d\n",__FILE__,
-__LINE__);
+        BX_CPU_THIS_PTR ldebug("call_ev: EIP out of CS limits! at %s:%d\n");
         exception(BX_GP_EXCEPTION, 0, 0);
         }
       if ( !can_push(&BX_CPU_THIS_PTR sregs[BX_SEG_REG_SS].cache, temp_ESP, 4) ) {

@@ -36,7 +36,7 @@ bx_pic_c bx_pic;
 
 bx_pic_c::bx_pic_c(void)
 {
-	setprefix("[PIC ]",__FILE__,__LINE__);
+	setprefix("[PIC ]");
 	settype(PICLOG);
 }
 
