@@ -251,7 +251,7 @@ static float128
 
 /*----------------------------------------------------------------------------
 | Returns the result of converting the extended double-precision floating-
-| point value `a' to the quadruple-precision floating-point format.  The
+| point value `a' to the quadruple-precision floating-point format. The
 | conversion is performed according to the IEC/IEEE Standard for Binary
 | Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/

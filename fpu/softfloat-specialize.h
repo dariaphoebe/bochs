@@ -435,7 +435,7 @@ BX_CPP_INLINE int floatx80_is_unsupported(floatx80 a)
 
 /*----------------------------------------------------------------------------
 | Returns the result of converting the extended double-precision floating-
-| point NaN `a' to the canonical NaN format.  If `a' is a signaling NaN, the
+| point NaN `a' to the canonical NaN format. If `a' is a signaling NaN, the
 | invalid exception is raised.
 *----------------------------------------------------------------------------*/
 
@@ -580,6 +580,19 @@ BX_CPP_INLINE float128 packFloat128(int zSign, Bit32s zExp, Bit64u zSig0, Bit64u
     float128 z;
     z.lo = zSig1;
     z.hi = (((Bit64u) zSign)<<63) + (((Bit64u) zExp)<<48) + zSig0;
+    return z;
+}
+
+/*----------------------------------------------------------------------------
+| Packs two 64-bit precision integers into into the quadruple-precision 
+| floating-point value, returning the result.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE float128 packFloat128(Bit64u zHi, Bit64u zLo)
+{
+    float128 z;
+    z.lo = zLo;
+    z.hi = zHi;
     return z;
 }
 
