@@ -295,4 +295,32 @@ int floatx80_is_signaling_nan(floatx80);
 
 #endif  /* FLOATX80 */
 
+#ifdef FLOAT128
+
+#ifdef BX_BIG_ENDIAN
+struct float128 {
+    Bit64u hi, lo;
+};
+#else
+struct float128 {
+    Bit64u lo, hi;
+};
+#endif
+
+/*----------------------------------------------------------------------------
+| Software IEC/IEEE quadruple-precision conversion routines.
+*----------------------------------------------------------------------------*/
+float128 floatx80_to_float128(floatx80 a, float_status_t &status);
+floatx80 float128_to_floatx80(float128 a, float_status_t &status);
+
+/*----------------------------------------------------------------------------
+| Software IEC/IEEE quadruple-precision operations.
+*----------------------------------------------------------------------------*/
+float128 float128_add(float128 a, float128 b, float_status_t &status);
+float128 float128_sub(float128 a, float128 b, float_status_t &status);
+float128 float128_mul(float128 a, float128 b, float_status_t &status);
+float128 float128_div(float128 a, float128 b, float_status_t &status);
+
+#endif  /* FLOAT128 */
+
 #endif

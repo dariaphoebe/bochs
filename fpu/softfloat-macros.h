@@ -44,7 +44,7 @@ these four paragraphs for those parts of this code that are retained.
 | The result is stored in the location pointed to by `zPtr'.
 *----------------------------------------------------------------------------*/
 
-BX_CPP_INLINE void shift32RightJamming(Bit32u a, Bit16s count, Bit32u *zPtr)
+BX_CPP_INLINE void shift32RightJamming(Bit32u a, int count, Bit32u *zPtr)
 {
     Bit32u z;
 
@@ -69,20 +69,17 @@ BX_CPP_INLINE void shift32RightJamming(Bit32u a, Bit16s count, Bit32u *zPtr)
 | The result is stored in the location pointed to by `zPtr'.
 *----------------------------------------------------------------------------*/
 
-BX_CPP_INLINE void shift64RightJamming(Bit64u a, Bit16s count, Bit64u *zPtr)
+BX_CPP_INLINE void shift64RightJamming(Bit64u a, int count, Bit64u *zPtr)
 {
-    Bit64u z;
-
     if (count == 0) {
-        z = a;
+        *zPtr = a;
     }
     else if (count < 64) {
-        z = (a>>count) | ((a<<((-count) & 63)) != 0);
+        *zPtr = (a>>count) | ((a<<((-count) & 63)) != 0);
     }
     else {
-        z = (a != 0);
+        *zPtr = (a != 0);
     }
-    *zPtr = z;
 }
 
 /*----------------------------------------------------------------------------
@@ -104,10 +101,10 @@ BX_CPP_INLINE void shift64RightJamming(Bit64u a, Bit16s count, Bit64u *zPtr)
 
 BX_CPP_INLINE void
  shift64ExtraRightJamming(
-     Bit64u a0, Bit64u a1, Bit16s count, Bit64u *z0Ptr, Bit64u *z1Ptr)
+     Bit64u a0, Bit64u a1, int count, Bit64u *z0Ptr, Bit64u *z1Ptr)
 {
     Bit64u z0, z1;
-    Bit8s negCount = (-count) & 63;
+    int negCount = (-count) & 63;
 
     if (count == 0) {
         z1 = a1;
@@ -140,9 +137,7 @@ BX_CPP_INLINE void
 BX_CPP_INLINE void
  add128(Bit64u a0, Bit64u a1, Bit64u b0, Bit64u b1, Bit64u *z0Ptr, Bit64u *z1Ptr)
 {
-    Bit64u z1;
-
-    z1 = a1 + b1;
+    Bit64u z1 = a1 + b1;
     *z1Ptr = z1;
     *z0Ptr = a0 + b0 + (z1 < a1);
 }
@@ -240,10 +235,9 @@ static Bit32u estimateSqrt32(Bit16s aExp, Bit32u a)
         0x0A2D, 0x08AF, 0x075A, 0x0629, 0x051A, 0x0429, 0x0356, 0x029E,
         0x0200, 0x0179, 0x0109, 0x00AF, 0x0068, 0x0034, 0x0012, 0x0002
     };
-    Bit8s index;
     Bit32u z;
 
-    index = (a>>27) & 15;
+    int index = (a>>27) & 15;
     if (aExp & 1) {
         z = 0x4000 + (a>>17) - sqrtOddAdjustments[index];
         z = ((a / z)<<14) + (z<<15);
@@ -325,10 +319,10 @@ BX_CPP_INLINE int countLeadingZeros64(Bit64u a)
 *----------------------------------------------------------------------------*/
 
 BX_CPP_INLINE void
- shift128Right(Bit64u a0, Bit64u a1, Bit16s count, Bit64u *z0Ptr, Bit64u *z1Ptr)
+ shift128Right(Bit64u a0, Bit64u a1, int count, Bit64u *z0Ptr, Bit64u *z1Ptr)
 {
     Bit64u z0, z1;
-    Bit8s negCount = (-count) & 63;
+    int negCount = (-count) & 63;
 
     if (count == 0) {
         z1 = a1;
@@ -359,10 +353,10 @@ BX_CPP_INLINE void
 
 BX_CPP_INLINE void
  shift128RightJamming(
-     Bit64u a0, Bit64u a1, Bit16s count, Bit64u *z0Ptr, Bit64u *z1Ptr)
+     Bit64u a0, Bit64u a1, int count, Bit64u *z0Ptr, Bit64u *z1Ptr)
 {
     Bit64u z0, z1;
-    Bit8s negCount = (- count) & 63;
+    int negCount = (-count) & 63;
 
     if (count == 0) {
         z1 = a1;
@@ -397,7 +391,7 @@ BX_CPP_INLINE void
 
 BX_CPP_INLINE void
  shortShift128Left(
-     Bit64u a0, Bit64u a1, Bit16s count, Bit64u *z0Ptr, Bit64u *z1Ptr)
+     Bit64u a0, Bit64u a1, int count, Bit64u *z0Ptr, Bit64u *z1Ptr)
 {
     *z1Ptr = a1<<count;
     *z0Ptr = (count == 0) ? a0 : (a0<<count) | (a1>>((-count) & 63));
@@ -509,5 +503,139 @@ BX_CPP_INLINE int lt128(Bit64u a0, Bit64u a1, Bit64u b0, Bit64u b1)
 }
 
 #endif	/* FLOATX80 */
+
+#ifdef FLOAT128
+
+/*----------------------------------------------------------------------------
+| Multiplies the 128-bit value formed by concatenating `a0' and `a1' by
+| `b' to obtain a 192-bit product.  The product is broken into three 64-bit
+| pieces which are stored at the locations pointed to by `z0Ptr', `z1Ptr', and
+| `z2Ptr'.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE void mul128By64To192(
+     Bit64u a0,
+     Bit64u a1,
+     Bit64u b,
+     Bit64u *z0Ptr,
+     Bit64u *z1Ptr,
+     Bit64u *z2Ptr
+)
+{
+    Bit64u z0, z1, z2, more1;
+
+    mul64To128(a1, b, &z1, &z2);
+    mul64To128(a0, b, &z0, &more1);
+    add128(z0, more1, 0, z1, &z0, &z1);
+    *z2Ptr = z2;
+    *z1Ptr = z1;
+    *z0Ptr = z0;
+}
+
+/*----------------------------------------------------------------------------
+| Multiplies the 128-bit value formed by concatenating `a0' and `a1' to the
+| 128-bit value formed by concatenating `b0' and `b1' to obtain a 256-bit
+| product.  The product is broken into four 64-bit pieces which are stored at
+| the locations pointed to by `z0Ptr', `z1Ptr', `z2Ptr', and `z3Ptr'.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE void mul128To256(
+     Bit64u a0,
+     Bit64u a1,
+     Bit64u b0,
+     Bit64u b1,
+     Bit64u *z0Ptr,
+     Bit64u *z1Ptr,
+     Bit64u *z2Ptr,
+     Bit64u *z3Ptr
+)
+{
+    Bit64u z0, z1, z2, z3;
+    Bit64u more1, more2;
+
+    mul64To128(a1, b1, &z2, &z3);
+    mul64To128(a1, b0, &z1, &more2);
+    add128(z1, more2, 0, z2, &z1, &z2);
+    mul64To128(a0, b0, &z0, &more1);
+    add128(z0, more1, 0, z1, &z0, &z1);
+    mul64To128(a0, b1, &more1, &more2);
+    add128(more1, more2, 0, z2, &more1, &z2);
+    add128(z0, z1, 0, more1, &z0, &z1);
+    *z3Ptr = z3;
+    *z2Ptr = z2;
+    *z1Ptr = z1;
+    *z0Ptr = z0;
+}
+
+
+/*----------------------------------------------------------------------------
+| Shifts the 192-bit value formed by concatenating `a0', `a1', and `a2' right
+| by 64 _plus_ the number of bits given in `count'.  The shifted result is
+| at most 128 nonzero bits; these are broken into two 64-bit pieces which are
+| stored at the locations pointed to by `z0Ptr' and `z1Ptr'.  The bits shifted
+| off form a third 64-bit result as follows:  The _last_ bit shifted off is
+| the most-significant bit of the extra result, and the other 63 bits of the
+| extra result are all zero if and only if _all_but_the_last_ bits shifted off
+| were all zero.  This extra result is stored in the location pointed to by
+| `z2Ptr'.  The value of `count' can be arbitrarily large.
+|     (This routine makes more sense if `a0', `a1', and `a2' are considered
+| to form a fixed-point value with binary point between `a1' and `a2'.  This
+| fixed-point value is shifted right by the number of bits given in `count',
+| and the integer part of the result is returned at the locations pointed to
+| by `z0Ptr' and `z1Ptr'.  The fractional part of the result may be slightly
+| corrupted as described above, and is returned at the location pointed to by
+| `z2Ptr'.)
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE void shift128ExtraRightJamming(
+     Bit64u a0,
+     Bit64u a1,
+     Bit64u a2,
+     int count,
+     Bit64u *z0Ptr,
+     Bit64u *z1Ptr,
+     Bit64u *z2Ptr
+)
+{
+    Bit64u z0, z1, z2;
+    int negCount = (-count) & 63;
+
+    if (count == 0) {
+        z2 = a2;
+        z1 = a1;
+        z0 = a0;
+    }
+    else {
+        if (count < 64) {
+            z2 = a1<<negCount;
+            z1 = (a0<<negCount) | (a1>>count);
+            z0 = a0>>count;
+        }
+        else {
+            if (count == 64) {
+                z2 = a1;
+                z1 = a0;
+            }
+            else {
+                a2 |= a1;
+                if (count < 128) {
+                    z2 = a0<<negCount;
+                    z1 = a0>>(count & 63);
+                }
+                else {
+                    z2 = (count == 128) ? a0 : (a0 != 0);
+                    z1 = 0;
+                }
+            }
+            z0 = 0;
+        }
+        z2 |= (a2 != 0);
+    }
+    *z2Ptr = z2;
+    *z1Ptr = z1;
+    *z0Ptr = z0;
+}
+
+#endif  /* FLOAT128 */
 
 #endif

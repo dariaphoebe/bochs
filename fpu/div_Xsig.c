@@ -1,13 +1,12 @@
 /*---------------------------------------------------------------------------+
  |  div_Xsig.S                                                               |
- |  $Id: div_Xsig.c,v 1.3.10.1 2004/04/09 12:29:49 sshwarts Exp $
+ |  $Id: div_Xsig.c,v 1.3.10.2 2004/05/22 09:30:49 sshwarts Exp $
  |                                                                           |
  | Division subroutine for 96 bit quantities                                 |
  |                                                                           |
  | Copyright (C) 1994,1995,1999                                              |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
  |                       Australia.  E-mail billm@melbpc.org.au              |
- |                                                                           |
  |                                                                           |
  +---------------------------------------------------------------------------*/
 
@@ -22,7 +21,6 @@
  | prevent overflow.                                                         |
  |                                                                           |
  |  .aaaaaaaaaaaaaa / .bbbbbbbbbbbbb  ->  .dddddddddddd                      |
- |                                                                           |
  |                                                                           |
  +---------------------------------------------------------------------------*/
 
@@ -178,6 +176,5 @@ void div_Xsig(const Xsig *aa, const Xsig *b, Xsig *dest)
   result.lsw -= a.lsw;
 
   /* Hey! we're done. */
-
   *dest = result;
 }
