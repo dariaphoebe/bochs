@@ -173,6 +173,7 @@ void BX_CPU_C::FNCLEX(bxInstruction_c *i)
 #endif
 }
 
+/* DB E3 */
 void BX_CPU_C::FNINIT(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU

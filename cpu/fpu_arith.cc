@@ -58,6 +58,17 @@ void BX_CPU_C::FPU_exception(int exception)
   }
 }
 
+void BX_CPU_C::FPU_stack_overflow(void)
+{
+  /* The masked response */
+  if (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_Invalid)
+  {
+      FPU_TOS--;
+      BX_CPU_THIS_PTR the_i387.FPU_save_regi(CONST_QNaN, FPU_Tag_Special, 0);
+  }
+  BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Overflow);
+}
+
 void BX_CPU_C::FPU_stack_underflow(int stnr, int pop_stack)
 {
   /* The masked response */
