@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.15 2003/04/04 03:46:03 slechta Exp $
+// $Id: main.cc,v 1.223.4.16 2003/04/06 15:08:06 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -2288,9 +2288,6 @@ bx_init_hardware()
   bx_param_num_c *memsize = SIM->get_param_num(BXPN_MEM_SIZE);
   BX_MEM(0)->init_memory(memsize->get() * 1024*1024);
 
-  // BJS TODO:
-  //BX_MEM(0)->register_state(SIM->get_param (BXPN_RAM));
-
   // First load the optional ROM images
   if (strcmp(bx_options.optrom[0].Opath->getptr (),"") !=0 )
     BX_MEM(0)->load_ROM(bx_options.optrom[0].Opath->getptr (), bx_options.optrom[0].Oaddress->get ());
@@ -2311,15 +2308,16 @@ bx_init_hardware()
   bx_list_c *cpu_param_p = 
     new bx_list_c (cpu_param_root, "0", "cpu #0", 100);
 
-  // BJS TODO:
-  //BX_CPU(0)->register_state(cpu_param_p);
-
   BX_CPU(0)->set_cpu_id(0);
 #if BX_SUPPORT_APIC
   BX_CPU(0)->local_apic.set_id (0);
 #endif
+
   BX_INSTR_INIT(0);
   BX_CPU(0)->reset(BX_RESET_HARDWARE);
+
+  BX_MEM(0)->register_state(SIM->get_param (BXPN_RAM));
+  BX_CPU(0)->register_state(cpu_param_p);
 #warning SMP param registration and save/restore mechanisms have NOT been tested
 #else
   // SMP initialization
