@@ -90,8 +90,8 @@ void BX_CPU_C::FXSAVE(bxInstruction_c *i)
 
   BX_DEBUG(("FXSAVE: save FPU/MMX/SSE state"));
 
-  xmm.xmm16u(0) = (BX_CPU_THIS_PTR the_i387.get_control_word());
-  xmm.xmm16u(1) = (BX_CPU_THIS_PTR the_i387.get_status_word ());
+  xmm.xmm16u(0) = BX_CPU_THIS_PTR the_i387.get_control_word();
+  xmm.xmm16u(1) = BX_CPU_THIS_PTR the_i387.get_status_word ();
 
   if(twd & 0x0003 != 0x0003) tag_byte |= 0x0100;
   if(twd & 0x000c != 0x000c) tag_byte |= 0x0200;
