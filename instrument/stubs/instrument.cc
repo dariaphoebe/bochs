@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: instrument.cc,v 1.5 2002/09/28 00:54:05 kevinlawton Exp $
+// $Id: instrument.cc,v 1.5.2.1 2002/10/20 22:26:06 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -44,7 +44,7 @@ void bx_instr_ucnear_branch(unsigned cpu, unsigned what, bx_address new_eip) {}
 void bx_instr_far_branch(unsigned cpu, unsigned what, Bit16u new_cs, bx_address new_eip) {}
 
 void bx_instr_opcode(unsigned cpu, Bit8u *opcode, unsigned len, Boolean is32) {}
-void bx_instr_fetch_decode_completed(unsigned cpu, bxInstruction *i) {}
+void bx_instr_fetch_decode_completed(unsigned cpu, const bxInstruction_c *i) {}
 
 void bx_instr_prefix_as(unsigned cpu) {}
 void bx_instr_prefix_os(unsigned cpu) {}
@@ -65,6 +65,7 @@ void bx_instr_hwinterrupt(unsigned cpu, unsigned vector, Bit16u cs, bx_address e
 
 void bx_instr_tlb_cntrl(unsigned cpu, unsigned what, Bit32u newval) {}
 void bx_instr_cache_cntrl(unsigned cpu, unsigned what) {}
+void bx_instr_prefetch_hint(unsigned cpu, unsigned what, unsigned seg, bx_address offset) {}
 
 void bx_instr_repeat_iteration(unsigned cpu) {}
 

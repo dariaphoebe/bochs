@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ctrl_xfer16.cc,v 1.16 2002/09/28 00:54:04 kevinlawton Exp $
+// $Id: ctrl_xfer16.cc,v 1.16.2.1 2002/10/20 22:26:00 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -367,7 +367,7 @@ BailBigRSP("JCC_Jw");
     }
 #if BX_INSTRUMENTATION
   else {
-    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID, );
+    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID);
     }
 #endif
 }
@@ -396,7 +396,7 @@ BailBigRSP("JZ_Jw");
     }
 #if BX_INSTRUMENTATION
   else {
-    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID, );
+    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID);
     }
 #endif
 }
@@ -425,7 +425,7 @@ BailBigRSP("JNZ_Jw");
     }
 #if BX_INSTRUMENTATION
   else {
-    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID, );
+    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID);
     }
 #endif
 }

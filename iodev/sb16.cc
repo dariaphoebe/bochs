@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.cc,v 1.22 2002/08/27 19:54:46 bdenney Exp $
+// $Id: sb16.cc,v 1.22.2.1 2002/10/20 22:26:08 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -54,6 +54,9 @@ bx_sb16_c::bx_sb16_c(void)
 {
   put("SB16");
   settype(SB16LOG);
+  MPU.timer_handle = BX_NULL_TIMER_HANDLE;
+  DSP.timer_handle = BX_NULL_TIMER_HANDLE;
+  OPL.timer_handle = BX_NULL_TIMER_HANDLE;
 }
 
 bx_sb16_c::~bx_sb16_c(void)
@@ -241,17 +244,23 @@ void bx_sb16_c::init(bx_devices_c *d)
 	   BX_SB16_DMAL, BX_SB16_DMAH);
 
   // initialize the timers
-  MPU.timer_handle = bx_pc_system.register_timer
-    (BX_SB16_THISP, mpu_timer, 500000 / 384, 1, 1);
-      // midi timer: active, continuous, 500000 / 384 seconds (384 = delta time, 500000 = sec per beat at 120 bpm. Don't change this!)
+  if (MPU.timer_handle == BX_NULL_TIMER_HANDLE) {
+    MPU.timer_handle = bx_pc_system.register_timer
+      (BX_SB16_THISP, mpu_timer, 500000 / 384, 1, 1, "sb16.mpu");
+    // midi timer: active, continuous, 500000 / 384 seconds (384 = delta time, 500000 = sec per beat at 120 bpm. Don't change this!)
+  }
 
-  DSP.timer_handle = bx_pc_system.register_timer
-    (BX_SB16_THISP, dsp_dmatimer, 1, 1, 0);
-      // dma timer: inactive, continous, frequency variable
+  if (DSP.timer_handle == BX_NULL_TIMER_HANDLE) {
+    DSP.timer_handle = bx_pc_system.register_timer
+      (BX_SB16_THISP, dsp_dmatimer, 1, 1, 0, "sb16.dsp");
+	// dma timer: inactive, continous, frequency variable
+  }
 
-  OPL.timer_handle = bx_pc_system.register_timer
-    (BX_SB16_THISP, opl_timer, 80, 1, 0);
-      // opl timer: inactive, continuous, frequency 80us
+  if (OPL.timer_handle == BX_NULL_TIMER_HANDLE) {
+    OPL.timer_handle = bx_pc_system.register_timer
+      (BX_SB16_THISP, opl_timer, 80, 1, 0, "sb16.opl");
+	// opl timer: inactive, continuous, frequency 80us
+  }
 
   writelog(MIDILOG(4), "Timers initialized, midi %d, dma %d, opl %d",
 	   MPU.timer_handle, DSP.timer_handle, OPL.timer_handle );

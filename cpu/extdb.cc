@@ -1,7 +1,6 @@
 #include "bochs.h"
-#include "cpu/extdb.h"
 #ifdef WIN32
-#  include <windows.h>
+// windows.h included in bochs.h
 #else
 //#  error "extdb.cc only supported in win32 environment"
 #endif
@@ -30,6 +29,7 @@ void bx_external_debugger(BX_CPU_C *cpu)
        break;
      }
 
+#if BX_SUPPORT_X86_64
      regs.rax = cpu->gen_reg[0].rrx;
      regs.rcx = cpu->gen_reg[1].rrx;
      regs.rdx = cpu->gen_reg[2].rrx;
@@ -47,6 +47,25 @@ void bx_external_debugger(BX_CPU_C *cpu)
      regs.r14 = cpu->gen_reg[14].rrx;
      regs.r15 = cpu->gen_reg[15].rrx;
      regs.rip = cpu->rip;
+#else
+     regs.rax = cpu->gen_reg[0].dword.erx;
+     regs.rcx = cpu->gen_reg[1].dword.erx;
+     regs.rdx = cpu->gen_reg[2].dword.erx;
+     regs.rbx = cpu->gen_reg[3].dword.erx;
+     regs.rsp = cpu->gen_reg[4].dword.erx;
+     regs.rbp = cpu->gen_reg[5].dword.erx;
+     regs.rsi = cpu->gen_reg[6].dword.erx;
+     regs.rdi = cpu->gen_reg[7].dword.erx;
+     regs.r8  = 0;
+     regs.r9  = 0;
+     regs.r10 = 0;
+     regs.r11 = 0;
+     regs.r12 = 0;
+     regs.r13 = 0;
+     regs.r14 = 0;
+     regs.r15 = 0;
+     regs.rip = cpu->dword.eip;
+#endif
      regs.rflags = cpu->read_eflags();
      regs.es = cpu->sregs[0].selector.value;
      regs.cs = cpu->sregs[1].selector.value;
@@ -67,9 +86,15 @@ void bx_external_debugger(BX_CPU_C *cpu)
      //regs.cr5 = cpu->cr5;
      //regs.cr6 = cpu->cr6;
      //regs.cr7 = cpu->cr7;
-     regs.efer = (BX_CPU_THIS_PTR msr.sce << 0)
+     regs.fsbase = cpu->sregs[BX_SEG_REG_FS].cache.u.segment.base;
+     regs.gsbase = cpu->sregs[BX_SEG_REG_GS].cache.u.segment.base;
+#if BX_SUPPORT_X86_64
+    regs.efer = (BX_CPU_THIS_PTR msr.sce << 0)
                | (BX_CPU_THIS_PTR msr.lme << 8)
                | (BX_CPU_THIS_PTR msr.lma << 10);
+#else
+    regs.efer = 0;
+#endif
 
      if (debug_loaded == 0) {
        HINSTANCE hdbg;

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cdrom.h,v 1.9 2002/08/28 16:45:18 bdenney Exp $
+// $Id: cdrom.h,v 1.9.2.1 2002/10/20 22:26:07 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -54,5 +54,11 @@ private:
   char *path;
 
   int using_file;
+#ifdef WIN32
+  HANDLE hFile;
+  int hid;
+  int tid;
+  int lun;
+#endif
   };
 

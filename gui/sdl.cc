@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sdl.cc,v 1.22 2002/09/25 07:24:41 bdenney Exp $
+// $Id: sdl.cc,v 1.22.2.1 2002/10/20 22:26:04 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -48,6 +48,7 @@ void we_are_here(void)
 
 static unsigned prev_cursor_x=0;
 static unsigned prev_cursor_y=0;
+static Bit32u convertStringToSDLKey (const char *string);
 
 #define MAX_SDL_BITMAPS 32
 struct bitmaps {
@@ -70,6 +71,7 @@ SDL_Event sdl_event;
 int sdl_fullscreen_toggle;
 int sdl_grab;
 unsigned res_x, res_y;
+unsigned half_res_x, half_res_y;
 int headerbar_height;
 static unsigned bx_bitmap_left_xorigin = 0;  // pixels from left
 static unsigned bx_bitmap_right_xorigin = 0; // pixels from right
@@ -82,6 +84,7 @@ Uint32 headerbar_fg, headerbar_bg;
 Bit8u old_mousebuttons=0, new_mousebuttons=0;
 int old_mousex=0, new_mousex=0;
 int old_mousey=0, new_mousey=0;
+Boolean just_warped = false;
 bitmaps *sdl_bitmaps[MAX_SDL_BITMAPS];
 int n_sdl_bitmaps = 0;
 
@@ -180,7 +183,6 @@ void switch_to_fullscreen(void)
   sdl_grab = 1;
 }
 
-
 void bx_gui_c::specific_init(
     bx_gui_c *th,
     int argc,
@@ -232,7 +234,12 @@ void bx_gui_c::specific_init(
       "Bochs Pentium emulator, http://bochs.sourceforge.net/",
 #endif
       "Bochs" );
-  SDL_WarpMouse(res_x/2, res_y/2);
+  SDL_WarpMouse(half_res_x, half_res_y);
+
+  // load keymap for sdl
+  if(bx_options.keyboard.OuseMapping->get()) {
+    bx_keymap.loadKeymap(convertStringToSDLKey);
+  }
 }
 
 void bx_gui_c::text_update(
@@ -253,11 +260,17 @@ void bx_gui_c::text_update(
   Uint32 *buf, *buf_row, *buf_char;
   Uint32 disp;
   Bit8u cs_start, cs_end, cs_line, mask;
-  Boolean invert;
+  Boolean invert, forceUpdate;
 
   cs_start = (cursor_state >> 8) & 0x3f;
   cs_end = cursor_state & 0x1f;
 
+  forceUpdate = 0;
+  if(bx_gui.charmap_updated)
+  {
+    forceUpdate = 1;
+    bx_gui.charmap_updated = 0;
+  }
   if( sdl_screen )
   {
     disp = sdl_screen->pitch/4;
@@ -278,7 +291,7 @@ void bx_gui_c::text_update(
     do
     {
       // check if char needs to be updated
-      if( (old_text[0] != new_text[0])
+      if(forceUpdate || (old_text[0] != new_text[0])
 	  || (old_text[1] != new_text[1])
 	  || ((y == cursor_y) && (x == cursor_x))
 	  || ((y == prev_cursor_y) && (x == prev_cursor_x)) )
@@ -528,7 +541,7 @@ static Bit32u sdl_sym_to_bx_key (SDLKey sym)
     case SDLK_LCTRL:                return BX_KEY_CTRL_L;
     case SDLK_RALT:                 return BX_KEY_ALT_R;
     case SDLK_LALT:                 return BX_KEY_ALT_L;
-//  case SDLK_RMETA:                return BX_KEY_RMETA;
+    case SDLK_RMETA:                return BX_KEY_ALT_R;
 //  case SDLK_LMETA:                return BX_KEY_LMETA;
     case SDLK_LSUPER:               return BX_KEY_WIN_L;
     case SDLK_RSUPER:               return BX_KEY_WIN_R;
@@ -570,6 +583,21 @@ void bx_gui_c::handle_events(void)
 	break;
 
       case SDL_MOUSEMOTION:
+	//fprintf (stderr, "mouse event to (%d,%d), relative (%d,%d)\n", (int)(sdl_event.motion.x), (int)(sdl_event.motion.y), (int)sdl_event.motion.xrel, (int)sdl_event.motion.yrel);
+	if (!sdl_grab) {
+	  //fprintf (stderr, "ignore mouse event because sdl_grab is off\n");
+	  break;
+	}
+	if (just_warped 
+	    && sdl_event.motion.x == half_res_x
+	    && sdl_event.motion.y == half_res_y) {
+	  // This event was generated as a side effect of the WarpMouse,
+	  // and it must be ignored.
+	  //fprintf (stderr, "ignore mouse event because it is a side effect of SDL_WarpMouse\n");
+	  just_warped = false;
+	  break;
+	}
+	//fprintf (stderr, "processing relative mouse event\n");
 	new_mousebuttons = ((sdl_event.motion.state & 0x01)|((sdl_event.motion.state>>1)&0x02));
 	bx_devices.keyboard->mouse_motion(
 	    sdl_event.motion.xrel,
@@ -578,6 +606,9 @@ void bx_gui_c::handle_events(void)
 	old_mousebuttons = new_mousebuttons;
 	old_mousex = (int)(sdl_event.motion.x);
 	old_mousey = (int)(sdl_event.motion.y);
+	//fprintf (stderr, "warping mouse to center\n");
+	SDL_WarpMouse(half_res_x, half_res_y);
+	just_warped = 1;
 	break;
 
       case SDL_MOUSEBUTTONDOWN:
@@ -643,8 +674,20 @@ void bx_gui_c::handle_events(void)
 
 	// convert sym->bochs code
 	if( sdl_event.key.keysym.sym > SDLK_LAST ) break;
-	key_event = sdl_sym_to_bx_key (sdl_event.key.keysym.sym);
-	BX_DEBUG (("keypress scancode=%d, sym=%d, bx_key = %d", sdl_event.key.keysym.scancode, sdl_event.key.keysym.sym, key_event));
+        if (!bx_options.keyboard.OuseMapping->get()) {
+	  key_event = sdl_sym_to_bx_key (sdl_event.key.keysym.sym);
+	  BX_DEBUG (("keypress scancode=%d, sym=%d, bx_key = %d", sdl_event.key.keysym.scancode, sdl_event.key.keysym.sym, key_event));
+	} else {
+	  /* use mapping */
+	  BXKeyEntry *entry = bx_keymap.findHostKey (sdl_event.key.keysym.sym);
+	  if (!entry) {
+	    BX_ERROR(( "host key %d (0x%x) not mapped!", 
+		  (unsigned) sdl_event.key.keysym.sym,
+		  (unsigned) sdl_event.key.keysym.sym));
+	    break;
+	  }
+	  key_event = entry->baseKey;
+	}
 	if( key_event == BX_KEY_UNHANDLED ) break;
 	bx_devices.keyboard->gen_scancode( key_event );
 	break;
@@ -656,7 +699,19 @@ void bx_gui_c::handle_events(void)
 	    && (sdl_event.key.keysym.sym < SDLK_LAST ))
 	{
 	  // convert sym->bochs code
-	  key_event = sdl_sym_to_bx_key (sdl_event.key.keysym.sym);
+          if (!bx_options.keyboard.OuseMapping->get()) {
+            key_event = sdl_sym_to_bx_key (sdl_event.key.keysym.sym);
+          } else {
+            /* use mapping */
+            BXKeyEntry *entry = bx_keymap.findHostKey (sdl_event.key.keysym.sym);
+            if (!entry) {
+              BX_ERROR(( "host key %d (0x%x) not mapped!", 
+		    (unsigned) sdl_event.key.keysym.sym,
+		    (unsigned) sdl_event.key.keysym.sym));
+              break;
+            }
+            key_event = entry->baseKey;
+          }
 	  if( key_event == BX_KEY_UNHANDLED ) break;
 	  bx_devices.keyboard->gen_scancode( key_event | BX_KEY_RELEASED );
 	}
@@ -795,6 +850,8 @@ void bx_gui_c::dimension_update(
   }
   res_x = x;
   res_y = y;
+  half_res_x = x/2;
+  half_res_y = y/2;
   if( fheight > 0 )
   {
     textres_x = x / fontwidth;
@@ -1042,5 +1099,36 @@ void bx_gui_c::exit(void)
     SDL_FreeSurface( sdl_bitmaps[n_sdl_bitmaps-1]->surface );
     n_sdl_bitmaps--;
   }
+}
+
+/// key mapping for SDL
+typedef struct keyTableEntry {
+  const char *name;
+  Bit32u value;
+};
+
+#define DEF_SDL_KEY(key) \
+  { #key, key },
+
+keyTableEntry keytable[] = {
+  // this include provides all the entries.
+#include "sdlkeys.h"
+  // one final entry to mark the end
+  { NULL, 0 }
+};
+
+// function to convert key names into SDLKey values.
+// This first try will be horribly inefficient, but it only has
+// to be done while loading a keymap.  Once the simulation starts,
+// this function won't be called.
+static Bit32u convertStringToSDLKey (const char *string)
+{
+  keyTableEntry *ptr;
+  for (ptr = &keytable[0]; ptr->name != NULL; ptr++) {
+    //BX_DEBUG (("comparing string '%s' to SDL key '%s'", string, ptr->name));
+    if (!strcmp (string, ptr->name))
+      return ptr->value;
+  }
+  return BX_KEYMAP_UNKNOWN;
 }
 

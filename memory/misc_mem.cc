@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: misc_mem.cc,v 1.30 2002/09/19 19:17:20 kevinlawton Exp $
+// $Id: misc_mem.cc,v 1.30.2.1 2002/10/20 22:26:08 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -120,9 +120,10 @@ BX_MEM_C::~BX_MEM_C(void)
   void
 BX_MEM_C::init_memory(int memsize)
 {
-	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.30 2002/09/19 19:17:20 kevinlawton Exp $"));
+	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.30.2.1 2002/10/20 22:26:08 zwane Exp $"));
   // you can pass 0 if memory has been allocated already through
   // the constructor, or the desired size of memory if it hasn't
+  BX_INFO(("%.2fMB", (float)(BX_MEM_THIS megabytes) ));
 
   if (BX_MEM_THIS vector == NULL) {
     // memory not already allocated, do now...
@@ -131,21 +132,8 @@ BX_MEM_C::init_memory(int memsize)
     BX_MEM_THIS megabytes = memsize / (1024*1024);
     BX_INFO(("%.2fMB", (float)(BX_MEM_THIS megabytes) ));
     }
-  // initialize all memory to 0x00
-  memset(BX_MEM_THIS vector, 0x00, BX_MEM_THIS len);
-
-  // initialize ROM area (0xc0000 .. 0xfffff) to 0xff
-  memset(BX_MEM_THIS vector + 0xc0000, 0xff, 0x40000);
-
-#if BX_PCI_SUPPORT
-  // initialize PCI shadow RAM area (0xc0000 .. 0xfffff) to 0x00
-  memset(BX_MEM_THIS shadow, 0x00, 0x40000);
-#endif
 
 #if BX_DEBUGGER
-  // initialize dirty pages table
-  memset(dbg_dirty_pages, 0, sizeof(dbg_dirty_pages));
-
   if (megabytes > BX_MAX_DIRTY_PAGE_TABLE_MEGS) {
     BX_INFO(("Error: memory larger than dirty page table can handle"));
     BX_PANIC(("Error: increase BX_MAX_DIRTY_PAGE_TABLE_MEGS"));
@@ -229,7 +217,7 @@ BX_MEM_C::pci_fetch_ptr(Bit32u addr)
 #endif
 
 
-#if ( BX_DEBUGGER || BX_DISASM )
+#if ( BX_DEBUGGER || BX_DISASM || BX_GDBSTUB)
   Boolean
 BX_MEM_C::dbg_fetch_mem(Bit32u addr, unsigned len, Bit8u *buf)
 {
@@ -275,7 +263,7 @@ BX_MEM_C::dbg_fetch_mem(Bit32u addr, unsigned len, Bit8u *buf)
 }
 #endif
 
-#if BX_DEBUGGER
+#if BX_DEBUGGER || BX_GDBSTUB
   Boolean
 BX_MEM_C::dbg_set_mem(Bit32u addr, unsigned len, Bit8u *buf)
 {

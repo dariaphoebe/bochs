@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dbg_main.cc,v 1.70 2002/09/28 06:29:55 ptrumpet Exp $
+// $Id: dbg_main.cc,v 1.70.2.1 2002/10/20 22:26:02 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -508,11 +508,17 @@ bx_get_command(void)
   if (bx_infile_stack_index == 0) {
     // wait for wxWindows to send another debugger command
     charptr_ret = SIM->debug_get_next_command ();
-    strncpy (tmp_buf, charptr_ret, sizeof(tmp_buf));
-    strcat (tmp_buf, "\n");
-    // the returned string was allocated in wxmain.cc by "new char[]". free it.
-    delete charptr_ret;
-    charptr_ret = &tmp_buf[0];
+    if (charptr_ret) {
+      strncpy (tmp_buf, charptr_ret, sizeof(tmp_buf));
+      strcat (tmp_buf, "\n");
+      // The returned string was allocated in wxmain.cc by "new char[]".
+      // Free it with delete[].
+      delete [] charptr_ret;
+      charptr_ret = &tmp_buf[0];
+    } else {
+      // if debug_get_next_command returned NULL, probably the GUI is
+      // shutting down
+    }
   }
 #elif HAVE_LIBREADLINE
   if (bx_infile_stack_index == 0) {
@@ -545,6 +551,7 @@ bx_get_command(void)
       else {
         // not nested, sitting at stdin prompt, user wants out
         bx_dbg_quit_command();
+	BX_PANIC (("bx_dbg_quit_command should not return, but it did"));
         }
 
       // call recursively
@@ -790,7 +797,7 @@ bx_dbg_timebp_command(Boolean absolute, Bit64u time)
       } else {
 	    timebp_queue_size = 1;
 	    timebp_queue[0] = abs_time;
-	    timebp_timer = bx_pc_system.register_timer_ticks(&bx_pc_system, bx_pc_system_c::timebp_handler, diff, 0, 1);
+	    timebp_timer = bx_pc_system.register_timer_ticks(&bx_pc_system, bx_pc_system_c::timebp_handler, diff, 0, 1, "debug.timebp");
       }
 
       dbg_printf ( "Time breakpoint inserted. Delta = %d\n", diff);
@@ -1029,7 +1036,7 @@ bx_dbg_where_command()
 	    dbg_printf ( "'where' only supported in protected mode\n");
 	    return;
       }
-      if (BX_CPU(dbg_cpu)->sregs[BX_SREG_SS].cache.u.segment.base != 0) {
+      if (BX_CPU(dbg_cpu)->sregs[BX_SEG_REG_SS].cache.u.segment.base != 0) {
 	    dbg_printf ( "non-zero stack base\n");
 	    return;
       }
@@ -1258,7 +1265,7 @@ enter_playback_entry()
 	    if (playback_timer_index >= 0)
 		  bx_pc_system.activate_timer_ticks(playback_timer_index, diff, 0);
 	    else
-		  playback_timer_index = bx_pc_system.register_timer_ticks(&playback_entry, playback_function, diff, 0, 1);
+		  playback_timer_index = bx_pc_system.register_timer_ticks(&playback_entry, playback_function, diff, 0, 1, "debug.playback");
       }
 }
 
@@ -1278,10 +1285,10 @@ void
 bx_dbg_print_stack_command(int nwords)
 {
 	// Get linear address for stack top
-	Bit32u sp = (BX_CPU(dbg_cpu)->sregs[BX_SREG_SS].cache.u.segment.d_b)?
+	Bit32u sp = (BX_CPU(dbg_cpu)->sregs[BX_SEG_REG_SS].cache.u.segment.d_b)?
 	  BX_CPU(dbg_cpu)->get_ESP ()
 	  : BX_CPU(dbg_cpu)->get_SP ();
-	Bit32u linear_sp = sp + BX_CPU(dbg_cpu)->sregs[BX_SREG_SS].cache.u.segment.base;
+	Bit32u linear_sp = sp + BX_CPU(dbg_cpu)->sregs[BX_SEG_REG_SS].cache.u.segment.base;
 	Bit8u buf[8];
 
 	for (int i = 0; i < nwords; i++) {
@@ -2164,12 +2171,12 @@ void bx_dbg_disassemble_current (int which_cpu, int print_time)
 		BX_CPU(which_cpu)->getB_SF(),
 		BX_CPU(which_cpu)->getB_OF(),
 		BX_CPU(which_cpu)->getB_PF(),
-		BX_CPU(which_cpu)->get_TF (),
-		BX_CPU(which_cpu)->get_IF (),
-		BX_CPU(which_cpu)->get_DF (),
+		BX_CPU(which_cpu)->getB_TF (),
+		BX_CPU(which_cpu)->getB_IF (),
+		BX_CPU(which_cpu)->getB_DF (),
 		BX_CPU(which_cpu)->get_IOPL (),
-		BX_CPU(which_cpu)->get_NT (),
-		BX_CPU(which_cpu)->get_RF (),
+		BX_CPU(which_cpu)->getB_NT (),
+		BX_CPU(which_cpu)->getB_RF (),
 		BX_CPU(which_cpu)->getB_VM ());
 
     if (print_time)
@@ -2180,13 +2187,13 @@ void bx_dbg_disassemble_current (int which_cpu, int print_time)
       dbg_printf ( "%04x:%08x (%s): ", 
 	      (unsigned) BX_CPU(which_cpu)->guard_found.cs,
 	      (unsigned) BX_CPU(which_cpu)->guard_found.eip,
-	      bx_dbg_symbolic_address((BX_CPU(which_cpu)->cr3) >> 12, BX_CPU(which_cpu)->guard_found.eip, BX_CPU(which_cpu)->sregs[BX_SREG_CS].cache.u.segment.base));
+	      bx_dbg_symbolic_address((BX_CPU(which_cpu)->cr3) >> 12, BX_CPU(which_cpu)->guard_found.eip, BX_CPU(which_cpu)->sregs[BX_SEG_REG_CS].cache.u.segment.base));
       }
     else {
       dbg_printf ( "%04x:%04x (%s): ", 
 	      (unsigned) BX_CPU(which_cpu)->guard_found.cs,
 	      (unsigned) BX_CPU(which_cpu)->guard_found.eip,
-	      bx_dbg_symbolic_address_16bit(BX_CPU(which_cpu)->guard_found.eip, BX_CPU(which_cpu)->sregs[BX_SREG_CS].selector.value));
+	      bx_dbg_symbolic_address_16bit(BX_CPU(which_cpu)->guard_found.eip, BX_CPU(which_cpu)->sregs[BX_SEG_REG_CS].selector.value));
       }
     for (unsigned j=0; j<ilen; j++)
       dbg_printf ( "%02x", (unsigned) bx_disasm_ibuf[j]);
@@ -3608,7 +3615,7 @@ void bx_dbg_print_descriptor (unsigned char desc[8], int verbose)
   int base = ((lo >> 16) & 0xffff)
              | ((hi << 16) & 0xff0000)
              | (hi & 0xff000000);
-  int limit = (lo & 0xffff);
+  int limit = (hi & 0x000f0000) | (lo & 0xffff);
   int segment = (lo >> 16) & 0xffff;
   int offset = (lo & 0xffff) | (hi & 0xffff0000);
   int type = (hi >> 8) & 0x0f;
@@ -3652,7 +3659,7 @@ void bx_dbg_print_descriptor (unsigned char desc[8], int verbose)
   } else {
     dbg_printf ( "base address=%p\n", base);
     dbg_printf ( "G=granularity=%d\n", g);
-    dbg_printf ( "limit=0x%x %s (see G)\n", limit, g?"4K-byte units" : "bytes");
+    dbg_printf ( "limit=0x%05x %s (see G)\n", limit, g?"4K-byte units" : "bytes");
     dbg_printf ( "AVL=available to OS=%d\n", avl);
   }
   dbg_printf ( "P=present=%d\n", present);
@@ -3664,14 +3671,14 @@ void bx_dbg_print_descriptor (unsigned char desc[8], int verbose)
     // either a code or a data segment. bit 11 (type file MSB) then says 
     // 0=data segment, 1=code seg
     if (type&8) {
-      dbg_printf ( "Code segment, linearaddr=%08x, len=%04x %s, %s%s%s, %d-bit addrs\n", 
+      dbg_printf ( "Code segment, linearaddr=%08x, len=%05x %s, %s%s%s, %d-bit addrs\n", 
 	base, limit, g ? "* 4Kbytes" : "bytes",
 	(type&2)? "Execute/Read" : "Execute-Only",
 	(type&4)? ", Conforming" : "",
 	(type&1)? ", Accessed" : "",
 	d_b? 32 : 16);
     } else {
-      dbg_printf ( "Data segment, linearaddr=%08x, len=%04x %s, %s%s%s\n",
+      dbg_printf ( "Data segment, linearaddr=%08x, len=%05x %s, %s%s%s\n",
 	base, limit, g ? "* 4Kbytes" : "bytes",
 	(type&2)? "Read/Write" : "Read-Only",
 	(type&4)? ", Expand-down" : "",
@@ -3694,8 +3701,7 @@ void bx_dbg_print_descriptor (unsigned char desc[8], int verbose)
       switch (type) {
 	case 1: case 3:  // 16-bit TSS
 	case 9: case 11: // 32-bit TSS
-	  limit = (hi&0x000f0000) | (lo&0xffff);
-	  dbg_printf ( "at %08x, length 0x%x", base, limit);
+	  dbg_printf ( "at %08x, length 0x%05x", base, limit);
 	  break;
 	case 2:
 	  // it's an LDT. not much to print.
@@ -4675,10 +4681,231 @@ static void dbg_dump_table(Boolean all)
 	    break;
       lina += 0x1000;
   }
-  if(all & start_lina != 1)
+  if(all && start_lina != 1)
 	printf("%08x - %08x: %8x - %8x\n",
 	       start_lina, 0xfffff000, start_phy, start_phy + (0xfffff000-start_lina));
 }
 
-      
+void
+bx_dbg_help_command(char* command)
+{ char* p;
+
+  if (command == NULL)
+  {
+    fprintf(stderr, "help - show list of debugger commands\n");
+    fprintf(stderr, "help \"command\" - show short command description\n");
+    fprintf(stderr, "debugger commands are:\n");
+    fprintf(stderr, "help, quit, q, c, stepi, si, step, s, vbreak, v, lbreak, lb, pbreak, pb, break\n");
+    fprintf(stderr, "b, delete, del, d, xp, x, setpmem, crc, info, set, dump_cpu, set_cpu, disas\n");
+    fprintf(stderr, "disassemble, instrument, trace-on, trace-off, ptime, sb, sba, record, playback\n");
+    fprintf(stderr, "print-stack, watch, unwatch, load-symbols, show, modebp\n");
+  }
+  else
+  {
+    p = command;
+    for (; *p != 0 && *p != '\"'; p++); p++;
+    for (; *p != 0 && *p != '\"'; p++); *p = 0;
+    p = command;
+    for (; *p != 0 && *p != '\"'; p++); p++;
+
+    fprintf(stderr, "help %s\n", p);
+
+    if (strcmp(p, "help") == 0)
+    { 
+      bx_dbg_help_command(NULL);
+    }
+    else
+    if ((strcmp(p, "quit") == 0) ||
+        (strcmp(p, "q") == 0))
+    {
+      fprintf(stderr, "%s - quit debugger and execution\n", p);
+    }
+    else
+    if (strcmp(p, "c") == 0)
+    {
+      fprintf(stderr, "%s - continue executing\n", p);
+    }
+    else
+    if ((strcmp(p, "stepi") == 0) ||
+        (strcmp(p, "step") == 0) ||
+        (strcmp(p, "si") == 0) ||
+       (strcmp(p, "s") == 0))
+    {
+      fprintf(stderr, "%s [count] - execute count instructions, default is 1\n", p);
+    }
+    else
+    if ((strcmp(p, "vbreak") == 0) ||
+        (strcmp(p, "vb") == 0))
+    {
+      fprintf(stderr, "%s seg:off - set a virtual address instruction breakpoint\n", p);
+    }
+    else
+    if ((strcmp(p, "lbreak") == 0) ||
+        (strcmp(p, "lb") == 0))
+    {
+      fprintf(stderr, "%s addr - set a linear address instruction breakpoint\n", p);
+    }
+    else
+    if ((strcmp(p, "pbreak") == 0) ||
+        (strcmp(p, "break") == 0) ||
+       (strcmp(p, "pb") == 0) ||
+       (strcmp(p, "b") == 0))
+    {
+       fprintf(stderr, "%s [*] addr - set a physical address instruction preakpoint\n", p);
+    }
+    else
+    if ((strcmp(p, "delete") == 0) ||
+        (strcmp(p, "del") == 0) ||
+       (strcmp(p, "d") == 0))
+    {
+      fprintf(stderr, "%s n - delete a breakpoint\n", p);
+    }
+    else
+    if (strcmp(p, "xp") == 0)
+    {
+      fprintf(stderr, "%s /nuf addr - examine memory at physical address\n", p);
+    }
+    else
+    if (strcmp(p, "x") == 0)
+    {
+      fprintf(stderr, "%s /nuf addr - examine memory at linear address\n", p);
+    }
+    else
+    if (strcmp(p, "setpmem") == 0)
+    {
+      fprintf(stderr, "%s addr datasize val - set physical memory location of size datasize to value val\n", p);
+    }
+    else
+    if (strcmp(p, "crc") == 0)
+    {
+      fprintf(stderr, "%s addr1 addr2 - show CRC for physical memory range addr1..addr2\n", p);
+    }
+    else
+    if (strcmp(p, "info") == 0)
+    {
+      fprintf(stderr, "%s break - show information about current breakpoint status\n", p);
+      fprintf(stderr, "%s dirty - show physical pages dirtied (written to) since last display\n", p);
+      fprintf(stderr, "%s program - execution status of the program\n", p);
+      fprintf(stderr, "%s registers - list of CPU integer registers and their contents\n", p);
+    }
+    else
+    if (strcmp(p, "set") == 0)
+    {
+      fprintf(stderr, "%s $reg = val - change CPU register to value val\n", p);
+      fprintf(stderr, "%s $disassemble_size = n - tell debugger what segment size [16|32] to use\n", p);
+      fprintf(stderr, "when \"disassemble\" command is used. Default is 32\n");
+      fprintf(stderr, "%s $auto_disassemble = n - cause debugger to disassemble current instruction\n", p);
+      fprintf(stderr, "every time execution stops if n = 1. Default is 0\n");
+    }
+    else
+    if (strcmp(p, "dump_cpu") == 0)
+    {
+      fprintf(stderr, "%s - dump complete cpu state\n", p);
+    }
+    else
+    if (strcmp(p, "set_cpu") == 0)
+    {
+      fprintf(stderr, "%s - set complete cpu state\n", p);
+    }
+    else
+    if ((strcmp(p, "disassemble") == 0) ||
+        (strcmp(p, "disas") == 0))
+    {
+      fprintf(stderr, "%s start end - disassemble instructions for given linear adress\n", p);
+    }
+    else
+    if (strcmp(p, "instrument") == 0)
+    {
+      fprintf(stderr, "%s start - calls bx_instr_start()\n", p);
+      fprintf(stderr, "%s stop  - calls bx_instr_stop()\n", p);
+      fprintf(stderr, "%s reset - calls bx_instr_reset()\n", p);
+      fprintf(stderr, "%s print - calls bx_instr_print()\n", p);
+    }
+    else
+    if (strcmp(p, "trace-on") == 0)
+    {
+      fprintf(stderr, "%s - disassemble every executed instruction\n", p);
+    }
+    else
+    if (strcmp(p, "trace-off") == 0)
+    {
+      fprintf(stderr, "%s - disable tracing\n", p);
+    }
+    else
+    if (strcmp(p, "ptime") == 0)
+    {
+      fprintf(stderr, "%s - print current time (number of ticks since start of simulation)\n", p);
+    }
+    else
+    if (strcmp(p, "sb") == 0)
+    {
+      fprintf(stderr, "%s delta - insert a time breakpoint delta instruction into the future\n", p);
+    }
+    else
+    if (strcmp(p, "sba") == 0)
+    {
+      fprintf(stderr, "%s time - insert a time breakpoint at time\n", p);
+    }
+    else
+    if (strcmp(p, "record") == 0)
+    {
+      fprintf(stderr, "%s filename - record console input to file filename\n", p);
+    }
+    else
+    if (strcmp(p, "playback") == 0)
+    {
+      fprintf(stderr, "%s filename - playbackconsole input from file filename\n", p);
+    }
+    else
+    if (strcmp(p, "print-stack") == 0)
+    {
+      fprintf(stderr, "%s [num_words] - print the num_words top 16 bit words on the stack\n", p);
+    }
+    else
+    if (strcmp(p, "watch") == 0)
+    {
+      fprintf(stderr, "%s - print current watch point status\n", p);
+      fprintf(stderr, "%s stop - stop simulation whena watchpoint is encountred\n", p);
+      fprintf(stderr, "%s continue - do not stop the simulation when watch point is encountred\n", p);
+      fprintf(stderr, "%s read addr - insert a read watch point at physical address addr\n", p);
+      fprintf(stderr, "%s write addr - insert a write watch point at physical address addr\n", p);
+    }
+    else
+    if (strcmp(p, "unwatch") == 0)
+    {
+      fprintf(stderr, "%s - remove all watch points\n", p);
+      fprintf(stderr, "%s read addr - remove a read watch point at physical address addr\n", p);
+      fprintf(stderr, "%s write addr - remove a write watch point at physical address addr\n", p);
+    }
+    else
+    if (strcmp(p, "load-symbols") == 0)
+    {
+      fprintf(stderr, "%s [global] filename [offset] - load symbols from file filename\n", p);
+    }
+    else
+    if (strcmp(p, "modebp") == 0)
+    {
+      fprintf(stderr, "%s - toggles vm86 mode switch breakpoint\n", p);
+    }
+    else
+    if (strcmp(p, "show") == 0)
+    {
+      fprintf(stderr, "%s [string] - toggles show symbolic info (calls to begin with)\n", p);
+      fprintf(stderr, "%s - shows current show mode\n", p);
+      fprintf(stderr, "%s \"mode\" - show, when processor switch mode\n", p);
+      fprintf(stderr, "%s \"int\" - show, when interrupt is happens\n", p);
+      fprintf(stderr, "%s \"call\" - show, when call is happens\n", p);
+      fprintf(stderr, "%s \"ret\" - show, when iret is happens\n", p);
+      fprintf(stderr, "%s \"off\" - toggles off symbolic info\n", p);
+      fprintf(stderr, "%s \"dbg-all\" - turn on all show flags\n", p);
+      fprintf(stderr, "%s \"none\" - turn off all show flags\n", p);
+      fprintf(stderr, "%s \"tab\" - show page tables\n", p);
+    }
+    else
+    {
+      fprintf(stderr, "%s - unknow command, try help\n", p);
+    }
+  }
+  return;
+}
 

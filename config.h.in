@@ -261,6 +261,8 @@
 // Leave this 0 unless you have a reason to use it.
 #define BX_PORT_E9_HACK 0
 
+#define BX_GDBSTUB 0
+
 // This option enables "split hard drive" support, which means
 // that a series of partial hard disk images can be treated
 // as a single large image.  If you set up the partition sizes and
@@ -287,7 +289,7 @@
 // is not used, and this section can be ignored.
 // =================================================================
 
-#define BX_MAX_DIRTY_PAGE_TABLE_MEGS 64
+#define BX_MAX_DIRTY_PAGE_TABLE_MEGS 1024
 
 // Compile in support for virtual/linear/physical breakpoints.
 // Set to 1, only those you need.  Recommend using only linear
@@ -440,6 +442,14 @@
 
 #endif
 
+// now that Bit32u and Bit64u exist, defined bx_address
+#if BX_SUPPORT_X86_64
+typedef Bit64u bx_address;
+#else
+typedef Bit32u bx_address;
+#endif
+
+
 
 #define BX_MAX_UINT 4294967295
 #define BX_MAX_INT 2147483647
@@ -464,6 +474,7 @@
 #endif
 
 #if BX_WITH_CARBON
+// Boolean is defined as unsigned char in Carbon header files.
 typedef unsigned char Boolean;
 #elif BX_WITH_MACOS
 // don't define Boolean at all
@@ -546,11 +557,36 @@ typedef
 #define BX_CPP_INLINE inline
 
 #ifdef __GNUC__
-// KPL: We need to enhance this for other compilers that know about
-// aligning variables/fields.
+
+// Some helpful compiler hints for compilers that allow them; GCC for now.
+//
+// BX_CPP_AlignN(n):
+//   Align a construct on an n-byte boundary.
+//
+// BX_CPP_AttrPrintf(formatArg, firstArg):
+//   This function takes printf-like arguments, so the compiler can check
+//   the consistency of the format string and the matching arguments.
+//   'formatArg' is the parameter number (starting from 1) of the format
+//   string argument.  'firstArg' is the parameter number of the 1st argument
+//   to check against the string argument.  NOTE: For non-static member
+//   functions, the this-ptr is argument number 1 but is invisible on
+//   the function prototype declaration - but you still have to count it.
+//
+// BX_CPP_AttrNoReturn():
+//   This function never returns.  The compiler can optimize-out following
+//   code accordingly.
+
 #define BX_CPP_AlignN(n) __attribute__ ((aligned (n)))
+#define BX_CPP_AttrPrintf(formatArg, firstArg) \
+                          __attribute__ ((format (printf, formatArg, firstArg)))
+#define BX_CPP_AttrNoReturn() __attribute__ ((noreturn))
+
 #else
-#define BX_CPP_AlignN(n) /* not supported */
+
+#define BX_CPP_AlignN(n) /* Not supported. */
+#define BX_CPP_AttrPrintf(formatArg, firstArg)  /* Not supported. */
+#define BX_CPP_AttrNoReturn() /* Not supported. */
+
 #endif
 
 #define BX_DEBUGGER 0
@@ -590,6 +626,8 @@ typedef
 
 #define BX_SUPPORT_FPU 0
 #define BX_SUPPORT_MMX 0
+#define BX_SUPPORT_SSE  0
+#define BX_SUPPORT_SSE2 0
 #define BX_SUPPORT_4MEG_PAGES 0
 #define BX_SupportGuest2HostTLB 0
 #define BX_SupportRepeatSpeedups 0
@@ -633,7 +671,13 @@ typedef
 #endif
 
 #if (BX_SUPPORT_MMX && !BX_SUPPORT_FPU)
-#error "MMX cannot be compiled without FPU support";
+#error "MMX cannot be compiled without FPU support"
+#endif
+
+#if (BX_SUPPORT_SSE || BX_SUPPORT_SSE2)
+#if (!BX_SUPPORT_FPU) || (!BX_SUPPORT_MMX)
+#error "SSE cannot be compiled without FPU+MMX support"
+#endif
 #endif
 
 #if BX_SUPPORT_X86_64

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ctrl_xfer32.cc,v 1.20 2002/09/28 00:54:04 kevinlawton Exp $
+// $Id: ctrl_xfer32.cc,v 1.20.2.1 2002/10/20 22:26:00 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -301,7 +301,6 @@ BailBigRSP("CALL_Ed");
   if (protected_mode()) {
     if (op1_32 >
         BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.limit_scaled) {
-      BX_DEBUG(("call_ev: EIP out of CS limits! at %s:%d"));
       exception(BX_GP_EXCEPTION, 0, 0);
       }
     }
@@ -425,7 +424,7 @@ BailBigRSP("JCC_Jd");
     }
 #if BX_INSTRUMENTATION
   else {
-    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID, );
+    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID);
     }
 #endif
 }
@@ -453,7 +452,7 @@ BailBigRSP("JZ_Jd");
     }
 #if BX_INSTRUMENTATION
   else {
-    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID, );
+    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID);
     }
 #endif
 }
@@ -481,7 +480,7 @@ BailBigRSP("JNZ_Jd");
     }
 #if BX_INSTRUMENTATION
   else {
-    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID, );
+    BX_INSTR_CNEAR_BRANCH_NOT_TAKEN(CPU_ID);
     }
 #endif
 }

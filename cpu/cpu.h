@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.87.2.1 2002/09/29 10:19:21 zwane Exp $
+// $Id: cpu.h,v 1.87.2.2 2002/10/20 22:26:00 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -31,20 +31,6 @@
 #include <setjmp.h>
 
 #include "cpu/lazy_flags.h"
-
-#if BX_SUPPORT_X86_64
-typedef Bit64u bx_address;
-#else
-typedef Bit32u bx_address;
-#endif
-
-
-#define BX_SREG_ES    0
-#define BX_SREG_CS    1
-#define BX_SREG_SS    2
-#define BX_SREG_DS    3
-#define BX_SREG_FS    4
-#define BX_SREG_GS    5
 
 // segment register encoding
 #define BX_SEG_REG_ES    0
@@ -276,42 +262,42 @@ typedef Bit32u bx_address;
 #define BX_XF_EXCEPTION  19
 
 /* MSR registers */
-#define BX_MSR_P5_MC_ADDR	0x0000
-#define BX_MSR_MC_TYPE		0x0001
-#define BX_MSR_TSC		0x0010
-#define BX_MSR_CESR		0x0011
-#define BX_MSR_CTR0		0x0012
-#define BX_MSR_CTR1		0x0013
-#define BX_MSR_APICBASE		0x001b
-#define BX_MSR_EBL_CR_POWERON	0x002a
-#define BX_MSR_TEST_CTL		0x0033
-#define BX_MSR_BIOS_UPDT_TRIG	0x0079
-#define BX_MSR_BBL_CR_D0	0x0088
-#define BX_MSR_BBL_CR_D1	0x0089
-#define BX_MSR_BBL_CR_D2	0x008a
-#define BX_MSR_BBL_CR_D3	0x008b	/* = BIOS_SIGN */
-#define BX_MSR_PERFCTR0		0x00c1
-#define BX_MSR_PERFCTR1		0x00c2
-#define BX_MSR_MTRRCAP		0x00fe
-#define BX_MSR_BBL_CR_ADDR	0x0116
-#define BX_MSR_BBL_DECC		0x0118
-#define BX_MSR_BBL_CR_CTL	0x0119
-#define BX_MSR_BBL_CR_TRIG	0x011a
-#define BX_MSR_BBL_CR_BUSY	0x011b
-#define BX_MSR_BBL_CR_CTL3	0x011e
-#define BX_MSR_MCG_CAP		0x0179
-#define BX_MSR_MCG_STATUS	0x017a
-#define BX_MSR_MCG_CTL		0x017b
-#define BX_MSR_EVNTSEL0		0x0186
-#define BX_MSR_EVNTSEL1		0x0187
-#define BX_MSR_DEBUGCTLMSR	0x01d9
-#define BX_MSR_LASTBRANCHFROMIP	0x01db
-#define BX_MSR_LASTBRANCHTOIP	0x01dc
-#define BX_MSR_LASTINTOIP	0x01dd
-#define BX_MSR_ROB_CR_BKUPTMPDR6	0x01e0
-#define BX_MSR_MTRRPHYSBASE0	0x0200
-#define BX_MSR_MTRRPHYSMASK0	0x0201
-#define BX_MSR_MTRRPHYSBASE1	0x0202
+#define BX_MSR_P5_MC_ADDR        0x0000
+#define BX_MSR_MC_TYPE           0x0001
+#define BX_MSR_TSC               0x0010
+#define BX_MSR_CESR              0x0011
+#define BX_MSR_CTR0              0x0012
+#define BX_MSR_CTR1              0x0013
+#define BX_MSR_APICBASE          0x001b
+#define BX_MSR_EBL_CR_POWERON    0x002a
+#define BX_MSR_TEST_CTL          0x0033
+#define BX_MSR_BIOS_UPDT_TRIG    0x0079
+#define BX_MSR_BBL_CR_D0         0x0088
+#define BX_MSR_BBL_CR_D1         0x0089
+#define BX_MSR_BBL_CR_D2         0x008a
+#define BX_MSR_BBL_CR_D3         0x008b /* = BIOS_SIGN */
+#define BX_MSR_PERFCTR0          0x00c1
+#define BX_MSR_PERFCTR1          0x00c2
+#define BX_MSR_MTRRCAP           0x00fe
+#define BX_MSR_BBL_CR_ADDR       0x0116
+#define BX_MSR_BBL_DECC          0x0118
+#define BX_MSR_BBL_CR_CTL        0x0119
+#define BX_MSR_BBL_CR_TRIG       0x011a
+#define BX_MSR_BBL_CR_BUSY       0x011b
+#define BX_MSR_BBL_CR_CTL3       0x011e
+#define BX_MSR_MCG_CAP           0x0179
+#define BX_MSR_MCG_STATUS        0x017a
+#define BX_MSR_MCG_CTL           0x017b
+#define BX_MSR_EVNTSEL0          0x0186
+#define BX_MSR_EVNTSEL1          0x0187
+#define BX_MSR_DEBUGCTLMSR       0x01d9
+#define BX_MSR_LASTBRANCHFROMIP  0x01db
+#define BX_MSR_LASTBRANCHTOIP    0x01dc
+#define BX_MSR_LASTINTOIP        0x01dd
+#define BX_MSR_ROB_CR_BKUPTMPDR6 0x01e0
+#define BX_MSR_MTRRPHYSBASE0     0x0200
+#define BX_MSR_MTRRPHYSMASK0     0x0201
+#define BX_MSR_MTRRPHYSBASE1     0x0202
 
 #if BX_SUPPORT_X86_64
 #define BX_MSR_EFER             0xc0000080
@@ -328,11 +314,17 @@ typedef Bit32u bx_address;
 #define BX_MODE_LONG_COMPAT     0x1
 #define BX_MODE_LONG_64         0x2
 
+#if BX_SUPPORT_APIC
+#define BX_CPU_INTR             (BX_CPU_THIS_PTR INTR || BX_CPU_THIS_PTR local_apic.INTR)
+#else
+#define BX_CPU_INTR             BX_CPU_THIS_PTR INTR
+#endif
+
 class BX_CPU_C;
 
 #if BX_USE_CPU_SMF == 0
 // normal member functions.  This can ONLY be used within BX_CPU_C classes.
-// Anyone on the outside should use the BX_CPU macro (defined in bochs.h) 
+// Anyone on the outside should use the BX_CPU macro (defined in bochs.h)
 // instead.
 #  define BX_CPU_THIS_PTR  this->
 #  define BX_CPU_THIS      this
@@ -382,6 +374,10 @@ typedef struct {
   BX_CPP_INLINE void BX_CPU_C::setEFlags(Bit32u val) {                       \
     BX_CPU_THIS_PTR eflags.val32 = val;                                      \
     BX_CPU_THIS_PTR eflags.VM_cached = val & (1<<17);                        \
+    if ( BX_CPU_THIS_PTR cr0.pe) {                                           \
+      BX_CPU_THIS_PTR v8086Mode = BX_CPU_THIS_PTR eflags.VM_cached;          \
+      BX_CPU_THIS_PTR protectedMode = ! BX_CPU_THIS_PTR v8086Mode;           \
+      }                                                                      \
     }
 
   // accessors for all eflags in bx_flags_reg_t
@@ -389,7 +385,7 @@ typedef struct {
 #define DECLARE_EFLAG_ACCESSOR(name,bitnum)                                  \
   BX_CPP_INLINE void    assert_##name ();                                    \
   BX_CPP_INLINE void    clear_##name ();                                     \
-  BX_CPP_INLINE Boolean get_##name ();                                       \
+  BX_CPP_INLINE Bit32u  get_##name ();                                       \
   BX_CPP_INLINE Boolean getB_##name ();                                      \
   BX_CPP_INLINE void    set_##name (Bit8u val);
 
@@ -403,7 +399,7 @@ typedef struct {
   BX_CPP_INLINE Boolean BX_CPU_C::getB_##name () {                           \
     return 1 & (BX_CPU_THIS_PTR eflags.val32 >> bitnum);                     \
   }                                                                          \
-  BX_CPP_INLINE Boolean BX_CPU_C::get_##name () {                            \
+  BX_CPP_INLINE Bit32u  BX_CPU_C::get_##name () {                            \
     return BX_CPU_THIS_PTR eflags.val32 & (1 << bitnum);                     \
   }                                                                          \
   BX_CPP_INLINE void BX_CPU_C::set_##name (Bit8u val) {                      \
@@ -414,7 +410,7 @@ typedef struct {
 #define DECLARE_EFLAG_ACCESSOR_VM(bitnum)                                    \
   BX_CPP_INLINE void    assert_VM();                                         \
   BX_CPP_INLINE void    clear_VM();                                          \
-  BX_CPP_INLINE Boolean get_VM();                                            \
+  BX_CPP_INLINE Bit32u  get_VM();                                            \
   BX_CPP_INLINE Boolean getB_VM();                                           \
   BX_CPP_INLINE void    set_VM(Bit32u val);
 
@@ -422,12 +418,20 @@ typedef struct {
   BX_CPP_INLINE void BX_CPU_C::assert_VM() {                                 \
     BX_CPU_THIS_PTR eflags.val32 |= (1<<bitnum);                             \
     BX_CPU_THIS_PTR eflags.VM_cached = 1;                                    \
+    if ( BX_CPU_THIS_PTR cr0.pe) {                                           \
+      BX_CPU_THIS_PTR protectedMode = 0;                                     \
+      BX_CPU_THIS_PTR v8086Mode = 1;                                         \
+      }                                                                      \
     }                                                                        \
   BX_CPP_INLINE void BX_CPU_C::clear_VM() {                                  \
     BX_CPU_THIS_PTR eflags.val32 &= ~(1<<bitnum);                            \
     BX_CPU_THIS_PTR eflags.VM_cached = 0;                                    \
+    if ( BX_CPU_THIS_PTR cr0.pe) {                                           \
+      BX_CPU_THIS_PTR protectedMode = 1;                                     \
+      BX_CPU_THIS_PTR v8086Mode = 0;                                         \
+      }                                                                      \
     }                                                                        \
-  BX_CPP_INLINE Boolean BX_CPU_C::get_VM() {                                 \
+  BX_CPP_INLINE Bit32u  BX_CPU_C::get_VM() {                                 \
     return BX_CPU_THIS_PTR eflags.VM_cached;                                 \
     }                                                                        \
   BX_CPP_INLINE Boolean BX_CPU_C::getB_VM() {                                \
@@ -437,18 +441,22 @@ typedef struct {
     BX_CPU_THIS_PTR eflags.val32 =                                           \
       (BX_CPU_THIS_PTR eflags.val32&~(1<<bitnum)) | (val ? (1<<bitnum) : 0); \
     BX_CPU_THIS_PTR eflags.VM_cached = val;                                  \
+    if ( BX_CPU_THIS_PTR cr0.pe) {                                           \
+      BX_CPU_THIS_PTR v8086Mode = val;                                       \
+      BX_CPU_THIS_PTR protectedMode = ! BX_CPU_THIS_PTR v8086Mode;           \
+      }                                                                      \
     }
 
 #define DECLARE_EFLAG_ACCESSOR_IOPL(bitnum)                                  \
   BX_CPP_INLINE void set_IOPL(Bit32u val);                                   \
-  BX_CPP_INLINE Boolean get_IOPL(void);
+  BX_CPP_INLINE Bit32u  get_IOPL(void);
 
 #define IMPLEMENT_EFLAG_ACCESSOR_IOPL(bitnum)                                \
   BX_CPP_INLINE void BX_CPU_C::set_IOPL(Bit32u val) {                        \
     BX_CPU_THIS_PTR eflags.val32 &= ~(3<<12);                                \
     BX_CPU_THIS_PTR eflags.val32 |= ((3&val) << 12);                         \
     }                                                                        \
-  BX_CPP_INLINE Boolean BX_CPU_C::get_IOPL() {                               \
+  BX_CPP_INLINE Bit32u  BX_CPU_C::get_IOPL() {                               \
     return 3 & (BX_CPU_THIS_PTR eflags.val32 >> 12);                         \
     }
 
@@ -568,7 +576,7 @@ typedef struct {
   IMPLEMENT_CR4_ACCESSORS(PCE, 8);
   IMPLEMENT_CR4_ACCESSORS(OSFXSR, 9);
   IMPLEMENT_CR4_ACCESSORS(OSXMMEXCPT, 10);
-  BX_CPP_INLINE Boolean getRegister() { return registerValue; }
+  BX_CPP_INLINE Bit32u  getRegister() { return registerValue; }
   BX_CPP_INLINE void    setRegister(Bit32u r) { registerValue = r; }
   } bx_cr4_t;
 #endif  // #if BX_CPU_LEVEL >= 4
@@ -1146,7 +1154,7 @@ typedef enum {
   APIC_TYPE_LOCAL_APIC
 } bx_apic_type_t;
 
-#define APIC_BASE_ADDR	0xfee00000	// default APIC address
+#define APIC_BASE_ADDR 0xfee00000 // default APIC address
 
 #if BX_CPU_LEVEL == 5
 #	define APIC_VERSION_ID	0x00340011
@@ -1172,6 +1180,7 @@ public:
   void set_base (Bit32u newbase);
   void set_id (Bit8u newid);
   Bit8u get_id () { return id; }
+  static void reset_all_ids ();
   virtual char *get_name();
   Boolean is_selected (Bit32u addr, Bit32u len);
   void read (Bit32u addr, void *data, unsigned len);
@@ -1189,8 +1198,8 @@ public:
   virtual void set_arb_id (int newid);  // only implemented on local apics
   int apic_bus_arbitrate(Bit32u apic_mask);
   int apic_bus_arbitrate_lowpri(Bit32u apic_mask);
-  void arbitrate_and_trigger(Bit32u deliver_bitmask, Bit32u vector, Bit8u trigger_mode);
-  void arbitrate_and_trigger_one(Bit32u deliver_bitmask, Bit32u vector, Bit8u trigger_mode);
+  void arbitrate_and_trigger(Bit32u deliver_bitmask, Bit32u vector);
+  void arbitrate_and_trigger_one(Bit32u deliver_bitmask, Bit32u vector);
 };
 
 class bx_local_apic_c : public bx_generic_apic_c {
@@ -1210,7 +1219,7 @@ class bx_local_apic_c : public bx_generic_apic_c {
   // cleared when the interrupt is acknowledged by the processor.
   Bit8u irr[BX_LOCAL_APIC_MAX_INTS];
   // ISR=in-service register.  When an IRR bit is cleared, the corresponding
-  // bit in ISR is set.  The ISR bit is cleared when 
+  // bit in ISR is set.  The ISR bit is cleared when
   Bit8u isr[BX_LOCAL_APIC_MAX_INTS];
   Bit32u arb_id, arb_priority, task_priority, proc_priority, log_dest, dest_format, spurious_vec;
   Bit32u lvt[6];
@@ -1243,7 +1252,12 @@ class bx_local_apic_c : public bx_generic_apic_c {
 #define APIC_ERR_TX_ACCEPT_ERR   0x04
 #define APIC_ERR_RX_CHECKSUM     0x02
 #define APIC_ERR_TX_CHECKSUM     0x01
+
+  int timer_handle; // KPL
+  Bit64u ticksInitial; // System ticks count when APIC timer is started.
+
 public:
+  Boolean INTR;
   bx_local_apic_c(BX_CPU_C *mycpu);
   virtual ~bx_local_apic_c(void);
   BX_CPU_C *cpu;
@@ -1258,8 +1272,8 @@ public:
   // on local APIC, trigger means raise the CPU's INTR line.  For now
   // I also have to raise pc_system.INTR but that should be replaced
   // with the cpu-specific INTR signals.
-  virtual void trigger_irq (unsigned num, unsigned from, unsigned trigger_mode);
-  virtual void untrigger_irq (unsigned num, unsigned from, unsigned trigger_mode);
+  virtual void trigger_irq (unsigned num, unsigned from);
+  virtual void untrigger_irq (unsigned num, unsigned from);
   Bit8u acknowledge_int ();  // only the local CPU should call this
   int highest_priority_int (Bit8u *array);
   void service_local_apic ();
@@ -1275,7 +1289,8 @@ public:
   Boolean is_focus(Bit32u vector);
   Boolean bypass_irr_isr;
   void adjust_arb_id(int winning_id);	// adjust the arbitration id after a bus arbitration
-  void periodic (Bit32u usec_delta);
+  static void periodic_smf(void *); // KPL
+  void periodic(void); // KPL
   void set_divide_configuration (Bit32u value);
   virtual void update_msr_apicbase(Bit32u newaddr);
   virtual void set_arb_id (int newid);
@@ -1293,6 +1308,10 @@ typedef void (*BxDTShim_t)(void);
 class BX_MEM_C;
 
 #include "cpu/i387.h"
+
+#if BX_SUPPORT_SSE || BX_SUPPORT_SSE2
+#include "cpu/xmm.h"
+#endif
 
 class BX_CPU_C : public logfunctions {
 
@@ -1405,8 +1424,15 @@ union {
 
   /* Control registers */
 #if BX_CPU_LEVEL >= 2
-  bx_cr0_t  cr0;
-  Bit32u    cr1;
+  bx_cr0_t      cr0;
+
+  // Some cached values, so we don't have to do the checks in real time
+  // in code that needs them.
+  unsigned      protectedMode; // CR0.PE=1, EFLAGS.VM=0
+  unsigned      v8086Mode;     // CR0.PE=1, EFLAGS.VM=1
+  unsigned      realMode;      // CR0.PE=1
+
+  Bit32u        cr1;
   bx_address    cr2;
   bx_address    cr3;
 #endif
@@ -1417,9 +1443,14 @@ union {
 
 #if BX_CPU_LEVEL >= 5
   bx_regs_msr_t	msr;  
+  Bit64u tsc;
 #endif
-
   i387_t the_i387;
+
+#if BX_SUPPORT_SSE || BX_SUPPORT_SSE2
+  bx_xmm_reg_t xmm[BX_XMM_REGISTERS];
+  bx_mxcsr_t mxcsr;
+#endif
 
   // pointer to the address space that this processor uses.
   BX_MEM_C *mem;
@@ -1433,6 +1464,7 @@ union {
   volatile Boolean async_event;
   volatile Boolean INTR;
   volatile Boolean kill_bochs_request;
+  volatile Boolean nmi_queued;
 
   /* wether this CPU is the BSP always set for UP */
   Boolean bsp;
@@ -1493,10 +1525,10 @@ union {
   Bit8u stop_reason;
   Bit8u trace;
   Bit8u trace_reg;
-  Bit8u mode_break;		/* BW */
-  Boolean debug_vm;		/* BW contains current mode*/
-  Bit8u show_eip;		/* BW record eip at special instr f.ex eip */
-  Bit8u show_flag;		/* BW shows instr class executed */
+  Bit8u mode_break; /* BW */
+  Boolean debug_vm; /* BW contains current mode*/
+  Bit8u show_eip;   /* BW record eip at special instr f.ex eip */
+  Bit8u show_flag;  /* BW shows instr class executed */
   bx_guard_found_t guard_found;
 #endif
 
@@ -1586,7 +1618,10 @@ union {
   BX_SMF void ADD_EbGb(bxInstruction_c *);
   BX_SMF void ADD_EdGd(bxInstruction_c *);
   BX_SMF void ADD_GbEb(bxInstruction_c *);
-  BX_SMF void ADD_GdEd(bxInstruction_c *);
+
+  BX_SMF void ADD_GdEEd(bxInstruction_c *);
+  BX_SMF void ADD_GdEGd(bxInstruction_c *);
+
   BX_SMF void ADD_ALIb(bxInstruction_c *);
   BX_SMF void ADD_EAXId(bxInstruction_c *);
   BX_SMF void OR_EbGb(bxInstruction_c *);
@@ -1680,18 +1715,24 @@ union {
   BX_SMF void XCHG_EbGb(bxInstruction_c *);
   BX_SMF void XCHG_EdGd(bxInstruction_c *);
   BX_SMF void XCHG_EwGw(bxInstruction_c *);
-  BX_SMF void MOV_EbGb(bxInstruction_c *);
-  BX_SMF void MOV_EdGd(bxInstruction_c *);
-  BX_SMF void MOV_EwGw(bxInstruction_c *);
-  BX_SMF void MOV_GbEb(bxInstruction_c *);
 
-  BX_SMF void MOV_GdEd(bxInstruction_c *);
-  BX_SMF void MOV_GdEGd(bxInstruction_c *);
+  BX_SMF void MOV_EEbGb(bxInstruction_c *);
+  BX_SMF void MOV_EGbGb(bxInstruction_c *);
+
+  BX_SMF void MOV_EEdGd(bxInstruction_c *);
+  BX_SMF void MOV_EGdGd(bxInstruction_c *);
+
+  BX_SMF void MOV_EEwGw(bxInstruction_c *);
+  BX_SMF void MOV_EGwGw(bxInstruction_c *);
+
+  BX_SMF void MOV_GbEEb(bxInstruction_c *);
+  BX_SMF void MOV_GbEGb(bxInstruction_c *);
+
   BX_SMF void MOV_GdEEd(bxInstruction_c *);
+  BX_SMF void MOV_GdEGd(bxInstruction_c *);
 
-  BX_SMF void MOV_GwEw(bxInstruction_c *);
-  BX_SMF void MOV_GwEGw(bxInstruction_c *);
   BX_SMF void MOV_GwEEw(bxInstruction_c *);
+  BX_SMF void MOV_GwEGw(bxInstruction_c *);
 
   BX_SMF void MOV_EwSw(bxInstruction_c *);
   BX_SMF void LEA_GdM(bxInstruction_c *);
@@ -1866,7 +1907,9 @@ union {
   BX_SMF void OR_EbIb(bxInstruction_c *);
   BX_SMF void AND_EbIb(bxInstruction_c *);
 
-  BX_SMF void ADD_EdId(bxInstruction_c *);
+  BX_SMF void ADD_EEdId(bxInstruction_c *);
+  BX_SMF void ADD_EGdId(bxInstruction_c *);
+
   BX_SMF void OR_EdId(bxInstruction_c *);
   BX_SMF void OR_EwIw(bxInstruction_c *);
   BX_SMF void ADC_EdId(bxInstruction_c *);
@@ -2024,10 +2067,231 @@ union {
   BX_SMF void PSLLQ_PqIb(bxInstruction_c *i);
   /* MMX */
 
-#if BX_SUPPORT_MMX
-  BX_SMF void PrepareMmxInstruction(void);
-  BX_SMF void PrintMmxRegisters(void);
+#if BX_SUPPORT_MMX || BX_SUPPORT_SSE || BX_SUPPORT_SSE2
+  BX_SMF void prepareMMX(void);
+  BX_SMF void printMmxRegisters(void);
 #endif
+
+#if BX_SUPPORT_SSE || BX_SUPPORT_SSE2
+  BX_SMF void prepareSSE(void);
+#endif
+
+  /* SSE */
+  BX_SMF void FXSAVE(bxInstruction_c *i);
+  BX_SMF void FXRSTOR(bxInstruction_c *i);
+  BX_SMF void LDMXCSR(bxInstruction_c *i);
+  BX_SMF void STMXCSR(bxInstruction_c *i);
+  BX_SMF void PREFETCH(bxInstruction_c *i);
+  /* SSE */
+
+  /* SSE */
+  BX_SMF void MOVUPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void MOVSS_VssWss(bxInstruction_c *i);
+  BX_SMF void MOVUPS_WpsVps(bxInstruction_c *i);
+  BX_SMF void MOVSS_WssVss(bxInstruction_c *i);
+  BX_SMF void MOVLPS_VpsMq(bxInstruction_c *i);
+  BX_SMF void MOVLPS_MqVps(bxInstruction_c *i);
+  BX_SMF void UNPCKLPS_VpsWq(bxInstruction_c *i);
+  BX_SMF void UNPCKHPS_VpsWq(bxInstruction_c *i);
+  BX_SMF void MOVHPS_VpsMq(bxInstruction_c *i);
+  BX_SMF void MOVHPS_MqVps(bxInstruction_c *i);
+  BX_SMF void MOVAPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void MOVAPS_WpsVps(bxInstruction_c *i);
+  BX_SMF void CVTPI2PS_VpsQq(bxInstruction_c *i);
+  BX_SMF void CVTSI2SS_VssEd(bxInstruction_c *i);
+  BX_SMF void MOVNTPS_MdqVps(bxInstruction_c *i);
+  BX_SMF void CVTTPS2PI_PqWps(bxInstruction_c *i);
+  BX_SMF void CVTTSS2SI_GdWss(bxInstruction_c *i);
+  BX_SMF void CVTPS2PI_PqWps(bxInstruction_c *i);
+  BX_SMF void CVTSS2SI_GdWss(bxInstruction_c *i);
+  BX_SMF void UCOMISS_VssWss(bxInstruction_c *i);
+  BX_SMF void COMISS_VpsWps(bxInstruction_c *i);
+  BX_SMF void MOVMSKPS_GdVRps(bxInstruction_c *i);
+  BX_SMF void SQRTPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void SQRTSS_VssWss(bxInstruction_c *i);
+  BX_SMF void RSQRTPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void RSQRTSS_VssWss(bxInstruction_c *i);
+  BX_SMF void RCPPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void RCPSS_VssWss(bxInstruction_c *i);
+  BX_SMF void ANDPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void ANDNPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void ORPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void XORPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void ADDPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void ADDSS_VssWss(bxInstruction_c *i);
+  BX_SMF void MULPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void MULSS_VssWss(bxInstruction_c *i);
+  BX_SMF void SUBPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void SUBSS_VssWss(bxInstruction_c *i);
+  BX_SMF void MINPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void MINSS_VssWss(bxInstruction_c *i);
+  BX_SMF void DIVPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void DIVSS_VssWss(bxInstruction_c *i);
+  BX_SMF void MAXPS_VpsWps(bxInstruction_c *i);
+  BX_SMF void MAXSS_VssWss(bxInstruction_c *i);
+  BX_SMF void PSHUFW_PqQqIb(bxInstruction_c *i);
+  BX_SMF void PSHUFLW_VqWqIb(bxInstruction_c *i);
+  BX_SMF void CMPPS_VpsWpsIb(bxInstruction_c *i);
+  BX_SMF void CMPSS_VssWssIb(bxInstruction_c *i);
+  BX_SMF void PINSRW_PqEdIb(bxInstruction_c *i);
+  BX_SMF void PEXTRW_PqEdIb(bxInstruction_c *i);
+  BX_SMF void SHUFPS_VpsWpsIb(bxInstruction_c *i);
+  BX_SMF void PMOVMSKB_GdPRq(bxInstruction_c *i);
+  BX_SMF void PMINUB_PqQq(bxInstruction_c *i);
+  BX_SMF void PMAXUB_PqQq(bxInstruction_c *i);
+  BX_SMF void PAVGB_PqQq(bxInstruction_c *i);
+  BX_SMF void PAVGW_PqQq(bxInstruction_c *i);
+  BX_SMF void PMULHUW_PqQq(bxInstruction_c *i);
+  BX_SMF void MOVNTQ_MqPq(bxInstruction_c *i);
+  BX_SMF void PMINSW_PqQq(bxInstruction_c *i);
+  BX_SMF void PMAXSW_PqQq(bxInstruction_c *i);
+  BX_SMF void PSADBW_PqQq(bxInstruction_c *i);
+  BX_SMF void MASKMOVQ_PqPRq(bxInstruction_c *i);
+  /* SSE */
+
+  /* SSE2 */
+  BX_SMF void MOVUPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void MOVSD_VsdWsd(bxInstruction_c *i);
+  BX_SMF void MOVUPD_WpdVpd(bxInstruction_c *i);
+  BX_SMF void MOVSD_WsdVsd(bxInstruction_c *i);
+  BX_SMF void MOVLPD_VsdMq(bxInstruction_c *i);
+  BX_SMF void MOVLPD_MqVsd(bxInstruction_c *i);
+  BX_SMF void UNPCKLPD_VpdWq(bxInstruction_c *i);
+  BX_SMF void UNPCKHPD_VpdWq(bxInstruction_c *i);
+  BX_SMF void MOVHPD_VpdMq(bxInstruction_c *i);
+  BX_SMF void MOVHPD_MqVpd(bxInstruction_c *i);
+  BX_SMF void MOVAPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void MOVAPD_WpdVpd(bxInstruction_c *i);
+  BX_SMF void CVTPI2PD_VpdQd(bxInstruction_c *i);
+  BX_SMF void CVTSI2SD_VsdEd(bxInstruction_c *i);
+  BX_SMF void MOVNTPD_MdqVpd(bxInstruction_c *i);            	
+  BX_SMF void CVTTPD2PI_PqWpd(bxInstruction_c *i);
+  BX_SMF void CVTTSD2SI_GdWsd(bxInstruction_c *i);
+  BX_SMF void CVTPD2PI_PqWpd(bxInstruction_c *i);
+  BX_SMF void CVTSD2SI_GdWsd(bxInstruction_c *i);
+  BX_SMF void UCOMISD_VsdWsd(bxInstruction_c *i);            	
+  BX_SMF void COMISD_VpdWpd(bxInstruction_c *i);   
+  BX_SMF void MOVMSKPD_EdVRpd(bxInstruction_c *i);
+  BX_SMF void SQRTPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void SQRTSD_VsdWsd(bxInstruction_c *i);
+  BX_SMF void ANDPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void ANDNPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void ORPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void XORPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void ADDPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void ADDSD_VsdWsd(bxInstruction_c *i);
+  BX_SMF void MULPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void MULSD_VsdWsd(bxInstruction_c *i);
+  BX_SMF void CVTPS2PD_VpsWps(bxInstruction_c *i);
+  BX_SMF void CVTPD2PS_VpdWpd(bxInstruction_c *i);
+  BX_SMF void CVTSD2SS_VsdWsd(bxInstruction_c *i);
+  BX_SMF void CVTSS2SD_VssWss(bxInstruction_c *i);
+  BX_SMF void CVTDQ2PS_VpsWdq(bxInstruction_c *i);
+  BX_SMF void CVTPS2DQ_VdqWps(bxInstruction_c *i);
+  BX_SMF void CVTTPS2DQ_VdqWps(bxInstruction_c *i);
+  BX_SMF void SUBPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void SUBSD_VsdWsd(bxInstruction_c *i);
+  BX_SMF void MINPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void MINSD_VsdWsd(bxInstruction_c *i);
+  BX_SMF void DIVPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void DIVSD_VsdWsd(bxInstruction_c *i);
+  BX_SMF void MAXPD_VpdWpd(bxInstruction_c *i);
+  BX_SMF void MAXSD_VsdWsd(bxInstruction_c *i);
+  BX_SMF void PUNPCKLBW_VdqWq(bxInstruction_c *i);
+  BX_SMF void PUNPCKLWD_VdqWq(bxInstruction_c *i);
+  BX_SMF void PUNPCKLDQ_VdqWq(bxInstruction_c *i);
+  BX_SMF void PACKSSWB_VdqWq(bxInstruction_c *i);
+  BX_SMF void PCMPGTB_VdqWq(bxInstruction_c *i);
+  BX_SMF void PCMPGTW_VdqWq(bxInstruction_c *i);
+  BX_SMF void PCMPGTD_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PACKUSWB_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PUNPCKHBW_VdqWq(bxInstruction_c *i);
+  BX_SMF void PUNPCKHWD_VdqWq(bxInstruction_c *i);
+  BX_SMF void PUNPCKHDQ_VdqWq(bxInstruction_c *i);
+  BX_SMF void PACKSSDW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PUNPCKLQDQ_VdqWq(bxInstruction_c *i);
+  BX_SMF void PUNPCKHQDQ_VdqWq(bxInstruction_c *i);
+  BX_SMF void MOVD_VdqEd(bxInstruction_c *i);
+  BX_SMF void MOVDQA_VdqWdq(bxInstruction_c *i);
+  BX_SMF void MOVDQU_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSHUFD_VdqWdqIb(bxInstruction_c *i);
+  BX_SMF void PSHUFHW_VqWqIb(bxInstruction_c *i);
+  BX_SMF void PCMPEQB_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PCMPEQW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PCMPEQD_VdqWdq(bxInstruction_c *i);
+  BX_SMF void MOVD_EdVd(bxInstruction_c *i);
+  BX_SMF void MOVD_VqWq(bxInstruction_c *i);
+  BX_SMF void MOVDQA_WdqVdq(bxInstruction_c *i);
+  BX_SMF void MOVDQU_WdqVdq(bxInstruction_c *i);
+  BX_SMF void CMPPD_VpdWpdIb(bxInstruction_c *i);
+  BX_SMF void CMPSD_VsdWsdIb(bxInstruction_c *i);
+  BX_SMF void MOVNTI_MdGd(bxInstruction_c *i);
+  BX_SMF void PINSRW_VdqEdIb(bxInstruction_c *i);
+  BX_SMF void PEXTRW_VdqEdIb(bxInstruction_c *i);
+  BX_SMF void SHUFPD_VpdWpdIb(bxInstruction_c *i);
+  BX_SMF void PSRLW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSRLD_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSRLQ_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PADDQ_PqQq(bxInstruction_c *i);
+  BX_SMF void PADDQ_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PMULLW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void MOVQ_WqVq(bxInstruction_c *i);
+  BX_SMF void MOVDQ2Q_PqVRq(bxInstruction_c *i);
+  BX_SMF void MOVQ2DQ_VdqQq(bxInstruction_c *i);
+  BX_SMF void PMOVMSKB_GdVRdq(bxInstruction_c *i);
+  BX_SMF void PSUBUSB_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSUBUSW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PMINUB_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PAND_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PADDUSB_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PADDUSW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PMAXUB_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PANDN_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PAVGB_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSRAW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSRAD_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PAVGW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PMULHUW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PMULHW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void CVTTPD2DQ_VqWpd(bxInstruction_c *i);
+  BX_SMF void CVTPD2DQ_VqWpd(bxInstruction_c *i);
+  BX_SMF void CVTDQ2PD_VpdWq(bxInstruction_c *i);
+  BX_SMF void MOVNTDQ_MdqVdq(bxInstruction_c *i);
+  BX_SMF void PSUBSB_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSUBSW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PMINSW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void POR_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PADDSB_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PADDSW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PMAXSW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PXOR_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSLLW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSLLD_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSLLQ_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PMULUDQ_PqQq(bxInstruction_c *i);
+  BX_SMF void PMULUDQ_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PMADDWD_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSADBW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void MASKMOVDQU_VdqVRdq(bxInstruction_c *i);
+  BX_SMF void PSUBB_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSUBW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSUBD_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSUBQ_PqQq(bxInstruction_c *i);
+  BX_SMF void PSUBQ_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PADDB_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PADDW_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PADDD_VdqWdq(bxInstruction_c *i);
+  BX_SMF void PSRLW_PdqIb(bxInstruction_c *i);
+  BX_SMF void PSRAW_PdqIb(bxInstruction_c *i);
+  BX_SMF void PSLLW_PdqIb(bxInstruction_c *i);
+  BX_SMF void PSRLD_PdqIb(bxInstruction_c *i);
+  BX_SMF void PSRAD_PdqIb(bxInstruction_c *i);
+  BX_SMF void PSLLD_PdqIb(bxInstruction_c *i);
+  BX_SMF void PSRLQ_PdqIb(bxInstruction_c *i);
+  BX_SMF void PSRLDQ_WdqIb(bxInstruction_c *i);
+  BX_SMF void PSLLQ_PdqIb(bxInstruction_c *i);
+  BX_SMF void PSLLDQ_WdqIb(bxInstruction_c *i);
+  /* SSE2 */
 
   BX_SMF void fpu_execute(bxInstruction_c *i);
   BX_SMF void fpu_init(void);
@@ -2050,7 +2314,10 @@ union {
   BX_SMF void CMOV_GwEw(bxInstruction_c *);
 
   BX_SMF void ADD_EwGw(bxInstruction_c *);
-  BX_SMF void ADD_GwEw(bxInstruction_c *);
+
+  BX_SMF void ADD_GwEEw(bxInstruction_c *);
+  BX_SMF void ADD_GwEGw(bxInstruction_c *);
+
   BX_SMF void ADD_AXIw(bxInstruction_c *);
   BX_SMF void ADC_EwGw(bxInstruction_c *);
   BX_SMF void ADC_GwEw(bxInstruction_c *);
@@ -2068,7 +2335,10 @@ union {
   BX_SMF void CWDE(bxInstruction_c *);
   BX_SMF void CDQ(bxInstruction_c *);
   BX_SMF void XADD_EwGw(bxInstruction_c *);
-  BX_SMF void ADD_EwIw(bxInstruction_c *);
+
+  BX_SMF void ADD_EEwIw(bxInstruction_c *);
+  BX_SMF void ADD_EGwIw(bxInstruction_c *);
+
   BX_SMF void ADC_EwIw(bxInstruction_c *);
   BX_SMF void SUB_EwIw(bxInstruction_c *);
   BX_SMF void CMP_EwIw(bxInstruction_c *);
@@ -2441,13 +2711,15 @@ union {
   BX_SMF Boolean  dbg_is_end_instr_bpoint(Bit32u cs, Bit32u eip,
                                           Bit32u laddr, Bit32u is_32);
 #endif
-#if BX_DEBUGGER || BX_DISASM || BX_INSTRUMENTATION
+#if BX_DEBUGGER || BX_DISASM || BX_INSTRUMENTATION || BX_GDBSTUB
   BX_SMF void     dbg_xlate_linear2phy(Bit32u linear, Bit32u *phy, Boolean *valid);
 #endif
   BX_SMF void     atexit(void);
 
   // now for some ancillary functions...
+  BX_SMF void cpu_do_timer(void);
   BX_SMF void cpu_loop(Bit32s max_instr_count);
+  BX_SMF unsigned handleAsyncEvent(void);
   BX_SMF void boundaryFetch(bxInstruction_c *i);
   BX_SMF void decode_exgx16(unsigned need_fetch);
   BX_SMF void decode_exgx32(unsigned need_fetch);
@@ -2485,6 +2757,14 @@ union {
 #define Write_RMW_virtual_dword(val32) write_RMW_virtual_dword(val32)
 #define Write_RMW_virtual_qword(val32) write_RMW_virtual_qword(val32)
 
+#if BX_SUPPORT_SSE
+  BX_SMF void readVirtualDQword(unsigned s, bx_address off, Bit8u *data);
+  BX_SMF void readVirtualDQwordAligned(unsigned s, bx_address off, Bit8u *data);
+  BX_SMF void writeVirtualDQword(unsigned s, bx_address off, Bit8u *data);
+  BX_SMF void writeVirtualDQwordAligned(unsigned s, bx_address off, Bit8u *data);
+#endif
+
+
   BX_SMF void access_linear(bx_address address, unsigned length, unsigned pl,
                      unsigned rw, void *data);
   BX_SMF Bit32u itranslate_linear(bx_address laddr, unsigned pl);
@@ -2496,7 +2776,8 @@ union {
   BX_SMF void interrupt(Bit8u vector, Boolean is_INT, Boolean is_error_code,
                  Bit16u error_code);
 #if BX_CPU_LEVEL >= 2
-  BX_SMF void exception(unsigned vector, Bit16u error_code, Boolean is_INT);
+  BX_SMF void exception(unsigned vector, Bit16u error_code, Boolean is_INT)
+                  BX_CPP_AttrNoReturn();
 #endif
   BX_SMF int  int_number(bx_segment_reg_t *seg);
   BX_SMF void shutdown_cpu(void);
@@ -2528,6 +2809,7 @@ union {
   BX_SMF void write_flags(Bit16u flags, Boolean change_IOPL, Boolean change_IF);
   BX_SMF void write_eflags(Bit32u eflags, Boolean change_IOPL, Boolean change_IF,
                     Boolean change_VM, Boolean change_RF);
+  BX_SMF void writeEFlags(Bit32u eflags, Bit32u changeMask); // Newer variant.
   BX_SMF Bit16u read_flags(void);
   BX_SMF Bit32u read_eflags(void);
   BX_SMF Bit32u get_segment_base(unsigned seg);
@@ -2636,16 +2918,11 @@ union {
 
   BX_SMF BX_CPP_INLINE int which_cpu(void);
 
-#if BX_CPU_LEVEL >= 2
   BX_SMF BX_CPP_INLINE Boolean real_mode(void);
-#endif
-#if BX_CPU_LEVEL >= 3
   BX_SMF BX_CPP_INLINE Boolean protected_mode(void);
   BX_SMF BX_CPP_INLINE Boolean v8086_mode(void);
-#endif
 #if BX_SUPPORT_APIC
   bx_local_apic_c local_apic;
-  Boolean int_from_local_apic;
   static Bit32u cpu_online_map;
 #endif
   };
@@ -2750,38 +3027,20 @@ BX_SMF BX_CPP_INLINE Bit32u BX_CPU_C_PREFIX get_segment_base(unsigned seg) {
 }
 
 
-#if BX_CPU_LEVEL >= 2
-  BX_CPP_INLINE Boolean BX_CPU_C::real_mode(void) { return( !BX_CPU_THIS_PTR cr0.pe ); };
-#endif
+  BX_CPP_INLINE Boolean
+BX_CPU_C::real_mode(void) {
+  return( BX_CPU_THIS_PTR realMode );
+  };
 
-#if BX_CPU_LEVEL == 2
-  BX_CPP_INLINE Boolean BX_CPU_C::protected_mode(void) { return( BX_CPU_THIS_PTR cr0.pe ); };
-#endif
-
-
-#if BX_CPU_LEVEL >= 3
-#  if BX_SUPPORT_V8086_MODE
   BX_CPP_INLINE Boolean
 BX_CPU_C::v8086_mode(void) {
-  return (BX_CPU_THIS_PTR get_VM ());
+  return( BX_CPU_THIS_PTR v8086Mode );
   }
 
   BX_CPP_INLINE Boolean
 BX_CPU_C::protected_mode(void) {
-  return(BX_CPU_THIS_PTR cr0.pe && !BX_CPU_THIS_PTR get_VM ());
+  return( BX_CPU_THIS_PTR protectedMode );
   }
-#  else
-  BX_CPP_INLINE Boolean
-BX_CPU_C::v8086_mode(void) {
-  return(0);
-  }
-
-  BX_CPP_INLINE Boolean
-BX_CPU_C::protected_mode(void) {
-  return(BX_CPU_THIS_PTR cr0.pe);
-  }
-#  endif
-#endif
 
     BX_CPP_INLINE void
 BX_CPU_C::set_CF(Boolean val) {
@@ -3000,6 +3259,7 @@ IMPLEMENT_EFLAG_ACCESSOR   (TF,  8)
 #define BxPrefix          0x0010 // bit  4
 #define BxAnother         0x0020 // bit  5
 #define BxSplitMod11b     0x0040 // bit  6
+#define BxPrefixSSE       0x0080 // bit  7
 #define BxRepeatable      0x0800 // bit 11 (pass through to metaInfo field)
 #define BxRepeatableZF    0x1000 // bit 12 (pass through to metaInfo field)
 #define BxGroupN          0x0100 // bits 8
@@ -3012,21 +3272,12 @@ IMPLEMENT_EFLAG_ACCESSOR   (TF,  8)
 #define BxGroup7          BxGroupN
 #define BxGroup8          BxGroupN
 #define BxGroup9          BxGroupN
-#define BxGroupA          BxGroupN
 
-#if BX_SUPPORT_FPU
-#define BxAnotherFPU      BxAnother
-#else
-#define BxAnotherFPU      (0)
-#endif
-
-#if BX_SUPPORT_MMX
-#define BxAnotherMMX      BxAnother
-#else
-#define BxAnotherMMX      (0)
-#endif
-
+#define BxGroup12         BxGroupN
+#define BxGroup13         BxGroupN
+#define BxGroup14         BxGroupN
 #define BxGroup15         BxGroupN
+#define BxGroup16         BxGroupN
 
 #if BX_DEBUGGER
 typedef enum _show_flags {
@@ -3041,5 +3292,341 @@ typedef enum _show_flags {
 // Can be used as LHS or RHS.
 #define RMAddr(i)  (BX_CPU_THIS_PTR address_xlation.rm_addr)
 
+
+#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
+
+#define setEFlagsOSZAPC(flags32) { \
+  BX_CPU_THIS_PTR eflags.val32 = \
+    (BX_CPU_THIS_PTR eflags.val32 & ~EFlagsOSZAPCMask) | \
+    (flags32 & EFlagsOSZAPCMask); \
+  BX_CPU_THIS_PTR lf_flags_status = 0; \
+  }
+
+#define setEFlagsOSZAP(flags32) { \
+  BX_CPU_THIS_PTR eflags.val32 = \
+    (BX_CPU_THIS_PTR eflags.val32 & ~EFlagsOSZAPMask) | \
+    (flags32 & EFlagsOSZAPMask); \
+  BX_CPU_THIS_PTR lf_flags_status &= 0x00000f; \
+  }
+
+// This section defines some convience inline functions which do the
+// dirty work of asm() statements for arithmetic instructions on x86 hosts. 
+// Essentially these speed up eflags processing since the value of the
+// eflags register can be read directly on x86 hosts, after the
+// arithmetic operations.
+
+  static inline void
+asmAdd16(Bit16u &sum_16, Bit16u op1_16, Bit16u op2_16, Bit32u &flags32)
+{
+  asm (
+    "addw %3, %1 \n\t"
+    "pushfl      \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=r" (sum_16)
+    : "1" (op1_16), "g" (op2_16)
+    : "cc"
+    );
+}
+
+  static inline void
+asmAdd32(Bit32u &sum_32, Bit32u op1_32, Bit32u op2_32, Bit32u &flags32)
+{
+  asm (
+    "addl %3, %1 \n\t"
+    "pushfl      \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=r" (sum_32)
+    : "1" (op1_32), "g" (op2_32)
+    : "cc"
+    );
+}
+
+  static inline void
+asmSub16(Bit16u &diff_16, Bit16u op1_16, Bit16u op2_16, Bit32u &flags32)
+{
+  asm (
+    "subw %3, %1\n\t"
+    "pushfl     \n\t"
+    "popl %0"
+    : "=g" (flags32), "=r" (diff_16)
+    : "1" (op1_16), "g" (op2_16)
+    : "cc"
+    );
+}
+
+  static inline void
+asmSub32(Bit32u &diff_32, Bit32u op1_32, Bit32u op2_32, Bit32u &flags32)
+{
+  asm (
+    "subl %3, %1\n\t"
+    "pushfl     \n\t"
+    "popl %0"
+    : "=g" (flags32), "=r" (diff_32)
+    : "1" (op1_32), "g" (op2_32)
+    : "cc"
+    );
+}
+
+  static inline void
+asmCmp8(Bit8u op1_8, Bit8u op2_8, Bit32u &flags32)
+{
+  asm (
+    "cmpb %2, %1\n\t"
+    "pushfl     \n\t"
+    "popl %0"
+    : "=g" (flags32)
+    : "q" (op1_8), "mq" (op2_8)
+    : "cc"
+    );
+}
+
+  static inline void
+asmCmp16(Bit16u op1_16, Bit16u op2_16, Bit32u &flags32)
+{
+  asm (
+    "cmpw %2, %1\n\t"
+    "pushfl     \n\t"
+    "popl %0"
+    : "=g" (flags32)
+    : "r" (op1_16), "g" (op2_16)
+    : "cc"
+    );
+}
+
+  static inline void
+asmCmp32(Bit32u op1_32, Bit32u op2_32, Bit32u &flags32)
+{
+  asm (
+    "cmpl %2, %1\n\t"
+    "pushfl     \n\t"
+    "popl %0"
+    : "=g" (flags32)
+    : "r" (op1_32), "g" (op2_32)
+    : "cc"
+    );
+}
+
+  static inline void
+asmInc16(Bit16u &op1_16, Bit32u &flags32)
+{
+  asm (
+    "incw %1 \n\t"
+    "pushfl  \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=g" (op1_16)
+    : "1" (op1_16)
+    : "cc"
+    );
+}
+
+  static inline void
+asmInc32(Bit32u &op1_32, Bit32u &flags32)
+{
+  asm (
+    "incl %1 \n\t"
+    "pushfl  \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=g" (op1_32)
+    : "1" (op1_32)
+    : "cc"
+    );
+}
+
+  static inline void
+asmDec16(Bit16u &op1_16, Bit32u &flags32)
+{
+  asm (
+    "decw %1 \n\t"
+    "pushfl  \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=g" (op1_16)
+    : "1" (op1_16)
+    : "cc"
+    );
+}
+
+  static inline void
+asmDec32(Bit32u &op1_32, Bit32u &flags32)
+{
+  asm (
+    "decl %1 \n\t"
+    "pushfl  \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=g" (op1_32)
+    : "1" (op1_32)
+    : "cc"
+    );
+}
+
+  static inline void
+asmXor16(Bit16u &result_16, Bit16u op1_16, Bit16u op2_16, Bit32u &flags32)
+{
+  asm (
+    "xorw %3, %1 \n\t"
+    "pushfl      \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=r" (result_16)
+    : "1" (op1_16), "g" (op2_16)
+    : "cc"
+    );
+}
+
+  static inline void
+asmXor32(Bit32u &result_32, Bit32u op1_32, Bit32u op2_32, Bit32u &flags32)
+{
+  asm (
+    "xorl %3, %1 \n\t"
+    "pushfl      \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=r" (result_32)
+    : "1" (op1_32), "g" (op2_32)
+    : "cc"
+    );
+}
+
+  static inline void
+asmOr8(Bit8u &result_8, Bit8u op1_8, Bit8u op2_8, Bit32u &flags32)
+{
+  asm (
+    "orb %3, %1 \n\t"
+    "pushfl      \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=q" (result_8)
+    : "1" (op1_8), "mq" (op2_8)
+    : "cc"
+    );
+}
+
+  static inline void
+asmOr16(Bit16u &result_16, Bit16u op1_16, Bit16u op2_16, Bit32u &flags32)
+{
+  asm (
+    "orw %3, %1 \n\t"
+    "pushfl      \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=r" (result_16)
+    : "1" (op1_16), "g" (op2_16)
+    : "cc"
+    );
+}
+
+  static inline void
+asmOr32(Bit32u &result_32, Bit32u op1_32, Bit32u op2_32, Bit32u &flags32)
+{
+  asm (
+    "orl %3, %1 \n\t"
+    "pushfl      \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=r" (result_32)
+    : "1" (op1_32), "g" (op2_32)
+    : "cc"
+    );
+}
+
+  static inline void
+asmAnd8(Bit8u &result_8, Bit8u op1_8, Bit8u op2_8, Bit32u &flags32)
+{
+  asm (
+    "andb %3, %1\n\t"
+    "pushfl     \n\t"
+    "popl %0"
+    : "=g" (flags32), "=q" (result_8)
+    : "1" (op1_8), "mq" (op2_8)
+    : "cc"
+    );
+}
+
+  static inline void
+asmAnd16(Bit16u &result_16, Bit16u op1_16, Bit16u op2_16, Bit32u &flags32)
+{
+  asm (
+    "andw %3, %1 \n\t"
+    "pushfl      \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=r" (result_16)
+    : "1" (op1_16), "g" (op2_16)
+    : "cc"
+    );
+}
+
+  static inline void
+asmAnd32(Bit32u &result_32, Bit32u op1_32, Bit32u op2_32, Bit32u &flags32)
+{
+  asm (
+    "andl %3, %1 \n\t"
+    "pushfl      \n\t"
+    "popl   %0"
+    : "=g" (flags32), "=r" (result_32)
+    : "1" (op1_32), "g" (op2_32)
+    : "cc"
+    );
+}
+
+  static inline void
+asmTest8(Bit8u op1_8, Bit8u op2_8, Bit32u &flags32)
+{
+  asm (
+    "testb %2, %1\n\t"
+    "pushfl     \n\t"
+    "popl %0"
+    : "=g" (flags32)
+    : "q" (op1_8), "mq" (op2_8)
+    : "cc"
+    );
+}
+
+  static inline void
+asmTest16(Bit16u op1_16, Bit16u op2_16, Bit32u &flags32)
+{
+  asm (
+    "testw %2, %1\n\t"
+    "pushfl     \n\t"
+    "popl %0"
+    : "=g" (flags32)
+    : "r" (op1_16), "g" (op2_16)
+    : "cc"
+    );
+}
+
+  static inline void
+asmTest32(Bit32u op1_32, Bit32u op2_32, Bit32u &flags32)
+{
+  asm (
+    "testl %2, %1\n\t"
+    "pushfl     \n\t"
+    "popl %0"
+    : "=g" (flags32)
+    : "r" (op1_32), "g" (op2_32)
+    : "cc"
+    );
+}
+
+  static inline void
+asmShr16(Bit16u &result_16, Bit16u op1_16, unsigned count, Bit32u &flags32)
+{
+  asm (
+    "shrw %%cl, %1\n\t"
+    "pushfl     \n\t"
+    "popl %0"
+    : "=g" (flags32), "=g" (result_16)
+    : "1" (op1_16), "c" (count)
+    : "cc"
+    );
+}
+
+  static inline void
+asmShr32(Bit32u &result_32, Bit32u op1_32, unsigned count, Bit32u &flags32)
+{
+  asm (
+    "shrl %%cl, %1\n\t"
+    "pushfl     \n\t"
+    "popl %0"
+    : "=g" (flags32), "=g" (result_32)
+    : "1" (op1_32), "c" (count)
+    : "cc"
+    );
+}
+
+#endif
 
 #endif  // #ifndef BX_CPU_H

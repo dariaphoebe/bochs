@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: debugstuff.cc,v 1.21 2002/09/28 06:29:55 ptrumpet Exp $
+// $Id: debugstuff.cc,v 1.21.2.1 2002/10/20 22:26:01 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -122,23 +122,23 @@ BX_CPU_C::debug(Bit32u offset)
     BX_CPU_THIS_PTR cr3,
     BX_CPU_THIS_PTR cr4.getRegister()));
 #endif
-	
+
 
 #if 0
   /* (mch) Hack to display the area round EIP and prev_EIP */
   char buf[100];
-  sprintf(buf, "%04x:%08x  ", BX_CPU_THIS_PTR sregs[BX_SREG_CS].selector.value, EIP);
+  sprintf(buf, "%04x:%08x  ", BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].selector.value, EIP);
   for (int i = 0; i < 8; i++) {
     Bit8u data;
-    BX_CPU_THIS_PTR read_virtual_byte(BX_SREG_CS, EIP + i, &data);
+    BX_CPU_THIS_PTR read_virtual_byte(BX_SEG_REG_CS, EIP + i, &data);
     sprintf(buf+strlen(buf), "%02x ", data);
     }
   BX_INFO((buf));
 
-  sprintf(buf, "%04x:%08x  ", BX_CPU_THIS_PTR sregs[BX_SREG_CS].selector.value, BX_CPU_THIS_PTR prev_eip);
+  sprintf(buf, "%04x:%08x  ", BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].selector.value, BX_CPU_THIS_PTR prev_eip);
   for (int i = 0; i < 8; i++) {
     Bit8u data;
-    BX_CPU_THIS_PTR read_virtual_byte(BX_SREG_CS, BX_CPU_THIS_PTR prev_eip + i, &data);
+    BX_CPU_THIS_PTR read_virtual_byte(BX_SEG_REG_CS, BX_CPU_THIS_PTR prev_eip + i, &data);
     sprintf(buf+strlen(buf), "%02x ", data);
     }
   BX_INFO((buf));
@@ -156,8 +156,9 @@ BX_CPU_C::debug(Bit32u offset)
                        &phy_addr, &valid);
   if (valid) {
     BX_CPU_THIS_PTR mem->dbg_fetch_mem(phy_addr, 16, instr_buf);
-    isize = bx_disassemble.disasm(BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.d_b,
-	EIP, instr_buf, char_buf);
+    isize = bx_disassemble.disasm(
+        BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.d_b,
+        EIP, instr_buf, char_buf);
     for (unsigned j=0; j<isize; j++)
       BX_INFO((">> %02x", (unsigned) instr_buf[j]));
     BX_INFO((">> : %s", char_buf));
@@ -999,9 +1000,9 @@ BX_CPU_C::atexit(void)
   else if (v8086_mode()) BX_INFO(("v8086 mode"));
   else BX_INFO(("real mode"));
   BX_INFO(("CS.d_b = %u bit",
-    BX_CPU_THIS_PTR sregs[BX_SREG_CS].cache.u.segment.d_b ? 32 : 16));
+    BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.d_b ? 32 : 16));
   BX_INFO(("SS.d_b = %u bit",
-    BX_CPU_THIS_PTR sregs[BX_SREG_SS].cache.u.segment.d_b ? 32 : 16));
+    BX_CPU_THIS_PTR sregs[BX_SEG_REG_SS].cache.u.segment.d_b ? 32 : 16));
 
   debug(BX_CPU_THIS_PTR prev_eip);
 }

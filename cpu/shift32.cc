@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: shift32.cc,v 1.13 2002/09/22 18:22:24 kevinlawton Exp $
+// $Id: shift32.cc,v 1.13.2.1 2002/10/20 22:26:02 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -397,7 +397,14 @@ BX_CPU_C::SHR_Ed(bxInstruction_c *i)
 
     if (!count) return;
 
+#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
+    Bit32u flags32;
+
+    asmShr32(result_32, op1_32, count, flags32);
+    setEFlagsOSZAPC(flags32);
+#else
     result_32 = (op1_32 >> count);
+#endif
 
     /* now write result back to destination */
     if (i->modC0()) {
@@ -407,7 +414,9 @@ BX_CPU_C::SHR_Ed(bxInstruction_c *i)
       Write_RMW_virtual_dword(result_32);
       }
 
+#if !(defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
     SET_FLAGS_OSZAPC_32(op1_32, count, result_32, BX_INSTR_SHR32);
+#endif
 }
 
 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: serial.cc,v 1.25 2002/08/27 19:54:46 bdenney Exp $
+// $Id: serial.cc,v 1.25.2.1 2002/10/20 22:26:08 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -77,6 +77,10 @@ bx_serial_c::bx_serial_c(void)
   put("SER");
   settype(SERLOG);
   tty_id = -1;
+  for (int i=0; i<BX_SERIAL_MAXDEV; i++) {
+    s[i].tx_timer_index = BX_NULL_TIMER_HANDLE;
+    s[i].rx_timer_index = BX_NULL_TIMER_HANDLE;
+  }
 }
 
 bx_serial_c::~bx_serial_c(void)
@@ -161,13 +165,17 @@ bx_serial_c::init(bx_devices_c *d)
     BX_SER_THIS s[i].rx_interrupt = 0;
     BX_SER_THIS s[i].tx_interrupt = 0;
 
-    BX_SER_THIS s[i].tx_timer_index =
-      bx_pc_system.register_timer(this, tx_timer_handler, 0,
-				  0,0); // one-shot, inactive
+    if (BX_SER_THIS s[i].tx_timer_index == BX_NULL_TIMER_HANDLE) {
+      BX_SER_THIS s[i].tx_timer_index =
+	bx_pc_system.register_timer(this, tx_timer_handler, 0,
+				    0,0, "serial.tx"); // one-shot, inactive
+    }
 
-    BX_SER_THIS s[i].rx_timer_index =
-      bx_pc_system.register_timer(this, rx_timer_handler, 0,
-				  0,0); // one-shot, inactive
+    if (BX_SER_THIS s[i].rx_timer_index == BX_NULL_TIMER_HANDLE) {
+      BX_SER_THIS s[i].rx_timer_index =
+	bx_pc_system.register_timer(this, rx_timer_handler, 0,
+				    0,0, "serial.rx"); // one-shot, inactive
+    }
     BX_SER_THIS s[i].rx_pollstate = BX_SER_RXIDLE;
 
     /* int enable: b0000 0000 */
@@ -718,9 +726,9 @@ bx_serial_c::tx_timer(void)
     BX_SER_THIS raw->transmit(BX_SER_THIS s[0].txbuffer);
 #endif
 #if defined(SERIAL_ENABLE)
-    { char *s = (char *)(BX_SER_THIS s[0].txbuffer);
-	BX_DEBUG(("write: '%c'",(bx_ptr_t) & s));
-	}
+    {
+      BX_DEBUG(("write: '%c'", BX_SER_THIS s[0].txbuffer));
+    }
     if (tty_id >= 0) write(tty_id, (bx_ptr_t) & BX_SER_THIS s[0].txbuffer, 1);
 #endif
   }
@@ -744,7 +752,7 @@ void
 bx_serial_c::rx_timer(void)
 {
 #if BX_HAVE_SELECT
-#if BX_WITH_BEOS == 0
+#ifndef __BEOS__
   struct timeval tval;
   fd_set fds;
 #endif
@@ -753,7 +761,7 @@ bx_serial_c::rx_timer(void)
   unsigned char chbuf = 0;
 
 #if BX_HAVE_SELECT
-#if BX_WITH_BEOS == 0
+#ifndef __BEOS__
   tval.tv_sec  = 0;
   tval.tv_usec = 0;
 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.cc,v 1.54.2.1 2002/09/29 10:19:21 zwane Exp $
+// $Id: cpu.cc,v 1.54.2.2 2002/10/20 22:26:00 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -33,11 +33,6 @@
 #if BX_USE_CPU_SMF
 #define this (BX_CPU(0))
 #endif
-
-#if BX_EXTERNAL_DEBUGGER
-#include "cpu/extdb.h"
-#endif
-
 
 
 #if BX_SIM_ID == 0   // only need to define once
@@ -111,8 +106,12 @@ extern void REGISTER_IADDR(bx_addr addr);
 #define RSP ESP
 #endif
 
+void BX_CPU_C::cpu_do_timer(void)
+{
+  for (int i = 0; i < BX_SMP_PROCESSORS; i++)
+    BX_CPU(i)->tsc++;
+}
 
-#if BX_DYNAMIC_TRANSLATION == 0
   void
 BX_CPU_C::cpu_loop(Bit32s max_instr_count)
 {
@@ -121,7 +120,6 @@ BX_CPU_C::cpu_loop(Bit32s max_instr_count)
   bxInstruction_c *i = &iStorage;
 
   BxExecutePtr_t execute;
-  BxExecutePtr_t resolveModRM;
 
 #if BX_DEBUGGER
   BX_CPU_THIS_PTR break_point = 0;
@@ -131,8 +129,24 @@ BX_CPU_C::cpu_loop(Bit32s max_instr_count)
   BX_CPU_THIS_PTR stop_reason = STOP_NO_REASON;
 #endif
 
-
+#if BX_INSTRUMENTATION
+  if (setjmp( BX_CPU_THIS_PTR jmp_buf_env )) 
+  { 
+    // only from exception function can we get here ...
+    BX_INSTR_NEW_INSTRUCTION(CPU_ID);
+  }
+#else
   (void) setjmp( BX_CPU_THIS_PTR jmp_buf_env );
+#endif
+
+#if BX_DEBUGGER
+  // If the exception() routine has encountered a nasty fault scenario,
+  // the debugger may request that control is returned to it so that
+  // the situation may be examined.
+  if (bx_guard.special_unwind_stack) {
+    return;
+    }
+#endif
 
   // We get here either by a normal function call, or by a longjmp
   // back from an exception() call.  In either case, commit the
@@ -143,16 +157,17 @@ BX_CPU_C::cpu_loop(Bit32s max_instr_count)
   BX_CPU_THIS_PTR EXT = 0;
   BX_CPU_THIS_PTR errorno = 0;
 
-main_cpu_loop:
-
+  while (1) {
+    cpu_do_timer();
   // First check on events which occurred for previous instructions
   // (traps) and ones which are asynchronous to the CPU
   // (hardware interrupts).
-  if (BX_CPU_THIS_PTR async_event)
-    goto handle_async_event;
-
-async_events_processed:
-
+  if (BX_CPU_THIS_PTR async_event) {
+    if (handleAsyncEvent()) {
+      // If request to return to caller ASAP.
+      return;
+      }
+    }
 
 #if BX_DEBUGGER
   {
@@ -248,7 +263,7 @@ async_events_processed:
       ret = fetchDecode(fetchPtr, i, maxFetch);
       }
 
-    BxExecutePtr_t resolveModRM = i->ResolveModrm; // Get function pointers as early
+    BxExecutePtr_t resolveModRM = i->ResolveModrm; // Get function pointers early.
     if (ret==0) {
 #if BX_SupportICache
       // Invalidate entry, since fetch-decode failed with partial updates
@@ -259,7 +274,15 @@ async_events_processed:
 #endif
       boundaryFetch(i);
       resolveModRM = i->ResolveModrm; // Get function pointers as early
-      }
+    }
+#if BX_INSTRUMENTATION
+    else
+    {
+      // An instruction was either fetched, or found in the iCache.
+      BX_INSTR_OPCODE(CPU_ID, fetchPtr, i->ilen(),
+                  BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.d_b);
+    }
+#endif
 
     // An instruction will have been fetched using either the normal case,
     // or the boundary fetch (across pages), by this point.
@@ -271,11 +294,6 @@ async_events_processed:
       }
     }
   }
-
-  // An instruction was either fetched, or found in the iCache.
-  BX_INSTR_OPCODE(CPU_ID, fetchPtr, i->ilen(),
-                  BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.d_b);
-
 
 #if BX_DEBUGGER
     if (BX_CPU_THIS_PTR trace) {
@@ -296,7 +314,7 @@ async_events_processed:
       BX_CPU_THIS_PTR prev_eip = RIP; // commit new EIP
       BX_CPU_THIS_PTR prev_esp = RSP; // commit new ESP
 #ifdef REGISTER_IADDR
-      REGISTER_IADDR(RIP + BX_CPU_THIS_PTR sregs[BX_SREG_CS].cache.u.segment.base);
+      REGISTER_IADDR(RIP + BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.base);
 #endif
 
       BX_TICK1_IF_SINGLE_PROCESSOR();
@@ -304,6 +322,7 @@ async_events_processed:
 
     else {
 repeat_loop:
+      cpu_do_timer();
       if (i->repeatableZFL()) {
 #if BX_SUPPORT_X86_64
         if (i->as64L()) {
@@ -370,8 +389,9 @@ repeat_loop:
         }
       // shouldn't get here from above
 repeat_not_done:
+      cpu_do_timer();
 #ifdef REGISTER_IADDR
-      REGISTER_IADDR(RIP + BX_CPU_THIS_PTR sregs[BX_SREG_CS].cache.u.segment.base);
+      REGISTER_IADDR(RIP + BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.base);
 #endif
 
       BX_INSTR_REPEAT_ITERATION(CPU_ID);
@@ -395,7 +415,7 @@ repeat_done:
       BX_CPU_THIS_PTR prev_eip = RIP; // commit new EIP
       BX_CPU_THIS_PTR prev_esp = RSP; // commit new ESP
 #ifdef REGISTER_IADDR
-      REGISTER_IADDR(RIP + BX_CPU_THIS_PTR sregs[BX_SREG_CS].cache.u.segment.base);
+      REGISTER_IADDR(RIP + BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.base);
 #endif
 
       BX_INSTR_REPEAT_ITERATION(CPU_ID);
@@ -424,36 +444,37 @@ debugger_check:
 
     // (mch) Read/write, time break point support
     if (BX_CPU_THIS_PTR break_point) {
-	  switch (BX_CPU_THIS_PTR break_point) {
-		case BREAK_POINT_TIME:
-		      BX_INFO(("[%lld] Caught time breakpoint", bx_pc_system.time_ticks()));
-		      BX_CPU_THIS_PTR stop_reason = STOP_TIME_BREAK_POINT;
-		      return;
-		case BREAK_POINT_READ:
-		      BX_INFO(("[%lld] Caught read watch point", bx_pc_system.time_ticks()));
-		      BX_CPU_THIS_PTR stop_reason = STOP_READ_WATCH_POINT;
-		      return;
-		case BREAK_POINT_WRITE:
-		      BX_INFO(("[%lld] Caught write watch point", bx_pc_system.time_ticks()));
-		      BX_CPU_THIS_PTR stop_reason = STOP_WRITE_WATCH_POINT;
-		      return;
-		default:
-		      BX_PANIC(("Weird break point condition"));
-	  }
-    }
+      switch (BX_CPU_THIS_PTR break_point) {
+        case BREAK_POINT_TIME:
+          BX_INFO(("[%lld] Caught time breakpoint", bx_pc_system.time_ticks()));
+          BX_CPU_THIS_PTR stop_reason = STOP_TIME_BREAK_POINT;
+          return;
+        case BREAK_POINT_READ:
+          BX_INFO(("[%lld] Caught read watch point", bx_pc_system.time_ticks()));
+          BX_CPU_THIS_PTR stop_reason = STOP_READ_WATCH_POINT;
+          return;
+        case BREAK_POINT_WRITE:
+          BX_INFO(("[%lld] Caught write watch point", bx_pc_system.time_ticks()));
+          BX_CPU_THIS_PTR stop_reason = STOP_WRITE_WATCH_POINT;
+          return;
+        default:
+          BX_PANIC(("Weird break point condition"));
+        }
+      }
 #ifdef MAGIC_BREAKPOINT
     // (mch) Magic break point support
     if (BX_CPU_THIS_PTR magic_break) {
-	  if (bx_dbg.magic_break_enabled) {
-		BX_DEBUG(("Stopped on MAGIC BREAKPOINT"));
-		BX_CPU_THIS_PTR stop_reason = STOP_MAGIC_BREAK_POINT;
-		return;
-	  } else {
-		BX_CPU_THIS_PTR magic_break = 0;
-		BX_CPU_THIS_PTR stop_reason = STOP_NO_REASON;
-		BX_DEBUG(("Ignoring MAGIC BREAKPOINT"));
-	  }
-    }
+      if (bx_dbg.magic_break_enabled) {
+        BX_DEBUG(("Stopped on MAGIC BREAKPOINT"));
+        BX_CPU_THIS_PTR stop_reason = STOP_MAGIC_BREAK_POINT;
+        return;
+        }
+      else {
+        BX_CPU_THIS_PTR magic_break = 0;
+        BX_CPU_THIS_PTR stop_reason = STOP_NO_REASON;
+        BX_DEBUG(("Ignoring MAGIC BREAKPOINT"));
+        }
+      }
 #endif
 
     {
@@ -469,14 +490,24 @@ debugger_check:
     }
 
 #endif  // #if BX_DEBUGGER
-    goto main_cpu_loop;
+#if BX_GDBSTUB
+    {
+    unsigned int reason;
+    if ((reason = bx_gdbstub_check(EIP)) != GDBSTUB_STOP_NO_REASON) {
+      return;
+      }
+    }
+#endif
 
+  }  // while (1)
+}
 
+  unsigned
+BX_CPU_C::handleAsyncEvent(void)
+{
   //
   // This area is where we process special conditions and events.
   //
-
-handle_async_event:
 
   if (BX_CPU_THIS_PTR debug_trap & 0x80000000) {
     // I made up the bitmask above to mean HALT state.
@@ -491,7 +522,8 @@ handle_async_event:
     while (1)
 #endif
       {
-      if (BX_CPU_THIS_PTR INTR && BX_CPU_THIS_PTR get_IF ()) {
+      if (BX_CPU_THIS_PTR nmi_queued ||
+	  (BX_CPU_INTR && BX_CPU_THIS_PTR get_IF ())) {
         break;
         }
       if (BX_CPU_THIS_PTR async_event == 0) {
@@ -505,7 +537,7 @@ handle_async_event:
     // must give the others a chance to simulate.  If an interrupt has 
     // arrived, then clear the HALT condition; otherwise just return from
     // the CPU loop with stop_reason STOP_CPU_HALTED.
-    if (BX_CPU_THIS_PTR INTR && BX_CPU_THIS_PTR get_IF ()) {
+    if (BX_CPU_INTR && BX_CPU_THIS_PTR get_IF ()) {
       // interrupt ends the HALT condition
       BX_CPU_THIS_PTR debug_trap = 0; // clear traps for after resume
       BX_CPU_THIS_PTR inhibit_mask = 0; // clear inhibits for after resume
@@ -515,12 +547,12 @@ handle_async_event:
 #if BX_DEBUGGER
       BX_CPU_THIS_PTR stop_reason = STOP_CPU_HALTED;
 #endif
-      return;
+      return 1; // Return to caller of cpu_loop.
     }
 #endif
   } else if (BX_CPU_THIS_PTR kill_bochs_request) {
     // setting kill_bochs_request causes the cpu loop to return ASAP.
-    return;
+    return 1; // Return to caller of cpu_loop.
   }
 
 
@@ -559,6 +591,15 @@ handle_async_event:
   // Priority 5: External Interrupts
   //   NMI Interrupts
   //   Maskable Hardware Interrupts
+  if (BX_CPU_THIS_PTR nmi_queued) {
+    BX_CPU_THIS_PTR nmi_queued = 0;
+    BX_CPU_THIS_PTR errorno = 0;
+    BX_CPU_THIS_PTR EXT   = 1; /* external event */
+    interrupt (2, 0, 0, 0);
+    BX_INSTR_HWINTERRUPT (CPU_ID, 2,
+	BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].selector.value, EIP);
+  }
+
   if (BX_CPU_THIS_PTR inhibit_mask & BX_INHIBIT_INTERRUPTS) {
     // Processing external interrupts is inhibited on this
     // boundary because of certain instructions like STI.
@@ -566,13 +607,13 @@ handle_async_event:
     // an opportunity to check interrupts on the next instruction
     // boundary.
     }
-  else if (BX_CPU_THIS_PTR INTR && BX_CPU_THIS_PTR get_IF () &&
+  else if (BX_CPU_INTR && BX_CPU_THIS_PTR get_IF () &&
            BX_DBG_ASYNC_INTR) {
     Bit8u vector;
 
     // NOTE: similar code in ::take_irq()
 #if BX_SUPPORT_APIC
-    if (BX_CPU_THIS_PTR int_from_local_apic)
+    if (BX_CPU_THIS_PTR local_apic.INTR)
       vector = BX_CPU_THIS_PTR local_apic.acknowledge_int ();
     else
       vector = BX_IAC(); // may set INTR with next interrupt
@@ -671,15 +712,14 @@ handle_async_event:
   // will be processed on the next boundary.
   BX_CPU_THIS_PTR inhibit_mask = 0;
 
-  if ( !(BX_CPU_THIS_PTR INTR ||
+  if ( !(BX_CPU_INTR ||
          BX_CPU_THIS_PTR debug_trap ||
          BX_HRQ ||
          BX_CPU_THIS_PTR get_TF ()) )
     BX_CPU_THIS_PTR async_event = 0;
 
-  goto async_events_processed;
+  return 0; // Continue executing cpu_loop.
 }
-#endif  // #if BX_DYNAMIC_TRANSLATION == 0
 
 
 
@@ -1009,7 +1049,7 @@ BX_CPU_C::dbg_take_irq(void)
 
   // NOTE: similar code in ::cpu_loop()
 
-  if ( BX_CPU_THIS_PTR INTR && BX_CPU_THIS_PTR get_IF () ) {
+  if ( BX_CPU_INTR && BX_CPU_THIS_PTR get_IF () ) {
     if ( setjmp(BX_CPU_THIS_PTR jmp_buf_env) == 0 ) {
       // normal return from setjmp setup
       vector = BX_IAC(); // may set INTR with next interrupt

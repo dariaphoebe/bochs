@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: gui.cc,v 1.49 2002/09/22 20:56:11 cbothamy Exp $
+// $Id: gui.cc,v 1.49.2.1 2002/10/20 22:26:04 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -355,7 +355,7 @@ bx_gui_c::snapshot_handler(void)
 #if BX_WITH_WX
   int ret = SIM->ask_filename (filename, sizeof(filename),
     "Save snapshot as...", "snapshot.txt",
-	bx_param_string_c::BX_SAVE_FILE_DIALOG);
+	bx_param_string_c::SAVE_FILE_DIALOG);
   if (ret < 0) { // cancelled
     free(text_snapshot);
     return;
@@ -411,6 +411,7 @@ bx_gui_c::toggle_mouse_enable(void)
 bx_gui_c::userbutton_handler(void)
 {
   unsigned shortcut[4];
+  unsigned p;
   char *user_shortcut;
   int i, len;
 
@@ -423,32 +424,45 @@ bx_gui_c::userbutton_handler(void)
   user_shortcut = bx_options.Ouser_shortcut->getptr();
   if (user_shortcut[0] && (strcmp(user_shortcut, "none"))) {
 #endif
-    if (!strcmp(user_shortcut, "ctrlaltdel")) {
-      shortcut[0] = BX_KEY_CTRL_L;
-      shortcut[1] = BX_KEY_ALT_L;
-      shortcut[2] = BX_KEY_DELETE;
-      len = 3;
+    len = 0;
+    p = 0;
+    while ((p < strlen(user_shortcut)) && (len < 3)) {
+      if (!strncmp(user_shortcut+p, "alt", 3)) {
+        shortcut[len] = BX_KEY_ALT_L;
+        len++;
+        p += 3;
+      } else if (!strncmp(user_shortcut+p, "ctrl", 4)) {
+        shortcut[len] = BX_KEY_CTRL_L;
+        len++;
+        p += 4;
+      } else if (!strncmp(user_shortcut+p, "del", 3)) {
+        shortcut[len] = BX_KEY_DELETE;
+        len++;
+        p += 3;
+      } else if (!strncmp(user_shortcut+p, "esc", 3)) {
+        shortcut[len] = BX_KEY_ESC;
+        len++;
+        p += 3;
+      } else if (!strncmp(user_shortcut+p, "f1", 2)) {
+        shortcut[len] = BX_KEY_F1;
+        len++;
+        p += 2;
+      } else if (!strncmp(user_shortcut+p, "f4", 2)) {
+        shortcut[len] = BX_KEY_F4;
+        len++;
+        p += 2;
+      } else if (!strncmp(user_shortcut+p, "tab", 3)) {
+        shortcut[len] = BX_KEY_TAB;
+        len++;
+        p += 3;
+      } else if (!strncmp(user_shortcut+p, "win", 3)) {
+        shortcut[len] = BX_KEY_WIN_L;
+        len++;
+        p += 3;
+      } else {
+        BX_ERROR(("Unknown shortcut %s ignored", user_shortcut));
       }
-    else if (!strcmp(user_shortcut, "ctrlaltesc")) {
-      shortcut[0] = BX_KEY_CTRL_L;
-      shortcut[1] = BX_KEY_ALT_L;
-      shortcut[2] = BX_KEY_ESC;
-      len = 3;
-      }
-    else if (!strcmp(user_shortcut, "ctrlaltf1")) {
-      shortcut[0] = BX_KEY_CTRL_L;
-      shortcut[1] = BX_KEY_ALT_L;
-      shortcut[2] = BX_KEY_F1;
-      len = 3;
-      }
-    else if (!strcmp(user_shortcut, "alttab")) {
-      shortcut[0] = BX_KEY_ALT_L;
-      shortcut[1] = BX_KEY_TAB;
-      len = 2;
-      }
-    else {
-      BX_ERROR(("Unknown shortcut %s ignored", user_shortcut));
-      }
+    }
     i = 0;
     while (i < len) {
       bx_devices.keyboard->gen_scancode(shortcut[i++]);

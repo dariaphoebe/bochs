@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: exception.cc,v 1.22 2002/09/28 00:54:04 kevinlawton Exp $
+// $Id: exception.cc,v 1.22.2.1 2002/10/20 22:26:01 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -29,10 +29,6 @@
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
-
-#if BX_EXTERNAL_DEBUGGER
-#include "cpu/extdb.h"
-#endif
 
 
 /* Exception classes.  These are used as indexes into the 'is_exception_OK'
@@ -242,6 +238,9 @@ BX_CPU_THIS_PTR save_esp = ESP;
 
       // load new CS:IP values from gate
       // set CPL to new code segment DPL
+
+      CPL = cs_descriptor.dpl;
+
       // set RPL of CS to CPL
 
       // push long pointer to old stack onto new stack
@@ -810,23 +809,26 @@ BX_CPU_C::exception(unsigned vector, Bit16u error_code, Boolean is_INT)
   Bit8u    exception_type;
   unsigned prev_errno;
 
+  invalidate_prefetch_q();
+  UNUSED(is_INT);
+
 #if BX_DEBUGGER
   if (bx_guard.special_unwind_stack) {
     BX_INFO (("exception() returning early because special_unwind_stack is set"));
-    return;
-  }
+    longjmp(BX_CPU_THIS_PTR jmp_buf_env, 1); // go back to main decode loop
+    }
 #endif
 
 #if BX_EXTERNAL_DEBUGGER
+#if BX_SUPPORT_X86_64
   printf ("Exception(%u) code=%08x @%08x%08x\n", vector, error_code,(Bit32u)(BX_CPU_THIS_PTR prev_eip >>32),(Bit32u)(BX_CPU_THIS_PTR prev_eip));
+#else
+  printf ("Exception(%u) code=%08x @%08x\n", vector, error_code,(Bit32u)(BX_CPU_THIS_PTR prev_eip));
+#endif
   //trap_debugger(1);
 #endif
 
-
   BX_INSTR_EXCEPTION(CPU_ID, vector);
-  invalidate_prefetch_q();
-
-  UNUSED(is_INT);
 
   BX_DEBUG(("exception(%02x h)", (unsigned) vector));
 
@@ -841,12 +843,12 @@ BX_CPU_C::exception(unsigned vector, Bit16u error_code, Boolean is_INT)
 
   BX_CPU_THIS_PTR errorno++;
   if (BX_CPU_THIS_PTR errorno >= 3) {
-    BX_PANIC(("exception(): 3rd exception with no resolution"));
+    BX_PANIC(("exception(): 3rd (%d) exception with no resolution", vector));
     BX_ERROR(("WARNING: Any simulation after this point is completely bogus."));
 #if BX_DEBUGGER
     bx_guard.special_unwind_stack = true;
 #endif
-    return;
+    longjmp(BX_CPU_THIS_PTR jmp_buf_env, 1); // go back to main decode loop
     }
 
   /* careful not to get here with curr_exception[1]==DOUBLE_FAULT */
@@ -859,7 +861,7 @@ BX_CPU_C::exception(unsigned vector, Bit16u error_code, Boolean is_INT)
 #if BX_DEBUGGER
     bx_guard.special_unwind_stack = true;
 #endif
-    return;
+    longjmp(BX_CPU_THIS_PTR jmp_buf_env, 1); // go back to main decode loop
     }
 
   /* ??? this is not totally correct, should be done depending on
@@ -902,6 +904,7 @@ BX_CPU_C::exception(unsigned vector, Bit16u error_code, Boolean is_INT)
       push_error = 0;
       exception_type = BX_ET_BENIGN;
       BX_CPU_THIS_PTR assert_RF ();
+	BX_PANIC(("#UD\n"));
       break;
     case  7: // device not available
       push_error = 0;

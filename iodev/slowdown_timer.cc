@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: slowdown_timer.cc,v 1.10 2002/08/27 19:54:46 bdenney Exp $
+// $Id: slowdown_timer.cc,v 1.10.2.1 2002/10/20 22:26:08 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 #include "bochs.h"
@@ -43,7 +43,10 @@ bx_slowdown_timer_c::init(bx_devices_c *dev) {
   s.start_time=sectousec(time(NULL));
   s.start_emulated_time = bx_pc_system.time_usec();
   s.lasttime=0;
-  s.timer_handle=bx_pc_system.register_timer(this, timer_handler, 100 , 1, 1);
+  if (s.timer_handle == BX_NULL_TIMER_HANDLE) {
+    s.timer_handle=bx_pc_system.register_timer(this, timer_handler, 100 , 1, 1,
+	"slowdown_timer");
+  }
   bx_pc_system.deactivate_timer(s.timer_handle);
   bx_pc_system.activate_timer(s.timer_handle,(Bit32u)s.Q,0);
 }

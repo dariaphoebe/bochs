@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.151 2002/09/25 19:04:59 bdenney Exp $
+// $Id: main.cc,v 1.151.2.1 2002/10/20 22:25:59 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -29,7 +29,20 @@
 #include <assert.h>
 #include "state_file.h"
 
-int enable_config_interface = 1;
+#if BX_WITH_SDL
+// since SDL redefines main() to SDL_main(), we must include SDL.h so that the
+// C language prototype is found.  Otherwise SDL_main() will get its name 
+// mangled and not match what the SDL library is expecting.
+#include <SDL/SDL.h>
+
+#if defined(macintosh)
+// Work around a bug in SDL 1.2.4 on MacOS X, which redefines getenv to
+// SDL_getenv, but then neglects to provide SDL_getenv.  It happens
+// because we are defining -Dmacintosh.
+#undef getenv
+#endif
+#endif
+
 int bochsrc_include_count = 0;
 
 extern "C" {
@@ -69,16 +82,17 @@ class state_file state_stuff("state_file.out", "options");
 bx_debug_t bx_dbg;
 
 bx_options_t bx_options; // initialized in bx_init_options()
+char *bochsrc_filename = NULL;
 
 static Bit32s parse_line_unformatted(char *context, char *line);
 static Bit32s parse_line_formatted(char *context, int num_params, char *params[]);
 static int parse_bochsrc(char *rcfile);
 #if !BX_WITH_WX
-static void bx_do_text_config_interface (int argc, char *argv[]);
+static void bx_do_text_config_interface (int first_arg, int argc, char *argv[]);
 #endif
 
-static Bit32s
-bx_param_handler (bx_param_c *param, int set, Bit32s val)
+static Bit64s
+bx_param_handler (bx_param_c *param, int set, Bit64s val)
 {
   bx_id id = param->get_id ();
   switch (id) {
@@ -362,7 +376,7 @@ void bx_init_options ()
     NULL
   };
   menu = new bx_list_c (BXP_FLOPPYA, "Floppy Disk 0", "All options for first floppy disk", floppya_init_list);
-  menu->get_options ()->set (menu->BX_SERIES_ASK);
+  menu->get_options ()->set (menu->SERIES_ASK);
   bx_options.floppya.Opath->set_handler (bx_param_string_handler);
   bx_options.floppya.Opath->set ("none");
   bx_options.floppya.Otype->set_handler (bx_param_handler);
@@ -408,7 +422,7 @@ void bx_init_options ()
     NULL
   };
   menu = new bx_list_c (BXP_FLOPPYB, "Floppy Disk 1", "All options for second floppy disk", floppyb_init_list);
-  menu->get_options ()->set (menu->BX_SERIES_ASK);
+  menu->get_options ()->set (menu->SERIES_ASK);
   bx_options.floppyb.Opath->set_handler (bx_param_string_handler);
   bx_options.floppyb.Opath->set ("none");
   bx_options.floppyb.Otype->set_handler (bx_param_handler);
@@ -424,14 +438,14 @@ void bx_init_options ()
     "ATA channel 3",
     };
   char *s_atadevice[4][2] = {
-    { "Master ATA device on channel 0",
-      "Slave ATA device on channel 0" },
-    { "Master ATA device on channel 1",
-    "Slave ATA device on channel 1" },
-    { "Master ATA device on channel 2",
-    "Slave ATA device on channel 2" },
-    { "Master ATA device on channel 3",
-    "Slave ATA device on channel 3" }
+    { "First HD/CD on channel 0",
+      "Second HD/CD on channel 0" },
+    { "First HD/CD on channel 1",
+    "Second HD/CD on channel 1" },
+    { "First HD/CD on channel 2",
+    "Second HD/CD on channel 2" },
+    { "First HD/CD on channel 3",
+    "Second HD/CD on channel 3" }
     };
   Bit16u ata_default_ioaddr1[BX_MAX_ATA_CHANNEL] = {
     0x1f0, 0x170, 0x1e8, 0x168 
@@ -441,12 +455,13 @@ void bx_init_options ()
   };
 
   bx_list_c *ata[BX_MAX_ATA_CHANNEL];
+  bx_list_c *ata_menu[BX_MAX_ATA_CHANNEL];
 
   Bit8u channel;
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel ++) {
 
     ata[channel] = new bx_list_c ((bx_id)(BXP_ATA0+channel), s_atachannel[channel], s_atachannel[channel], 8);
-    ata[channel]->get_options ()->set (ata[channel]->BX_SERIES_ASK);
+    ata[channel]->get_options ()->set (bx_list_c::SERIES_ASK);
 
     ata[channel]->add (bx_options.ata[channel].Opresent = new bx_param_bool_c ((bx_id)(BXP_ATA0_PRESENT+channel),
       "ata:present",                                
@@ -484,7 +499,7 @@ void bx_init_options ()
 	  s_atadevice[channel][slave], 
           s_atadevice[channel][slave],
 	  12 /* list max size */);
-      menu->get_options ()->set (menu->BX_SERIES_ASK);
+      menu->get_options ()->set (menu->SERIES_ASK);
 
       menu->add (bx_options.atadevice[channel][slave].Opresent = new bx_param_bool_c ((bx_id)(BXP_ATA0_MASTER_PRESENT+channel*2+slave),
         "ata-device:present",                                
@@ -553,6 +568,17 @@ void bx_init_options ()
       bx_options.ata[channel].Opresent->get_dependent_list()->add (
 	  bx_options.atadevice[channel][slave].Opresent);
       }
+
+      // set up top level menu for ATA[i] controller configuration.  This list
+      // controls what will appear on the ATA configure dialog.  It now
+      // requests the USE_TAB_WINDOW display, which is implemented in wx.
+      char buffer[32];
+      sprintf (buffer, "Configure ATA%d", channel);
+      ata_menu[channel] = new bx_list_c ((bx_id)(BXP_ATA0_MENU+channel), strdup(buffer), "", 4);
+      ata_menu[channel]->add (ata[channel]);
+      ata_menu[channel]->add (bx_options.atadevice[channel][0].Omenu);
+      ata_menu[channel]->add (bx_options.atadevice[channel][1].Omenu);
+      ata_menu[channel]->get_options()->set (bx_list_c::USE_TAB_WINDOW);
     }
 
   // Enable first ata interface by default, disable the others.
@@ -566,7 +592,7 @@ void bx_init_options ()
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel ++) {
 
     bx_options.ata[channel].Opresent->set_ask_format (
-	BX_WITH_WX? "Enable?"
+	BX_WITH_WX? "Enable this channel?"
 	: "Channel is enabled: [%s] ");
     bx_options.ata[channel].Oioaddr1->set_ask_format (
 	BX_WITH_WX? "I/O Address 1:"
@@ -589,7 +615,7 @@ void bx_init_options ()
     for (Bit8u slave=0; slave<2; slave++) {
 
       bx_options.atadevice[channel][slave].Opresent->set_ask_format (
-	  BX_WITH_WX? "Enable?"
+	  BX_WITH_WX? "Enable this device?"
 	  : "Device is enabled: [%s] ");
       bx_options.atadevice[channel][slave].Otype->set_ask_format (
 	  BX_WITH_WX? "Type of ATA device:"
@@ -689,7 +715,7 @@ void bx_init_options ()
     NULL
   };
   menu = new bx_list_c (BXP_MENU_DISK, "Bochs Disk Options", "diskmenu", disk_menu_init_list);
-  menu->get_options ()->set (menu->BX_SHOW_PARENT);
+  menu->get_options ()->set (menu->SHOW_PARENT);
 
   // memory options menu
   bx_options.memory.Osize = new bx_param_num_c (BXP_MEM_SIZE,
@@ -759,7 +785,7 @@ void bx_init_options ()
 	  "Serial and Parallel Port Options",
 	  "serial_parallel_menu",
 	  par_ser_init_list);
-  menu->get_options ()->set (menu->BX_SHOW_PARENT);
+  menu->get_options ()->set (menu->SHOW_PARENT);
 
   bx_options.rom.Opath = new bx_param_filename_c (BXP_ROM_PATH,
       "romimage",
@@ -847,7 +873,7 @@ void bx_init_options ()
     NULL
   };
   menu = new bx_list_c (BXP_MENU_MEMORY, "Bochs Memory Options", "memmenu", memory_init_list);
-  menu->get_options ()->set (menu->BX_SHOW_PARENT);
+  menu->get_options ()->set (menu->SHOW_PARENT);
 
   // interface
   bx_options.Ovga_update_interval = new bx_param_num_c (BXP_VGA_UPDATE_INTERVAL,
@@ -894,7 +920,7 @@ void bx_init_options ()
     NULL
   };
   menu = new bx_list_c (BXP_MENU_INTERFACE, "Bochs Interface Menu", "intfmenu", interface_init_list);
-  menu->get_options ()->set (menu->BX_SHOW_PARENT);
+  menu->get_options ()->set (menu->SHOW_PARENT);
 
   // NE2K options
   bx_options.ne2k.Ovalid = new bx_param_bool_c (BXP_NE2K_VALID,
@@ -916,7 +942,7 @@ void bx_init_options ()
       "MAC Address",
       "to be written",
       "", 6);
-  bx_options.ne2k.Omacaddr->get_options ()->set (bx_options.ne2k.Omacaddr->BX_RAW_BYTES);
+  bx_options.ne2k.Omacaddr->get_options ()->set (bx_options.ne2k.Omacaddr->RAW_BYTES);
   bx_options.ne2k.Omacaddr->set_separator (':');
   bx_options.ne2k.Oethmod = new bx_param_string_c (BXP_NE2K_ETHMOD,
       "Ethernet module",
@@ -942,7 +968,7 @@ void bx_init_options ()
     NULL
   };
   menu = new bx_list_c (BXP_NE2K, "NE2K Configuration", "", ne2k_init_list);
-  menu->get_options ()->set (menu->BX_SHOW_PARENT);
+  menu->get_options ()->set (menu->SHOW_PARENT);
   bx_options.ne2k.Ovalid->set_handler (bx_param_handler);
   bx_options.ne2k.Ovalid->set (0);
 
@@ -995,7 +1021,7 @@ void bx_init_options ()
     NULL
   };
   menu = new bx_list_c (BXP_SB16, "SB16 Configuration", "", sb16_init_list);
-  menu->get_options ()->set (menu->BX_SHOW_PARENT);
+  menu->get_options ()->set (menu->SHOW_PARENT);
   // sb16_dependent_list is a null-terminated list including all the
   // sb16 fields except for the "present" field.  These will all be enabled/
   // disabled according to the value of the present field.
@@ -1050,7 +1076,7 @@ void bx_init_options ()
   bx_options.load32bitOSImage.Oiolog->set_ask_format ("Enter pathname of I/O log: [%s] ");
   bx_options.load32bitOSImage.Oinitrd->set_ask_format ("Enter pathname of initrd: [%s] ");
   menu = new bx_list_c (BXP_LOAD32BITOS, "32-bit OS Loader", "", loader_init_list);
-  menu->get_options ()->set (menu->BX_SERIES_ASK);
+  menu->get_options ()->set (menu->SERIES_ASK);
   bx_options.load32bitOSImage.OwhichOS->set_handler (bx_param_handler);
   bx_options.load32bitOSImage.OwhichOS->set (Load32bitOSNone);
 
@@ -1122,6 +1148,12 @@ void bx_init_options ()
       "Userbutton shortcut",
       "none", 16);
 
+  // GDB stub
+  bx_options.gdbstub.port = 1234;
+  bx_options.gdbstub.text_base = 0;
+  bx_options.gdbstub.data_base = 0;
+  bx_options.gdbstub.bss_base = 0;
+
   bx_param_c *other_init_list[] = {
       bx_options.Okeyboard_serial_delay,
       bx_options.Okeyboard_paste_delay,
@@ -1138,7 +1170,7 @@ void bx_init_options ()
       NULL
   };
   menu = new bx_list_c (BXP_MENU_MISC, "Configure Everything Else", "", other_init_list);
-  menu->get_options ()->set (menu->BX_SHOW_PARENT);
+  menu->get_options ()->set (menu->SHOW_PARENT);
 
 
 
@@ -1308,26 +1340,41 @@ int main (int argc, char *argv[])
   if (setjmp (context) == 0) {
     SIM->set_quit_context (&context);
     if (bx_init_main (argc, argv) < 0) return 0;
-    bx_do_text_config_interface (argc, argv);
     bx_config_interface (BX_CI_INIT);
+    if (! SIM->get_param_bool(BXP_QUICK_START)->get ()) {
+      // Display the pre-simulation configuration interface.
+      bx_config_interface (BX_CI_START_MENU);
+    }
     bx_continue_after_config_interface (argc, argv);
     // function returned normally
   } else {
     // quit via longjmp
   }
+  SIM->set_quit_context (NULL);
   return 0;
 }
 #endif
 
+void
+print_usage ()
+{
+  fprintf(stderr, 
+    "Usage: bochs [flags] [bochsrc options]\n\n"
+    "  -q               quickstart with default configuration file\n"
+    "  -f configfile    specify configuration file\n"
+    "  -qf configfile   quickstart with specified configuration file\n"
+    "  --help           display this help and exit\n\n"
+    "For information on Bochs configuration file arguments, see the\n"
+#if (!defined(WIN32)) && !BX_WITH_MACOS
+    "bochsrc section in the user documentation or the man page of bochsrc.\n");
+#else
+    "bochsrc section in the user documentation.\n");
+#endif
+}
+
 int
 bx_init_main (int argc, char *argv[])
 {
-  int help = 0;
-#if BX_WITH_WX
-  int arg = 1;
-  char *bochsrc = NULL;
-#endif
-
   // To deal with initialization order problems inherent in C++, use the macros
   // SAFE_GET_IOFUNC and SAFE_GET_GENLOG to retrieve "io" and "genlog" in all
   // constructors or functions called by constructors.  The macros test for
@@ -1339,148 +1386,95 @@ bx_init_main (int argc, char *argv[])
   SAFE_GET_IOFUNC();  // never freed
   SAFE_GET_GENLOG();  // never freed
 
-  if ((argc > 1) && (!strcmp ("--help", argv[1]))) {
-    fprintf(stderr, "Usage: bochs [options] [bochsrc options]\n\n"
-                    "  -q               quickstart with default configuration file\n"
-                    "  -qf configfile   quickstart with specified configuration file\n"
-                    "  --help           display this help and exit\n\n"
-                    "For information on Bochs configuration file arguments, see the\n"
-#if (!defined(WIN32)) && !BX_WITH_MACOS
-		    "bochsrc section in the user documentation or the man page of bochsrc.\n");
-#else
-                    "bochsrc section in the user documentation.\n");
-#endif
-    help = 1;
-  } else {
-#if !BX_WITH_WX
-    bx_print_header ();
-#endif
-  }
+  // initalization must be done early because some destructors expect
+  // the bx_options to exist by the time they are called.
   bx_init_bx_dbg ();
   bx_init_options ();
-  if (help) exit(0);
+
+  if (!BX_WITH_WX) bx_print_header ();
+
+#if !BX_USE_CONFIG_INTERFACE
+  // this allows people to get quick start behavior by default
+  SIM->get_param_bool(BXP_QUICK_START)->set (1);
+#endif
+
+  // interpret the args that start with -, like -q, -f, etc.
+  int arg = 1;
+  while (arg < argc) {
+    // parse next arg
+    if (!strcmp ("--help", argv[arg]) || !strncmp ("-h", argv[arg], 2)) {
+      print_usage();
+      SIM->quit_sim (0);
+    }
+    else if (!strcmp ("-q", argv[arg])) {
+      SIM->get_param_bool(BXP_QUICK_START)->set (1);
+    }
+    else if (!strcmp ("-f", argv[arg])) {
+      if (++arg >= argc) BX_PANIC(("-f must be followed by a filename"));
+      else bochsrc_filename = argv[arg];
+    }
+    else if (!strcmp ("-qf", argv[arg])) {
+      SIM->get_param_bool(BXP_QUICK_START)->set (1);
+      if (++arg >= argc) BX_PANIC(("-qf must be followed by a filename"));
+      else bochsrc_filename = argv[arg];
+    }
 #if BX_WITH_CARBON
-    /* "-psn" is passed if we are launched by double-clicking */
-   if ( argc >= 2 && strncmp (argv[1], "-psn", 4) == 0 ) {
-     // ugly hack.  I don't know how to open a window to print messages in,
-     // so put them in /tmp/early-bochs-out.txt.  Sorry. -bbd
-     io->init_log("/tmp/early-bochs-out.txt");
-     BX_INFO (("I was launched by double clicking.  Fixing home directory."));
-     argc = 1; // ignore all other args.
-     setupWorkingDirectory (argv[0]);
-     // there is no stdin/stdout so disable the text-based config interface.
-     enable_config_interface = 0;
-   }
-   // if it was started from command line, there could be some args still.
-   for (int a=0; a<argc; a++) {
-     BX_INFO (("argument %d is %s", a, argv[a]));
-   }
-        
-  char cwd[MAXPATHLEN];
-  getwd (cwd);
-  BX_INFO (("Now my working directory is %s", cwd));
+    else if (!strncmp ("-psn", argv[arg], 4)) {
+      // "-psn" is passed if we are launched by double-clicking
+      // ugly hack.  I don't know how to open a window to print messages in,
+      // so put them in /tmp/early-bochs-out.txt.  Sorry. -bbd
+      io->init_log("/tmp/early-bochs-out.txt");
+      BX_INFO (("I was launched by double clicking.  Fixing home directory."));
+      arg = argc; // ignore all other args.
+      setupWorkingDirectory (argv[0]);
+      // there is no stdin/stdout so disable the text-based config interface.
+      SIM->get_param_bool(BXP_QUICK_START)->set (1);
+      char cwd[MAXPATHLEN];
+      getwd (cwd);
+      BX_INFO (("Now my working directory is %s", cwd));
+      // if it was started from command line, there could be some args still.
+      for (int a=0; a<argc; a++) {
+        BX_INFO (("argument %d is %s", a, argv[a]));
+      }
+    }
 #endif
-#if BX_WITH_WX
-  // detect -q or -qf
-  if ((argc > 1) && (!strncmp ("-q", argv[1], 2))) {
-    SIM->get_param_bool(BXP_QUICK_START)->set (1);  // used in wxmain.cc
+    else if (argv[arg][0] == '-') {
+      print_usage();
+      BX_PANIC (("command line arg '%s' was not understood", argv[arg]));
+    }
+    else {
+      // the arg did not start with -, so stop interpreting flags
+      break;
+    }
     arg++;
-    if ((argc > 2) && (!strcmp(argv[1], "-qf"))) {
-      bochsrc = argv[arg];
-      arg++;
-    }
-    else if ((argc > 3) && (!strcmp ("-f", argv[arg]))) {
-      bochsrc = argv[arg+1];
-      arg += 2;
-    }
-    if (bochsrc == NULL) bochsrc = bx_find_bochsrc ();
-    if (bochsrc) {
-      if (bx_read_configuration (bochsrc) < 0)
-	return -1;   // read config failed
-    }
   }
-  // parse cmdline after bochsrc so that it can override things
-  bx_parse_cmdline (arg, argc, argv);
-#endif
+  int norcfile = 1;
+  /* always parse configuration file and command line arguments */
+  if (bochsrc_filename == NULL) bochsrc_filename = bx_find_bochsrc ();
+  if (bochsrc_filename)
+    norcfile = bx_read_configuration (bochsrc_filename);
+  if (norcfile) {
+    // No configuration was loaded, so the current settings are unusable.
+    // Switch off quick start so that we will drop into the configuration
+    // interface.
+    SIM->get_param_bool(BXP_QUICK_START)->set (0);
+  }
+  // parse the rest of the command line.  This is done after reading the
+  // configuration file so that the command line arguments can override
+  // the settings from the file.
+  if (bx_parse_cmdline (arg, argc, argv)) {
+    BX_PANIC(("There were errors while parsing the command line"));
+    return -1;
+  }
   return 0;
 }
-
-#if !BX_WITH_WX
-static void
-bx_do_text_config_interface (int argc, char *argv[])
-{
-  char *bochsrc = NULL;
-  int norcfile = 1;
-
-  // detect -q, -qf argument before anything else
-  int arg = 1;
-  if ((argc > 1) && !strncmp ("-q", argv[1], 2)) {
-    // skip the configuration interface
-    arg++;
-    enable_config_interface = 0;
-    if ((argc > 2) && (!strcmp(argv[1], "-qf"))) {
-      bochsrc = argv[arg];
-      arg++;
-    }
-    else if ((argc > 3) && (!strcmp ("-f", argv[arg]))) {
-      bochsrc = argv[arg+1];
-      arg += 2;
-    }
-  }
-#if !BX_USE_CONFIG_INTERFACE
-  enable_config_interface = 0;
-#endif
-
-  if (!enable_config_interface || BX_WITH_WX) {
-    /* parse configuration file and command line arguments */
-    if (bochsrc == NULL) bochsrc = bx_find_bochsrc ();
-    if (bochsrc)
-      norcfile = bx_read_configuration (bochsrc);
-
-    if (norcfile && arg>=argc) {
-      // no bochsrc used.  This is legal since they may have everything on the
-      // command line.  However if they have no arguments then give them some
-      // friendly advice.
-      fprintf (stderr, "%s\n", divider);
-      fprintf (stderr, "Before running Bochs, you should cd to a directory which contains\n");
-      fprintf (stderr, "a .bochsrc file and a disk image.  If you downloaded a binary package,\n");
-      fprintf (stderr, "all the necessary files are already on your disk.\n");
-#if defined(WIN32)
-      fprintf (stderr, "\nFor Windows installations, go to the dlxlinux direectory and\n");
-      fprintf (stderr, "double-click on the start.bat script.\n");
-#elif !defined(macintosh)
-      fprintf (stderr, "\nFor UNIX installations, try running \"bochs-dlx\" for a demo.  This script\n");
-      fprintf (stderr, "is basically equivalent to typing:\n");
-      fprintf (stderr, "   cd /usr/share/bochs/dlxlinux\n");
-      fprintf (stderr, "   bochs\n");
-#endif
-      BX_EXIT(1);
-    }
-  }
-
-  // parse the rest of the command line.
-  if (bx_parse_cmdline (arg, argc, argv)) {
-    fprintf (stderr, "There were errors while parsing the command line.\n");
-    fprintf (stderr, "Bochs is exiting.\n");
-    exit (1);
-  }
-
-  if (enable_config_interface) {
-    // update log actions before starting configuration interface
-    for (int level=0; level<N_LOGLEV; level++) {
-      int action = SIM->get_default_log_action (level);
-      io->set_log_action (level, action);
-    }
-    // Display the pre-simulation configuration interface.
-    bx_config_interface (BX_CI_START_MENU);
-  }
-}
-#endif
 
 int
 bx_continue_after_config_interface (int argc, char *argv[])
 {
-#if BX_DEBUGGER
+#if BX_GDBSTUB
+  bx_gdbstub_init (argc, argv);
+#elif BX_DEBUGGER
   // If using the debugger, it will take control and call
   // bx_init_hardware() and cpu_loop()
   bx_dbg_main(argc, argv);
@@ -1536,15 +1530,13 @@ bx_read_configuration (char *rcfile)
   // parse rcfile first, then parse arguments in order.
   BX_INFO (("reading configuration from %s", rcfile));
   if (parse_bochsrc(rcfile) < 0) {
-    BX_ERROR (("reading from %s failed", rcfile));
+    BX_PANIC (("reading from %s failed", rcfile));
     return -1;
   }
-  // update log actions if configuration interface is enabled
-  if (enable_config_interface) {
-    for (int level=0; level<N_LOGLEV; level++) {
-      int action = SIM->get_default_log_action (level);
-      io->set_log_action (level, action);
-    }
+  // update log actions
+  for (int level=0; level<N_LOGLEV; level++) {
+    int action = SIM->get_default_log_action (level);
+    io->set_log_action (level, action);
   }
   return 0;
 }
@@ -1558,6 +1550,11 @@ int bx_parse_cmdline (int arg, int argc, char *argv[])
     parse_line_unformatted("cmdline args", argv[arg]);
     arg++;
   }
+  // update log actions
+  for (int level=0; level<N_LOGLEV; level++) {
+    int action = SIM->get_default_log_action (level);
+    io->set_log_action (level, action);
+  }
   return 0;
 }
 
@@ -1566,7 +1563,7 @@ bx_init_hardware()
 {
   // all configuration has been read, now initialize everything.
 
-  if (!enable_config_interface) {
+  if (SIM->get_param_bool(BXP_QUICK_START)->get ()) {
     for (int level=0; level<N_LOGLEV; level++) {
       int action = SIM->get_default_log_action (level);
 #if !BX_USE_CONFIG_INTERFACE
@@ -1587,7 +1584,7 @@ bx_init_hardware()
 
   // set up memory and CPU objects
 #if BX_SUPPORT_APIC
-  memset(apic_index, 0, sizeof(apic_index[0]) * APIC_MAX_ID);
+  bx_generic_apic_c::reset_all_ids ();
 #endif
 
 #if BX_SMP_PROCESSORS==1
@@ -1610,11 +1607,12 @@ bx_init_hardware()
   BX_CPU(0)->init (BX_MEM(0));
 #if BX_SUPPORT_APIC
   BX_CPU(0)->local_apic.set_id (0);
+  BX_INSTR_INIT(0);
 #endif
   BX_CPU(0)->reset(BX_RESET_HARDWARE);
 #else
   // SMP initialization
-  bx_mem_array[0] = new BX_MEM_C ();
+  bx_mem_array[0] = new BX_MEM_C (bx_options.memory.Osize->get() * 1024*1024);
   bx_mem_array[0]->init_memory(bx_options.memory.Osize->get () * 1024*1024);
 
   // First load the optional ROM images
@@ -1638,6 +1636,7 @@ bx_init_hardware()
     // assign apic ID from the index of this loop
     // if !BX_SUPPORT_APIC, this will not compile.
     BX_CPU(i)->local_apic.set_id (i);
+    BX_INSTR_INIT(i);
     BX_CPU(i)->reset(BX_RESET_HARDWARE);
   }
 #endif
@@ -1971,6 +1970,42 @@ parse_line_formatted(char *context, int num_params, char *params[])
         }
       }
     }
+   else if (!strcmp(params[0], "gdbstub_port"))
+     {
+       if (num_params != 2)
+         {
+            fprintf(stderr, ".bochsrc: gdbstub_port directive: wrong # args.\n");
+            exit(1);
+         }
+       bx_options.gdbstub.port = atoi(params[1]);
+     }
+   else if (!strcmp(params[0], "gdbstub_text_base"))
+     {
+       if (num_params != 2)
+         {
+            fprintf(stderr, ".bochsrc: gdbstub_text_base directive: wrong # args.\n");
+            exit(1);
+         }
+       bx_options.gdbstub.text_base = atoi(params[1]);
+     }
+   else if (!strcmp(params[0], "gdbstub_data_base"))
+     {
+       if (num_params != 2)
+         {
+            fprintf(stderr, ".bochsrc: gdbstub_data_base directive: wrong # args.\n");
+            exit(1);
+         }
+       bx_options.gdbstub.data_base = atoi(params[1]);
+     }
+   else if (!strcmp(params[0], "gdbstub_bss_base"))
+     {
+       if (num_params != 2)
+         {
+            fprintf(stderr, ".bochsrc: gdbstub_bss_base directive: wrong # args.\n");
+            exit(1);
+         }
+       bx_options.gdbstub.bss_base = atoi(params[1]);
+     }
 
   else if (!strcmp(params[0], "floppyb")) {
     for (i=1; i<num_params; i++) {

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: shift16.cc,v 1.12 2002/09/22 18:22:24 kevinlawton Exp $
+// $Id: shift16.cc,v 1.12.2.1 2002/10/20 22:26:02 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -340,15 +340,15 @@ BX_CPU_C::RCR_Ew(bxInstruction_c *i)
     count %= 17;
     if (count) {
       result_16 = (op1_16 >> count) |
-		(getB_CF() << (16 - count)) |
-		(op1_16 << (17 - count));
+          (getB_CF() << (16 - count)) |
+          (op1_16 << (17 - count));
 
       /* now write result back to destination */
       if (i->modC0()) {
-	BX_WRITE_16BIT_REG(i->rm(), result_16);
-	}
+        BX_WRITE_16BIT_REG(i->rm(), result_16);
+        }
       else {
-	Write_RMW_virtual_word(result_16);
+        Write_RMW_virtual_word(result_16);
         }
 
       /* set eflags:
@@ -432,7 +432,14 @@ BX_CPU_C::SHR_Ew(bxInstruction_c *i)
 
     if (!count) return;
 
+#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
+    Bit32u flags32;
+
+    asmShr16(result_16, op1_16, count, flags32);
+    setEFlagsOSZAPC(flags32);
+#else
     result_16 = (op1_16 >> count);
+#endif
 
 
     /* now write result back to destination */
@@ -443,7 +450,9 @@ BX_CPU_C::SHR_Ew(bxInstruction_c *i)
       Write_RMW_virtual_word(result_16);
       }
 
+#if !(defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
     SET_FLAGS_OSZAPC_16(op1_16, count, result_16, BX_INSTR_SHR16);
+#endif
 }
 
 
@@ -476,19 +485,19 @@ BX_CPU_C::SAR_Ew(bxInstruction_c *i)
 
     if (count < 16) {
       if (op1_16 & 0x8000) {
-	result_16 = (op1_16 >> count) | (0xffff << (16 - count));
-	}
+        result_16 = (op1_16 >> count) | (0xffff << (16 - count));
+        }
       else {
-	result_16 = (op1_16 >> count);
-	}
+        result_16 = (op1_16 >> count);
+        }
       }
     else {
       if (op1_16 & 0x8000) {
-	result_16 = 0xffff;
-	}
+        result_16 = 0xffff;
+        }
       else {
-	result_16 = 0;
-	}
+        result_16 = 0;
+        }
       }
 
 
@@ -509,11 +518,11 @@ BX_CPU_C::SAR_Ew(bxInstruction_c *i)
       }
     else {
       if (op1_16 & 0x8000) {
-	set_CF(1);
-	}
+        set_CF(1);
+        }
       else {
-	set_CF(0);
-	}
+        set_CF(0);
+        }
       }
 
     set_ZF(result_16 == 0);

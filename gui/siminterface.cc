@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.69 2002/09/25 22:54:22 bdenney Exp $
+// $Id: siminterface.cc,v 1.69.2.1 2002/10/20 22:26:04 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -309,6 +309,7 @@ bx_real_sim_c::get_default_rc (char *path, int len)
   char *rc = bx_find_bochsrc ();
   if (rc == NULL) return -1;
   strncpy (path, rc, len);
+  path[len-1] = 0;
   return 0;
 }
 
@@ -473,7 +474,7 @@ bx_real_sim_c::ask_filename (char *filename, int maxlen, char *prompt, char *the
   // ask_param because I don't intend to register this param.
   BxEvent event;
   bx_param_string_c param (BXP_NULL, "filename", prompt, the_default, maxlen);
-  flags |= param.BX_IS_FILENAME;
+  flags |= param.IS_FILENAME;
   param.get_options()->set (flags);
   event.type = BX_SYNC_EVT_ASK_PARAM;
   event.u.param.param = &param;
@@ -643,6 +644,7 @@ void bx_real_sim_c::debug_puts (const char *text)
 #else
   // text mode debugger: just write to console
   fputs (text, stderr);
+  delete [] text;
 #endif
 }
 #endif
@@ -687,7 +689,7 @@ const char* bx_param_c::set_default_format (const char *f) {
 bx_param_num_c::bx_param_num_c (bx_id id,
     char *name,
     char *description,
-    Bit32s min, Bit32s max, Bit32s initial_val)
+    Bit64s min, Bit64s max, Bit64s initial_val)
   : bx_param_c (id, name, description)
 {
   set_type (BXT_PARAM_NUM);
@@ -725,7 +727,12 @@ bx_param_num_c::set_handler (param_event_handler handler)
   //set (get ());
 }
 
-Bit32s 
+void bx_param_num_c::set_dependent_list (bx_list_c *l) {
+  dependent_list = l; 
+  update_dependents ();
+}
+
+Bit64s 
 bx_param_num_c::get ()
 {
   if (handler) {
@@ -738,7 +745,7 @@ bx_param_num_c::get ()
 }
 
 void
-bx_param_num_c::set (Bit32s newval)
+bx_param_num_c::set (Bit64s newval)
 {
   if (handler) {
     // the handler can override the new value and/or perform some side effect
@@ -751,6 +758,16 @@ bx_param_num_c::set (Bit32s newval)
   if (val.number < min || val.number > max) 
     BX_PANIC (("numerical parameter %s was set to %d, which is out of range %d to %d", get_name (), val.number, min, max));
   if (dependent_list != NULL) update_dependents ();
+}
+
+void bx_param_num_c::set_range (Bit64u min, Bit64u max)
+{
+  this->min = min;
+  this->max = max;
+}
+
+void bx_param_num_c::set_initial_val (Bit64s initial_val) { 
+  this->val.number = this->initial_val = initial_val;
 }
 
 void bx_param_num_c::update_dependents ()
@@ -772,11 +789,40 @@ bx_param_num_c::set_enabled (int en)
   update_dependents ();
 }
 
+// Signed 64 bit
 bx_shadow_num_c::bx_shadow_num_c (bx_id id,
     char *name,
     char *description,
-    Bit32s min,
-    Bit32s max,
+    Bit64s *ptr_to_real_val,
+    Bit8u highbit,
+    Bit8u lowbit)
+: bx_param_num_c (id, name, description, min, max, *ptr_to_real_val)
+{
+  this->varsize = 16;
+  this->lowbit = lowbit;
+  this->mask = (1 << (highbit - lowbit)) - 1;
+  val.p64bit = ptr_to_real_val;
+}
+
+// Unsigned 64 bit
+bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+    char *name,
+    char *description,
+    Bit64u *ptr_to_real_val,
+    Bit8u highbit,
+    Bit8u lowbit)
+: bx_param_num_c (id, name, description, min, max, *ptr_to_real_val)
+{
+  this->varsize = 16;
+  this->lowbit = lowbit;
+  this->mask = (1 << (highbit - lowbit)) - 1;
+  val.p64bit = (Bit64s*) ptr_to_real_val;
+}
+
+// Signed 32 bit
+bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+    char *name,
+    char *description,
     Bit32s *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
@@ -788,10 +834,11 @@ bx_shadow_num_c::bx_shadow_num_c (bx_id id,
   val.p32bit = ptr_to_real_val;
 }
 
+// Unsigned 32 bit
 bx_shadow_num_c::bx_shadow_num_c (bx_id id,
     char *name,
     char *description,
-    Bit32s min, Bit32s max, Bit32u *ptr_to_real_val,
+    Bit32u *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
 : bx_param_num_c (id, name, description, min, max, *ptr_to_real_val)
@@ -802,38 +849,14 @@ bx_shadow_num_c::bx_shadow_num_c (bx_id id,
   val.p32bit = (Bit32s*) ptr_to_real_val;
 }
 
+// Signed 16 bit
 bx_shadow_num_c::bx_shadow_num_c (bx_id id,
     char *name,
-    Bit32u *ptr_to_real_val,
-    Bit8u highbit,
-    Bit8u lowbit)
-: bx_param_num_c (id, name, "", BX_MIN_INT, BX_MAX_INT, *ptr_to_real_val)
-{
-  this->varsize = 32;
-  this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
-  val.p32bit = (Bit32s*) ptr_to_real_val;
-}
-
-bx_shadow_num_c::bx_shadow_num_c (bx_id id,
-    char *name,
-    Bit16u *ptr_to_real_val,
-    Bit8u highbit,
-    Bit8u lowbit)
-: bx_param_num_c (id, name, "", BX_MIN_INT, BX_MAX_INT, *ptr_to_real_val)
-{
-  this->varsize = 16;
-  this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
-  val.p16bit = (Bit16s*) ptr_to_real_val;
-}
-
-bx_shadow_num_c::bx_shadow_num_c (bx_id id,
-    char *name,
+    char *description,
     Bit16s *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c (id, name, "", BX_MIN_INT, BX_MAX_INT, *ptr_to_real_val)
+: bx_param_num_c (id, name, description, min, max, *ptr_to_real_val)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -841,13 +864,60 @@ bx_shadow_num_c::bx_shadow_num_c (bx_id id,
   val.p16bit = ptr_to_real_val;
 }
 
-Bit32s
+// Unsigned 16 bit
+bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+    char *name,
+    char *description,
+    Bit16u *ptr_to_real_val,
+    Bit8u highbit,
+    Bit8u lowbit)
+: bx_param_num_c (id, name, description, min, max, *ptr_to_real_val)
+{
+  this->varsize = 16;
+  this->lowbit = lowbit;
+  this->mask = (1 << (highbit - lowbit)) - 1;
+  val.p16bit = (Bit16s*) ptr_to_real_val;
+}
+
+// Signed 8 bit
+bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+    char *name,
+    char *description,
+    Bit8s *ptr_to_real_val,
+    Bit8u highbit,
+    Bit8u lowbit)
+: bx_param_num_c (id, name, description, min, max, *ptr_to_real_val)
+{
+  this->varsize = 16;
+  this->lowbit = lowbit;
+  this->mask = (1 << (highbit - lowbit)) - 1;
+  val.p8bit = ptr_to_real_val;
+}
+
+// Unsigned 8 bit
+bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+    char *name,
+    char *description,
+    Bit8u *ptr_to_real_val,
+    Bit8u highbit,
+    Bit8u lowbit)
+: bx_param_num_c (id, name, description, min, max, *ptr_to_real_val)
+{
+  this->varsize = 8;
+  this->lowbit = lowbit;
+  this->mask = (1 << (highbit - lowbit)) - 1;
+  val.p8bit = (Bit8s*) ptr_to_real_val;
+}
+
+Bit64s
 bx_shadow_num_c::get () {
-  Bit32u current;
+  Bit64u current;
   switch (varsize) {
     case 8: current = *(val.p8bit);  break;
     case 16: current = *(val.p16bit);  break;
     case 32: current = *(val.p32bit);  break;
+    case 64: current = *(val.p64bit);  break;
+    default: BX_PANIC(("unsupported varsize %d", varsize));
   }
   current = (current >> lowbit) & mask;
   if (handler) {
@@ -860,9 +930,9 @@ bx_shadow_num_c::get () {
 }
 
 void
-bx_shadow_num_c::set (Bit32s newval)
+bx_shadow_num_c::set (Bit64s newval)
 {
-  Bit32u tmp;
+  Bit64u tmp;
   if (newval < min || newval > max)
     BX_PANIC (("numerical parameter %s was set to %d, which is out of range %d to %d", get_name (), newval, min, max));
   switch (varsize) {
@@ -881,6 +951,13 @@ bx_shadow_num_c::set (Bit32s newval)
       tmp |= (newval & mask) << lowbit;
       *(val.p32bit) = tmp;
       break;
+    case 64:
+      tmp = (*(val.p64bit) >> lowbit) & mask;
+      tmp |= (newval & mask) << lowbit;
+      *(val.p64bit) = tmp;
+      break;
+    default: 
+      BX_PANIC(("unsupported varsize %d", varsize));
   }
   if (handler) {
     // the handler can override the new value and/or perform some side effect
@@ -891,7 +968,7 @@ bx_shadow_num_c::set (Bit32s newval)
 bx_param_bool_c::bx_param_bool_c (bx_id id,
     char *name,
     char *description,
-    Bit32s initial_val)
+    Bit64s initial_val)
   : bx_param_num_c (id, name, description, 0, 1, initial_val)
 {
   set_type (BXT_PARAM_BOOL);
@@ -900,19 +977,20 @@ bx_param_bool_c::bx_param_bool_c (bx_id id,
 
 bx_shadow_bool_c::bx_shadow_bool_c (bx_id id,
       char *name,
+      char *description,
       Boolean *ptr_to_real_val,
       Bit8u bitnum)
-  : bx_param_bool_c (id, name, "", (Bit32s) *ptr_to_real_val)
+  : bx_param_bool_c (id, name, description, (Bit64s) *ptr_to_real_val)
 {
   val.pbool = ptr_to_real_val;
   this->bitnum = bitnum;
 }
 
-Bit32s
+Bit64s
 bx_shadow_bool_c::get () {
   if (handler) {
     // the handler can decide what value to return and/or do some side effect
-    Bit32s ret = (*handler)(this, 0, (Bit32s) *(val.pbool));
+    Bit64s ret = (*handler)(this, 0, (Bit64s) *(val.pbool));
     return (ret>>bitnum) & 1;
   } else {
     // just return the value
@@ -921,10 +999,10 @@ bx_shadow_bool_c::get () {
 }
 
 void
-bx_shadow_bool_c::set (Bit32s newval)
+bx_shadow_bool_c::set (Bit64s newval)
 {
   // only change the bitnum bit
-  Bit32s tmp = (newval&1) << bitnum;
+  Bit64s tmp = (newval&1) << bitnum;
   *(val.pbool) &= ~tmp;
   *(val.pbool) |= tmp;
   if (handler) {
@@ -937,8 +1015,8 @@ bx_param_enum_c::bx_param_enum_c (bx_id id,
       char *name,
       char *description,
       char **choices,
-      Bit32s initial_val,
-      Bit32s value_base)
+      Bit64s initial_val,
+      Bit64s value_base)
   : bx_param_num_c (id, name, description, value_base, BX_MAX_INT, initial_val)
 {
   set_type (BXT_PARAM_ENUM);
@@ -981,7 +1059,7 @@ bx_param_filename_c::bx_param_filename_c (bx_id id,
     int maxsize)
   : bx_param_string_c (id, name, description, initial_val, maxsize)
 {
-  get_options()->set (BX_IS_FILENAME);
+  get_options()->set (IS_FILENAME);
 }
 
 bx_param_string_c::~bx_param_string_c ()
@@ -1020,7 +1098,7 @@ bx_param_string_c::set_handler (param_string_event_handler handler)
 Bit32s
 bx_param_string_c::get (char *buf, int len)
 {
-  if (options->get () & BX_RAW_BYTES)
+  if (options->get () & RAW_BYTES)
     memcpy (buf, val, len);
   else
     strncpy (buf, val, len);
@@ -1035,7 +1113,7 @@ bx_param_string_c::get (char *buf, int len)
 void 
 bx_param_string_c::set (char *buf)
 {
-  if (options->get () & BX_RAW_BYTES)
+  if (options->get () & RAW_BYTES)
     memcpy (val, buf, maxsize);
   else
     strncpy (val, buf, maxsize);

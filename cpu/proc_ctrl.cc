@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: proc_ctrl.cc,v 1.52 2002/09/28 00:54:05 kevinlawton Exp $
+// $Id: proc_ctrl.cc,v 1.52.2.1 2002/10/20 22:26:02 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -47,14 +47,22 @@
   void
 BX_CPU_C::UndefinedOpcode(bxInstruction_c *i)
 {
-  BX_DEBUG(("UndefinedOpcode: %02x causes exception 6",
-              (unsigned) i->b1()));
+  BX_DEBUG(("UndefinedOpcode: %02x causes exception 6", (unsigned) i->b1()));
   exception(BX_UD_EXCEPTION, 0, 0);
 }
 
   void
 BX_CPU_C::NOP(bxInstruction_c *i)
 {
+}
+
+void BX_CPU_C::PREFETCH(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE
+  BX_INSTR_PREFETCH_HINT(CPU_ID, i->nnn(), i->seg(), RMAddr(i));
+#else
+  UndefinedOpcode(i);
+#endif
 }
 
   void
@@ -704,7 +712,7 @@ BX_CPU_C::MOV_CdRd(bxInstruction_c *i)
       break;
     case 2: /* CR2 */
       BX_DEBUG(("MOV_CdRd: CR2 not implemented yet"));
-	  BX_DEBUG(("MOV_CdRd: CR2 = reg"));
+      BX_DEBUG(("MOV_CdRd: CR2 = reg"));
       BX_CPU_THIS_PTR cr2 = val_32;
       break;
     case 3: // CR3
@@ -857,7 +865,7 @@ BX_CPU_C::MOV_CqRq(bxInstruction_c *i)
       break;
     case 2: /* CR2 */
       BX_DEBUG(("MOV_CqRq: CR2 not implemented yet"));
-	  BX_DEBUG(("MOV_CqRq: CR2 = reg"));
+      BX_DEBUG(("MOV_CqRq: CR2 = reg"));
       BX_CPU_THIS_PTR cr2 = val_64;
       break;
     case 3: // CR3
@@ -1430,10 +1438,17 @@ BX_CPU_C::CPUID(bxInstruction_c *i)
       features |= (1<<9);   // APIC on chip
 #  endif
 #  if BX_SUPPORT_FPU
-      features |= 0x01;     // has FPU
+      features |= 0x01;     // support FPU
 #  endif
 #  if BX_SUPPORT_MMX
       features |= (1<<23);  // support MMX
+#  endif
+#  if BX_SUPPORT_SSE
+      features |= (1<<24);  // support FSAVE/FXRSTOR
+      features |= (1<<25);  // support SSE
+#  endif
+#  if BX_SUPPORT_SSE2
+      features |= (1<<26);  // support SSE2
 #  endif
 
 #else
@@ -1451,6 +1466,11 @@ BX_CPU_C::CPUID(bxInstruction_c *i)
 #if BX_SupportPAE
       features |= (1<<6); // Support PAE.
 #endif
+
+#if (BX_CPU_LEVEL >= 5)
+      features |= (1<<8); //Support CMPXCHG8B instruction
+#endif
+
 
       RAX = (family <<8) | (model<<4) | stepping;
       RBX = RCX = 0; // reserved
@@ -1534,9 +1554,16 @@ BX_CPU_C::SetCR0(Bit32u val_32)
 
   if (prev_pe==0 && BX_CPU_THIS_PTR cr0.pe) {
     enter_protected_mode();
+    if (BX_CPU_THIS_PTR get_VM()) BX_PANIC(("EFLAGS.VM=1, enter_PM"));
+    BX_CPU_THIS_PTR protectedMode = 1;
+    BX_CPU_THIS_PTR v8086Mode = 0;
+    BX_CPU_THIS_PTR realMode = 0;
     }
   else if (prev_pe==1 && BX_CPU_THIS_PTR cr0.pe==0) {
     enter_real_mode();
+    BX_CPU_THIS_PTR protectedMode = 0;
+    BX_CPU_THIS_PTR v8086Mode = 0;
+    BX_CPU_THIS_PTR realMode = 1;
     }
 
 #if BX_SUPPORT_X86_64
@@ -1652,9 +1679,9 @@ BX_CPU_C::RDTSC(bxInstruction_c *i)
   Boolean cpl = CPL;
   if ((tsd==0) || (tsd==1 && cpl==0)) {
     // return ticks
-    Bit64u ticks = bx_pc_system.time_ticks ();
+    Bit64u ticks = BX_CPU_THIS_PTR tsc;
     RAX = (Bit32u) (ticks & 0xffffffff);
-    RDX = (Bit32u) ((ticks >> 32) & 0xffffffff);
+    RDX = (Bit32u) ((Bit64u)ticks) >> 32;
     //BX_INFO(("RDTSC: returning EDX:EAX = %08x:%08x", EDX, EAX));
   } else {
     // not allowed to use RDTSC!
@@ -1669,66 +1696,66 @@ BX_CPU_C::RDTSC(bxInstruction_c *i)
 BX_CPU_C::RDMSR(bxInstruction_c *i)
 {
 #if BX_CPU_LEVEL >= 5
-	invalidate_prefetch_q();
+  invalidate_prefetch_q();
 
-	if (v8086_mode()) {
-		BX_INFO(("RDMSR: Invalid whilst in virtual 8086 mode"));
-		goto do_exception;
-	}
+  if (v8086_mode()) {
+    BX_INFO(("RDMSR: Invalid whilst in virtual 8086 mode"));
+    goto do_exception;
+    }
 
-	if (CPL!= 0) {
-		BX_INFO(("RDMSR: CPL!= 0"));
-		goto do_exception;
-	}
+  if (CPL!= 0) {
+    BX_INFO(("RDMSR: CPL!= 0"));
+    goto do_exception;
+    }
 
-	/* We have the requested MSR register in ECX */
-	switch(ECX) {
+  /* We have the requested MSR register in ECX */
+  switch(ECX) {
 #if BX_CPU_LEVEL == 5
-		/* The following registers are defined for Pentium only */
-		case BX_MSR_P5_MC_ADDR:
-		case BX_MSR_MC_TYPE:
-			/* TODO */
-			return;
+    /* The following registers are defined for Pentium only */
+    case BX_MSR_P5_MC_ADDR:
+    case BX_MSR_MC_TYPE:
+      /* TODO */
+      return;
 
-		case BX_MSR_TSC:
-			RDTSC(i);
-			return;
+    case BX_MSR_TSC:
+      RDTSC(i);
+      return;
 
-		case BX_MSR_CESR:
-			/* TODO */
-			return;
+    case BX_MSR_CESR:
+      /* TODO */
+      return;
 #else
-		/* These are noops on i686... */
-		case BX_MSR_P5_MC_ADDR:
-		case BX_MSR_MC_TYPE:
-			/* do nothing */
-			return;
+    /* These are noops on i686... */
+    case BX_MSR_P5_MC_ADDR:
+    case BX_MSR_MC_TYPE:
+      /* do nothing */
+      return;
 
-		case BX_MSR_TSC:
-			RDTSC(i);
-			return;
+    case BX_MSR_TSC:
+      RDTSC(i);
+      return;
 
-		/* ... And these cause an exception on i686 */
-		case BX_MSR_CESR:
-		case BX_MSR_CTR0:
-		case BX_MSR_CTR1:
-			goto do_exception;
-#endif	/* BX_CPU_LEVEL == 5 */
+    /* ... And these cause an exception on i686 */
+    case BX_MSR_CESR:
+    case BX_MSR_CTR0:
+    case BX_MSR_CTR1:
+      goto do_exception;
+#endif  /* BX_CPU_LEVEL == 5 */
 
-		/* MSR_APICBASE
-		   0:7		Reserved
-		   8		This is set if its the BSP
-		   9:10		Reserved
-		   11		APIC Global Enable bit (1=enabled 0=disabled)
-		   12:35	APIC Base Address
-		   36:63	Reserved
-		*/
-		case BX_MSR_APICBASE:
-			/* we return low 32 bits in EAX, and high in EDX */
-			RAX = Bit32u(BX_CPU_THIS_PTR msr.apicbase & 0xffffffff);
-			RDX = Bit32u(BX_CPU_THIS_PTR msr.apicbase >> 32);
-			BX_INFO(("RDMSR: Read %08x:%08x from MSR_APICBASE", EDX, EAX));
-			return;
+    /* MSR_APICBASE
+       0:7    Reserved
+       8    This is set if its the BSP
+       9:10    Reserved
+       11    APIC Global Enable bit (1=enabled 0=disabled)
+       12:35  APIC Base Address
+       36:63  Reserved
+    */
+    case BX_MSR_APICBASE:
+      /* we return low 32 bits in EAX, and high in EDX */
+      RAX = Bit32u(BX_CPU_THIS_PTR msr.apicbase & 0xffffffff);
+      RDX = Bit32u(BX_CPU_THIS_PTR msr.apicbase >> 32);
+      BX_INFO(("RDMSR: Read %08x:%08x from MSR_APICBASE", EDX, EAX));
+      return;
 
 #if BX_SUPPORT_X86_64
                 case BX_MSR_EFER:
@@ -1774,45 +1801,44 @@ BX_CPU_C::RDMSR(bxInstruction_c *i)
                         return;
 #endif  // #if BX_SUPPORT_X86_64
 
-		default:
+    default:
 #if BX_IGNORE_BAD_MSR
                         BX_ERROR(("RDMSR: Unknown register %#x", ECX));
                         return;
 #else
-			BX_PANIC(("RDMSR: Unknown register %#x", ECX));
+      BX_PANIC(("RDMSR: Unknown register %#x", ECX));
 #endif
-			goto do_exception;
+      goto do_exception;
 
-	}
-#endif	/* BX_CPU_LEVEL >= 5 */
+  }
+#endif  /* BX_CPU_LEVEL >= 5 */
 
 do_exception:
-	exception(BX_GP_EXCEPTION, 0, 0);
+  exception(BX_GP_EXCEPTION, 0, 0);
 }
 
   void
 BX_CPU_C::WRMSR(bxInstruction_c *i)
 {
 #if BX_CPU_LEVEL >= 5
-	invalidate_prefetch_q();
+  invalidate_prefetch_q();
 
-	if (v8086_mode()) {
-		BX_INFO(("WRMSR: Invalid whilst in virtual 8086 mode"));
-		goto do_exception;
-	}
+  if (v8086_mode()) {
+    BX_INFO(("WRMSR: Invalid whilst in virtual 8086 mode"));
+    goto do_exception;
+    }
 
-	if (CPL!= 0) {
-		BX_INFO(("WDMSR: CPL!= 0"));
-		goto do_exception;
-	}
+  if (CPL!= 0) {
+    BX_INFO(("WDMSR: CPL!= 0"));
+    goto do_exception;
+    }
 
-	/* ECX has the MSR to write to */
-	switch(ECX) {
+  /* ECX has the MSR to write to */
+  switch(ECX) {
 #if BX_CPU_LEVEL == 5
 		/* The following registers are defined for Pentium only */
 		case BX_MSR_P5_MC_ADDR:
 		case BX_MSR_MC_TYPE:
-		case BX_MSR_TSC:
 		case BX_MSR_CESR:
 			/* TODO */
 			return;
@@ -1820,7 +1846,6 @@ BX_CPU_C::WRMSR(bxInstruction_c *i)
 		/* These are noops on i686... */
 		case BX_MSR_P5_MC_ADDR:
 		case BX_MSR_MC_TYPE:
-		case BX_MSR_TSC:
 			/* do nothing */
 			return;
 
@@ -1830,6 +1855,12 @@ BX_CPU_C::WRMSR(bxInstruction_c *i)
 		case BX_MSR_CTR1:
 			goto do_exception;
 #endif	/* BX_CPU_LEVEL == 5 */
+		
+		case BX_MSR_TSC:
+		/* we ignore the high 32bits */
+			BX_CPU_THIS_PTR tsc = (Bit64u)EAX;
+			BX_INFO(("WRMSR: wrote %08x:%08x to MSR_TSC\n", 0, EAX));
+			return;
 
 		/* MSR_APICBASE
 		   0:7		Reserved
@@ -1879,20 +1910,20 @@ BX_CPU_C::WRMSR(bxInstruction_c *i)
                         return;
 #endif  // #if BX_SUPPORT_X86_64
 
-		default:
+    default:
 #if BX_IGNORE_BAD_MSR
                         BX_ERROR(("WRMSR: Unknown register %#x", ECX));
                         return;
 #else
-			BX_PANIC(("WRMSR: Unknown register %#x", ECX));
+      BX_PANIC(("WRMSR: Unknown register %#x", ECX));
 #endif
-			goto do_exception;
+      goto do_exception;
 
-	}
-#endif	/* BX_CPU_LEVEL >= 5 */
+  }
+#endif  /* BX_CPU_LEVEL >= 5 */
 
 do_exception:
-	exception(BX_GP_EXCEPTION, 0, 0);
+  exception(BX_GP_EXCEPTION, 0, 0);
 
 }
 
@@ -1907,7 +1938,7 @@ BX_CPU_C::SWAPGS(bxInstruction_c *i)
     }
   temp_GS_base = MSR_GSBASE;
   MSR_GSBASE = MSR_KERNELGSBASE;
-  MSR_KERNELGSBASE = MSR_GSBASE;
+  MSR_KERNELGSBASE = temp_GS_base;
 
 }
 #endif
@@ -2007,3 +2038,16 @@ BX_CPU_C::hwdebug_compare(Bit32u laddr_0, unsigned size,
   return(0);
 }
 #endif
+
+/*
+  void
+BX_CPU_C::FXSAVE(bxInstruction_c *i)
+{
+  BX_ERROR(("FXSAVE is only a stub."));
+}
+  void
+BX_CPU_C::FXRSTOR(bxInstruction_c *i)
+{
+  BX_ERROR(("FXRSTOR is only a stub."));
+}
+*/

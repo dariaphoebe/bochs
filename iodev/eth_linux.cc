@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: eth_linux.cc,v 1.7 2002/09/02 16:56:24 bdenney Exp $
+// $Id: eth_linux.cc,v 1.7.2.1 2002/10/20 22:26:07 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -207,7 +207,7 @@ bx_linux_pktmover_c::bx_linux_pktmover_c(const char *netif,
   this->filter[3].k = (macaddr[0] & 0xff) << 8 | (macaddr[1] & 0xff);
   fp.len = BX_LSF_ICNT;
   fp.filter = this->filter;
-  BX_INFO(("eth_linux: fp.len=%d fp.filter=%lx", fp.len, fp.filter));
+  BX_INFO(("eth_linux: fp.len=%d fp.filter=%x", fp.len, (unsigned) fp.filter));
   if (setsockopt(this->fd, SOL_SOCKET, SO_ATTACH_FILTER, &fp, sizeof(fp)) < 0) {
     BX_PANIC(("eth_linux: could not set socket filter: %s", strerror(errno)));
     close(this->fd);
@@ -218,7 +218,7 @@ bx_linux_pktmover_c::bx_linux_pktmover_c(const char *netif,
   // Start the rx poll 
   this->rx_timer_index = 
     bx_pc_system.register_timer(this, this->rx_timer_handler, BX_PACKET_POLL,
-				1, 1); // continuous, active
+				1, 1, "eth_linux"); // continuous, active
 
   this->rxh   = rxh;
   this->rxarg = rxarg;

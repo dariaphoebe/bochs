@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.32 2002/09/22 02:29:59 bdenney Exp $
+// $Id: devices.cc,v 1.32.2.1 2002/10/20 22:26:07 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -77,6 +77,7 @@ bx_devices_c::~bx_devices_c(void)
 {
   // nothing needed for now
   BX_DEBUG(("Exit."));
+  timer_handle = BX_NULL_TIMER_HANDLE;
 }
 
 
@@ -85,7 +86,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.32 2002/09/22 02:29:59 bdenney Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.32.2.1 2002/10/20 22:26:07 zwane Exp $"));
   mem = newmem;
 
   /* no read / write handlers defined */
@@ -106,8 +107,6 @@ bx_devices_c::init(BX_MEM_C *newmem)
   for (i=0; i < BX_MAX_IRQS; i++) {
     irq_handler_name[i] = NULL;
     }
-
-  timer_handle = BX_NULL_TIMER_HANDLE;
 
   // Start with all IO port address registered to unmapped handler
   // MUST be called first
@@ -225,11 +224,17 @@ bx_devices_c::init(BX_MEM_C *newmem)
   cmos->s.reg[0x30] = (Bit8u) extended_memory_in_k;
   cmos->s.reg[0x31] = (Bit8u) (extended_memory_in_k >> 8);
 
+  Bit16u extended_memory_in_64k = mem->get_memory_in_k() > 16384 ? (mem->get_memory_in_k() - 16384) / 64 : 0;
+  cmos->s.reg[0x34] = (Bit8u) extended_memory_in_64k;
+  cmos->s.reg[0x35] = (Bit8u) (extended_memory_in_64k >> 8);
+
   /* now perform checksum of CMOS memory */
   cmos->checksum_cmos();
 
-  timer_handle = bx_pc_system.register_timer( this, timer_handler,
-    (unsigned) BX_IODEV_HANDLER_PERIOD, 1, 1);
+  if (timer_handle != BX_NULL_TIMER_HANDLE) {
+    timer_handle = bx_pc_system.register_timer( this, timer_handler,
+      (unsigned) BX_IODEV_HANDLER_PERIOD, 1, 1, "devices.cc");
+  }
 
   // Clear fields for bulk IO acceleration transfers.
   bulkIOHostAddr = 0;
@@ -364,12 +369,7 @@ bx_devices_c::timer()
   if (retval & 0x02)
     pic->raise_irq(12);
 
-#if BX_SUPPORT_APIC
-  // update local APIC timers
-  for (int i=0; i<BX_SMP_PROCESSORS; i++) {
-    BX_CPU(i)->local_apic.periodic (BX_IODEV_HANDLER_PERIOD);
-  }
-#endif
+// KPL Removed lapic periodic timer registration here.
 }
 
 

@@ -31,7 +31,7 @@ SHELL = /bin/sh
 @SET_MAKE@
 
 CXX = @CXX@
-CXXFLAGS = @CXXFLAGS@
+CXXFLAGS = @CXXFLAGS@ @GUI_CXXFLAGS@
 
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
@@ -60,6 +60,8 @@ OBJS = \
 	ctrl_xfer32.o \
 	ctrl_xfer16.o \
 	mmx.o \
+	sse.o \
+	sse2.o \
 	soft_int.o \
 	io_pro.o \
 	$(APIC_OBJS) \
@@ -469,18 +471,6 @@ logical8.o: logical8.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h \
  ../gui/gui.h ../gui/control.h ../gui/keymap.h ../iodev/iodev.h \
  ../iodev/pci.h ../iodev/vga.h ../iodev/biosdev.h ../iodev/cmos.h \
  ../iodev/dma.h ../iodev/floppy.h ../iodev/harddrv.h ../iodev/cdrom.h \
- ../iodev/keyboard.h ../iodev/parallel.h ../iodev/pic.h ../iodev/pit.h \
- ../iodev/pit_wrap.h ../iodev/pit82c54.h ../iodev/serial.h \
- ../iodev/sb16.h ../iodev/soundlnx.h ../iodev/soundwin.h \
- ../iodev/unmapped.h ../iodev/eth.h ../iodev/ne2k.h \
- ../iodev/guest2host.h ../iodev/slowdown_timer.h \
- ../instrument/stubs/instrument.h
-mmx.o: mmx.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h ../debug/debug.h \
- ../bxversion.h ../gui/siminterface.h ../state_file.h ../cpu/cpu.h \
- ../cpu/lazy_flags.h ../memory/memory.h ../pc_system.h ../gui/gui.h \
- ../gui/control.h ../gui/keymap.h ../iodev/iodev.h ../iodev/pci.h \
- ../iodev/vga.h ../iodev/biosdev.h ../iodev/cmos.h ../iodev/dma.h \
- ../iodev/floppy.h ../iodev/harddrv.h ../iodev/cdrom.h \
  ../iodev/keyboard.h ../iodev/parallel.h ../iodev/pic.h ../iodev/pit.h \
  ../iodev/pit_wrap.h ../iodev/pit82c54.h ../iodev/serial.h \
  ../iodev/sb16.h ../iodev/soundlnx.h ../iodev/soundwin.h \

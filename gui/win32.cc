@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: win32.cc,v 1.42 2002/09/21 19:38:47 vruppert Exp $
+// $Id: win32.cc,v 1.42.2.1 2002/10/20 22:26:04 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -31,7 +31,7 @@
 #include "bochs.h"
 #include "icon_bochs.h"
 #include "font/vga.bitmap.h"
-#include <windows.h>
+// windows.h is included by bochs.h
 #include <commctrl.h>
 #include <process.h>
 
@@ -783,6 +783,7 @@ void bx_gui_c::text_update(Bit8u *old_text, Bit8u *new_text,
   Bit8u cs_start, cs_end;
   unsigned nchars, ncols;
   unsigned char data[64];
+  BOOL forceUpdate = FALSE;
 
   if (bx_gui.charmap_updated) {
     for (unsigned c = 0; c<256; c++) {
@@ -794,6 +795,7 @@ void bx_gui_c::text_update(Bit8u *old_text, Bit8u *new_text,
         bx_gui.char_changed[c] = 0;
       }
     }
+    forceUpdate = TRUE;
     bx_gui.charmap_updated = 0;
   }
 
@@ -825,7 +827,7 @@ void bx_gui_c::text_update(Bit8u *old_text, Bit8u *new_text,
   }
 
   for (i=0; i<nchars*2; i+=2) {
-    if ((old_text[i] != new_text[i]) ||
+    if (forceUpdate || (old_text[i] != new_text[i]) ||
 	(old_text[i+1] != new_text[i+1])) {
 
       cChar = new_text[i];

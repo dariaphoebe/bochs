@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: string.cc,v 1.16 2002/09/24 04:43:59 kevinlawton Exp $
+// $Id: string.cc,v 1.16.2.1 2002/10/20 22:26:02 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -156,7 +156,7 @@ BX_CPU_C::MOVSB_XbYb(bxInstruction_c *i)
         Bit32u     paddrDst, paddrSrc;
 
         srcSegPtr = &BX_CPU_THIS_PTR sregs[seg];
-        dstSegPtr = &BX_CPU_THIS_PTR sregs[BX_SREG_ES];
+        dstSegPtr = &BX_CPU_THIS_PTR sregs[BX_SEG_REG_ES];
 
         // Do segment checks for the 1st word.  We do not want to
         // trip an exception beyond this, because the address would
@@ -212,8 +212,8 @@ BX_CPU_C::MOVSB_XbYb(bxInstruction_c *i)
             byteCount = bytesFitSrc;
           if (byteCount > bytesFitDst)
             byteCount = bytesFitDst;
-          if (byteCount > bx_pc_system.num_cpu_ticks_left)
-            byteCount = bx_pc_system.num_cpu_ticks_left;
+          if (byteCount > bx_pc_system.getNumCpuTicksLeftNextEvent())
+            byteCount = bx_pc_system.getNumCpuTicksLeftNextEvent();
 
           // If after all the restrictions, there is anything left to do...
           if (byteCount) {
@@ -468,7 +468,7 @@ BX_CPU_C::MOVSW_XvYv(bxInstruction_c *i)
         Bit32u     paddrDst, paddrSrc;
 
         srcSegPtr = &BX_CPU_THIS_PTR sregs[seg];
-        dstSegPtr = &BX_CPU_THIS_PTR sregs[BX_SREG_ES];
+        dstSegPtr = &BX_CPU_THIS_PTR sregs[BX_SEG_REG_ES];
 
         // Do segment checks for the 1st word.  We do not want to
         // trip an exception beyond this, because the address would
@@ -528,8 +528,8 @@ BX_CPU_C::MOVSW_XvYv(bxInstruction_c *i)
             dwordCount = dwordsFitSrc;
           if (dwordCount > dwordsFitDst)
             dwordCount = dwordsFitDst;
-          if (dwordCount > bx_pc_system.num_cpu_ticks_left)
-            dwordCount = bx_pc_system.num_cpu_ticks_left;
+          if (dwordCount > bx_pc_system.getNumCpuTicksLeftNextEvent())
+            dwordCount = bx_pc_system.getNumCpuTicksLeftNextEvent();
 
           // If after all the restrictions, there is anything left to do...
           if (dwordCount) {
@@ -726,7 +726,7 @@ doIncr32:
         Bit32u     paddrDst, paddrSrc;
 
         srcSegPtr = &BX_CPU_THIS_PTR sregs[seg];
-        dstSegPtr = &BX_CPU_THIS_PTR sregs[BX_SREG_ES];
+        dstSegPtr = &BX_CPU_THIS_PTR sregs[BX_SEG_REG_ES];
 
         // Do segment checks for the 1st word.  We do not want to
         // trip an exception beyond this, because the address would
@@ -786,8 +786,8 @@ doIncr32:
             wordCount = wordsFitSrc;
           if (wordCount > wordsFitDst)
             wordCount = wordsFitDst;
-          if (wordCount > bx_pc_system.num_cpu_ticks_left)
-            wordCount = bx_pc_system.num_cpu_ticks_left;
+          if (wordCount > bx_pc_system.getNumCpuTicksLeftNextEvent())
+            wordCount = bx_pc_system.getNumCpuTicksLeftNextEvent();
 
           // If after all the restrictions, there is anything left to do...
           if (wordCount) {
@@ -993,9 +993,16 @@ BX_CPU_C::CMPSB_XbYb(bxInstruction_c *i)
 
     read_virtual_byte(BX_SEG_REG_ES, di, &op2_8);
 
+#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
+    Bit32u flags32;
+
+    asmCmp8(op1_8, op2_8, flags32);
+    setEFlagsOSZAPC(flags32);
+#else
     diff_8 = op1_8 - op2_8;
 
     SET_FLAGS_OSZAPC_8(op1_8, op2_8, diff_8, BX_INSTR_CMPS8);
+#endif
 
     if (BX_CPU_THIS_PTR get_DF ()) {
       /* decrement ESI */
@@ -1162,15 +1169,23 @@ BX_CPU_C::CMPSW_XvYv(bxInstruction_c *i)
         }
       }
     else { /* 16 bit opsize */
-      Bit16u op1_16, op2_16, diff_16;
+      Bit16u op1_16, op2_16;
 
       read_virtual_word(seg, esi, &op1_16);
 
       read_virtual_word(BX_SEG_REG_ES, edi, &op2_16);
 
+#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
+      Bit32u flags32;
+
+      asmCmp16(op1_16, op2_16, flags32);
+      setEFlagsOSZAPC(flags32);
+#else
+      Bit16u diff_16;
       diff_16 = op1_16 - op2_16;
 
       SET_FLAGS_OSZAPC_16(op1_16, op2_16, diff_16, BX_INSTR_CMPS16);
+#endif
 
       if (BX_CPU_THIS_PTR get_DF ()) {
         /* decrement ESI */
@@ -1224,15 +1239,23 @@ BX_CPU_C::CMPSW_XvYv(bxInstruction_c *i)
     else
 #endif /* BX_CPU_LEVEL >= 3 */
       { /* 16 bit opsize */
-      Bit16u op1_16, op2_16, diff_16;
+      Bit16u op1_16, op2_16;
 
       read_virtual_word(seg, si, &op1_16);
 
       read_virtual_word(BX_SEG_REG_ES, di, &op2_16);
 
+#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
+      Bit32u flags32;
+
+      asmCmp16(op1_16, op2_16, flags32);
+      setEFlagsOSZAPC(flags32);
+#else
+      Bit16u diff_16;
       diff_16 = op1_16 - op2_16;
 
       SET_FLAGS_OSZAPC_16(op1_16, op2_16, diff_16, BX_INSTR_CMPS16);
+#endif
 
       if (BX_CPU_THIS_PTR get_DF ()) {
         /* decrement ESI */
@@ -1255,13 +1278,14 @@ BX_CPU_C::CMPSW_XvYv(bxInstruction_c *i)
   void
 BX_CPU_C::SCASB_ALXb(bxInstruction_c *i)
 {
-  Bit8u op1_8, op2_8, diff_8;
+  Bit8u op1_8, op2_8;
 
 
 #if BX_CPU_LEVEL >= 3
 #if BX_SUPPORT_X86_64
   if (i->as64L()) {
     Bit64u rdi;
+    Bit8u  diff_8;
 
     rdi = RDI;
 
@@ -1272,8 +1296,7 @@ BX_CPU_C::SCASB_ALXb(bxInstruction_c *i)
     diff_8 = op1_8 - op2_8;
 
     SET_FLAGS_OSZAPC_8(op1_8, op2_8, diff_8, BX_INSTR_SCAS8);
-
-
+ 
     if (BX_CPU_THIS_PTR get_DF ()) {
       /* decrement ESI */
       rdi--;
@@ -1297,10 +1320,17 @@ BX_CPU_C::SCASB_ALXb(bxInstruction_c *i)
 
     read_virtual_byte(BX_SEG_REG_ES, edi, &op2_8);
 
+#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
+    Bit32u flags32;
+
+    asmCmp8(op1_8, op2_8, flags32);
+    setEFlagsOSZAPC(flags32);
+#else
+    Bit8u  diff_8;
     diff_8 = op1_8 - op2_8;
 
     SET_FLAGS_OSZAPC_8(op1_8, op2_8, diff_8, BX_INSTR_SCAS8);
-
+#endif
 
     if (BX_CPU_THIS_PTR get_DF ()) {
       /* decrement ESI */
@@ -1327,9 +1357,17 @@ BX_CPU_C::SCASB_ALXb(bxInstruction_c *i)
 
     read_virtual_byte(BX_SEG_REG_ES, di, &op2_8);
 
+#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
+    Bit32u flags32;
+
+    asmCmp8(op1_8, op2_8, flags32);
+    setEFlagsOSZAPC(flags32);
+#else
+    Bit8u  diff_8;
     diff_8 = op1_8 - op2_8;
 
     SET_FLAGS_OSZAPC_8(op1_8, op2_8, diff_8, BX_INSTR_SCAS8);
+#endif
 
     if (BX_CPU_THIS_PTR get_DF ()) {
       /* decrement ESI */
@@ -1464,14 +1502,22 @@ BX_CPU_C::SCASW_eAXXv(bxInstruction_c *i)
         }
       }
     else { /* 16 bit opsize */
-      Bit16u op1_16, op2_16, diff_16;
+      Bit16u op1_16, op2_16;
 
       op1_16 = AX;
       read_virtual_word(BX_SEG_REG_ES, edi, &op2_16);
 
+#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
+      Bit32u flags32;
+
+      asmCmp16(op1_16, op2_16, flags32);
+      setEFlagsOSZAPC(flags32);
+#else
+      Bit16u diff_16;
       diff_16 = op1_16 - op2_16;
 
       SET_FLAGS_OSZAPC_16(op1_16, op2_16, diff_16, BX_INSTR_SCAS16);
+#endif
 
       if (BX_CPU_THIS_PTR get_DF ()) {
         /* decrement ESI */
@@ -1517,14 +1563,22 @@ BX_CPU_C::SCASW_eAXXv(bxInstruction_c *i)
     else
 #endif /* BX_CPU_LEVEL >= 3 */
       { /* 16 bit opsize */
-      Bit16u op1_16, op2_16, diff_16;
+      Bit16u op1_16, op2_16;
 
       op1_16 = AX;
       read_virtual_word(BX_SEG_REG_ES, di, &op2_16);
 
+#if (defined(__i386__) && defined(__GNUC__) && BX_SupportHostAsms)
+      Bit32u flags32;
+
+      asmCmp16(op1_16, op2_16, flags32);
+      setEFlagsOSZAPC(flags32);
+#else
+      Bit16u diff_16;
       diff_16 = op1_16 - op2_16;
 
       SET_FLAGS_OSZAPC_16(op1_16, op2_16, diff_16, BX_INSTR_SCAS16);
+#endif
 
       if (BX_CPU_THIS_PTR get_DF ()) {
         /* decrement ESI */
@@ -1610,7 +1664,7 @@ BX_CPU_C::STOSB_YbAL(bxInstruction_c *i)
         bx_address laddrDst;
         Bit32u     paddrDst;
 
-        dstSegPtr = &BX_CPU_THIS_PTR sregs[BX_SREG_ES];
+        dstSegPtr = &BX_CPU_THIS_PTR sregs[BX_SEG_REG_ES];
 
         // Do segment checks for the 1st word.  We do not want to
         // trip an exception beyond this, because the address would
@@ -1648,8 +1702,8 @@ BX_CPU_C::STOSB_YbAL(bxInstruction_c *i)
           // source or dest pages.
           if (byteCount > bytesFitDst)
             byteCount = bytesFitDst;
-          if (byteCount > bx_pc_system.num_cpu_ticks_left)
-            byteCount = bx_pc_system.num_cpu_ticks_left;
+          if (byteCount > bx_pc_system.getNumCpuTicksLeftNextEvent())
+            byteCount = bx_pc_system.getNumCpuTicksLeftNextEvent();
 
           // If after all the restrictions, there is anything left to do...
           if (byteCount) {

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: apic.cc,v 1.18.2.2 2002/10/06 13:38:19 bdenney Exp $
+// $Id: apic.cc,v 1.18.2.3 2002/10/20 22:26:00 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // NOTE: for a good block diagram of how the APIC/IOAPIC/PIC should be
@@ -23,7 +23,7 @@
 bx_generic_apic_c *apic_index[APIC_MAX_ID];
 bx_local_apic_c *local_apic_index[BX_LOCAL_APIC_NUM];
 
-bx_generic_apic_c::bx_generic_apic_c () 
+bx_generic_apic_c::bx_generic_apic_c ()
 {
   id = APIC_UNKNOWN_ID;
   put("APIC?");
@@ -50,8 +50,8 @@ void bx_generic_apic_c::init ()
 void bx_local_apic_c::update_msr_apicbase(Bit32u newbase)
 {
   Bit64u val64;
-  val64 = newbase << 12;	/* push the APIC base address to bits 12:35 */
-  val64 += cpu->msr.apicbase & 0x0900;	/* don't modify other apicbase or reserved bits */
+  val64 = newbase << 12; /* push the APIC base address to bits 12:35 */
+  val64 += cpu->msr.apicbase & 0x0900; /* don't modify other apicbase or reserved bits */
   cpu->msr.apicbase = val64;
 }
 
@@ -70,9 +70,18 @@ void bx_generic_apic_c::set_id (Bit8u newid) {
     apic_index[id] = NULL;
   }
   id = newid;
-  if (apic_index[id] != NULL)
-    BX_PANIC(("duplicate APIC id assigned"));
-  apic_index[id] = this;
+  if (id != APIC_UNKNOWN_ID) {
+    if (apic_index[id] != NULL)
+      BX_PANIC(("duplicate APIC id assigned"));
+    apic_index[id] = this;
+  }
+}
+
+void bx_generic_apic_c::reset_all_ids () {
+  for (int i=0; i<APIC_MAX_ID; i++) {
+    if (apic_index[i]) 
+      apic_index[i]->set_id (APIC_UNKNOWN_ID);
+  }
 }
 
 char *
@@ -111,7 +120,7 @@ bx_generic_apic_c::read (Bit32u addr, void *data, unsigned len)
   bytes[3] = (value >> 24) & 0xff;
   Bit8u *p1 = bytes+(addr&3);
   Bit8u *p2 = (Bit8u *)data;
-  for (int i=0; i<len; i++) {
+  for (unsigned i=0; i<len; i++) {
     if (bx_dbg.apic)
       BX_INFO(("apic: Copying byte %02x", (unsigned int) *p1));
     *p2++ = *p1++;
@@ -186,7 +195,7 @@ int bx_generic_apic_c::apic_bus_arbitrate_lowpri(Bit32u apic_mask)
   return winning_id;
 }
 
-void bx_generic_apic_c::arbitrate_and_trigger(Bit32u deliver_bitmask, Bit32u vector, Bit8u trigger_mode)
+void bx_generic_apic_c::arbitrate_and_trigger(Bit32u deliver_bitmask, Bit32u vector)
 {
   int trigger_order[BX_LOCAL_APIC_NUM], winner, i, j;
 #define TERMINATE_MAGIK	0x5a
@@ -205,16 +214,16 @@ void bx_generic_apic_c::arbitrate_and_trigger(Bit32u deliver_bitmask, Bit32u vec
 
   i = 0;
   do {
-    local_apic_index[trigger_order[i]]->trigger_irq(vector, trigger_order[i], trigger_mode);
+    local_apic_index[trigger_order[i]]->trigger_irq(vector, trigger_order[i]);
     i++;
   } while (trigger_order[i] != TERMINATE_MAGIK);
 }
  
-void bx_generic_apic_c::arbitrate_and_trigger_one(Bit32u deliver_bitmask, Bit32u vector, Bit8u trigger_mode)
+void bx_generic_apic_c::arbitrate_and_trigger_one(Bit32u deliver_bitmask, Bit32u vector)
 {
   int winner = apic_bus_arbitrate(deliver_bitmask);
   local_apic_index[winner]->adjust_arb_id(winner);
-  local_apic_index[winner]->trigger_irq(vector, winner, trigger_mode);
+  local_apic_index[winner]->trigger_irq(vector, winner);
 }
 
 Bit32u
@@ -274,6 +283,8 @@ bx_generic_apic_c::deliver (Bit8u dest, Bit8u dest_mode, Bit8u delivery_mode, Bi
       // normal INIT IPI sent to processors
       int i;
       for (i = 0; i < BX_LOCAL_APIC_NUM; i++) {
+	BX_CPU(i)->nmi_queued = 1;	// XXX Huh?
+	BX_CPU(i)->async_event = 1;	// XXX Huh??
         if (deliver_bitmask & (1<<i))
 	local_apic_index[i]->init();
       }
@@ -287,9 +298,13 @@ bx_generic_apic_c::deliver (Bit8u dest, Bit8u dest_mode, Bit8u delivery_mode, Bi
       if (deliver_bitmask & (1<<i))
 	local_apic_index[i]->bypass_irr_isr = true;
       break;
-	
-    case APIC_DM_SMI:
-    case APIC_DM_NMI:
+    case APIC_DM_SIPI:  // Start Up (local apic only)
+      BX_ASSERT (get_type () == APIC_TYPE_LOCAL_APIC);
+      for (int bit=0; bit<BX_LOCAL_APIC_NUM; bit++)
+        if (deliver_bitmask & (1<<bit))
+          local_apic_index[bit]->startup_msg (vector);
+      return true;
+    case 2:  // SMI
     case 3:  // reserved
     default:
       BX_PANIC(("APIC delivery mode %d not implemented", delivery_mode));
@@ -302,22 +317,22 @@ bx_generic_apic_c::deliver (Bit8u dest, Bit8u dest_mode, Bit8u delivery_mode, Bi
   // delivery only to one APIC
   if (once) {
     if (arbitrate)
-      arbitrate_and_trigger_one(deliver_bitmask, vector, trig_mode);
-      else {
+      arbitrate_and_trigger_one(deliver_bitmask, vector);
+    else {
       for (int i = 0; i < BX_LOCAL_APIC_NUM; i++) {
 	if (deliver_bitmask & (1<<i)) {
-	  local_apic_index[i]->trigger_irq(vector, i, trig_mode);
+	  local_apic_index[i]->trigger_irq(vector, i);
 	}
 	break;
       }
     }
   } else {
     if (arbitrate && !broadcast)
-      arbitrate_and_trigger(deliver_bitmask, vector, trig_mode);
+      arbitrate_and_trigger(deliver_bitmask, vector);
     else {
       for (int i = 0; i < BX_LOCAL_APIC_NUM; i++) {
 	if (deliver_bitmask & (1<<i))
-	  local_apic_index[i]->trigger_irq(vector, i, trig_mode);
+	  local_apic_index[i]->trigger_irq(vector, i);
       }
     }
   }
@@ -395,9 +410,9 @@ Boolean bx_local_apic_c::deliver (Bit8u dest, Bit8u dest_mode, Bit8u delivery_mo
 bx_local_apic_c::bx_local_apic_c(BX_CPU_C *mycpu)
   : bx_generic_apic_c ()
 {
-  char buffer[16];
   cpu = mycpu;
   hwreset ();
+  INTR = 0;
 }
 
 void
@@ -423,6 +438,7 @@ void
 bx_local_apic_c::init ()
 {
   bx_generic_apic_c::init ();
+
   BX_INFO(("local apic in %s initializing", 
       (cpu && cpu->name) ? cpu->name : "?"));
   local_apic_index[id] = this;
@@ -439,6 +455,11 @@ bx_local_apic_c::init ()
   }
   icr_high = icr_low = log_dest = task_priority = 0;
   spurious_vec = 0xff;   // software disabled (bit 8)
+
+  // KPL
+  // Register a non-active timer for use when the timer is started.
+  timer_handle = bx_pc_system.register_timer_ticks(this,
+            BX_CPU(0)->local_apic.periodic_smf, 0, 0, 0, "lapic");
 }
 
 BX_CPU_C 
@@ -502,17 +523,17 @@ void bx_local_apic_c::write (Bit32u addr, Bit32u *data, unsigned len)
       break;
     case 0xb0: // EOI
       {
-	BX_DEBUG(("%s: Wrote 0x%04x to EOI", cpu->name, *data));
-	int vec = highest_priority_int (isr);
-	if (vec < 0) {
-	  BX_INFO(("EOI written without any bit in ISR"));
-	} else {
-	  BX_DEBUG(("%s: local apic received EOI, hopefully for vector 0x%02x", cpu->name, vec));
-	  isr[vec] = 0; 
-	  service_local_apic ();
-	}
-	if (bx_dbg.apic)
-	  print_status ();
+        BX_DEBUG(("%s: Wrote 0x%04x to EOI", cpu->name, *data));
+        int vec = highest_priority_int (isr);
+        if (vec < 0) {
+          BX_INFO(("EOI written without any bit in ISR"));
+        } else {
+          BX_DEBUG(("%s: local apic received EOI, hopefully for vector 0x%02x", cpu->name, vec));
+          isr[vec] = 0; 
+          service_local_apic ();
+        }
+        if (bx_dbg.apic)
+          print_status ();
       }
       break;
     case 0xd0: // logical destination
@@ -537,22 +558,22 @@ void bx_local_apic_c::write (Bit32u addr, Bit32u *data, unsigned len)
       break;
     case 0x300: // interrupt command reg 0-31
       {
-	icr_low = *data & ~(1<<12);  // force delivery status bit = 0 (idle)
-	int dest = (icr_high >> 24) & 0xff;
-	int trig_mode = (icr_low >> 15) & 1;
-	int level = (icr_low >> 14) & 1;
-	int dest_mode = (icr_low >> 11) & 1;
-	int delivery_mode = (icr_low >> 8) & 7;
-	int vector = (icr_low & 0xff);
-	//
-	// deliver will call get_delivery_bitmask to decide who to send to.
-	// This local_apic class redefines get_delivery_bitmask to 
-	// implement the destination shorthand field, which doesn't exist
-	// for all APICs.
-	Boolean accepted = 
-	   deliver (dest, dest_mode, delivery_mode, vector, level, trig_mode);
-	if (!accepted)
-	  err_status |= APIC_ERR_TX_ACCEPT_ERR;
+        icr_low = *data & ~(1<<12);  // force delivery status bit = 0 (idle)
+        int dest = (icr_high >> 24) & 0xff;
+        int trig_mode = (icr_low >> 15) & 1;
+        int level = (icr_low >> 14) & 1;
+        int dest_mode = (icr_low >> 11) & 1;
+        int delivery_mode = (icr_low >> 8) & 7;
+        int vector = (icr_low & 0xff);
+        //
+        // deliver will call get_delivery_bitmask to decide who to send to.
+        // This local_apic class redefines get_delivery_bitmask to 
+        // implement the destination shorthand field, which doesn't exist
+        // for all APICs.
+        Boolean accepted = 
+           deliver (dest, dest_mode, delivery_mode, vector, level, trig_mode);
+        if (!accepted)
+          err_status |= APIC_ERR_TX_ACCEPT_ERR;
       }
       break;
     case 0x310: // interrupt command reg 31-63
@@ -577,12 +598,25 @@ void bx_local_apic_c::write (Bit32u addr, Bit32u *data, unsigned len)
       lvt[APIC_LVT_ERROR] = *data & 0x117ff;
       break;
     case 0x380: // initial count for timer
+      {
+      // If active before, deactive the current timer before changing it.
+      if (timer_active)
+        bx_pc_system.deactivate_timer(timer_handle);
       timer_initial = *data;
+      if (timer_initial == 0)
+        BX_PANIC(("APIC: W(init timer count): count=0"));
       // This should trigger the counter to start.  If already started,
       // restart from the new start value.
+//fprintf(stderr, "APIC: W(Initial Count Register) = %u\n", *data);
       timer_current = timer_initial;
       timer_active = true;
-      timer_divide_counter = 0;
+//timer_divide_counter = 0; // KPL: delete this field.
+      Bit32u timervec = lvt[APIC_LVT_TIMER];
+      Boolean continuous = (timervec & 0x20000) > 0;
+      ticksInitial = bx_pc_system.getTicksTotal(); // Take a reading.
+      bx_pc_system.activate_timer_ticks(timer_handle,
+          Bit64u(timer_initial) * Bit64u(timer_divide_factor), continuous);
+      }
       break;
     case 0x3e0: // timer divide configuration
       // only bits 3, 1, and 0 are writable
@@ -696,9 +730,26 @@ void bx_local_apic_c::read_aligned (Bit32u addr, Bit32u *data, unsigned len)
       break;
     }
   case 0x380: // initial count for timer
-    *data = timer_initial; break;
+    *data = timer_initial;
+//fprintf(stderr, "APIC: R(Initial Count Register) = %u\n", *data);
+    break;
   case 0x390: // current count for timer
-    *data = timer_current; break;
+    {
+    if (timer_active==0)
+      *data = timer_current;
+    else {
+      Bit64u delta64;
+      Bit32u delta32;
+      delta64 = (bx_pc_system.time_ticks() - ticksInitial) / timer_divide_factor;
+      delta32 = (Bit32u) delta64;
+      if (delta32 > timer_initial)
+        BX_PANIC(("APIC: R(curr timer count): delta < initial"));
+      timer_current = timer_initial - delta32;
+      *data = timer_current;
+      }
+//fprintf(stderr, "APIC: R(Current Count Register) = %u\n", *data);
+    }
+    break;
   case 0x3e0: // timer divide configuration
     *data = timer_divconf; break;
   default:
@@ -725,8 +776,7 @@ void bx_local_apic_c::service_local_apic ()
     print_status ();
   }
   
-  if (cpu->INTR)
-    return;  // INTR already up; do nothing
+  if (INTR) return;  // INTR already up; do nothing
 
   // find first interrupt in irr.
   first_irr = highest_priority_int (irr);
@@ -746,11 +796,11 @@ void bx_local_apic_c::service_local_apic ()
   // acknowledges, we will run highest_priority_int again and
   // return it.
   BX_DEBUG(("service_local_apic(): setting INTR=1 for vector 0x%02x", first_irr));
-  cpu->set_INTR (1);
-  cpu->int_from_local_apic = 1;
+  INTR = 1;
+  cpu->async_event = 1;
 }
 
-void bx_local_apic_c::trigger_irq (unsigned vector, unsigned from, unsigned trigger_mode)
+void bx_local_apic_c::trigger_irq (unsigned vector, unsigned from)
 {
   /* check for local/apic_index usage */
   BX_ASSERT(from == id);
@@ -776,11 +826,11 @@ void bx_local_apic_c::trigger_irq (unsigned vector, unsigned from, unsigned trig
 
 service_vector:
   irr[vector] = 1;
-  tmr[vector] = trigger_mode;	// set for level triggered
+//  tmr[vector] = trigger_mode;	// set for level triggered
   service_local_apic ();
 }
 
-void bx_local_apic_c::untrigger_irq (unsigned vector, unsigned from, unsigned trigger_mode)
+void bx_local_apic_c::untrigger_irq (unsigned vector, unsigned from)
 {
   BX_DEBUG(("Local apic on %s: untrigger interrupt vector=0x%x", cpu->name, vector));
   // hardware says "no more".  clear the bit.  If the CPU hasn't yet
@@ -795,10 +845,9 @@ Bit8u
 bx_local_apic_c::acknowledge_int ()
 {
   // CPU calls this when it is ready to service one interrupt
-  if (!cpu->INTR)
+  if (!INTR)
     BX_PANIC(("%s: acknowledged an interrupt, but INTR=0", cpu->name));
-
-  BX_ASSERT (cpu->int_from_local_apic);
+  BX_ASSERT (INTR);
   int vector = highest_priority_int (irr);
   /*XXX */
   if (irr[vector] != 1) {
@@ -816,8 +865,8 @@ bx_local_apic_c::acknowledge_int ()
     BX_INFO(("Status after setting isr:"));
     print_status ();
   }
-  cpu->INTR = 0;
-  cpu->int_from_local_apic = 0;
+  INTR = 0;
+  cpu->async_event = 1;
   service_local_apic ();  // will set INTR again if another is ready
   return vector;
 }
@@ -866,10 +915,18 @@ bx_local_apic_c::get_delivery_bitmask (Bit8u dest, Bit8u dest_mode)
 			BX_PANIC(("Invalid desination shorthand %#x\n", dest_shorthand));
   }
 
-	BX_DEBUG (("local::get_delivery_bitmask returning 0x%04x shorthand=%#x", mask, dest_shorthand));
-	if (mask == 0)
-		BX_INFO((">>WARNING<< returning a mask of 0x0, dest=%#x dest_mode=%#x", dest, dest_mode));
-
+  BX_DEBUG (("local::get_delivery_bitmask returning 0x%04x shorthand=%#x", mask, dest_shorthand));
+  if (mask == 0)
+    BX_INFO((">>WARNING<< returning a mask of 0x0, dest=%#x dest_mode=%#x", dest, dest_mode));
+#if SMP_MERGE
+  // prune nonexistents and I/O apics from list
+  for (int bit=0; bit<APIC_MAX_ID; bit++) {
+    if (!apic_index[bit] 
+        || (apic_index[bit]->get_type () != APIC_TYPE_LOCAL_APIC))
+      mask &= ~(1<<bit);
+  }
+  BX_DEBUG (("local::get_delivery_bitmask returning 0x%04x", mask));
+#endif
   return mask;
 }
 
@@ -892,6 +949,13 @@ Bit8u bx_local_apic_c::get_ppr ()
 Bit8u bx_local_apic_c::get_apr ()
 {
   return arb_id;
+}
+
+void bx_local_apic_c::periodic_smf(void *this_ptr)
+{
+  bx_local_apic_c *class_ptr = (bx_local_apic_c *) this_ptr;
+
+  class_ptr->periodic();
 }
 
 Bit8u bx_local_apic_c::get_apr_lowpri()
@@ -933,59 +997,37 @@ void bx_local_apic_c::adjust_arb_id(int winning_id)
 }
 
 void
-bx_local_apic_c::periodic (Bit32u usec_delta)
+bx_local_apic_c::periodic(void) // KPL: changed prototype
 {
-	if (!timer_active)
+  if (!timer_active)
 		return;
 	
-  BX_DEBUG(("%s: bx_local_apic_c::periodic called with %d usec",
-    cpu->name, usec_delta));
-
-  // unless usec_delta is guaranteed to be a multiple of 128, I can't
-  // just divide usec_delta by the divide-down value.  Instead, it will
-  // have a similar effect to implement the divide-down by ignoring
-  // some fraction of calls to this function.  This can be improved if
-  // more granularity is important.
-
-  timer_divide_counter = (timer_divide_counter + 1) % timer_divide_factor;
-	if (timer_divide_counter != 0)
-		return;
-	
-  if (timer_current > usec_delta) {
-    timer_current -= usec_delta;
-		BX_DEBUG(("%s: local apic timer is now 0x%08x", cpu->name, timer_current));
+  if (!timer_active) {
+    BX_PANIC(("%s: bx_local_apic_c::periodic called, timer_active==0", cpu->name));
     return;
   }
+  BX_DEBUG(("%s: bx_local_apic_c::periodic called", cpu->name));
 
   // timer reached zero since the last call to periodic.
   Bit32u timervec = lvt[APIC_LVT_TIMER];
   if (timervec & 0x20000) {
-    // periodic mode.  Always trigger the interrupt when we reach zero.
-		trigger_irq (timervec & 0xff, id, APIC_EDGE_TRIGGERED);
-    if (timer_initial == 0) {
-      usec_delta = 0;
-      timer_current = 0;
-    } else {
-      // timer_initial might be smaller than usec_delta.  I can't trigger
-      // multiple interrupts, so just try to get the timer_current right.
-      while (usec_delta > timer_initial)
-	usec_delta -= timer_initial;
-      timer_current = timer_current + timer_initial - usec_delta;
-      // sanity check. all these are unsigned so I can't check for
-      // negative timer_current.
-      BX_ASSERT ((timer_current + timer_initial) >= usec_delta);
-    }
-
-			BX_DEBUG(("%s: local apic timer (periodic) triggered int, reset counter to 0x%08x",
-				cpu->name, timer_current));
+    // Periodic mode.
+    // If timer is not masked, trigger interrupt.
+    if ( (timervec & 0x10000)==0 )
+      trigger_irq (timervec & 0xff, id);
+    // Reload timer values.
+    timer_current = timer_initial;
+    ticksInitial = bx_pc_system.getTicksTotal(); // Take a reading.
+    BX_DEBUG(("%s: local apic timer (periodic) triggered int, reset counter to 0x%08x", cpu->name, timer_current));
   } else {
     // one-shot mode
     timer_current = 0;
-    if (timer_active) {
-			trigger_irq (timervec & 0xff, id, APIC_EDGE_TRIGGERED);
-      timer_active = false;
-      BX_DEBUG (("%s: local apic timer (one-shot) triggered int", cpu->name));
-    }
+    // If timer is not masked, trigger interrupt.
+    if ( (timervec & 0x10000)==0 )
+      trigger_irq (timervec & 0xff, id);
+    timer_active = false;
+    BX_DEBUG (("%s: local apic timer (one-shot) triggered int", cpu->name));
+    bx_pc_system.deactivate_timer(timer_handle); // Make sure.
   }
 }
 
