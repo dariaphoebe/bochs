@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: textconfig.cc,v 1.8.6.1 2003/03/20 05:18:07 bdenney Exp $
+// $Id: textconfig.cc,v 1.8.6.2 2003/03/20 07:01:51 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // This is code for a text-mode configuration interfac.  Note that this file
@@ -429,7 +429,7 @@ int bx_config_interface (int menu)
    case BX_CI_START_MENU:
      {
        Bit32u default_choice;
-       switch (SIM->get_param_enum(BXP_BOCHS_START)->get ()) {
+       switch (SIM->get_param_enum("misc.start_mode")->get ()) {
          case BX_LOAD_START: 
            default_choice = 2; break;
          case BX_EDIT_START: 
@@ -443,18 +443,18 @@ int bx_config_interface (int menu)
 	 case 1:
 	   fprintf (stderr, "I reset all options back to their factory defaults.\n\n");
 	   SIM->reset_all_param ();
-	   SIM->get_param_enum(BXP_BOCHS_START)->set(BX_EDIT_START);
+	   SIM->get_param_enum("misc.start_mode")->set(BX_EDIT_START);
 	   break;
 	 case 2: 
 	   // Before reading a new configuration, reset every option to its
 	   // original state.
 	   SIM->reset_all_param ();
 	   if (bx_read_rc (NULL) >= 0)
-	     SIM->get_param_enum(BXP_BOCHS_START)->set(BX_RUN_START);
+	     SIM->get_param_enum("misc.start_mode")->set(BX_RUN_START);
 	   break;
 	 case 3: 
            bx_config_interface (BX_CI_START_OPTS); 
-	   SIM->get_param_enum(BXP_BOCHS_START)->set(BX_RUN_START);
+	   SIM->get_param_enum("misc.start_mode")->set(BX_RUN_START);
            break;
 	 case 4: bx_write_rc (NULL); break;
 	 case 5: bx_config_interface (BX_CI_START_SIMULATION); break;
@@ -986,7 +986,7 @@ static int ci_callback (void *userdata, ci_command_t command)
     case CI_START:
       //fprintf (stderr, "textconfig.cc: start\n");
       bx_config_interface_init ();
-      if (SIM->get_param_enum(BXP_BOCHS_START)->get () == BX_QUICK_START)
+      if (SIM->get_param_enum("misc.start_mode")->get () == BX_QUICK_START)
 	bx_config_interface (BX_CI_START_SIMULATION);
       else {
         if (!SIM->test_for_text_console ())
