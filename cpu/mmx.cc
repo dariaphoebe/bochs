@@ -19,7 +19,6 @@
 //
 
 
-
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
@@ -119,6 +118,8 @@ void BX_CPU_C::prepareFPU2MMX(void)
 
 #endif
 
+// For MMX instruction set, the first operand is generally a source operand
+// that becomes the destination operand.
 
 /* 0F 60 */
 void BX_CPU_C::PUNPCKLBW_PqQd(bxInstruction_c *i)
@@ -126,25 +127,25 @@ void BX_CPU_C::PUNPCKLBW_PqQd(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm()); 
+    op1 = BX_READ_MMX_REG(i->rm()); 
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUB7(result) = MMXUB3(op2);
-  MMXUB6(result) = MMXUB3(op1);
-  MMXUB5(result) = MMXUB2(op2);
-  MMXUB4(result) = MMXUB2(op1);
-  MMXUB3(result) = MMXUB1(op2);
-  MMXUB2(result) = MMXUB1(op1);
-  MMXUB1(result) = MMXUB0(op2);
-  MMXUB0(result) = MMXUB0(op1);
+  MMXUB7(result) = MMXUB3(op1);
+  MMXUB6(result) = MMXUB3(op2);
+  MMXUB5(result) = MMXUB2(op1);
+  MMXUB4(result) = MMXUB2(op2);
+  MMXUB3(result) = MMXUB1(op1);
+  MMXUB2(result) = MMXUB1(op2);
+  MMXUB1(result) = MMXUB0(op1);
+  MMXUB0(result) = MMXUB0(op2);
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -160,21 +161,21 @@ void BX_CPU_C::PUNPCKLWD_PqQd(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm()); 
+    op1 = BX_READ_MMX_REG(i->rm()); 
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUW3(result) = MMXUW1(op2);
-  MMXUW2(result) = MMXUW1(op1);
-  MMXUW1(result) = MMXUW0(op2);
-  MMXUW0(result) = MMXUW0(op1);
+  MMXUW3(result) = MMXUW1(op1);
+  MMXUW2(result) = MMXUW1(op2);
+  MMXUW1(result) = MMXUW0(op1);
+  MMXUW0(result) = MMXUW0(op2);
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -190,21 +191,21 @@ void BX_CPU_C::PUNPCKLDQ_PqQd(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm()); 
+    op1 = BX_READ_MMX_REG(i->rm()); 
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUD1(op1) = MMXUD0(op2);
+  MMXUD1(op2) = MMXUD0(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PUNPCKLDQ_PqQd: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -217,25 +218,25 @@ void BX_CPU_C::PACKSSWB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXSB0(result) = SaturateWordSToByteS(MMXSW0(op1));
-  MMXSB1(result) = SaturateWordSToByteS(MMXSW1(op1));
-  MMXSB2(result) = SaturateWordSToByteS(MMXSW2(op1));
-  MMXSB3(result) = SaturateWordSToByteS(MMXSW3(op1));
-  MMXSB4(result) = SaturateWordSToByteS(MMXSW0(op2));
-  MMXSB5(result) = SaturateWordSToByteS(MMXSW1(op2));
-  MMXSB6(result) = SaturateWordSToByteS(MMXSW2(op2));
-  MMXSB7(result) = SaturateWordSToByteS(MMXSW3(op2));
+  MMXSB0(result) = SaturateWordSToByteS(MMXSW0(op2));
+  MMXSB1(result) = SaturateWordSToByteS(MMXSW1(op2));
+  MMXSB2(result) = SaturateWordSToByteS(MMXSW2(op2));
+  MMXSB3(result) = SaturateWordSToByteS(MMXSW3(op2));
+  MMXSB4(result) = SaturateWordSToByteS(MMXSW0(op1));
+  MMXSB5(result) = SaturateWordSToByteS(MMXSW1(op1));
+  MMXSB6(result) = SaturateWordSToByteS(MMXSW2(op1));
+  MMXSB7(result) = SaturateWordSToByteS(MMXSW3(op1));
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -251,25 +252,25 @@ void BX_CPU_C::PCMPGTB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUB0(result) = (MMXSB0(op1) > MMXSB0(op2)) ? 0xff : 0;
-  MMXUB1(result) = (MMXSB1(op1) > MMXSB1(op2)) ? 0xff : 0;
-  MMXUB2(result) = (MMXSB2(op1) > MMXSB2(op2)) ? 0xff : 0;
-  MMXUB3(result) = (MMXSB3(op1) > MMXSB3(op2)) ? 0xff : 0;
-  MMXUB4(result) = (MMXSB4(op1) > MMXSB4(op2)) ? 0xff : 0;
-  MMXUB5(result) = (MMXSB5(op1) > MMXSB5(op2)) ? 0xff : 0;
-  MMXUB6(result) = (MMXSB6(op1) > MMXSB6(op2)) ? 0xff : 0;
-  MMXUB7(result) = (MMXSB7(op1) > MMXSB7(op2)) ? 0xff : 0;
+  MMXUB0(result) = (MMXSB0(op2) > MMXSB0(op1)) ? 0xff : 0;
+  MMXUB1(result) = (MMXSB1(op2) > MMXSB1(op1)) ? 0xff : 0;
+  MMXUB2(result) = (MMXSB2(op2) > MMXSB2(op1)) ? 0xff : 0;
+  MMXUB3(result) = (MMXSB3(op2) > MMXSB3(op1)) ? 0xff : 0;
+  MMXUB4(result) = (MMXSB4(op2) > MMXSB4(op1)) ? 0xff : 0;
+  MMXUB5(result) = (MMXSB5(op2) > MMXSB5(op1)) ? 0xff : 0;
+  MMXUB6(result) = (MMXSB6(op2) > MMXSB6(op1)) ? 0xff : 0;
+  MMXUB7(result) = (MMXSB7(op2) > MMXSB7(op1)) ? 0xff : 0;
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -285,21 +286,21 @@ void BX_CPU_C::PCMPGTW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUW0(result) = (MMXSW0(op1) > MMXSW0(op2)) ? 0xffff : 0;
-  MMXUW1(result) = (MMXSW1(op1) > MMXSW1(op2)) ? 0xffff : 0;
-  MMXUW2(result) = (MMXSW2(op1) > MMXSW2(op2)) ? 0xffff : 0;
-  MMXUW3(result) = (MMXSW3(op1) > MMXSW3(op2)) ? 0xffff : 0;
+  MMXUW0(result) = (MMXSW0(op2) > MMXSW0(op1)) ? 0xffff : 0;
+  MMXUW1(result) = (MMXSW1(op2) > MMXSW1(op1)) ? 0xffff : 0;
+  MMXUW2(result) = (MMXSW2(op2) > MMXSW2(op1)) ? 0xffff : 0;
+  MMXUW3(result) = (MMXSW3(op2) > MMXSW3(op1)) ? 0xffff : 0;
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -315,19 +316,19 @@ void BX_CPU_C::PCMPGTD_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUD0(result) = (MMXSD0(op1) > MMXSD0(op2)) ? 0xffffffff : 0;
-  MMXUD1(result) = (MMXSD1(op1) > MMXSD1(op2)) ? 0xffffffff : 0;
+  MMXUD0(result) = (MMXSD0(op2) > MMXSD0(op1)) ? 0xffffffff : 0;
+  MMXUD1(result) = (MMXSD1(op2) > MMXSD1(op1)) ? 0xffffffff : 0;
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -343,25 +344,25 @@ void BX_CPU_C::PACKUSWB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUB0(result) = SaturateWordSToByteU(MMXSW0(op1));
-  MMXUB1(result) = SaturateWordSToByteU(MMXSW1(op1));
-  MMXUB2(result) = SaturateWordSToByteU(MMXSW2(op1));
-  MMXUB3(result) = SaturateWordSToByteU(MMXSW3(op1));
-  MMXUB4(result) = SaturateWordSToByteU(MMXSW0(op2));
-  MMXUB5(result) = SaturateWordSToByteU(MMXSW1(op2));
-  MMXUB6(result) = SaturateWordSToByteU(MMXSW2(op2));
-  MMXUB7(result) = SaturateWordSToByteU(MMXSW3(op2));
+  MMXUB0(result) = SaturateWordSToByteU(MMXSW0(op2));
+  MMXUB1(result) = SaturateWordSToByteU(MMXSW1(op2));
+  MMXUB2(result) = SaturateWordSToByteU(MMXSW2(op2));
+  MMXUB3(result) = SaturateWordSToByteU(MMXSW3(op2));
+  MMXUB4(result) = SaturateWordSToByteU(MMXSW0(op1));
+  MMXUB5(result) = SaturateWordSToByteU(MMXSW1(op1));
+  MMXUB6(result) = SaturateWordSToByteU(MMXSW2(op1));
+  MMXUB7(result) = SaturateWordSToByteU(MMXSW3(op1));
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -377,25 +378,25 @@ void BX_CPU_C::PUNPCKHBW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUB7(result) = MMXUB7(op2);
-  MMXUB6(result) = MMXUB7(op1);
-  MMXUB5(result) = MMXUB6(op2);
-  MMXUB4(result) = MMXUB6(op1);
-  MMXUB3(result) = MMXUB5(op2);
-  MMXUB2(result) = MMXUB5(op1);
-  MMXUB1(result) = MMXUB4(op2);
-  MMXUB0(result) = MMXUB4(op1);
+  MMXUB7(result) = MMXUB7(op1);
+  MMXUB6(result) = MMXUB7(op2);
+  MMXUB5(result) = MMXUB6(op1);
+  MMXUB4(result) = MMXUB6(op2);
+  MMXUB3(result) = MMXUB5(op1);
+  MMXUB2(result) = MMXUB5(op2);
+  MMXUB1(result) = MMXUB4(op1);
+  MMXUB0(result) = MMXUB4(op2);
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -411,21 +412,21 @@ void BX_CPU_C::PUNPCKHWD_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUW3(result) = MMXUW3(op2);
-  MMXUW2(result) = MMXUW3(op1);
-  MMXUW1(result) = MMXUW2(op2);
-  MMXUW0(result) = MMXUW2(op1);
+  MMXUW3(result) = MMXUW3(op1);
+  MMXUW2(result) = MMXUW3(op2);
+  MMXUW1(result) = MMXUW2(op1);
+  MMXUW0(result) = MMXUW2(op2);
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -441,19 +442,19 @@ void BX_CPU_C::PUNPCKHDQ_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUD1(result) = MMXUD1(op2);
-  MMXUD0(result) = MMXUD1(op1);
+  MMXUD1(result) = MMXUD1(op1);
+  MMXUD0(result) = MMXUD1(op2);
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -469,21 +470,21 @@ void BX_CPU_C::PACKSSDW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXSW0(result) = SaturateDwordSToWordS(MMXSD0(op1));
-  MMXSW1(result) = SaturateDwordSToWordS(MMXSD1(op1));
-  MMXSW2(result) = SaturateDwordSToWordS(MMXSD0(op2));
-  MMXSW3(result) = SaturateDwordSToWordS(MMXSD1(op2));
+  MMXSW0(result) = SaturateDwordSToWordS(MMXSD0(op2));
+  MMXSW1(result) = SaturateDwordSToWordS(MMXSD1(op2));
+  MMXSW2(result) = SaturateDwordSToWordS(MMXSD0(op1));
+  MMXSW3(result) = SaturateDwordSToWordS(MMXSD1(op1));
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -598,25 +599,25 @@ void BX_CPU_C::PCMPEQB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUB0(result) = (MMXUB0(op1) == MMXUB0(op2)) ? 0xff : 0;
-  MMXUB1(result) = (MMXUB1(op1) == MMXUB1(op2)) ? 0xff : 0;
-  MMXUB2(result) = (MMXUB2(op1) == MMXUB2(op2)) ? 0xff : 0;
-  MMXUB3(result) = (MMXUB3(op1) == MMXUB3(op2)) ? 0xff : 0;
-  MMXUB4(result) = (MMXUB4(op1) == MMXUB4(op2)) ? 0xff : 0;
-  MMXUB5(result) = (MMXUB5(op1) == MMXUB5(op2)) ? 0xff : 0;
-  MMXUB6(result) = (MMXUB6(op1) == MMXUB6(op2)) ? 0xff : 0;
-  MMXUB7(result) = (MMXUB7(op1) == MMXUB7(op2)) ? 0xff : 0;
+  MMXUB0(result) = (MMXUB0(op2) == MMXUB0(op1)) ? 0xff : 0;
+  MMXUB1(result) = (MMXUB1(op2) == MMXUB1(op1)) ? 0xff : 0;
+  MMXUB2(result) = (MMXUB2(op2) == MMXUB2(op1)) ? 0xff : 0;
+  MMXUB3(result) = (MMXUB3(op2) == MMXUB3(op1)) ? 0xff : 0;
+  MMXUB4(result) = (MMXUB4(op2) == MMXUB4(op1)) ? 0xff : 0;
+  MMXUB5(result) = (MMXUB5(op2) == MMXUB5(op1)) ? 0xff : 0;
+  MMXUB6(result) = (MMXUB6(op2) == MMXUB6(op1)) ? 0xff : 0;
+  MMXUB7(result) = (MMXUB7(op2) == MMXUB7(op1)) ? 0xff : 0;
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -632,21 +633,21 @@ void BX_CPU_C::PCMPEQW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUW0(result) = (MMXUW0(op1) == MMXUW0(op2)) ? 0xffff : 0;
-  MMXUW1(result) = (MMXUW1(op1) == MMXUW1(op2)) ? 0xffff : 0;
-  MMXUW2(result) = (MMXUW2(op1) == MMXUW2(op2)) ? 0xffff : 0;
-  MMXUW3(result) = (MMXUW3(op1) == MMXUW3(op2)) ? 0xffff : 0;
+  MMXUW0(result) = (MMXUW0(op2) == MMXUW0(op1)) ? 0xffff : 0;
+  MMXUW1(result) = (MMXUW1(op2) == MMXUW1(op1)) ? 0xffff : 0;
+  MMXUW2(result) = (MMXUW2(op2) == MMXUW2(op1)) ? 0xffff : 0;
+  MMXUW3(result) = (MMXUW3(op2) == MMXUW3(op1)) ? 0xffff : 0;
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -662,19 +663,19 @@ void BX_CPU_C::PCMPEQD_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUD0(result) = (MMXUD0(op1) == MMXUD0(op2)) ? 0xffffffff : 0;
-  MMXUD1(result) = (MMXUD1(op1) == MMXUD1(op2)) ? 0xffffffff : 0;
+  MMXUD0(result) = (MMXUD0(op2) == MMXUD0(op1)) ? 0xffffffff : 0;
+  MMXUD1(result) = (MMXUD1(op2) == MMXUD1(op1)) ? 0xffffffff : 0;
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -760,37 +761,37 @@ void BX_CPU_C::PINSRW_PqEdIb(bxInstruction_c *i)
 #if BX_SUPPORT_3DNOW || BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn());
-  Bit16u op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn());
+  Bit16u op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_16BIT_REG(i->rm());
+    op1 = BX_READ_16BIT_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_word(i->seg(), RMAddr(i), &op2);
+    read_virtual_word(i->seg(), RMAddr(i), &op1);
   }
 
   Bit8u count = i->Ib() & 0x3;
 
   switch(count) {
     case 0:
-      MMXUW0(op1) = op2;
+      MMXUW0(op2) = op1;
       break;
     case 1:
-      MMXUW1(op1) = op2;
+      MMXUW1(op2) = op1;
       break;
     case 2:
-      MMXUW2(op1) = op2;
+      MMXUW2(op2) = op1;
       break;
     case 3:
-      MMXUW3(op1) = op2;
+      MMXUW3(op2) = op1;
       break;
   }
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PINSRW_PqEdIb: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -820,30 +821,30 @@ void BX_CPU_C::PSRLW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(MMXUQ(op2) > 15) MMXUQ(op1) = 0;
+  if(MMXUQ(op1) > 15) MMXUQ(op2) = 0;
   else
   {
-    Bit8u shift = MMXUB0(op2);
+    Bit8u shift = MMXUB0(op1);
  
-    MMXUW0(op1) >>= shift;
-    MMXUW1(op1) >>= shift;
-    MMXUW2(op1) >>= shift;
-    MMXUW3(op1) >>= shift;
+    MMXUW0(op2) >>= shift;
+    MMXUW1(op2) >>= shift;
+    MMXUW2(op2) >>= shift;
+    MMXUW3(op2) >>= shift;
   }
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PSRLW_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -856,28 +857,28 @@ void BX_CPU_C::PSRLD_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(MMXUQ(op2) > 31) MMXUQ(op1) = 0;
+  if(MMXUQ(op1) > 31) MMXUQ(op2) = 0;
   else
   {
-    Bit8u shift = MMXUB0(op2);
+    Bit8u shift = MMXUB0(op1);
 
-    MMXUD0(op1) >>= shift;
-    MMXUD1(op1) >>= shift;
+    MMXUD0(op2) >>= shift;
+    MMXUD1(op2) >>= shift;
   }
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PSRLD_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -890,26 +891,26 @@ void BX_CPU_C::PSRLQ_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(MMXUQ(op2) > 63) {
-    MMXUQ(op1) = 0;
+  if(MMXUQ(op1) > 63) {
+    MMXUQ(op2) = 0;
   }
   else {
-    MMXUQ(op1) >>= MMXUB0(op2);
+    MMXUQ(op2) >>= MMXUB0(op1);
   }
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PSRLQ_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -922,21 +923,21 @@ void BX_CPU_C::PADDQ_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUQ(op1) += MMXUQ(op2);
+  MMXUQ(op2) += MMXUQ(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PADDQ_PqQq: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -949,21 +950,21 @@ void BX_CPU_C::PMULLW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  Bit32u product1 = Bit32u(MMXUW0(op1)) * Bit32u(MMXUW0(op2));
-  Bit32u product2 = Bit32u(MMXUW1(op1)) * Bit32u(MMXUW1(op2));
-  Bit32u product3 = Bit32u(MMXUW2(op1)) * Bit32u(MMXUW2(op2));
-  Bit32u product4 = Bit32u(MMXUW3(op1)) * Bit32u(MMXUW3(op2));
+  Bit32u product1 = Bit32u(MMXUW0(op2)) * Bit32u(MMXUW0(op1));
+  Bit32u product2 = Bit32u(MMXUW1(op2)) * Bit32u(MMXUW1(op1));
+  Bit32u product3 = Bit32u(MMXUW2(op2)) * Bit32u(MMXUW2(op1));
+  Bit32u product4 = Bit32u(MMXUW3(op2)) * Bit32u(MMXUW3(op1));
 
   MMXUW0(result) = product1 & 0xffff;
   MMXUW1(result) = product2 & 0xffff;
@@ -1011,27 +1012,27 @@ void BX_CPU_C::PSUBUSB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
   MMXUQ(result) = 0;
 
-  if(MMXUB0(op1) > MMXUB0(op2)) MMXUB0(result) = MMXUB0(op1) - MMXUB0(op2);
-  if(MMXUB1(op1) > MMXUB1(op2)) MMXUB1(result) = MMXUB1(op1) - MMXUB1(op2);
-  if(MMXUB2(op1) > MMXUB2(op2)) MMXUB2(result) = MMXUB2(op1) - MMXUB2(op2);
-  if(MMXUB3(op1) > MMXUB3(op2)) MMXUB3(result) = MMXUB3(op1) - MMXUB3(op2);
-  if(MMXUB4(op1) > MMXUB4(op2)) MMXUB4(result) = MMXUB4(op1) - MMXUB4(op2);
-  if(MMXUB5(op1) > MMXUB5(op2)) MMXUB5(result) = MMXUB5(op1) - MMXUB5(op2);
-  if(MMXUB6(op1) > MMXUB6(op2)) MMXUB6(result) = MMXUB6(op1) - MMXUB6(op2);
-  if(MMXUB7(op1) > MMXUB7(op2)) MMXUB7(result) = MMXUB7(op1) - MMXUB7(op2);
+  if(MMXUB0(op2) > MMXUB0(op1)) MMXUB0(result) = MMXUB0(op2) - MMXUB0(op1);
+  if(MMXUB1(op2) > MMXUB1(op1)) MMXUB1(result) = MMXUB1(op2) - MMXUB1(op1);
+  if(MMXUB2(op2) > MMXUB2(op1)) MMXUB2(result) = MMXUB2(op2) - MMXUB2(op1);
+  if(MMXUB3(op2) > MMXUB3(op1)) MMXUB3(result) = MMXUB3(op2) - MMXUB3(op1);
+  if(MMXUB4(op2) > MMXUB4(op1)) MMXUB4(result) = MMXUB4(op2) - MMXUB4(op1);
+  if(MMXUB5(op2) > MMXUB5(op1)) MMXUB5(result) = MMXUB5(op2) - MMXUB5(op1);
+  if(MMXUB6(op2) > MMXUB6(op1)) MMXUB6(result) = MMXUB6(op2) - MMXUB6(op1);
+  if(MMXUB7(op2) > MMXUB7(op1)) MMXUB7(result) = MMXUB7(op2) - MMXUB7(op1);
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1047,23 +1048,23 @@ void BX_CPU_C::PSUBUSW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
   MMXUQ(result) = 0;
 
-  if(MMXUW0(op1) > MMXUW0(op2)) MMXUW0(result) = MMXUW0(op1) - MMXUW0(op2);
-  if(MMXUW1(op1) > MMXUW1(op2)) MMXUW1(result) = MMXUW1(op1) - MMXUW1(op2);
-  if(MMXUW2(op1) > MMXUW2(op2)) MMXUW2(result) = MMXUW2(op1) - MMXUW2(op2);
-  if(MMXUW3(op1) > MMXUW3(op2)) MMXUW3(result) = MMXUW3(op1) - MMXUW3(op2);
+  if(MMXUW0(op2) > MMXUW0(op1)) MMXUW0(result) = MMXUW0(op2) - MMXUW0(op1);
+  if(MMXUW1(op2) > MMXUW1(op1)) MMXUW1(result) = MMXUW1(op2) - MMXUW1(op1);
+  if(MMXUW2(op2) > MMXUW2(op1)) MMXUW2(result) = MMXUW2(op2) - MMXUW2(op1);
+  if(MMXUW3(op2) > MMXUW3(op1)) MMXUW3(result) = MMXUW3(op2) - MMXUW3(op1);
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1079,28 +1080,28 @@ void BX_CPU_C::PMINUB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_3DNOW || BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(MMXUB0(op2) < MMXUB0(op1)) MMXUB0(op1) = MMXUB0(op2);
-  if(MMXUB1(op2) < MMXUB1(op1)) MMXUB1(op1) = MMXUB1(op2);
-  if(MMXUB2(op2) < MMXUB2(op1)) MMXUB2(op1) = MMXUB2(op2);
-  if(MMXUB3(op2) < MMXUB3(op1)) MMXUB3(op1) = MMXUB3(op2);
-  if(MMXUB4(op2) < MMXUB4(op1)) MMXUB4(op1) = MMXUB4(op2);
-  if(MMXUB5(op2) < MMXUB5(op1)) MMXUB5(op1) = MMXUB5(op2);
-  if(MMXUB6(op2) < MMXUB6(op1)) MMXUB6(op1) = MMXUB6(op2);
-  if(MMXUB7(op2) < MMXUB7(op1)) MMXUB7(op1) = MMXUB7(op2);
+  if(MMXUB0(op1) < MMXUB0(op2)) MMXUB0(op2) = MMXUB0(op1);
+  if(MMXUB1(op1) < MMXUB1(op2)) MMXUB1(op2) = MMXUB1(op1);
+  if(MMXUB2(op1) < MMXUB2(op2)) MMXUB2(op2) = MMXUB2(op1);
+  if(MMXUB3(op1) < MMXUB3(op2)) MMXUB3(op2) = MMXUB3(op1);
+  if(MMXUB4(op1) < MMXUB4(op2)) MMXUB4(op2) = MMXUB4(op1);
+  if(MMXUB5(op1) < MMXUB5(op2)) MMXUB5(op2) = MMXUB5(op1);
+  if(MMXUB6(op1) < MMXUB6(op2)) MMXUB6(op2) = MMXUB6(op1);
+  if(MMXUB7(op1) < MMXUB7(op2)) MMXUB7(op2) = MMXUB7(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else  
   BX_INFO(("PMINUB_PqQq: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -1113,21 +1114,21 @@ void BX_CPU_C::PAND_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUQ(op1) &= MMXUQ(op2);
+  MMXUQ(op2) &= MMXUQ(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PAND_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -1140,25 +1141,25 @@ void BX_CPU_C::PADDUSB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUB0(result) = SaturateWordSToByteU(Bit16s(MMXUB0(op1)) + Bit16s(MMXUB0(op2)));
-  MMXUB1(result) = SaturateWordSToByteU(Bit16s(MMXUB1(op1)) + Bit16s(MMXUB1(op2)));
-  MMXUB2(result) = SaturateWordSToByteU(Bit16s(MMXUB2(op1)) + Bit16s(MMXUB2(op2)));
-  MMXUB3(result) = SaturateWordSToByteU(Bit16s(MMXUB3(op1)) + Bit16s(MMXUB3(op2)));
-  MMXUB4(result) = SaturateWordSToByteU(Bit16s(MMXUB4(op1)) + Bit16s(MMXUB4(op2)));
-  MMXUB5(result) = SaturateWordSToByteU(Bit16s(MMXUB5(op1)) + Bit16s(MMXUB5(op2)));
-  MMXUB6(result) = SaturateWordSToByteU(Bit16s(MMXUB6(op1)) + Bit16s(MMXUB6(op2)));
-  MMXUB7(result) = SaturateWordSToByteU(Bit16s(MMXUB7(op1)) + Bit16s(MMXUB7(op2)));
+  MMXUB0(result) = SaturateWordSToByteU(Bit16s(MMXUB0(op2)) + Bit16s(MMXUB0(op1)));
+  MMXUB1(result) = SaturateWordSToByteU(Bit16s(MMXUB1(op2)) + Bit16s(MMXUB1(op1)));
+  MMXUB2(result) = SaturateWordSToByteU(Bit16s(MMXUB2(op2)) + Bit16s(MMXUB2(op1)));
+  MMXUB3(result) = SaturateWordSToByteU(Bit16s(MMXUB3(op2)) + Bit16s(MMXUB3(op1)));
+  MMXUB4(result) = SaturateWordSToByteU(Bit16s(MMXUB4(op2)) + Bit16s(MMXUB4(op1)));
+  MMXUB5(result) = SaturateWordSToByteU(Bit16s(MMXUB5(op2)) + Bit16s(MMXUB5(op1)));
+  MMXUB6(result) = SaturateWordSToByteU(Bit16s(MMXUB6(op2)) + Bit16s(MMXUB6(op1)));
+  MMXUB7(result) = SaturateWordSToByteU(Bit16s(MMXUB7(op2)) + Bit16s(MMXUB7(op1)));
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1174,21 +1175,21 @@ void BX_CPU_C::PADDUSW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUW0(result) = SaturateDwordSToWordU(Bit32s(MMXUW0(op1)) + Bit32s(MMXUW0(op2)));
-  MMXUW1(result) = SaturateDwordSToWordU(Bit32s(MMXUW1(op1)) + Bit32s(MMXUW1(op2)));
-  MMXUW2(result) = SaturateDwordSToWordU(Bit32s(MMXUW2(op1)) + Bit32s(MMXUW2(op2)));
-  MMXUW3(result) = SaturateDwordSToWordU(Bit32s(MMXUW3(op1)) + Bit32s(MMXUW3(op2)));
+  MMXUW0(result) = SaturateDwordSToWordU(Bit32s(MMXUW0(op2)) + Bit32s(MMXUW0(op1)));
+  MMXUW1(result) = SaturateDwordSToWordU(Bit32s(MMXUW1(op2)) + Bit32s(MMXUW1(op1)));
+  MMXUW2(result) = SaturateDwordSToWordU(Bit32s(MMXUW2(op2)) + Bit32s(MMXUW2(op1)));
+  MMXUW3(result) = SaturateDwordSToWordU(Bit32s(MMXUW3(op2)) + Bit32s(MMXUW3(op1)));
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1204,28 +1205,28 @@ void BX_CPU_C::PMAXUB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_3DNOW || BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(MMXUB0(op2) > MMXUB0(op1)) MMXUB0(op1) = MMXUB0(op2);
-  if(MMXUB1(op2) > MMXUB1(op1)) MMXUB1(op1) = MMXUB1(op2);
-  if(MMXUB2(op2) > MMXUB2(op1)) MMXUB2(op1) = MMXUB2(op2);
-  if(MMXUB3(op2) > MMXUB3(op1)) MMXUB3(op1) = MMXUB3(op2);
-  if(MMXUB4(op2) > MMXUB4(op1)) MMXUB4(op1) = MMXUB4(op2);
-  if(MMXUB5(op2) > MMXUB5(op1)) MMXUB5(op1) = MMXUB5(op2);
-  if(MMXUB6(op2) > MMXUB6(op1)) MMXUB6(op1) = MMXUB6(op2);
-  if(MMXUB7(op2) > MMXUB7(op1)) MMXUB7(op1) = MMXUB7(op2);
+  if(MMXUB0(op1) > MMXUB0(op2)) MMXUB0(op2) = MMXUB0(op1);
+  if(MMXUB1(op1) > MMXUB1(op2)) MMXUB1(op2) = MMXUB1(op1);
+  if(MMXUB2(op1) > MMXUB2(op2)) MMXUB2(op2) = MMXUB2(op1);
+  if(MMXUB3(op1) > MMXUB3(op2)) MMXUB3(op2) = MMXUB3(op1);
+  if(MMXUB4(op1) > MMXUB4(op2)) MMXUB4(op2) = MMXUB4(op1);
+  if(MMXUB5(op1) > MMXUB5(op2)) MMXUB5(op2) = MMXUB5(op1);
+  if(MMXUB6(op1) > MMXUB6(op2)) MMXUB6(op2) = MMXUB6(op1);
+  if(MMXUB7(op1) > MMXUB7(op2)) MMXUB7(op2) = MMXUB7(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else  
   BX_INFO(("PMAXUB_PqQq: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -1238,18 +1239,18 @@ void BX_CPU_C::PANDN_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUQ(result) = ~(MMXUQ(op1)) & MMXUQ(op2);
+  MMXUQ(result) = ~(MMXUQ(op2)) & MMXUQ(op1);
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1265,25 +1266,25 @@ void BX_CPU_C::PAVGB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_3DNOW || BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUB0(result) = (MMXUB0(op1) + MMXUB0(op2) + 1) >> 1;
-  MMXUB1(result) = (MMXUB1(op1) + MMXUB1(op2) + 1) >> 1;
-  MMXUB2(result) = (MMXUB2(op1) + MMXUB2(op2) + 1) >> 1;
-  MMXUB3(result) = (MMXUB3(op1) + MMXUB3(op2) + 1) >> 1;
-  MMXUB4(result) = (MMXUB4(op1) + MMXUB4(op2) + 1) >> 1;
-  MMXUB5(result) = (MMXUB5(op1) + MMXUB5(op2) + 1) >> 1;
-  MMXUB6(result) = (MMXUB6(op1) + MMXUB6(op2) + 1) >> 1;
-  MMXUB7(result) = (MMXUB7(op1) + MMXUB7(op2) + 1) >> 1;
+  MMXUB0(result) = (MMXUB0(op2) + MMXUB0(op1) + 1) >> 1;
+  MMXUB1(result) = (MMXUB1(op2) + MMXUB1(op1) + 1) >> 1;
+  MMXUB2(result) = (MMXUB2(op2) + MMXUB2(op1) + 1) >> 1;
+  MMXUB3(result) = (MMXUB3(op2) + MMXUB3(op1) + 1) >> 1;
+  MMXUB4(result) = (MMXUB4(op2) + MMXUB4(op1) + 1) >> 1;
+  MMXUB5(result) = (MMXUB5(op2) + MMXUB5(op1) + 1) >> 1;
+  MMXUB6(result) = (MMXUB6(op2) + MMXUB6(op1) + 1) >> 1;
+  MMXUB7(result) = (MMXUB7(op2) + MMXUB7(op1) + 1) >> 1;
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1299,40 +1300,40 @@ void BX_CPU_C::PSRAW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(!MMXUQ(op2)) {
-    BX_WRITE_MMX_REG(i->nnn(), op1);
+  if(!MMXUQ(op1)) {
+    BX_WRITE_MMX_REG(i->nnn(), op2);
     return;
   }
 
-  Bit8u shift = MMXUB0(op2);
+  Bit8u shift = MMXUB0(op1);
 
-  if(MMXUQ(op2) > 15) {
-    MMXUW0(result) = (MMXUW0(op1) & 0x8000) ? 0xffff : 0;
-    MMXUW1(result) = (MMXUW1(op1) & 0x8000) ? 0xffff : 0;
-    MMXUW2(result) = (MMXUW2(op1) & 0x8000) ? 0xffff : 0;
-    MMXUW3(result) = (MMXUW3(op1) & 0x8000) ? 0xffff : 0;
+  if(MMXUQ(op1) > 15) {
+    MMXUW0(result) = (MMXUW0(op2) & 0x8000) ? 0xffff : 0;
+    MMXUW1(result) = (MMXUW1(op2) & 0x8000) ? 0xffff : 0;
+    MMXUW2(result) = (MMXUW2(op2) & 0x8000) ? 0xffff : 0;
+    MMXUW3(result) = (MMXUW3(op2) & 0x8000) ? 0xffff : 0;
   }
   else {
-    MMXUW0(result) = MMXUW0(op1) >> shift;
-    MMXUW1(result) = MMXUW1(op1) >> shift;
-    MMXUW2(result) = MMXUW2(op1) >> shift;
-    MMXUW3(result) = MMXUW3(op1) >> shift;
+    MMXUW0(result) = MMXUW0(op2) >> shift;
+    MMXUW1(result) = MMXUW1(op2) >> shift;
+    MMXUW2(result) = MMXUW2(op2) >> shift;
+    MMXUW3(result) = MMXUW3(op2) >> shift;
 
-    if(MMXUW0(op1) & 0x8000) MMXUW0(result) |= (0xffff << (16 - shift));
-    if(MMXUW1(op1) & 0x8000) MMXUW1(result) |= (0xffff << (16 - shift));
-    if(MMXUW2(op1) & 0x8000) MMXUW2(result) |= (0xffff << (16 - shift));
-    if(MMXUW3(op1) & 0x8000) MMXUW3(result) |= (0xffff << (16 - shift));
+    if(MMXUW0(op2) & 0x8000) MMXUW0(result) |= (0xffff << (16 - shift));
+    if(MMXUW1(op2) & 0x8000) MMXUW1(result) |= (0xffff << (16 - shift));
+    if(MMXUW2(op2) & 0x8000) MMXUW2(result) |= (0xffff << (16 - shift));
+    if(MMXUW3(op2) & 0x8000) MMXUW3(result) |= (0xffff << (16 - shift));
   }
 
   /* now write result back to destination */
@@ -1349,36 +1350,36 @@ void BX_CPU_C::PSRAD_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(!MMXUQ(op2)) {
-    BX_WRITE_MMX_REG(i->nnn(), op1);
+  if(!MMXUQ(op1)) {
+    BX_WRITE_MMX_REG(i->nnn(), op2);
     return;
   }
 
-  Bit8u shift = MMXUB0(op2);
+  Bit8u shift = MMXUB0(op1);
 
-  if(MMXUQ(op2) > 31) {
-    MMXUD0(result) = (MMXUD0(op1) & 0x80000000) ? 0xffffffff : 0;
-    MMXUD1(result) = (MMXUD1(op1) & 0x80000000) ? 0xffffffff : 0;
+  if(MMXUQ(op1) > 31) {
+    MMXUD0(result) = (MMXUD0(op2) & 0x80000000) ? 0xffffffff : 0;
+    MMXUD1(result) = (MMXUD1(op2) & 0x80000000) ? 0xffffffff : 0;
   }
   else {
-    MMXUD0(result) = MMXUD0(op1) >> shift;
-    MMXUD1(result) = MMXUD1(op1) >> shift;
+    MMXUD0(result) = MMXUD0(op2) >> shift;
+    MMXUD1(result) = MMXUD1(op2) >> shift;
 
-    if(MMXUD0(op1) & 0x80000000) 
+    if(MMXUD0(op2) & 0x80000000) 
        MMXUD0(result) |= (0xffffffff << (32 - shift));
 
-    if(MMXUD1(op1) & 0x80000000) 
+    if(MMXUD1(op2) & 0x80000000) 
        MMXUD1(result) |= (0xffffffff << (32 - shift));
   }
 
@@ -1396,21 +1397,21 @@ void BX_CPU_C::PAVGW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_3DNOW || BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUW0(result) = (MMXUW0(op1) + MMXUW0(op2) + 1) >> 1;
-  MMXUW1(result) = (MMXUW1(op1) + MMXUW1(op2) + 1) >> 1;
-  MMXUW2(result) = (MMXUW2(op1) + MMXUW2(op2) + 1) >> 1;
-  MMXUW3(result) = (MMXUW3(op1) + MMXUW3(op2) + 1) >> 1;
+  MMXUW0(result) = (MMXUW0(op2) + MMXUW0(op1) + 1) >> 1;
+  MMXUW1(result) = (MMXUW1(op2) + MMXUW1(op1) + 1) >> 1;
+  MMXUW2(result) = (MMXUW2(op2) + MMXUW2(op1) + 1) >> 1;
+  MMXUW3(result) = (MMXUW3(op2) + MMXUW3(op1) + 1) >> 1;
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1426,21 +1427,21 @@ void BX_CPU_C::PMULHUW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_3DNOW || BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  Bit32u product1 = Bit32u(MMXUW0(op1)) * Bit32u(MMXUW0(op2));
-  Bit32u product2 = Bit32u(MMXUW1(op1)) * Bit32u(MMXUW1(op2));
-  Bit32u product3 = Bit32u(MMXUW2(op1)) * Bit32u(MMXUW2(op2));
-  Bit32u product4 = Bit32u(MMXUW3(op1)) * Bit32u(MMXUW3(op2));
+  Bit32u product1 = Bit32u(MMXUW0(op2)) * Bit32u(MMXUW0(op1));
+  Bit32u product2 = Bit32u(MMXUW1(op2)) * Bit32u(MMXUW1(op1));
+  Bit32u product3 = Bit32u(MMXUW2(op2)) * Bit32u(MMXUW2(op1));
+  Bit32u product4 = Bit32u(MMXUW3(op2)) * Bit32u(MMXUW3(op1));
 
   MMXUW0(result) = (Bit16u)(product1 >> 16);
   MMXUW1(result) = (Bit16u)(product2 >> 16);
@@ -1461,21 +1462,21 @@ void BX_CPU_C::PMULHW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  Bit32s product1 = Bit32s(MMXSW0(op1)) * Bit32s(MMXSW0(op2));
-  Bit32s product2 = Bit32s(MMXSW1(op1)) * Bit32s(MMXSW1(op2));
-  Bit32s product3 = Bit32s(MMXSW2(op1)) * Bit32s(MMXSW2(op2));
-  Bit32s product4 = Bit32s(MMXSW3(op1)) * Bit32s(MMXSW3(op2));
+  Bit32s product1 = Bit32s(MMXSW0(op2)) * Bit32s(MMXSW0(op1));
+  Bit32s product2 = Bit32s(MMXSW1(op2)) * Bit32s(MMXSW1(op1));
+  Bit32s product3 = Bit32s(MMXSW2(op2)) * Bit32s(MMXSW2(op1));
+  Bit32s product4 = Bit32s(MMXSW3(op2)) * Bit32s(MMXSW3(op1));
 
   MMXUW0(result) = Bit16u(product1 >> 16);
   MMXUW1(result) = Bit16u(product2 >> 16);
@@ -1516,25 +1517,25 @@ void BX_CPU_C::PSUBSB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXSB0(result) = SaturateWordSToByteS(Bit16s(MMXSB0(op1)) - Bit16s(MMXSB0(op2)));
-  MMXSB1(result) = SaturateWordSToByteS(Bit16s(MMXSB1(op1)) - Bit16s(MMXSB1(op2)));
-  MMXSB2(result) = SaturateWordSToByteS(Bit16s(MMXSB2(op1)) - Bit16s(MMXSB2(op2)));
-  MMXSB3(result) = SaturateWordSToByteS(Bit16s(MMXSB3(op1)) - Bit16s(MMXSB3(op2)));
-  MMXSB4(result) = SaturateWordSToByteS(Bit16s(MMXSB4(op1)) - Bit16s(MMXSB4(op2)));
-  MMXSB5(result) = SaturateWordSToByteS(Bit16s(MMXSB5(op1)) - Bit16s(MMXSB5(op2)));
-  MMXSB6(result) = SaturateWordSToByteS(Bit16s(MMXSB6(op1)) - Bit16s(MMXSB6(op2)));
-  MMXSB7(result) = SaturateWordSToByteS(Bit16s(MMXSB7(op1)) - Bit16s(MMXSB7(op2)));
+  MMXSB0(result) = SaturateWordSToByteS(Bit16s(MMXSB0(op2)) - Bit16s(MMXSB0(op1)));
+  MMXSB1(result) = SaturateWordSToByteS(Bit16s(MMXSB1(op2)) - Bit16s(MMXSB1(op1)));
+  MMXSB2(result) = SaturateWordSToByteS(Bit16s(MMXSB2(op2)) - Bit16s(MMXSB2(op1)));
+  MMXSB3(result) = SaturateWordSToByteS(Bit16s(MMXSB3(op2)) - Bit16s(MMXSB3(op1)));
+  MMXSB4(result) = SaturateWordSToByteS(Bit16s(MMXSB4(op2)) - Bit16s(MMXSB4(op1)));
+  MMXSB5(result) = SaturateWordSToByteS(Bit16s(MMXSB5(op2)) - Bit16s(MMXSB5(op1)));
+  MMXSB6(result) = SaturateWordSToByteS(Bit16s(MMXSB6(op2)) - Bit16s(MMXSB6(op1)));
+  MMXSB7(result) = SaturateWordSToByteS(Bit16s(MMXSB7(op2)) - Bit16s(MMXSB7(op1)));
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1550,21 +1551,21 @@ void BX_CPU_C::PSUBSW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXSW0(result) = SaturateDwordSToWordS(Bit32s(MMXSW0(op1)) - Bit32s(MMXSW0(op2)));
-  MMXSW1(result) = SaturateDwordSToWordS(Bit32s(MMXSW1(op1)) - Bit32s(MMXSW1(op2)));
-  MMXSW2(result) = SaturateDwordSToWordS(Bit32s(MMXSW2(op1)) - Bit32s(MMXSW2(op2)));
-  MMXSW3(result) = SaturateDwordSToWordS(Bit32s(MMXSW3(op1)) - Bit32s(MMXSW3(op2)));
+  MMXSW0(result) = SaturateDwordSToWordS(Bit32s(MMXSW0(op2)) - Bit32s(MMXSW0(op1)));
+  MMXSW1(result) = SaturateDwordSToWordS(Bit32s(MMXSW1(op2)) - Bit32s(MMXSW1(op1)));
+  MMXSW2(result) = SaturateDwordSToWordS(Bit32s(MMXSW2(op2)) - Bit32s(MMXSW2(op1)));
+  MMXSW3(result) = SaturateDwordSToWordS(Bit32s(MMXSW3(op2)) - Bit32s(MMXSW3(op1)));
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1580,24 +1581,24 @@ void BX_CPU_C::PMINSW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_3DNOW || BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(MMXSW0(op2) < MMXSW0(op1)) MMXSW0(op1) = MMXSW0(op2);
-  if(MMXSW1(op2) < MMXSW1(op1)) MMXSW1(op1) = MMXSW1(op2);
-  if(MMXSW2(op2) < MMXSW2(op1)) MMXSW2(op1) = MMXSW2(op2);
-  if(MMXSW3(op2) < MMXSW3(op1)) MMXSW3(op1) = MMXSW3(op2);
+  if(MMXSW0(op1) < MMXSW0(op2)) MMXSW0(op2) = MMXSW0(op1);
+  if(MMXSW1(op1) < MMXSW1(op2)) MMXSW1(op2) = MMXSW1(op1);
+  if(MMXSW2(op1) < MMXSW2(op2)) MMXSW2(op2) = MMXSW2(op1);
+  if(MMXSW3(op1) < MMXSW3(op2)) MMXSW3(op2) = MMXSW3(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else  
   BX_INFO(("PMINSW_PqQq: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -1610,21 +1611,21 @@ void BX_CPU_C::POR_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUQ(op1) |= MMXUQ(op2);
+  MMXUQ(op2) |= MMXUQ(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("POR_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -1637,25 +1638,25 @@ void BX_CPU_C::PADDSB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXSB0(result) = SaturateWordSToByteS(Bit16s(MMXSB0(op1)) + Bit16s(MMXSB0(op2)));
-  MMXSB1(result) = SaturateWordSToByteS(Bit16s(MMXSB1(op1)) + Bit16s(MMXSB1(op2)));
-  MMXSB2(result) = SaturateWordSToByteS(Bit16s(MMXSB2(op1)) + Bit16s(MMXSB2(op2)));
-  MMXSB3(result) = SaturateWordSToByteS(Bit16s(MMXSB3(op1)) + Bit16s(MMXSB3(op2)));
-  MMXSB4(result) = SaturateWordSToByteS(Bit16s(MMXSB4(op1)) + Bit16s(MMXSB4(op2)));
-  MMXSB5(result) = SaturateWordSToByteS(Bit16s(MMXSB5(op1)) + Bit16s(MMXSB5(op2)));
-  MMXSB6(result) = SaturateWordSToByteS(Bit16s(MMXSB6(op1)) + Bit16s(MMXSB6(op2)));
-  MMXSB7(result) = SaturateWordSToByteS(Bit16s(MMXSB7(op1)) + Bit16s(MMXSB7(op2)));
+  MMXSB0(result) = SaturateWordSToByteS(Bit16s(MMXSB0(op2)) + Bit16s(MMXSB0(op1)));
+  MMXSB1(result) = SaturateWordSToByteS(Bit16s(MMXSB1(op2)) + Bit16s(MMXSB1(op1)));
+  MMXSB2(result) = SaturateWordSToByteS(Bit16s(MMXSB2(op2)) + Bit16s(MMXSB2(op1)));
+  MMXSB3(result) = SaturateWordSToByteS(Bit16s(MMXSB3(op2)) + Bit16s(MMXSB3(op1)));
+  MMXSB4(result) = SaturateWordSToByteS(Bit16s(MMXSB4(op2)) + Bit16s(MMXSB4(op1)));
+  MMXSB5(result) = SaturateWordSToByteS(Bit16s(MMXSB5(op2)) + Bit16s(MMXSB5(op1)));
+  MMXSB6(result) = SaturateWordSToByteS(Bit16s(MMXSB6(op2)) + Bit16s(MMXSB6(op1)));
+  MMXSB7(result) = SaturateWordSToByteS(Bit16s(MMXSB7(op2)) + Bit16s(MMXSB7(op1)));
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1671,21 +1672,21 @@ void BX_CPU_C::PADDSW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXSW0(result) = SaturateDwordSToWordS(Bit32s(MMXSW0(op1)) + Bit32s(MMXSW0(op2)));
-  MMXSW1(result) = SaturateDwordSToWordS(Bit32s(MMXSW1(op1)) + Bit32s(MMXSW1(op2)));
-  MMXSW2(result) = SaturateDwordSToWordS(Bit32s(MMXSW2(op1)) + Bit32s(MMXSW2(op2)));
-  MMXSW3(result) = SaturateDwordSToWordS(Bit32s(MMXSW3(op1)) + Bit32s(MMXSW3(op2)));
+  MMXSW0(result) = SaturateDwordSToWordS(Bit32s(MMXSW0(op2)) + Bit32s(MMXSW0(op1)));
+  MMXSW1(result) = SaturateDwordSToWordS(Bit32s(MMXSW1(op2)) + Bit32s(MMXSW1(op1)));
+  MMXSW2(result) = SaturateDwordSToWordS(Bit32s(MMXSW2(op2)) + Bit32s(MMXSW2(op1)));
+  MMXSW3(result) = SaturateDwordSToWordS(Bit32s(MMXSW3(op2)) + Bit32s(MMXSW3(op1)));
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1701,24 +1702,24 @@ void BX_CPU_C::PMAXSW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_3DNOW || BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(MMXSW0(op2) > MMXSW0(op1)) MMXSW0(op1) = MMXSW0(op2);
-  if(MMXSW1(op2) > MMXSW1(op1)) MMXSW1(op1) = MMXSW1(op2);
-  if(MMXSW2(op2) > MMXSW2(op1)) MMXSW2(op1) = MMXSW2(op2);
-  if(MMXSW3(op2) > MMXSW3(op1)) MMXSW3(op1) = MMXSW3(op2);
+  if(MMXSW0(op1) > MMXSW0(op2)) MMXSW0(op2) = MMXSW0(op1);
+  if(MMXSW1(op1) > MMXSW1(op2)) MMXSW1(op2) = MMXSW1(op1);
+  if(MMXSW2(op1) > MMXSW2(op2)) MMXSW2(op2) = MMXSW2(op1);
+  if(MMXSW3(op1) > MMXSW3(op2)) MMXSW3(op2) = MMXSW3(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else  
   BX_INFO(("PMAXSW_PqQq: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -1731,21 +1732,21 @@ void BX_CPU_C::PXOR_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUQ(op1) ^= MMXUQ(op2);
+  MMXUQ(op2) ^= MMXUQ(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PXOR_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -1758,30 +1759,30 @@ void BX_CPU_C::PSLLW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(MMXUQ(op2) > 15) MMXUQ(op1) = 0;
+  if(MMXUQ(op1) > 15) MMXUQ(op2) = 0;
   else
   {
-    Bit8u shift = MMXUB0(op2);
+    Bit8u shift = MMXUB0(op1);
 
-    MMXUW0(op1) <<= shift;
-    MMXUW1(op1) <<= shift;
-    MMXUW2(op1) <<= shift;
-    MMXUW3(op1) <<= shift;
+    MMXUW0(op2) <<= shift;
+    MMXUW1(op2) <<= shift;
+    MMXUW2(op2) <<= shift;
+    MMXUW3(op2) <<= shift;
   }
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PSLLW_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -1794,28 +1795,28 @@ void BX_CPU_C::PSLLD_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(MMXUQ(op2) > 31) MMXUQ(op1) = 0;
+  if(MMXUQ(op1) > 31) MMXUQ(op2) = 0;
   else
   {
-    Bit8u shift = MMXUB0(op2);
+    Bit8u shift = MMXUB0(op1);
 
-    MMXUD0(op1) <<= shift;
-    MMXUD1(op1) <<= shift;
+    MMXUD0(op2) <<= shift;
+    MMXUD1(op2) <<= shift;
   }
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PSLLD_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -1828,26 +1829,26 @@ void BX_CPU_C::PSLLQ_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(MMXUQ(op2) > 63) {
-    MMXUQ(op1) = 0;
+  if(MMXUQ(op1) > 63) {
+    MMXUQ(op2) = 0;
   }
   else {
-    MMXUQ(op1) <<= MMXUB0(op2);
+    MMXUQ(op2) <<= MMXUB0(op1);
   }
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PSLLQ_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -1860,18 +1861,18 @@ void BX_CPU_C::PMULUDQ_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUQ(result) = Bit64u(MMXUD0(op1)) * Bit64u(MMXUD0(op2));
+  MMXUQ(result) = Bit64u(MMXUD0(op2)) * Bit64u(MMXUD0(op1));
 
   /* now write result back to destination */
   BX_WRITE_MMX_REG(i->nnn(), result);
@@ -1887,29 +1888,29 @@ void BX_CPU_C::PMADDWD_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  if(MMXUD0(op1) == 0x80008000 && MMXUD0(op2) == 0x80008000) {
+  if(MMXUD0(op2) == 0x80008000 && MMXUD0(op1) == 0x80008000) {
     MMXUD0(result) = 0x80000000;
   }
   else {
-    MMXUD0(result) = Bit32s(MMXSW0(op1))*Bit32s(MMXSW0(op2)) + Bit32s(MMXSW1(op1))*Bit32s(MMXSW1(op2));
+    MMXUD0(result) = Bit32s(MMXSW0(op2))*Bit32s(MMXSW0(op1)) + Bit32s(MMXSW1(op2))*Bit32s(MMXSW1(op1));
   }
 
-  if(MMXUD1(op1) == 0x80008000 && MMXUD1(op2) == 0x80008000) {
+  if(MMXUD1(op2) == 0x80008000 && MMXUD1(op1) == 0x80008000) {
     MMXUD1(result) = 0x80000000;
   }
   else {
-    MMXUD1(result) = Bit32s(MMXSW2(op1))*Bit32s(MMXSW2(op2)) + Bit32s(MMXSW3(op1))*Bit32s(MMXSW3(op2));
+    MMXUD1(result) = Bit32s(MMXSW2(op2))*Bit32s(MMXSW2(op1)) + Bit32s(MMXSW3(op2))*Bit32s(MMXSW3(op1));
   }
 
   /* now write result back to destination */
@@ -1926,26 +1927,26 @@ void BX_CPU_C::PSADBW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_3DNOW || BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2, result;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1, result;
   Bit16u temp = 0;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  temp += abs(MMXUB0(op1) - MMXUB0(op2));
-  temp += abs(MMXUB1(op1) - MMXUB1(op2));
-  temp += abs(MMXUB2(op1) - MMXUB2(op2));
-  temp += abs(MMXUB3(op1) - MMXUB3(op2));
-  temp += abs(MMXUB4(op1) - MMXUB4(op2));
-  temp += abs(MMXUB5(op1) - MMXUB5(op2));
-  temp += abs(MMXUB6(op1) - MMXUB6(op2));
-  temp += abs(MMXUB7(op1) - MMXUB7(op2));
+  temp += abs(MMXUB0(op2) - MMXUB0(op1));
+  temp += abs(MMXUB1(op2) - MMXUB1(op1));
+  temp += abs(MMXUB2(op2) - MMXUB2(op1));
+  temp += abs(MMXUB3(op2) - MMXUB3(op1));
+  temp += abs(MMXUB4(op2) - MMXUB4(op1));
+  temp += abs(MMXUB5(op2) - MMXUB5(op1));
+  temp += abs(MMXUB6(op2) - MMXUB6(op1));
+  temp += abs(MMXUB7(op2) - MMXUB7(op1));
 
   MMXUW0(result) = (Bit64u) temp;
 
@@ -2009,28 +2010,28 @@ void BX_CPU_C::PSUBB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUB0(op1) -= MMXUB0(op2);
-  MMXUB1(op1) -= MMXUB1(op2);
-  MMXUB2(op1) -= MMXUB2(op2);
-  MMXUB3(op1) -= MMXUB3(op2);
-  MMXUB4(op1) -= MMXUB4(op2);
-  MMXUB5(op1) -= MMXUB5(op2);
-  MMXUB6(op1) -= MMXUB6(op2);
-  MMXUB7(op1) -= MMXUB7(op2);
+  MMXUB0(op2) -= MMXUB0(op1);
+  MMXUB1(op2) -= MMXUB1(op1);
+  MMXUB2(op2) -= MMXUB2(op1);
+  MMXUB3(op2) -= MMXUB3(op1);
+  MMXUB4(op2) -= MMXUB4(op1);
+  MMXUB5(op2) -= MMXUB5(op1);
+  MMXUB6(op2) -= MMXUB6(op1);
+  MMXUB7(op2) -= MMXUB7(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PSUBB_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -2043,24 +2044,24 @@ void BX_CPU_C::PSUBW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUW0(op1) -= MMXUW0(op2);
-  MMXUW1(op1) -= MMXUW1(op2);
-  MMXUW2(op1) -= MMXUW2(op2);
-  MMXUW3(op1) -= MMXUW3(op2);
+  MMXUW0(op2) -= MMXUW0(op1);
+  MMXUW1(op2) -= MMXUW1(op1);
+  MMXUW2(op2) -= MMXUW2(op1);
+  MMXUW3(op2) -= MMXUW3(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PSUBW_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -2073,22 +2074,22 @@ void BX_CPU_C::PSUBD_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUD0(op1) -= MMXUD0(op2);
-  MMXUD1(op1) -= MMXUD1(op2);
+  MMXUD0(op2) -= MMXUD0(op1);
+  MMXUD1(op2) -= MMXUD1(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PSUBD_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -2101,21 +2102,21 @@ void BX_CPU_C::PSUBQ_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUQ(op1) -= MMXUQ(op2);
+  MMXUQ(op2) -= MMXUQ(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PSUBQ_PqQq: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -2128,28 +2129,28 @@ void BX_CPU_C::PADDB_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUB0(op1) += MMXUB0(op2);
-  MMXUB1(op1) += MMXUB1(op2);
-  MMXUB2(op1) += MMXUB2(op2);
-  MMXUB3(op1) += MMXUB3(op2);
-  MMXUB4(op1) += MMXUB4(op2);
-  MMXUB5(op1) += MMXUB5(op2);
-  MMXUB6(op1) += MMXUB6(op2);
-  MMXUB7(op1) += MMXUB7(op2);
+  MMXUB0(op2) += MMXUB0(op1);
+  MMXUB1(op2) += MMXUB1(op1);
+  MMXUB2(op2) += MMXUB2(op1);
+  MMXUB3(op2) += MMXUB3(op1);
+  MMXUB4(op2) += MMXUB4(op1);
+  MMXUB5(op2) += MMXUB5(op1);
+  MMXUB6(op2) += MMXUB6(op1);
+  MMXUB7(op2) += MMXUB7(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PADDB_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -2162,24 +2163,24 @@ void BX_CPU_C::PADDW_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUW0(op1) += MMXUW0(op2);
-  MMXUW1(op1) += MMXUW1(op2);
-  MMXUW2(op1) += MMXUW2(op2);
-  MMXUW3(op1) += MMXUW3(op2);
+  MMXUW0(op2) += MMXUW0(op1);
+  MMXUW1(op2) += MMXUW1(op1);
+  MMXUW2(op2) += MMXUW2(op1);
+  MMXUW3(op2) += MMXUW3(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PADDW_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);
@@ -2192,22 +2193,22 @@ void BX_CPU_C::PADDD_PqQq(bxInstruction_c *i)
 #if BX_SUPPORT_MMX
   BX_CPU_THIS_PTR prepareMMX();
 
-  BxPackedMmxRegister op1 = BX_READ_MMX_REG(i->nnn()), op2;
+  BxPackedMmxRegister op2 = BX_READ_MMX_REG(i->nnn()), op1;
 
-  /* op2 is a register or memory reference */
+  /* op1 is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_MMX_REG(i->rm());
+    op1 = BX_READ_MMX_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op1);
   }
 
-  MMXUD0(op1) += MMXUD0(op2);
-  MMXUD1(op1) += MMXUD1(op2);
+  MMXUD0(op2) += MMXUD0(op1);
+  MMXUD1(op2) += MMXUD1(op1);
 
   /* now write result back to destination */
-  BX_WRITE_MMX_REG(i->nnn(), op1);
+  BX_WRITE_MMX_REG(i->nnn(), op2);
 #else
   BX_INFO(("PADDD_PqQq: required MMX, use --enable-mmx option"));
   UndefinedOpcode(i);

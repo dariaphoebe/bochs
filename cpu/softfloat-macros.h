@@ -1,5 +1,4 @@
 /*============================================================================
-
 This C source fragment is part of the SoftFloat IEC/IEEE Floating-point
 Arithmetic Package, Release 2b.
 
@@ -26,7 +25,6 @@ Derivative works are acceptable, even for commercial purposes, so long as
 (1) the source code for the derivative work includes prominent notice that
 the work is derivative, and (2) the source code includes prominent notice with
 these four paragraphs for those parts of this code that are retained.
-
 =============================================================================*/
 
 /*----------------------------------------------------------------------------

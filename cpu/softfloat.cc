@@ -1,5 +1,4 @@
 /*============================================================================
-
 This C source file is part of the SoftFloat IEC/IEEE Floating-point Arithmetic
 Package, Release 2b.
 
@@ -26,7 +25,6 @@ Derivative works are acceptable, even for commercial purposes, so long as
 (1) the source code for the derivative work includes prominent notice that
 the work is derivative, and (2) the source code includes prominent notice with
 these four paragraphs for those parts of this code that are retained.
-
 =============================================================================*/
 
 #include "softfloat.h"
@@ -85,7 +83,7 @@ static Bit32s roundAndPackInt32(flag zSign, Bit64u absZ, float_status_t &status)
     }
     roundBits = absZ & 0x7F;
     absZ = (absZ + roundIncrement)>>7;
-    absZ &= ~ (((roundBits ^ 0x40) == 0) & roundNearestEven);
+    absZ &= ~(((roundBits ^ 0x40) == 0) & roundNearestEven);
     z = absZ;
     if (zSign) z = -z;
     if ((absZ>>32) || (z && ((z < 0) ^ zSign))) {
@@ -133,7 +131,7 @@ static Bit64s roundAndPackInt64(flag zSign, Bit64u absZ0, Bit64u absZ1, float_st
     if (increment) {
         ++absZ0;
         if (absZ0 == 0) goto overflow;
-        absZ0 &= ~ (((Bit64u) (absZ1<<1) == 0) & roundNearestEven);
+        absZ0 &= ~(((Bit64u) (absZ1<<1) == 0) & roundNearestEven);
     }
     z = absZ0;
     if (zSign) z = -z;
@@ -274,7 +272,7 @@ static float32 roundAndPackFloat32(flag zSign, Bit16s zExp, Bit32u zSig, float_s
     }
     if (roundBits) float_raise(status, float_flag_inexact);
     zSig = (zSig + roundIncrement)>>7;
-    zSig &= ~ (((roundBits ^ 0x40) == 0) & roundNearestEven);
+    zSig &= ~(((roundBits ^ 0x40) == 0) & roundNearestEven);
     if (zSig == 0) zExp = 0;
     return packFloat32(zSign, zExp, zSig);
 }
@@ -421,7 +419,7 @@ static float64 roundAndPackFloat64(flag zSign, Bit16s zExp, Bit64u zSig, float_s
     }
     if (roundBits) float_raise(status, float_flag_inexact);
     zSig = (zSig + roundIncrement)>>10;
-    zSig &= ~ (((roundBits ^ 0x200) == 0) & roundNearestEven);
+    zSig &= ~(((roundBits ^ 0x200) == 0) & roundNearestEven);
     if (zSig == 0) zExp = 0;
     return packFloat64(zSign, zExp, zSig);
 }
@@ -753,14 +751,14 @@ float32 float32_round_to_int(float32 a, float_status_t &status)
     roundingMode = get_float_rounding_mode(status);
     if (roundingMode == float_round_nearest_even) {
         z += lastBitMask>>1;
-        if ((z & roundBitsMask) == 0) z &= ~ lastBitMask;
+        if ((z & roundBitsMask) == 0) z &= ~lastBitMask;
     }
     else if (roundingMode != float_round_to_zero) {
         if (extractFloat32Sign(z) ^ (roundingMode == float_round_up)) {
             z += roundBitsMask;
         }
     }
-    z &= ~ roundBitsMask;
+    z &= ~roundBitsMask;
     if (z != a) float_raise(status, float_flag_inexact);
     return z;
 }
@@ -1593,14 +1591,14 @@ float64 float64_round_to_int(float64 a, float_status_t &status)
     roundingMode = get_float_rounding_mode(status);
     if (roundingMode == float_round_nearest_even) {
         z += lastBitMask>>1;
-        if ((z & roundBitsMask) == 0) z &= ~ lastBitMask;
+        if ((z & roundBitsMask) == 0) z &= ~lastBitMask;
     }
     else if (roundingMode != float_round_to_zero) {
         if (extractFloat64Sign(z) ^ (roundingMode == float_round_up)) {
             z += roundBitsMask;
         }
     }
-    z &= ~ roundBitsMask;
+    z &= ~roundBitsMask;
     if (z != a) float_raise(status, float_flag_inexact);
     return z;
 }

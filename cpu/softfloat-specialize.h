@@ -1,5 +1,4 @@
 /*============================================================================
-
 This C source fragment is part of the SoftFloat IEC/IEEE Floating-point
 Arithmetic Package, Release 2b.
 
@@ -26,7 +25,6 @@ Derivative works are acceptable, even for commercial purposes, so long as
 (1) the source code for the derivative work includes prominent notice that
 the work is derivative, and (2) the source code includes prominent notice with
 these four paragraphs for those parts of this code that are retained.
-
 =============================================================================*/
 
 typedef int flag;
@@ -35,7 +33,7 @@ typedef int flag;
 | Raises the exceptions specified by `flags'.  Floating-point traps can be
 | defined here if desired.  It is currently not possible for such a trap
 | to substitute a result value.  If traps are not implemented, this routine
-| should be simply `float_exception_flags |= flags;'.
+| should be simply `float_exception_flags |= flags;'
 *----------------------------------------------------------------------------*/
 
 BX_CPP_INLINE void float_raise(float_status_t &status, int flags)
@@ -53,6 +51,16 @@ BX_CPP_INLINE int get_float_rounding_mode(float_status_t &status)
 }
 
 /*----------------------------------------------------------------------------
+| Returns current floating point NaN operands handling mode specified 
+| by status word.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE int get_float_nan_handling_mode(float_status_t &status)
+{
+    return status.float_nan_handling_mode;
+}
+
+/*----------------------------------------------------------------------------
 | Internal canonical NaN format.
 *----------------------------------------------------------------------------*/
 typedef struct {
@@ -64,6 +72,19 @@ typedef struct {
 | The pattern for a default generated single-precision NaN.
 *----------------------------------------------------------------------------*/
 #define float32_default_nan 0xFFC00000
+/*        in another version
+#define float32_default_nan 0x7FFFFFFF
+*/
+
+/*----------------------------------------------------------------------------
+| Returns 1 if the single-precision floating-point value `a' is a zero;
+| otherwise returns 0.
+*----------------------------------------------------------------------------*/
+
+flag float32_is_zero(float32 a)
+{
+    return ! ((Bit32u)(a<<1));
+}
 
 /*----------------------------------------------------------------------------
 | Returns 1 if the single-precision floating-point value `a' is a NaN;
@@ -129,19 +150,23 @@ static float32 propagateFloat32NaN(float32 a, float32 b, float_status_t &status)
     a |= 0x00400000;
     b |= 0x00400000;
     if (aIsSignalingNaN | bIsSignalingNaN) float_raise(status, float_flag_invalid);
-    if (aIsSignalingNaN) {
-        if (bIsSignalingNaN) goto returnLargerSignificand;
-        return bIsNaN ? b : a;
-    }
-    else if (aIsNaN) {
-        if (bIsSignalingNaN | ! bIsNaN) return a;
- returnLargerSignificand:
-        if ((Bit32u) (a<<1) < (Bit32u) (b<<1)) return b;
-        if ((Bit32u) (b<<1) < (Bit32u) (a<<1)) return a;
-        return (a < b) ? a : b;
-    }
-    else {
-        return b;
+    if (get_float_nan_handling_mode(status) == float_larger_significand_nan) {
+        if (aIsSignalingNaN) {
+            if (bIsSignalingNaN) goto returnLargerSignificand;
+            return bIsNaN ? b : a;
+        }
+        else if (aIsNaN) {
+            if (bIsSignalingNaN | ! bIsNaN) return a;
+      returnLargerSignificand:
+            if ((Bit32u) (a<<1) < (Bit32u) (b<<1)) return b;
+            if ((Bit32u) (b<<1) < (Bit32u) (a<<1)) return a;
+            return (a < b) ? a : b;
+        }
+        else {
+            return b;
+        }
+    } else {
+        return (aIsSignalingNaN | aIsNaN) ? a : b;
     }
 }
 
@@ -149,6 +174,19 @@ static float32 propagateFloat32NaN(float32 a, float32 b, float_status_t &status)
 | The pattern for a default generated double-precision NaN.
 *----------------------------------------------------------------------------*/
 #define float64_default_nan BX_CONST64(0xFFF8000000000000)
+/*                in another version
+#define float64_default_nan BX_CONST64(0x7FFFFFFFFFFFFFFF)
+*/
+
+/*----------------------------------------------------------------------------
+| Returns 1 if the double-precision floating-point value `a' is a zero;
+| otherwise returns 0.
+*----------------------------------------------------------------------------*/
+
+flag float64_is_zero(float64 a)
+{
+    return ! ((Bit64u)(a<<1));
+}
 
 /*----------------------------------------------------------------------------
 | Returns 1 if the double-precision floating-point value `a' is a NaN;
@@ -214,18 +252,22 @@ static float64 propagateFloat64NaN(float64 a, float64 b, float_status_t &status)
     a |= BX_CONST64(0x0008000000000000);
     b |= BX_CONST64(0x0008000000000000);
     if (aIsSignalingNaN | bIsSignalingNaN) float_raise(status, float_flag_invalid);
-    if (aIsSignalingNaN) {
-        if (bIsSignalingNaN) goto returnLargerSignificand;
-        return bIsNaN ? b : a;
-    }
-    else if (aIsNaN) {
-        if (bIsSignalingNaN | ! bIsNaN) return a;
- returnLargerSignificand:
-        if ((Bit64u) (a<<1) < (Bit64u) (b<<1)) return b;
-        if ((Bit64u) (b<<1) < (Bit64u) (a<<1)) return a;
-        return (a < b) ? a : b;
-    }
-    else {
-        return b;
+    if (get_float_nan_handling_mode(status) == float_larger_significand_nan) {
+        if (aIsSignalingNaN) {
+            if (bIsSignalingNaN) goto returnLargerSignificand;
+            return bIsNaN ? b : a;
+        }
+        else if (aIsNaN) {
+            if (bIsSignalingNaN | ! bIsNaN) return a;
+      returnLargerSignificand:
+            if ((Bit64u) (a<<1) < (Bit64u) (b<<1)) return b;
+            if ((Bit64u) (b<<1) < (Bit64u) (a<<1)) return a;
+            return (a < b) ? a : b;
+        }
+        else {
+            return b;
+        }
+    } else {
+        return (aIsSignalingNaN | aIsNaN) ? a : b;
     }
 }
