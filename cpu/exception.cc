@@ -53,7 +53,7 @@ BX_CPU_C::interrupt(Bit8u vector, Boolean is_INT, Boolean is_error_code,
   BX_CPU_THIS_PTR show_flag |= Flag_intsig;
 #endif
 
-//fprintf(stderr, "::interrupt(%u)\n", vector);
+//BX_DEBUG(( "::interrupt(%u)\n", vector ));
 
   BX_INSTR_INTERRUPT(vector);
   invalidate_prefetch_q();
@@ -567,7 +567,7 @@ BX_CPU_C::exception(unsigned vector, Bit16u error_code, Boolean is_INT)
   Bit8u    exception_type;
   unsigned prev_errno;
 
-//fprintf(stderr, "::exception(%u)\n", vector);
+//BX_DEBUG(( "::exception(%u)\n", vector ));
 
   BX_INSTR_EXCEPTION(vector);
   invalidate_prefetch_q();

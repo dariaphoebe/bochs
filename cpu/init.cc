@@ -155,8 +155,8 @@ BX_CPU_C::BX_CPU_C(void)
   DTRead16vShim = NULL;
   DTRead32vShim = NULL;
   DTReadRMW8vShim = (BxDTShim_t) DTASReadRMW8vShim;
-fprintf(stderr, "DTReadRMW8vShim is %x\n", (unsigned) DTReadRMW8vShim);
-fprintf(stderr, "&DTReadRMW8vShim is %x\n", (unsigned) &DTReadRMW8vShim);
+  BX_DEBUG(( "DTReadRMW8vShim is %x\n", (unsigned) DTReadRMW8vShim ));
+  BX_DEBUG(( "&DTReadRMW8vShim is %x\n", (unsigned) &DTReadRMW8vShim ));
   DTReadRMW16vShim = NULL;
   DTReadRMW32vShim = NULL;
   DTWriteRMW8vShim = (BxDTShim_t) DTASWriteRMW8vShim;
@@ -633,7 +633,7 @@ BX_CPU_C::sanity_checks(void)
   if (sizeof(Bit32u) != 4  ||  sizeof(Bit32s) != 4)
     BX_PANIC(("data type Bit32u or Bit32s is not of length 4 bytes!\n"));
 
-  fprintf(stderr, "#(%u)all sanity checks passed!\n", BX_SIM_ID);
+  BX_DEBUG(( "#(%u)all sanity checks passed!\n", BX_SIM_ID ));
 }
 
 

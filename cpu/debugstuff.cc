@@ -345,8 +345,7 @@ BX_CPU_C::dbg_get_descriptor_l(bx_descriptor_t *d)
   else {
     switch (d->type) {
       case 0: // Reserved (not yet defined)
-        fprintf(stderr, "#get_descriptor_l(): type %d not finished\n",
-          d->type);
+        BX_ERROR(( "#get_descriptor_l(): type %d not finished\n", d->type ));
         return(0);
 
       case 1: // available 16bit TSS
@@ -365,8 +364,7 @@ BX_CPU_C::dbg_get_descriptor_l(bx_descriptor_t *d)
         return(val);
 
       default:
-        fprintf(stderr, "#get_descriptor_l(): type %d not finished\n",
-          d->type);
+        BX_ERROR(( "#get_descriptor_l(): type %d not finished\n", d->type ));
         return(0);
       }
     }
@@ -400,8 +398,7 @@ BX_CPU_C::dbg_get_descriptor_h(bx_descriptor_t *d)
   else {
     switch (d->type) {
       case 0: // Reserved (not yet defined)
-        fprintf(stderr, "#get_descriptor_h(): type %d not finished\n",
-          d->type);
+        BX_ERROR(( "#get_descriptor_h(): type %d not finished\n", d->type ));
         return(0);
 
       case 1: // available 16bit TSS
@@ -431,8 +428,7 @@ BX_CPU_C::dbg_get_descriptor_h(bx_descriptor_t *d)
         return(val);
 
       default:
-        fprintf(stderr, "#get_descriptor_h(): type %d not finished\n",
-          d->type);
+        BX_ERROR(( "#get_descriptor_h(): type %d not finished\n", d->type ));
         return(0);
       }
     }
@@ -551,75 +547,75 @@ BX_CPU_C::dbg_set_cpu(bx_dbg_cpu_t *cpu)
 
   // CS, SS, DS, ES, FS, GS descriptor checks
   if (!cpu->cs.valid) {
-    fprintf(stderr, "Error: CS not valid\n");
+    BX_ERROR(( "Error: CS not valid\n" ));
     return(0); // error
     }
   if ( (cpu->cs.des_h & 0x1000) == 0 ) {
-    fprintf(stderr, "Error: CS not application type\n");
+    BX_ERROR(( "Error: CS not application type\n" ));
     return(0); // error
     }
   if ( (cpu->cs.des_h & 0x0800) == 0 ) {
-    fprintf(stderr, "Error: CS not executable\n");
+    BX_ERROR(( "Error: CS not executable\n" ));
     return(0); // error
     }
 
   if (!cpu->ss.valid) {
-    fprintf(stderr, "Error: SS not valid\n");
+    BX_ERROR(( "Error: SS not valid\n" ));
     return(0); // error
     }
   if ( (cpu->ss.des_h & 0x1000) == 0 ) {
-    fprintf(stderr, "Error: SS not application type\n");
+    BX_ERROR(( "Error: SS not application type\n" ));
     return(0); // error
     }
 
   if (cpu->ds.valid) {
     if ( (cpu->ds.des_h & 0x1000) == 0 ) {
-      fprintf(stderr, "Error: DS not application type\n");
+      BX_ERROR(( "Error: DS not application type\n" ));
       return(0); // error
       }
     }
 
   if (cpu->es.valid) {
     if ( (cpu->es.des_h & 0x1000) == 0 ) {
-      fprintf(stderr, "Error: ES not application type\n");
+      BX_ERROR(( "Error: ES not application type\n" ));
       return(0); // error
       }
     }
 
   if (cpu->fs.valid) {
     if ( (cpu->fs.des_h & 0x1000) == 0 ) {
-      fprintf(stderr, "Error: FS not application type\n");
+      BX_ERROR(( "Error: FS not application type\n" ));
       return(0); // error
       }
     }
 
   if (cpu->gs.valid) {
     if ( (cpu->gs.des_h & 0x1000) == 0 ) {
-      fprintf(stderr, "Error: GS not application type\n");
+      BX_ERROR(( "Error: GS not application type\n" ));
       return(0); // error
       }
     }
 
   if (cpu->ldtr.valid) {
     if ( cpu->ldtr.des_h & 0x1000 ) {
-      fprintf(stderr, "Error: LDTR not system type\n");
+      BX_ERROR(( "Error: LDTR not system type\n" ));
       return(0); // error
       }
     if ( ((cpu->ldtr.des_h >> 8) & 0x0f) != 2 ) {
-      fprintf(stderr, "Error: LDTR descriptor type not LDT\n");
+      BX_ERROR(( "Error: LDTR descriptor type not LDT\n" ));
       return(0); // error
       }
     }
 
   if (cpu->tr.valid) {
     if ( cpu->tr.des_h & 0x1000 ) {
-      fprintf(stderr, "Error: TR not system type\n");
+      BX_ERROR(( "Error: TR not system type\n"));
       return(0); // error
       }
     type = (cpu->tr.des_h >> 8) & 0x0f;
 
     if ( (type != 1) && (type != 9) ) {
-      fprintf(stderr, "Error: TR descriptor type not TSS\n");
+      BX_ERROR(( "Error: TR descriptor type not TSS\n" ));
       return(0); // error
       }
     }
@@ -1004,6 +1000,12 @@ bx_dbg_init_cpu_mem_env1(bx_dbg_callback_t *callback, int argc, char *argv[])
   void
 BX_CPU_C::atexit(void)
 {
+  BX_CPU_THIS_PTR info("\nCPU:%u\n", BX_SIM_ID);
+  if (BX_CPU.protected_mode()) BX_CPU_THIS_PTR info("protected mode\n");
+  else if (BX_CPU.v8086_mode()) BX_CPU_THIS_PTR info("v8086 mode\n");
+  else BX_CPU_THIS_PTR info("real mode\n");
+  BX_CPU_THIS_PTR info("CS.d_b = %u bit\n",
+    BX_CPU.sregs[BX_SREG_CS].cache.u.segment.d_b ? 32 : 16);
   BX_INFO(("\nCPU:%u\n", BX_SIM_ID));
   if (BX_CPU.protected_mode()) BX_INFO(("protected mode\n"));
   else if (BX_CPU.v8086_mode()) BX_INFO(("v8086 mode\n"));

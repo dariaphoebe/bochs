@@ -1154,7 +1154,7 @@ BX_CPU_C::WRMSR(BxInstruction_t *i)
 #if BX_CPU_LEVEL >= 5
   invalidate_prefetch_q();
 
-  BX_PANIC(("WRMSR: not implemented yet\n"));
+  BX_PANIC(( "WRMSR: not implemented yet\n"));
 #else
   UndefinedOpcode(i);
 #endif

@@ -111,7 +111,7 @@ bx_floppy_ctrl_c::init(bx_devices_c *d, bx_cmos_c *cmos)
       cmos->s.reg[0x10] = (cmos->s.reg[0x10] & 0x0f) | 0x50;
       break;
     default:
-      BX_FD_THIS panic("unknown floppya type\n");
+      BX_PANIC(( "unknown floppya type\n" ));
     }
 
   if (bx_options.floppya.type != BX_FLOPPY_NONE) {
