@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_u_mul.c                                                              |
- |  $Id: reg_u_mul.c,v 1.7 2003/10/05 12:26:11 sshwarts Exp $
+ |  $Id: reg_u_mul.c,v 1.7.10.1 2004/04/09 12:29:50 sshwarts Exp $
  |                                                                           |
  | Core multiplication routine                                               |
  |                                                                           |
@@ -19,7 +19,6 @@
  |   Result is rounded to nearest 53 or 64 bits, using "nearest or even".    |
  +---------------------------------------------------------------------------*/
 
-#include "exception.h"
 #include "fpu_emu.h"
 #include "control_w.h"
 

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_constant.h                                                           |
- |  $Id: reg_constant.h,v 1.6 2004/03/05 09:19:58 sshwarts Exp $
+ |  $Id: reg_constant.h,v 1.6.4.1 2004/04/09 12:29:50 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992    W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
  |                       Australia.  E-mail   billm@vaxc.cc.monash.edu.au    |
@@ -13,8 +13,6 @@
 #include "fpu_emu.h"
 
 extern FPU_REG const CONST_1;
-extern FPU_REG const CONST_L2T;
-extern FPU_REG const CONST_L2E;
 extern FPU_REG const CONST_PI;
 
 /*
@@ -23,10 +21,7 @@ extern FPU_REG const CONST_PI;
  * a better way.
  */
 extern FPU_REG CONST_PI2;
-extern FPU_REG const CONST_PI2extra;
 extern FPU_REG const CONST_PI4;
-extern FPU_REG const CONST_LG2;
-extern FPU_REG const CONST_LN2;
 extern FPU_REG const CONST_Z;
 extern FPU_REG const CONST_INF;
 extern FPU_REG const CONST_QNaN;

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  polynomial_Xsig.c                                                        |
- |  $Id: polynom_Xsig.c,v 1.2 2001/10/06 03:53:46 bdenney Exp $
+ |  $Id: polynom_Xsig.c,v 1.2.34.1 2004/04/09 12:29:50 sshwarts Exp $
  |                                                                           |
  | Fixed point arithmetic polynomial evaluation.                             |
  |                                                                           |
@@ -129,5 +129,3 @@ void polynomial_Xsig(Xsig *accum, const u64 *x, const u64 terms[], const int n)
     }
   accum->msw += acc.msw;
 }
-
-

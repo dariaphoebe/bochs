@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10 2003/10/05 12:26:11 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.10.1 2004/04/09 12:29:50 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -12,13 +12,17 @@
  +---------------------------------------------------------------------------*/
 
 #include "fpu_system.h"
-#include "exception.h"
 #include "fpu_emu.h"
 #include "status_w.h"
 #include "control_w.h"
 #include "reg_constant.h"	
 
 static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n);
+
+/* Extra bits to take pi/2 to more than 128 bits precision. */
+static FPU_REG const CONST_PI2extra = MAKE_REG(NEG, -66,
+					 0xfc8f8cbb, 0xece675d1);
+
 
 #define BETTER_THAN_486
 
@@ -48,13 +52,13 @@ static int trig_arg(FPU_REG *st0_ptr, int flags)
   if (flags & FPTAN)
     st0_ptr->exp ++;         /* Effectively base the following upon pi/4 */
 
-  FPU_control_word &= ~CW_RC;
-  FPU_control_word |= RC_CHOP;
+  FPU_control_word &= ~FPU_CW_RC;
+  FPU_control_word |= FPU_RC_CHOP;
 
   setpositive(st0_ptr);
   tag = FPU_u_div(st0_ptr,
                  &CONST_PI2,
-                 &tmp, PR_64_BITS | RC_CHOP | 0x3f, SIGN_POS);
+                 &tmp, FPU_PR_80_BITS | FPU_RC_CHOP | 0x3f, SIGN_POS);
 
   FPU_round_to_int(&tmp, tag);  /* Fortunately, this can't overflow
 				   to 2^64 */
@@ -171,38 +175,6 @@ static int trig_arg(FPU_REG *st0_ptr, int flags)
   return (q & 3) | (flags & FCOS);
 }
 
-
-/* Convert a s32 to register */
-static void convert_l2reg(s32 const *arg, int deststnr)
-{
-  int tag;
-  s32 num = *arg;
-  u_char sign;
-  FPU_REG *dest = &st(deststnr);
-
-  if (num == 0)
-    {
-      FPU_copy_to_regi(&CONST_Z, TAG_Zero, deststnr);
-      return;
-    }
-
-  if (num > 0)
-    { sign = SIGN_POS; }
-  else
-    { num = -num; sign = SIGN_NEG; }
-
-  dest->sigh = num;
-  dest->sigl = 0;
-  setexponent16(dest, 31);
-  tag = FPU_normalize_nuo(dest,
-                         EXTENDED_Ebias);  /* No underflow or overflow
-                                              is possible */
-  FPU_settagi(deststnr, tag);
-  setsign(dest, sign);
-  return;
-}
-
-
 static void single_arg_error(FPU_REG *st0_ptr, u_char st0_tag)
 {
   if (st0_tag == TAG_Empty)
@@ -215,7 +187,6 @@ static void single_arg_error(FPU_REG *st0_ptr, u_char st0_tag)
 #endif /* PARANOID */
 }
 
-
 static void single_arg_2_error(FPU_REG *st0_ptr, u_char st0_tag)
 {
   int isNaN;
@@ -227,7 +198,7 @@ static void single_arg_2_error(FPU_REG *st0_ptr, u_char st0_tag)
       if (isNaN && !(st0_ptr->sigh & 0x40000000))   /* Signaling ? */
 	{
 	  EXCEPTION(EX_Invalid);
-	  if (FPU_control_word & CW_Invalid)
+	  if (FPU_control_word & FPU_CW_Invalid)
 	    {
 	      /* The masked response */
 	      /* Convert to a QNaN */
@@ -246,7 +217,7 @@ static void single_arg_2_error(FPU_REG *st0_ptr, u_char st0_tag)
 	{
 	  /* pseudoNaN or other unsupported */
 	  EXCEPTION(EX_Invalid);
-	  if (FPU_control_word & CW_Invalid)
+	  if (FPU_control_word & FPU_CW_Invalid)
 	    {
 	      /* The masked response */
 	      FPU_copy_to_reg0(&CONST_QNaN, TAG_Special);
@@ -265,7 +236,35 @@ static void single_arg_2_error(FPU_REG *st0_ptr, u_char st0_tag)
 
 /*---------------------------------------------------------------------------*/
 
-static void f2xm1(FPU_REG *st0_ptr, u_char tag)
+/* A lean, mean kernel for the fprem instructions. This relies upon
+   the division and rounding to an integer in do_fprem giving an
+   exact result. Because of this, rem_kernel() needs to deal only with
+   the least significant 64 bits, the more significant bits of the
+   result must be zero.
+ */
+static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n)
+{
+  u64 x;
+  u64 work;
+
+  x = st0 << n;
+
+  work = (u32)st1;
+  work *= (u32)q;
+  x -= work;
+
+  work = st1 >> 32;
+  work *= (u32)q;
+  x -= work << 32;
+
+  work = (u32)st1;
+  work *= q >> 32;
+  x -= work << 32;
+  
+  *y = x;
+}
+
+void f2xm1(FPU_REG *st0_ptr, u_char tag)
 {
   FPU_REG a;
 
@@ -313,7 +312,7 @@ static void f2xm1(FPU_REG *st0_ptr, u_char tag)
 }
 
 
-static void fptan(FPU_REG *st0_ptr, u_char st0_tag)
+void fptan(FPU_REG *st0_ptr, u_char st0_tag)
 {
   FPU_REG *st_new_ptr;
   u32 q;
@@ -324,7 +323,7 @@ static void fptan(FPU_REG *st0_ptr, u_char st0_tag)
   if (st0_tag == TAG_Empty)
     {
       FPU_stack_underflow();  /* Puts a QNaN in st(0) */
-      if (FPU_control_word & CW_Invalid)
+      if (FPU_control_word & FPU_CW_Invalid)
 	{
 	  st_new_ptr = &st(-1);
 	  FPU_push();
@@ -403,229 +402,7 @@ static void fptan(FPU_REG *st0_ptr, u_char st0_tag)
   single_arg_2_error(st0_ptr, st0_tag);
 }
 
-
-static void fxtract(FPU_REG *st0_ptr, u_char st0_tag)
-{
-  FPU_REG *st_new_ptr;
-  u_char sign;
-  register FPU_REG *st1_ptr = st0_ptr;  /* anticipate */
-
-  if (FPU_stackoverflow(&st_new_ptr))
-    {  FPU_stack_overflow(); 
-       return; 
-    }
-
-  clear_C1();
-
-  if (st0_tag == TAG_Valid)
-    {
-      s32 e;
-
-      FPU_push();
-      sign = getsign(st1_ptr);
-      reg_copy(st1_ptr, st_new_ptr);
-      setexponent16(st_new_ptr, exponent(st_new_ptr));
-
-    denormal_arg:
-
-      e = exponent16(st_new_ptr);
-      convert_l2reg(&e, 1);
-      setexponentpos(st_new_ptr, 0);
-      setsign(st_new_ptr, sign);
-      FPU_settag0(TAG_Valid);       /* Needed if arg was a denormal */
-      return;
-    }
-  else if (st0_tag == TAG_Zero)
-    {
-      sign = getsign(st0_ptr);
-
-      if (FPU_divide_by_zero(0, SIGN_NEG) < 0)
-	return;
-
-      FPU_push();
-      FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
-      setsign(st_new_ptr, sign);
-      return;
-    }
-
-  if (st0_tag == TAG_Special)
-    st0_tag = FPU_Special(st0_ptr);
-
-  if (st0_tag == TW_Denormal)
-    {
-      if (denormal_operand() < 0)
-	return;
-
-      FPU_push();
-      sign = getsign(st1_ptr);
-      FPU_to_exp16(st1_ptr, st_new_ptr);
-      goto denormal_arg;
-    }
-  else if (st0_tag == TW_Infinity)
-    {
-      sign = getsign(st0_ptr);
-      setpositive(st0_ptr);
-      FPU_push();
-      FPU_copy_to_reg0(&CONST_INF, TAG_Special);
-      setsign(st_new_ptr, sign);
-      return;
-    }
-  else if (st0_tag == TW_NaN)
-    {
-      if (real_1op_NaN(st0_ptr) < 0)
-	return;
-
-      FPU_push();
-      FPU_copy_to_reg0(st0_ptr, TAG_Special);
-      return;
-    }
-  else if (st0_tag == TAG_Empty)
-    {
-      /* Is this the correct behaviour? */
-      if (FPU_control_word & EX_Invalid)
-	{
-	  FPU_stack_underflow();
-	  FPU_push();
-	  FPU_stack_underflow();
-	}
-      else
-	EXCEPTION(EX_StackUnder);
-    }
-#ifdef PARANOID
-  else
-    INTERNAL(0x119);
-#endif /* PARANOID */
-}
-
-
-static void fdecstp(void)
-{
-  clear_C1();
-  FPU_tos--;
-}
-
-static void fincstp(void)
-{
-  clear_C1();
-  FPU_tos++;
-}
-
-
-static void fsqrt_(FPU_REG *st0_ptr, u_char st0_tag)
-{
-  int expon;
-
-  clear_C1();
-
-  if (st0_tag == TAG_Valid)
-    {
-      u_char tag;
-      
-      if (signnegative(st0_ptr))
-	{
-	  arith_invalid(0);  /* sqrt(negative) is invalid */
-	  return;
-	}
-
-      /* make st(0) in  [1.0 .. 4.0) */
-      expon = exponent(st0_ptr);
-
-    denormal_arg:
-
-      setexponent16(st0_ptr, (expon & 1));
-
-      /* Do the computation, the sign of the result will be positive. */
-      tag = wm_sqrt(st0_ptr, FPU_control_word, SIGN_POS);
-      addexponent(st0_ptr, expon >> 1);
-      FPU_settag0(tag);
-      return;
-    }
-
-  if (st0_tag == TAG_Zero)
-    return;
-
-  if (st0_tag == TAG_Special)
-    st0_tag = FPU_Special(st0_ptr);
-
-  if (st0_tag == TW_Infinity)
-    {
-      if (signnegative(st0_ptr))
-	arith_invalid(0);  /* sqrt(-Infinity) is invalid */
-      return;
-    }
-  else if (st0_tag == TW_Denormal)
-    {
-      if (signnegative(st0_ptr))
-	{
-	  arith_invalid(0);  /* sqrt(negative) is invalid */
-	  return;
-	}
-
-      if (denormal_operand() < 0)
-	return;
-
-      FPU_to_exp16(st0_ptr, st0_ptr);
-
-      expon = exponent16(st0_ptr);
-
-      goto denormal_arg;
-    }
-
-  single_arg_error(st0_ptr, st0_tag);
-
-}
-
-
-static void frndint_(FPU_REG *st0_ptr, u_char st0_tag)
-{
-  int flags, tag;
-
-  if (st0_tag == TAG_Valid)
-    {
-      u_char sign;
-
-    denormal_arg:
-
-      sign = getsign(st0_ptr);
-
-      if (exponent(st0_ptr) > 63)
-	return;
-
-      if (st0_tag == TW_Denormal)
-	{
-	  if (denormal_operand() < 0)
-	    return;
-	}
-
-      /* Fortunately, this can't overflow to 2^64 */
-      if ((flags = FPU_round_to_int(st0_ptr, st0_tag)))
-	set_precision_flag(flags);
-
-      setexponent16(st0_ptr, 63);
-      tag = FPU_normalize_nuo(st0_ptr,
-                             EXTENDED_Ebias);  /* No underflow or overflow
-                                                  is possible */
-      setsign(st0_ptr, sign);
-      FPU_settag0(tag);
-      return;
-    }
-
-  if (st0_tag == TAG_Zero)
-    return;
-
-  if (st0_tag == TAG_Special)
-    st0_tag = FPU_Special(st0_ptr);
-
-  if (st0_tag == TW_Denormal)
-    goto denormal_arg;
-  else if (st0_tag == TW_Infinity)
-    return;
-  else
-    single_arg_error(st0_ptr, st0_tag);
-}
-
-
-static int fsin(FPU_REG *st0_ptr, u_char tag)
+int fsin(FPU_REG *st0_ptr, u_char tag)
 {
   u_char arg_sign = getsign(st0_ptr);
 
@@ -700,9 +477,7 @@ static int fsin(FPU_REG *st0_ptr, u_char tag)
 
 static int f_cos(FPU_REG *st0_ptr, u_char tag)
 {
-  u_char st0_sign;
-
-  st0_sign = getsign(st0_ptr);
+  u_char st0_sign = getsign(st0_ptr);
 
   if (tag == TAG_Valid)
     {
@@ -783,14 +558,12 @@ static int f_cos(FPU_REG *st0_ptr, u_char tag)
     }
 }
 
-
-static void fcos(FPU_REG *st0_ptr, u_char st0_tag)
+void fcos(FPU_REG *st0_ptr, u_char st0_tag)
 {
   f_cos(st0_ptr, st0_tag);
 }
 
-
-static void fsincos(FPU_REG *st0_ptr, u_char st0_tag)
+void fsincos(FPU_REG *st0_ptr, u_char st0_tag)
 {
   FPU_REG *st_new_ptr;
   FPU_REG arg;
@@ -800,7 +573,7 @@ static void fsincos(FPU_REG *st0_ptr, u_char st0_tag)
   if (st0_tag == TAG_Empty)
     {
       FPU_stack_underflow();  /* Puts a QNaN in st(0) */
-      if (FPU_control_word & CW_Invalid)
+      if (FPU_control_word & FPU_CW_Invalid)
 	{
 	  st_new_ptr = &st(-1);
 	  FPU_push();
@@ -850,332 +623,11 @@ static void fsincos(FPU_REG *st0_ptr, u_char st0_tag)
     }
 }
 
-
 /*---------------------------------------------------------------------------*/
 /* The following all require two arguments: st(0) and st(1) */
 
-/* A lean, mean kernel for the fprem instructions. This relies upon
-   the division and rounding to an integer in do_fprem giving an
-   exact result. Because of this, rem_kernel() needs to deal only with
-   the least significant 64 bits, the more significant bits of the
-   result must be zero.
- */
-static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n)
-{
-  u64 x;
-
-#ifdef NO_ASSEMBLER
-  u64 work;
-
-  x = st0 << n;
-
-  work = (u32)st1;
-  work *= (u32)q;
-  x -= work;
-
-  work = st1 >> 32;
-  work *= (u32)q;
-  x -= work << 32;
-
-  work = (u32)st1;
-  work *= q >> 32;
-  x -= work << 32;
-  
-#else
-  int dummy;
-
-  x = st0 << n;
-
-  /* Do the required multiplication and subtraction in the one operation */
-
-  /* lsw x -= lsw st1 * lsw q */
-  asm volatile ("mull %4; subl %%eax,%0; sbbl %%edx,%1"
-		:"=m" (((u32 *)&x)[0]), "=m" (((u32 *)&x)[1]),
-		"=a" (dummy)
-		:"2" (((u32 *)&st1)[0]), "m" (((u32 *)&q)[0])
-		:"%dx");
-  /* msw x -= msw st1 * lsw q */
-  asm volatile ("mull %3; subl %%eax,%0"
-		:"=m" (((u32 *)&x)[1]), "=a" (dummy)
-		:"1" (((u32 *)&st1)[1]), "m" (((u32 *)&q)[0])
-		:"%dx");
-  /* msw x -= lsw st1 * msw q */
-  asm volatile ("mull %3; subl %%eax,%0"
-		:"=m" (((u32 *)&x)[1]), "=a" (dummy)
-		:"1" (((u32 *)&st1)[0]), "m" (((u32 *)&q)[1])
-		:"%dx");
-#endif
-
-  *y = x;
-}
-
-
-/* Remainder of st(0) / st(1) */
-/* This routine produces exact results, i.e. there is never any
-   rounding or truncation, etc of the result. */
-static void do_fprem(FPU_REG *st0_ptr, u_char st0_tag, int round)
-{
-  FPU_REG *st1_ptr = &st(1);
-  u_char st1_tag = FPU_gettagi(1);
-
-  if (!((st0_tag ^ TAG_Valid) | (st1_tag ^ TAG_Valid)))
-    {
-      FPU_REG tmp, st0, st1;
-      u_char st0_sign, st1_sign;
-      u_char tmptag;
-      int tag;
-      int old_cw;
-      int expdif;
-      s64 q;
-      u16 saved_status;
-      int cc;
-
-    fprem_valid:
-      /* Convert registers for internal use. */
-      st0_sign = FPU_to_exp16(st0_ptr, &st0);
-      st1_sign = FPU_to_exp16(st1_ptr, &st1);
-      expdif = exponent16(&st0) - exponent16(&st1);
-
-      old_cw = FPU_control_word;
-      cc = 0;
-
-      /* We want the status following the denorm tests, but don't want
-	 the status changed by the arithmetic operations. */
-      saved_status = FPU_partial_status;
-      FPU_control_word &= ~CW_RC;
-      FPU_control_word |= RC_CHOP;
-
-      if (expdif < 64)
-	{
-	  /* This should be the most common case */
-
-	  if (expdif > -2)
-	    {
-	      u_char sign = st0_sign ^ st1_sign;
-	      tag = FPU_u_div(&st0, &st1, &tmp,
-			      PR_64_BITS | RC_CHOP | 0x3f,
-			      sign);
-	      setsign(&tmp, sign);
-
-	      if (exponent(&tmp) >= 0)
-		{
-		  FPU_round_to_int(&tmp, tag);  /* Fortunately, this can't
-						   overflow to 2^64 */
-		  q = significand(&tmp);
-
-		  rem_kernel(significand(&st0),
-			     &significand(&tmp),
-			     significand(&st1),
-			     q, expdif);
-
-		  setexponent16(&tmp, exponent16(&st1));
-		}
-	      else
-		{
-		  reg_copy(&st0, &tmp);
-		  q = 0;
-		}
-
-	      if ((round == RC_RND) && (tmp.sigh & 0xc0000000))
-		{
-		  /* We may need to subtract st(1) once more,
-		     to get a result <= 1/2 of st(1). */
-		  u64 x;
-		  expdif = exponent16(&st1) - exponent16(&tmp);
-		  if (expdif <= 1)
-		    {
-		      if (expdif == 0)
-			x = significand(&st1) - significand(&tmp);
-		      else /* expdif is 1 */
-			x = (significand(&st1) << 1) - significand(&tmp);
-		      if ((x < significand(&tmp)) ||
-			  /* or equi-distant (from 0 & st(1)) and q is odd */
-			  ((x == significand(&tmp)) && (q & 1)))
-			{
-			  st0_sign = ! st0_sign;
-			  significand(&tmp) = x;
-			  q++;
-			}
-		    }
-		}
-
-	      if (q & 4) cc |= SW_C0;
-	      if (q & 2) cc |= SW_C3;
-	      if (q & 1) cc |= SW_C1;
-	    }
-	  else
-	    {
-	      FPU_control_word = old_cw;
-	      setcc(0);
-	      return;
-	    }
-	}
-      else
-	{
-	  /* There is a large exponent difference (>= 64) */
-	  /* To make much sense, the code in this section should
-	     be done at high precision. */
-	  int exp_1, N;
-	  u_char sign;
-
-	  /* prevent overflow here */
-	  /* N is 'a number between 32 and 63' (p26-113) */
-	  reg_copy(&st0, &tmp);
-	  tmptag = st0_tag;
-	  N = (expdif & 0x0000001f) + 32;  /* This choice gives results
-					      identical to an AMD 486 */
-	  setexponent16(&tmp, N);
-	  exp_1 = exponent16(&st1);
-	  setexponent16(&st1, 0);
-	  expdif -= N;
-
-	  sign = getsign(&tmp) ^ st1_sign;
-	  tag = FPU_u_div(&tmp, &st1, &tmp, PR_64_BITS | RC_CHOP | 0x3f,
-			  sign);
-	  setsign(&tmp, sign);
-
-	  FPU_round_to_int(&tmp, tag);  /* Fortunately, this can't
-					   overflow to 2^64 */
-
-	  rem_kernel(significand(&st0),
-		     &significand(&tmp),
-		     significand(&st1),
-		     significand(&tmp),
-		     exponent(&tmp)
-		    ); 
-	  setexponent16(&tmp, exp_1 + expdif);
-
-	  /* It is possible for the operation to be complete here.
-	     What does the IEEE standard say? The Intel 80486 manual
-	     implies that the operation will never be completed at this
-	     point, and the behaviour of a real 80486 confirms this.
-	   */
-	  if (!(tmp.sigh | tmp.sigl))
-	    {
-	      /* The result is zero */
-	      FPU_control_word = old_cw;
-	      FPU_partial_status = saved_status;
-	      FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
-	      setsign(&st0, st0_sign);
-#ifdef PECULIAR_486
-	      setcc(SW_C2);
-#else
-	      setcc(0);
-#endif /* PECULIAR_486 */
-	      return;
-	    }
-	  cc = SW_C2;
-	}
-
-      FPU_control_word = old_cw;
-      FPU_partial_status = saved_status;
-      tag = FPU_normalize_nuo(&tmp, 0);
-      reg_copy(&tmp, st0_ptr);
-
-      /* The only condition to be looked for is underflow,
-	 and it can occur here only if underflow is unmasked. */
-      if ((exponent16(&tmp) <= EXP_UNDER) && (tag != TAG_Zero)
-	  && !(FPU_control_word & CW_Underflow))
-	{
-	  setcc(cc);
-	  tag = arith_underflow(st0_ptr);
-	  setsign(st0_ptr, st0_sign);
-	  FPU_settag0(tag);
-	  return;
-	}
-      else if ((exponent16(&tmp) > EXP_UNDER) || (tag == TAG_Zero))
-	{
-	  stdexp(st0_ptr);
-	  setsign(st0_ptr, st0_sign);
-	}
-      else
-	{
-	  tag = FPU_round(st0_ptr, 0, FULL_PRECISION, st0_sign);
-	}
-      FPU_settag0(tag);
-      setcc(cc);
-
-      return;
-    }
-
-  if (st0_tag == TAG_Special)
-    st0_tag = FPU_Special(st0_ptr);
-  if (st1_tag == TAG_Special)
-    st1_tag = FPU_Special(st1_ptr);
-
-  if (((st0_tag == TAG_Valid) && (st1_tag == TW_Denormal))
-	    || ((st0_tag == TW_Denormal) && (st1_tag == TAG_Valid))
-	    || ((st0_tag == TW_Denormal) && (st1_tag == TW_Denormal)))
-    {
-      if (denormal_operand() < 0)
-	return;
-      goto fprem_valid;
-    }
-  else if ((st0_tag == TAG_Empty) | (st1_tag == TAG_Empty))
-    {
-      FPU_stack_underflow();
-      return;
-    }
-  else if (st0_tag == TAG_Zero)
-    {
-      if (st1_tag == TAG_Valid)
-	{
-	  setcc(0); return;
-	}
-      else if (st1_tag == TW_Denormal)
-	{
-	  if (denormal_operand() < 0)
-	    return;
-	  setcc(0); return;
-	}
-      else if (st1_tag == TAG_Zero)
-	{ arith_invalid(0); return; } /* fprem(?,0) always invalid */
-      else if (st1_tag == TW_Infinity)
-	{ setcc(0); return; }
-    }
-  else if ((st0_tag == TAG_Valid) || (st0_tag == TW_Denormal))
-    {
-      if (st1_tag == TAG_Zero)
-	{
-	  arith_invalid(0); /* fprem(Valid,Zero) is invalid */
-	  return;
-	}
-      else if (st1_tag != TW_NaN)
-	{
-	  if (((st0_tag == TW_Denormal) || (st1_tag == TW_Denormal))
-	       && (denormal_operand() < 0))
-	    return;
-
-	  if (st1_tag == TW_Infinity)
-	    {
-	      /* fprem(Valid,Infinity) is o.k. */
-	      setcc(0); return;
-	    }
-	}
-    }
-  else if (st0_tag == TW_Infinity)
-    {
-      if (st1_tag != TW_NaN)
-	{
-	  arith_invalid(0); /* fprem(Infinity,?) is invalid */
-	  return;
-	}
-    }
-
-  /* One of the registers must contain a NaN if we got here. */
-
-#ifdef PARANOID
-  if ((st0_tag != TW_NaN) && (st1_tag != TW_NaN))
-      INTERNAL(0x118);
-#endif /* PARANOID */
-
-  real_2op_NaN(st1_ptr, st1_tag, 0, st1_ptr);
-
-}
-
-
 /* ST(1) <- ST(1) * log ST;  pop ST */
-static void fyl2x(FPU_REG *st0_ptr, u_char st0_tag)
+void fyl2x(FPU_REG *st0_ptr, u_char st0_tag)
 {
   FPU_REG *st1_ptr = &st(1), exponent;
   u_char st1_tag = FPU_gettagi(1);
@@ -1380,7 +832,7 @@ static void fyl2x(FPU_REG *st0_ptr, u_char st0_tag)
 }
 
 
-static void fpatan(FPU_REG *st0_ptr, u_char st0_tag)
+void fpatan(FPU_REG *st0_ptr, u_char st0_tag)
 {
   FPU_REG *st1_ptr = &st(1);
   u_char st1_tag = FPU_gettagi(1);
@@ -1510,20 +962,7 @@ static void fpatan(FPU_REG *st0_ptr, u_char st0_tag)
   set_precision_flag_up();  /* We do not really know if up or down */
 }
 
-
-static void fprem(FPU_REG *st0_ptr, u_char st0_tag)
-{
-  do_fprem(st0_ptr, st0_tag, RC_CHOP);
-}
-
-
-static void fprem1(FPU_REG *st0_ptr, u_char st0_tag)
-{
-  do_fprem(st0_ptr, st0_tag, RC_RND);
-}
-
-
-static void fyl2xp1(FPU_REG *st0_ptr, u_char st0_tag)
+void fyl2xp1(FPU_REG *st0_ptr, u_char st0_tag)
 {
   u_char sign, sign1;
   FPU_REG *st1_ptr = &st(1), a, b;
@@ -1710,188 +1149,4 @@ static void fyl2xp1(FPU_REG *st0_ptr, u_char st0_tag)
 #endif /* PARANOID */
 
   FPU_pop();
-  return;
-
-}
-
-
-static void fscale(FPU_REG *st0_ptr, u_char st0_tag)
-{
-  FPU_REG *st1_ptr = &st(1);
-  u_char st1_tag = FPU_gettagi(1);
-  int old_cw = FPU_control_word;
-  u_char sign = getsign(st0_ptr);
-
-  clear_C1();
-  if (!((st0_tag ^ TAG_Valid) | (st1_tag ^ TAG_Valid)))
-    {
-      s32 scale;
-      FPU_REG tmp;
-
-      /* Convert register for internal use. */
-      setexponent16(st0_ptr, exponent(st0_ptr));
-
-    valid_scale:
-
-      if (exponent(st1_ptr) > 30)
-	{
-	  /* 2^31 is far too large, would require 2^(2^30) or 2^(-2^30) */
-
-	  if (signpositive(st1_ptr))
-	    {
-	      EXCEPTION(EX_Overflow);
-	      FPU_copy_to_reg0(&CONST_INF, TAG_Special);
-	    }
-	  else
-	    {
-	      EXCEPTION(EX_Underflow);
-	      FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
-	    }
-	  setsign(st0_ptr, sign);
-	  return;
-	}
-
-      FPU_control_word &= ~CW_RC;
-      FPU_control_word |= RC_CHOP;
-      reg_copy(st1_ptr, &tmp);
-      FPU_round_to_int(&tmp, st1_tag);      /* This can never overflow here */
-      FPU_control_word = old_cw;
-      scale = signnegative(st1_ptr) ? -tmp.sigl : tmp.sigl;
-      scale += exponent16(st0_ptr);
-
-      setexponent16(st0_ptr, scale);
-
-      /* Use FPU_round() to properly detect under/overflow etc */
-      FPU_round(st0_ptr, 0, FPU_control_word, sign);
-
-      return;
-    }
-
-  if (st0_tag == TAG_Special)
-    st0_tag = FPU_Special(st0_ptr);
-  if (st1_tag == TAG_Special)
-    st1_tag = FPU_Special(st1_ptr);
-
-  if ((st0_tag == TAG_Valid) || (st0_tag == TW_Denormal))
-    {
-      switch (st1_tag)
-	{
-	case TAG_Valid:
-	  /* st(0) must be a denormal */
-	  if ((st0_tag == TW_Denormal) && (denormal_operand() < 0))
-	    return;
-
-	  FPU_to_exp16(st0_ptr, st0_ptr);  /* Will not be left on stack */
-	  goto valid_scale;
-
-	case TAG_Zero:
-	  if (st0_tag == TW_Denormal)
-	    denormal_operand();
-	  return;
-
-	case TW_Denormal:
-	  denormal_operand();
-	  return;
-
-	case TW_Infinity:
-	  if ((st0_tag == TW_Denormal) && (denormal_operand() < 0))
-	    return;
-
-	  if (signpositive(st1_ptr))
-	    FPU_copy_to_reg0(&CONST_INF, TAG_Special);
-	  else
-	    FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
-	  setsign(st0_ptr, sign);
-	  return;
-
-	case TW_NaN:
-	  real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr);
-	  return;
-	}
-    }
-  else if (st0_tag == TAG_Zero)
-    {
-      switch (st1_tag)
-	{
-	case TAG_Valid:
-	case TAG_Zero:
-	  return;
-
-	case TW_Denormal:
-	  denormal_operand();
-	  return;
-
-	case TW_Infinity:
-	  if (signpositive(st1_ptr))
-	    arith_invalid(0); /* Zero scaled by +Infinity */
-	  return;
-
-	case TW_NaN:
-	  real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr);
-	  return;
-	}
-    }
-  else if (st0_tag == TW_Infinity)
-    {
-      switch (st1_tag)
-	{
-	case TAG_Valid:
-	case TAG_Zero:
-	  return;
-
-	case TW_Denormal:
-	  denormal_operand();
-	  return;
-
-	case TW_Infinity:
-	  if (signnegative(st1_ptr))
-	    arith_invalid(0); /* Infinity scaled by -Infinity */
-	  return;
-
-	case TW_NaN:
-	  real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr);
-	  return;
-	}
-    }
-  else if (st0_tag == TW_NaN)
-    {
-      if (st1_tag != TAG_Empty)
-	{ real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr); return; }
-    }
-
-#ifdef PARANOID
-  if (!((st0_tag == TAG_Empty) || (st1_tag == TAG_Empty)))
-    {
-      INTERNAL(0x115);
-      return;
-    }
-#endif
-
-  /* At least one of st(0), st(1) must be empty */
-  FPU_stack_underflow();
-
-}
-
-
-/*---------------------------------------------------------------------------*/
-
-static FUNC_ST0 const trig_table_a[] = {
-  f2xm1, fyl2x, fptan, fpatan,
-  fxtract, fprem1, (FUNC_ST0)fdecstp, (FUNC_ST0)fincstp
-};
-
-void FPU_triga(void)
-{
-  (trig_table_a[FPU_rm])(&st(0), FPU_gettag0());
-}
-
-
-static FUNC_ST0 const trig_table_b[] =
-  {
-    fprem, fyl2xp1, fsqrt_, fsincos, frndint_, fscale, (FUNC_ST0)fsin, fcos
-  };
-
-void FPU_trigb(void)
-{
-  (trig_table_b[FPU_rm])(&st(0), FPU_gettag0());
 }

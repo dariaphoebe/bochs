@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_tags.c                                                               |
- |  $Id: fpu_tags.c,v 1.7 2004/02/11 19:40:25 sshwarts Exp $
+ |  $Id: fpu_tags.c,v 1.7.8.1 2004/04/09 12:29:49 sshwarts Exp $
  |                                                                           |
  |  Set FPU register tags.                                                   |
  |                                                                           |
@@ -13,7 +13,6 @@
 
 #include "fpu_emu.h"
 #include "fpu_system.h"
-#include "exception.h"
 
 void FPU_pop(void)
 {
@@ -72,11 +71,6 @@ int BX_CPP_AttrRegparmN(1) isNaN(FPU_REG const *ptr)
 	   && !((ptr->sigh == 0x80000000) && (ptr->sigl == 0)));
 }
 
-int  BX_CPP_AttrRegparmN(1) FPU_empty_i(int stnr)
-{
-  return FPU_gettagi(stnr) == TAG_Empty;
-}
-
 int FPU_stackoverflow(FPU_REG **st_new_ptr)
 {
   *st_new_ptr = &st(-1);
@@ -99,4 +93,34 @@ void  BX_CPP_AttrRegparmN(2) FPU_copy_to_reg0(FPU_REG const *r, u_char tag)
 {
   reg_copy(r, &st(0));
   FPU_settagi(0, tag);
+}
+
+int BX_CPP_AttrRegparmN(1) FPU_tagof(FPU_REG *reg)
+{
+  int exp = exponent16(reg) & 0x7fff;
+  if (exp == 0)
+    {
+      if (!(reg->sigh | reg->sigl))
+	{
+	  return TAG_Zero;
+	}
+      /* The number is a de-normal or pseudodenormal. */
+      return TAG_Special;
+    }
+
+  if (exp == 0x7fff)
+    {
+      /* Is an Infinity, a NaN, or an unsupported data type. */
+      return TAG_Special;
+    }
+
+  if (!(reg->sigh & 0x80000000))
+    {
+      /* Unsupported data type. */
+      /* Valid numbers have the ms bit set to 1. */
+      /* Unnormal. */
+      return TAG_Special;
+    }
+
+  return TAG_Valid;
 }

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  poly_2xm1.c                                                              |
- |  $Id: poly_2xm1.c,v 1.6 2003/10/05 12:26:11 sshwarts Exp $
+ |  $Id: poly_2xm1.c,v 1.6.10.1 2004/04/09 12:29:50 sshwarts Exp $
  |                                                                           |
  | Function to compute 2^x-1 by a polynomial approximation.                  |
  |                                                                           |
@@ -11,7 +11,6 @@
  |                                                                           |
  +---------------------------------------------------------------------------*/
 
-#include "exception.h"
 #include "reg_constant.h"
 #include "fpu_emu.h"
 #include "fpu_system.h"

@@ -24,8 +24,6 @@
 
 #if BX_SUPPORT_SSE
 
-#include "softfloat.h"
-
 void BX_CPU_C::check_exceptionsSSE(int exceptions_flags)
 {
   int unmasked = ~(MXCSR.get_exceptions_masks()) & exceptions_flags;
@@ -42,7 +40,7 @@ void BX_CPU_C::check_exceptionsSSE(int exceptions_flags)
 
 static void mxcsr_to_softfloat_status_word(softfloat_status_word_t &status, bx_mxcsr_t mxcsr)
 {
-  status.float_detect_tininess = float_tininess_before_rounding;
+  status.float_detect_tininess = float_tininess_after_rounding;
   status.float_exception_flags = 0; // clear exceptions before execution
   status.float_nan_handling_mode = float_first_operand_nan;
   status.float_rounding_mode = mxcsr.get_rounding_mode();
@@ -1052,25 +1050,7 @@ void BX_CPU_C::UCOMISS_VssWss(bxInstruction_c *i)
 
   int rc = float32_compare_quiet(op1, op2, status_word);
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
-
-  switch(rc) {
-     case float_relation_unordered:
-         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
-         break;
-
-     case float_relation_greater:
-         setEFlagsOSZAPC(0);
-         break;
-
-     case float_relation_less:
-         setEFlagsOSZAPC(EFlagsCFMask);
-         break;
-
-     case float_relation_equal:
-         setEFlagsOSZAPC(EFlagsZFMask);
-         break;
-  }
-
+  BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
 #else
   BX_INFO(("UCOMISS_VssWss: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -1109,25 +1089,7 @@ void BX_CPU_C::UCOMISD_VsdWsd(bxInstruction_c *i)
 
   int rc = float64_compare_quiet(op1, op2, status_word);
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
-
-  switch(rc) {
-     case float_relation_unordered:
-         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
-         break;
-
-     case float_relation_greater:
-         setEFlagsOSZAPC(0);
-         break;
-
-     case float_relation_less:
-         setEFlagsOSZAPC(EFlagsCFMask);
-         break;
-
-     case float_relation_equal:
-         setEFlagsOSZAPC(EFlagsZFMask);
-         break;
-  }
-
+  BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
 #else
   BX_INFO(("UCOMISD_VsdWsd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -1166,25 +1128,7 @@ void BX_CPU_C::COMISS_VpsWps(bxInstruction_c *i)
 
   int rc = float32_compare(op1, op2, status_word);
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
-
-  switch(rc) {
-     case float_relation_unordered:
-         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
-         break;
-
-     case float_relation_greater:
-         setEFlagsOSZAPC(0);
-         break;
-
-     case float_relation_less:
-         setEFlagsOSZAPC(EFlagsCFMask);
-         break;
-
-     case float_relation_equal:
-         setEFlagsOSZAPC(EFlagsZFMask);
-         break;
-  }
-
+  BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
 #else
   BX_INFO(("COMISS_VpsWps: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -1223,25 +1167,7 @@ void BX_CPU_C::COMISD_VpdWpd(bxInstruction_c *i)
 
   int rc = float64_compare(op1, op2, status_word);
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
-
-  switch(rc) {
-     case float_relation_unordered:
-         setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
-         break;
-
-     case float_relation_greater:
-         setEFlagsOSZAPC(0);
-         break;
-
-     case float_relation_less:
-         setEFlagsOSZAPC(EFlagsCFMask);
-         break;
-
-     case float_relation_equal:
-         setEFlagsOSZAPC(EFlagsZFMask);
-         break;
-  }
-
+  BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
 #else
   BX_INFO(("COMISD_VpdWpd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  poly_sin.c                                                               |
- |  $Id: poly_sin.c,v 1.5 2003/10/04 12:32:56 sshwarts Exp $
+ |  $Id: poly_sin.c,v 1.5.10.1 2004/04/09 12:29:50 sshwarts Exp $
  |                                                                           |
  |  Computation of an approximation of the sin function and the cosine       |
  |  function by a polynomial.                                                |
@@ -13,11 +13,11 @@
  +---------------------------------------------------------------------------*/
 
 
-#include "exception.h"
 #include "reg_constant.h"
 #include "fpu_emu.h"
 #include "fpu_system.h"
 #include "control_w.h"
+#include "status_w.h"
 #include "poly.h"
 
 

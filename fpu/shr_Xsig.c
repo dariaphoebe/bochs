@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  shr_Xsig.S                                                               |
- |  $Id: shr_Xsig.c,v 1.2 2001/10/06 03:53:46 bdenney Exp $
+ |  $Id: shr_Xsig.c,v 1.2.34.1 2004/04/09 12:29:50 sshwarts Exp $
  |                                                                           |
  | 12 byte right shift function                                              |
  |                                                                           |
@@ -37,6 +37,4 @@ void shr_Xsig(Xsig *arg, const int nr)
   arg->lsw = (arg->lsw >> n) | (arg->midw << (32-n));
   arg->midw = (arg->midw >> n) | (arg->msw << (32-n));
   arg->msw >>= n;
-
 }
-

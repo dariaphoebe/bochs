@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_u_div.c                                                              |
- |  $Id: reg_u_div.c,v 1.7 2003/10/05 12:26:11 sshwarts Exp $
+ |  $Id: reg_u_div.c,v 1.7.10.1 2004/04/09 12:29:50 sshwarts Exp $
  |                                                                           |
  | Divide one FPU_REG by another and put the result in a destination FPU_REG.|
  |                                                                           |
@@ -19,7 +19,6 @@
  |    one was raised, or -1 on internal error.                               |
  +---------------------------------------------------------------------------*/
 
-#include "exception.h"
 #include "fpu_emu.h"
 #include "control_w.h"
 

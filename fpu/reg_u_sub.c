@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_u_sub.c                                                              |
- |  $Id: reg_u_sub.c,v 1.7 2003/10/05 12:26:11 sshwarts Exp $
+ |  $Id: reg_u_sub.c,v 1.7.10.1 2004/04/09 12:29:50 sshwarts Exp $
  |                                                                           |
  | Core floating point subtraction routine.                                  |
  |                                                                           |
@@ -24,7 +24,6 @@
  |    Basic checks are performed if PARANOID is defined.
  */
 
-#include "exception.h"
 #include "fpu_emu.h"
 #include "control_w.h"
 

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_mul.c                                                                |
- |  $Id: reg_mul.c,v 1.4 2003/10/04 12:32:56 sshwarts Exp $
+ |  $Id: reg_mul.c,v 1.4.10.1 2004/04/09 12:29:50 sshwarts Exp $
  |                                                                           |
  | Multiply one FPU_REG by another, put the result in a destination FPU_REG. |
  |                                                                           |
@@ -16,8 +16,6 @@
  | The destination may be any FPU_REG, including one of the source FPU_REGs. |
  +---------------------------------------------------------------------------*/
 
-#include "fpu_emu.h"
-#include "exception.h"
 #include "reg_constant.h"
 #include "fpu_system.h"
 
