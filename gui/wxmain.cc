@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-// $Id: wxmain.cc,v 1.87 2002/12/30 17:04:43 vruppert Exp $
+// $Id: wxmain.cc,v 1.87.4.1 2003/04/04 03:35:05 bdenney Exp $
 /////////////////////////////////////////////////////////////////
 //
 // wxmain.cc implements the wxWindows frame, toolbar, menus, and dialogs.
@@ -57,6 +57,7 @@
 #include <wx/clipbrd.h>
 
 #include "osdep.h"               // workarounds for missing stuff
+#include "param.h"               // parameters
 #include "gui/siminterface.h"    // interface to the simulator
 #include "bxversion.h"           // get version string
 #include "wxdialog.h"            // custom dialog boxes
@@ -240,7 +241,7 @@ bool MyApp::OnInit()
   SetTopWindow( frame );
   wxTheClipboard->UsePrimarySelection (true);
   // if quickstart is enabled, kick off the simulation
-  if (SIM->get_param_enum(BXP_BOCHS_START)->get () == BX_QUICK_START) {
+  if (SIM->get_param_enum(BXPN_BOCHS_START)->get () == BX_QUICK_START) {
     wxCommandEvent unusedEvent;
     frame->OnStartSim (unusedEvent);
   }
@@ -565,7 +566,7 @@ void MyFrame::OnEditBoot(wxCommandEvent& WXUNUSED(event))
   int bootDevices = 0;
   wxString devices[MAX_BOOT_DEVICES];
   int dev_id[MAX_BOOT_DEVICES];
-  bx_param_enum_c *floppy = SIM->get_param_enum (BXP_FLOPPYA_DEVTYPE);
+  bx_param_enum_c *floppy = SIM->get_param_enum (BXPN_FLOPPYA_DEVTYPE);
   if (floppy->get () != BX_FLOPPY_NONE) {
     devices[bootDevices] = wxT("First floppy drive");
     dev_id[bootDevices++] = BX_BOOT_FLOPPYA;
@@ -587,31 +588,29 @@ void MyFrame::OnEditBoot(wxCommandEvent& WXUNUSED(event))
   int which = wxGetSingleChoiceIndex ("Select the device to boot from", "Boot Device", bootDevices, devices);
   if (which<0) return;  // cancelled
   bx_param_enum_c *bootdevice = (bx_param_enum_c *) 
-    SIM->get_param(BXP_BOOTDRIVE);
+    SIM->get_param(BXPN_BOOTDRIVE);
   bootdevice->set (which);
 }
 
 void MyFrame::OnEditMemory(wxCommandEvent& WXUNUSED(event))
 {
   ConfigMemoryDialog dlg (this, -1);
-  bx_param_num_c *megs = (bx_param_num_c*) SIM->get_param(BXP_MEM_SIZE);
-  bx_param_string_c *bios = (bx_param_string_c *) SIM->get_param (BXP_ROM_PATH);
-  bx_param_num_c *biosaddr = (bx_param_num_c*) SIM->get_param(BXP_ROM_ADDRESS);
-  bx_param_string_c *vgabios = (bx_param_string_c *) SIM->get_param (BXP_VGA_ROM_PATH);
-  static bx_id optRomPathParams[] = {
-    BXP_OPTROM1_PATH, BXP_OPTROM2_PATH, BXP_OPTROM3_PATH, BXP_OPTROM4_PATH
-  };
-  static bx_id optRomAddrParams[] = {
-    BXP_OPTROM1_ADDRESS, BXP_OPTROM2_ADDRESS, BXP_OPTROM3_ADDRESS, BXP_OPTROM4_ADDRESS
-  };
+  bx_param_num_c *megs = (bx_param_num_c*) SIM->get_param(BXPN_MEM_SIZE);
+  bx_param_string_c *bios = (bx_param_string_c *) SIM->get_param (BXPN_ROM_PATH);
+  bx_param_num_c *biosaddr = (bx_param_num_c*) SIM->get_param(BXPN_ROM_ADDRESS);
+  bx_param_string_c *vgabios = (bx_param_string_c *) SIM->get_param (BXPN_VGA_ROM_PATH);
   bx_param_string_c *optromPath[CONFIG_MEMORY_N_ROMS];
   bx_param_num_c *optromAddr[CONFIG_MEMORY_N_ROMS];
   int rom;
+  char path[BX_PARAM_PATH_MAX];
+#warning TESTME: optional rom path and address
   for (rom=0; rom<CONFIG_MEMORY_N_ROMS; rom++) {
-    optromPath[rom] = (bx_param_string_c *) 
-      SIM->get_param (optRomPathParams[rom]);
-    optromAddr[rom] = (bx_param_num_c *) 
-      SIM->get_param (optRomAddrParams[rom]);
+    sprintf (path, BXPN_OPTROMx, rom);
+    bx_list_c *optrom = (bx_list_c *)SIM->get_param (path);
+    if (optrom) {
+      optromPath[rom] = (bx_param_string_c *) optrom->get_by_name ("path");
+      optromAddr[rom] = (bx_param_num_c *)    optrom->get_by_name ("addr");
+    }
   }
   dlg.SetSize (megs->get ());
   dlg.SetBios (wxString (bios->getptr ()));
@@ -641,15 +640,15 @@ void MyFrame::OnEditMemory(wxCommandEvent& WXUNUSED(event))
 void MyFrame::OnEditSpeed(wxCommandEvent& WXUNUSED(event))
 {
   ParamDialog dlg (this, -1);
-  dlg.AddParam (SIM->get_param (BXP_IPS));
-  dlg.AddParam (SIM->get_param (BXP_REALTIME_PIT));
+  dlg.AddParam (SIM->get_param (BXPN_IPS));
+  dlg.AddParam (SIM->get_param (BXPN_REALTIME_PIT));
   dlg.ShowModal ();
 }
 
 void MyFrame::OnEditSound(wxCommandEvent& WXUNUSED(event))
 {
   ParamDialog dlg (this, -1);
-  bx_list_c *list = (bx_list_c*) SIM->get_param (BXP_SB16);
+  bx_list_c *list = (bx_list_c*) SIM->get_param (BXPN_SB16);
   dlg.SetTitle (list->get_name ());
   for (int i=0; i<list->get_size (); i++)
     dlg.AddParam (list->get (i));
@@ -659,26 +658,26 @@ void MyFrame::OnEditSound(wxCommandEvent& WXUNUSED(event))
 void MyFrame::OnEditCmos(wxCommandEvent& WXUNUSED(event))
 {
   ParamDialog dlg (this, -1);
-  dlg.AddParam (SIM->get_param (BXP_CMOS_IMAGE));
-  dlg.AddParam (SIM->get_param (BXP_CMOS_PATH));
-  dlg.AddParam (SIM->get_param (BXP_CMOS_TIME0));
+  dlg.AddParam (SIM->get_param (BXPN_CMOS_IMAGE));
+  dlg.AddParam (SIM->get_param (BXPN_CMOS_PATH));
+  dlg.AddParam (SIM->get_param (BXPN_CMOS_TIME0));
   dlg.ShowModal ();
 }
 
 void MyFrame::OnEditNet(wxCommandEvent& WXUNUSED(event))
 {
   NetConfigDialog dlg (this, -1);
-  bx_param_bool_c *present = (bx_param_bool_c*)SIM->get_param (BXP_NE2K_PRESENT);
-  bx_param_num_c *io = (bx_param_num_c*)SIM->get_param (BXP_NE2K_IOADDR);
-  bx_param_num_c *irq = (bx_param_num_c*)SIM->get_param (BXP_NE2K_IRQ);
+  bx_param_bool_c *present = (bx_param_bool_c*)SIM->get_param (BXPN_NE2K_PRESENT);
+  bx_param_num_c *io = (bx_param_num_c*)SIM->get_param (BXPN_NE2K_IOADDR);
+  bx_param_num_c *irq = (bx_param_num_c*)SIM->get_param (BXPN_NE2K_IRQ);
   bx_param_string_c *mac = (bx_param_string_c*)
-    SIM->get_param (BXP_NE2K_MACADDR);
+    SIM->get_param (BXPN_NE2K_MACADDR);
   bx_param_string_c *module = (bx_param_string_c*)
-    SIM->get_param (BXP_NE2K_ETHMOD);
+    SIM->get_param (BXPN_NE2K_ETHMOD);
   bx_param_string_c *device = (bx_param_string_c*)
-    SIM->get_param (BXP_NE2K_ETHDEV);
+    SIM->get_param (BXPN_NE2K_ETHDEV);
   bx_param_string_c *script = (bx_param_string_c*)
-    SIM->get_param (BXP_NE2K_SCRIPT);
+    SIM->get_param (BXPN_NE2K_SCRIPT);
   dlg.SetEnable (present->get ());
   dlg.SetIO (io->get ());
   dlg.SetIrq (irq->get ());
@@ -728,18 +727,18 @@ void MyFrame::OnEditKeyboard(wxCommandEvent& WXUNUSED(event))
 {
   ParamDialog dlg(this, -1);
   dlg.SetTitle ("Configure Keyboard");
-  dlg.AddParam (SIM->get_param (BXP_KBD_TYPE));
-  dlg.AddParam (SIM->get_param (BXP_KBD_SERIAL_DELAY));
-  dlg.AddParam (SIM->get_param (BXP_KBD_PASTE_DELAY));
-  dlg.AddParam (SIM->get_param (BXP_KEYBOARD_USEMAPPING));
-  dlg.AddParam (SIM->get_param (BXP_KEYBOARD_MAP));
+  dlg.AddParam (SIM->get_param (BXPN_KBD_TYPE));
+  dlg.AddParam (SIM->get_param (BXPN_KBD_SERIAL_DELAY));
+  dlg.AddParam (SIM->get_param (BXPN_KBD_PASTE_DELAY));
+  dlg.AddParam (SIM->get_param (BXPN_KEYBOARD_USEMAPPING));
+  dlg.AddParam (SIM->get_param (BXPN_KEYBOARD_MAP));
   dlg.ShowModal ();
 }
 
 void MyFrame::OnEditSerialParallel(wxCommandEvent& WXUNUSED(event))
 {
   ParamDialog dlg(this, -1);
-  bx_list_c *list = (bx_list_c*) SIM->get_param (BXP_MENU_SERIAL_PARALLEL);
+  bx_list_c *list = (bx_list_c*) SIM->get_param (BXPN_MENU_SERIAL_PARALLEL);
   dlg.SetTitle (list->get_name ());
   for (int i=0; i<list->get_size (); i++)
     dlg.AddParam (list->get (i));
@@ -749,7 +748,7 @@ void MyFrame::OnEditSerialParallel(wxCommandEvent& WXUNUSED(event))
 void MyFrame::OnEditLoadHack(wxCommandEvent& WXUNUSED(event))
 {
   ParamDialog dlg(this, -1);
-  bx_list_c *list = (bx_list_c*) SIM->get_param (BXP_LOAD32BITOS);
+  bx_list_c *list = (bx_list_c*) SIM->get_param (BXPN_LOAD32BITOS);
   dlg.SetTitle (list->get_name ());
   for (int i=0; i<list->get_size (); i++)
     dlg.AddParam (list->get (i));
@@ -760,21 +759,21 @@ void MyFrame::OnEditOther(wxCommandEvent& WXUNUSED(event))
 {
   ParamDialog dlg(this, -1);
   dlg.SetTitle ("Other Options");
-  dlg.AddParam (SIM->get_param (BXP_SEL_DISPLAY_LIBRARY));
-  dlg.AddParam (SIM->get_param (BXP_SEL_CONFIG_INTERFACE));
-  dlg.AddParam (SIM->get_param (BXP_VGA_UPDATE_INTERVAL));
-  dlg.AddParam (SIM->get_param (BXP_LOG_PREFIX));
-  dlg.AddParam (SIM->get_param (BXP_MOUSE_ENABLED));
-  dlg.AddParam (SIM->get_param (BXP_USER_SHORTCUT));
-  dlg.AddParam (SIM->get_param (BXP_FLOPPYSIGCHECK));
-  dlg.AddParam (SIM->get_param (BXP_FLOPPY_CMD_DELAY));
-  dlg.AddParam (SIM->get_param (BXP_NEWHARDDRIVESUPPORT));
-  dlg.AddParam (SIM->get_param (BXP_PRIVATE_COLORMAP));
+  dlg.AddParam (SIM->get_param (BXPN_SEL_DISPLAY_LIBRARY));
+  dlg.AddParam (SIM->get_param (BXPN_SEL_CONFIG_INTERFACE));
+  dlg.AddParam (SIM->get_param (BXPN_VGA_UPDATE_INTERVAL));
+  dlg.AddParam (SIM->get_param (BXPN_LOG_PREFIX));
+  dlg.AddParam (SIM->get_param (BXPN_MOUSE_ENABLED));
+  dlg.AddParam (SIM->get_param (BXPN_USER_SHORTCUT));
+  dlg.AddParam (SIM->get_param (BXPN_FLOPPYSIGCHECK));
+  dlg.AddParam (SIM->get_param (BXPN_FLOPPY_CMD_DELAY));
+  dlg.AddParam (SIM->get_param (BXPN_NEWHARDDRIVESUPPORT));
+  dlg.AddParam (SIM->get_param (BXPN_PRIVATE_COLORMAP));
 #if BX_WITH_AMIGAOS
-  dlg.AddParam (SIM->get_param (BXP_FULLSCREEN));
-  dlg.AddParam (SIM->get_param (BXP_SCREENMODE));
+  dlg.AddParam (SIM->get_param (BXPN_FULLSCREEN));
+  dlg.AddParam (SIM->get_param (BXPN_SCREENMODE));
 #endif
-  dlg.AddParam (SIM->get_param (BXP_I440FX_SUPPORT));
+  dlg.AddParam (SIM->get_param (BXPN_I440FX_SUPPORT));
   dlg.ShowModal ();
 }
 
@@ -785,9 +784,9 @@ void MyFrame::OnLogPrefs(wxCommandEvent& WXUNUSED(event))
   // At least I can verify that the expected numbers are the same.
   wxASSERT (SIM->get_max_log_level() == LOG_OPTS_N_TYPES);
   LogOptionsDialog dlg (this, -1);
-  bx_param_string_c *logfile = SIM->get_param_string (BXP_LOG_FILENAME);
+  bx_param_string_c *logfile = SIM->get_param_string (BXPN_LOG_FILENAME);
   dlg.SetLogfile (wxString (logfile->getptr ()));
-  bx_param_string_c *debuggerlogfile = SIM->get_param_string (BXP_DEBUGGER_LOG_FILENAME);
+  bx_param_string_c *debuggerlogfile = SIM->get_param_string (BXPN_DEBUGGER_LOG_FILENAME);
   dlg.SetDebuggerlogfile (wxString (debuggerlogfile->getptr ()));
 
   // The inital values of the dialog are complicated.  If the panic action
@@ -860,7 +859,7 @@ void MyFrame::OnLogPrefsDevice(wxCommandEvent& WXUNUSED(event))
 // When simulation is free running, #1 or #2 might make sense.  Try #2.
 void MyFrame::OnShowCpu(wxCommandEvent& WXUNUSED(event))
 {
-  if (SIM->get_param (BXP_CPU_EAX) == NULL) {
+  if (SIM->get_param (BXPN_CPU_EAX) == NULL) {
     // if params not initialized yet, then give up
     wxMessageBox ("Cannot show the debugger window until the simulation has begun.", "Sim not started", wxOK | wxICON_ERROR );
     return;
@@ -884,7 +883,7 @@ void MyFrame::OnShowKeyboard(wxCommandEvent& WXUNUSED(event))
   if (showKbd == NULL) {
     showKbd = new ParamDialog (this, -1);
     showKbd->SetTitle ("Keyboard State (incomplete, this is a demo)");
-    showKbd->AddParam (SIM->get_param (BXP_KBD_PARAMETERS));
+    showKbd->AddParam (SIM->get_param (BXPN_KBD));
     showKbd->Init ();
   } else {
     showKbd->CopyParamToGui ();
@@ -1012,11 +1011,20 @@ void MyFrame::simStatusChanged (StatusChange change, bx_bool popupNotify) {
 #endif
   // only enabled ATA channels with a cdrom connected are available at runtime
   for (unsigned i=0; i<4; i++) {
-    if (!SIM->get_param_bool((bx_id)(BXP_ATA0_PRESENT+i))->get ()) {
+    char path[BX_PARAM_PATH_MAX];
+    sprintf (path, BXPN_ATAx, i);
+    bx_list_c *ata = (bx_list_c*)SIM->get_param (path);
+    bx_param_bool_c *present = (bx_param_bool_c*)
+      ata->get_by_name ("present");
+    bx_param_num_c *master_type = (bx_param_num_c*)
+      ata->get_by_name ("master")->get_by_name ("type");
+    bx_param_num_c *slave_type = (bx_param_num_c*)
+      ata->get_by_name ("slave")->get_by_name ("type");
+    if (!present->get ()) {
       menuEdit->Enable (ID_Edit_ATA0+i, canConfigure);
     } else {
-      if ( (SIM->get_param_num((bx_id)(BXP_ATA0_MASTER_TYPE+i*2))->get () != BX_ATA_DEVICE_CDROM) &&
-           (SIM->get_param_num((bx_id)(BXP_ATA0_SLAVE_TYPE+i*2))->get () != BX_ATA_DEVICE_CDROM) ) {
+      if ( (master_type->get () != BX_ATA_DEVICE_CDROM) &&
+           (slave_type->get () != BX_ATA_DEVICE_CDROM) ) {
         menuEdit->Enable (ID_Edit_ATA0+i, canConfigure);
       }
     }
@@ -1035,9 +1043,9 @@ void MyFrame::simStatusChanged (StatusChange change, bx_bool popupNotify) {
   // can be modified under some circumstances.  A floppy drive can
   // only be edited if it was enabled at boot time.
   bx_param_c *param;
-  param = SIM->get_param(BXP_FLOPPYA);
+  param = SIM->get_param(BXPN_FLOPPYA);
   menuEdit->Enable (ID_Edit_FD_0, canConfigure || param->get_enabled ());
-  param = SIM->get_param(BXP_FLOPPYB);
+  param = SIM->get_param(BXPN_FLOPPYB);
   menuEdit->Enable (ID_Edit_FD_1, canConfigure || param->get_enabled ());
   /*
   // this menu item removed, since you can configure the cdrom from the
@@ -1060,7 +1068,7 @@ void MyFrame::OnStartSim(wxCommandEvent& event)
   // change it to wx.  It is technically possible to use other vga libraries
   // with the wx config interface, but there are still some significant
   // problems.
-  bx_param_enum_c *gui_param = SIM->get_param_enum(BXP_SEL_DISPLAY_LIBRARY);
+  bx_param_enum_c *gui_param = SIM->get_param_enum(BXPN_SEL_DISPLAY_LIBRARY);
   char *gui_name = gui_param->get_choice (gui_param->get ());
   if (strcmp (gui_name, "wx") != 0) {
     wxMessageBox (
@@ -1175,7 +1183,7 @@ MyFrame::HandleAskParamString (bx_param_string_c *param)
 // This is called when the simulator needs to ask the user to choose
 // a value or setting.  For example, when the user indicates that he wants
 // to change the floppy disk image for drive A, an ask-param event is created
-// with the parameter id set to BXP_FLOPPYA_PATH.  The simulator blocks until
+// with the parameter id set to BXPN_FLOPPYA_PATH.  The simulator blocks until
 // the gui has displayed a dialog and received a selection from the user.
 // In the current implemention, the GUI will look up the parameter's 
 // data structure using SIM->get_param() and then call the set method on the
@@ -1206,19 +1214,19 @@ MyFrame::HandleAskParam (BxEvent *event)
   }
 #if 0
   switch (param) {
-  case BXP_FLOPPYA_PATH:
-  case BXP_FLOPPYB_PATH:
-  case BXP_DISKC_PATH:
-  case BXP_DISKD_PATH:
-  case BXP_CDROM_PATH:
+  case BXPN_FLOPPYA_PATH:
+  case BXPN_FLOPPYB_PATH:
+  case BXPN_DISKC_PATH:
+  case BXPN_DISKD_PATH:
+  case BXPN_CDROM_PATH:
         {
           Raise();  // bring window to front so dialog shows
           char *msg;
-          if (param==BXP_FLOPPYA_PATH || param==BXP_FLOPPYB_PATH)
+          if (param==BXPN_FLOPPYA_PATH || param==BXPN_FLOPPYB_PATH)
             msg = "Choose new floppy disk image file";
-      else if (param==BXP_DISKC_PATH || param==BXP_DISKD_PATH)
+      else if (param==BXPN_DISKC_PATH || param==BXPN_DISKD_PATH)
             msg = "Choose new hard disk image file";
-      else if (param==BXP_CDROM_PATH)
+      else if (param==BXPN_CDROM_PATH)
             msg = "Choose new CDROM image file";
           else
             msg = "Choose new image file";
@@ -1232,7 +1240,7 @@ MyFrame::HandleAskParam (BxEvent *event)
               bx_param_string_c *Opath = SIM->get_param_string (param);
               assert (Opath != NULL);
               wxLogDebug ("Setting floppy %c path to '%s'", 
-                    param == BXP_FLOPPYA_PATH ? 'A' : 'B',
+                    param == BXPN_FLOPPYA_PATH ? 'A' : 'B',
                     newpath);
               Opath->set (newpath);
               return 1;
@@ -1367,7 +1375,7 @@ void MyFrame::editFloppyConfig (int drive)
   FloppyConfigDialog dlg (this, -1);
   dlg.SetDriveName (wxString (drive==0? BX_FLOPPY0_NAME : BX_FLOPPY1_NAME));
   dlg.SetCapacityChoices (n_floppy_type_names, floppy_type_names);
-  bx_list_c *list = (bx_list_c*) SIM->get_param ((drive==0)? BXP_FLOPPYA : BXP_FLOPPYB);
+  bx_list_c *list = (bx_list_c*) SIM->get_param ((drive==0)? BXPN_FLOPPYA : BXPN_FLOPPYB);
   if (!list) { wxLogError ("floppy object param is null"); return; }
   bx_param_filename_c *fname = (bx_param_filename_c*) list->get(0);
   bx_param_enum_c *disktype = (bx_param_enum_c *) list->get(1);
@@ -1431,11 +1439,13 @@ void MyFrame::OnEditATA (wxCommandEvent& event)
 {
   int id = event.GetId ();
   int channel = id - ID_Edit_ATA0;
+  char path[BX_PARAM_PATH_MAX];
+  sprintf (path, BXPN_ATAx_MENU, channel);
   ParamDialog dlg (this, -1);
   wxString str;
   str.Printf ("Configure ATA%d", channel);
   dlg.SetTitle (str);
-  dlg.AddParam (SIM->get_param ((bx_id)(BXP_ATA0_MENU+channel)));
+  dlg.AddParam (SIM->get_param (path));
   dlg.ShowModal ();
 }
 

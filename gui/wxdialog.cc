@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-// $Id: wxdialog.cc,v 1.54 2003/01/04 11:46:59 vruppert Exp $
+// $Id: wxdialog.cc,v 1.54.4.1 2003/04/04 03:35:05 bdenney Exp $
 /////////////////////////////////////////////////////////////////
 
 // Define BX_PLUGGABLE in files that can be compiled into plugins.  For
@@ -24,6 +24,7 @@
 #include <wx/notebook.h>
 
 #include "osdep.h"               // workarounds for missing stuff
+#include "param.h"               // parameters
 #include "gui/siminterface.h"    // interface to the simulator
 #include "bxversion.h"           // get version string
 #include "wxdialog.h"            // custom dialog boxes
@@ -1298,7 +1299,7 @@ void AdvancedLogOptionsDialog::Init()
 }
 
 void AdvancedLogOptionsDialog::CopyParamToGui () {
-  bx_param_string_c *logfile = SIM->get_param_string (BXP_LOG_FILENAME);
+  bx_param_string_c *logfile = SIM->get_param_string (BXPN_LOG_FILENAME);
   SetLogfile (wxString (logfile->getptr ()));
   // copy log action settings from siminterface to gui
   int dev, ndev = SIM->get_n_log_modules ();
@@ -1313,7 +1314,7 @@ void AdvancedLogOptionsDialog::CopyParamToGui () {
 void AdvancedLogOptionsDialog::CopyGuiToParam () {
   char buf[1024];
   safeWxStrcpy (buf, GetLogfile (), sizeof (buf));
-  bx_param_string_c *logfile = SIM->get_param_string (BXP_LOG_FILENAME);
+  bx_param_string_c *logfile = SIM->get_param_string (BXPN_LOG_FILENAME);
   logfile->set (buf);
   // copy log action settings from gui to siminterface
   int dev, ndev = SIM->get_n_log_modules ();
@@ -1834,11 +1835,11 @@ bool ParamDialog::isGeneratedId (int id) {
   return (id >= ID_LAST_USER_DEFINED && id < _next_id);
 }
 
-void ParamDialog::AddParamList (bx_id *idList, wxFlexGridSizer *sizer, bool plain)
+void ParamDialog::AddParamList (const char *paramList[], wxFlexGridSizer *sizer, bool plain)
 {
-  bx_id *idptr;
-  for (idptr = idList; *idptr != BXP_NULL; idptr++) {
-    bx_param_c *param = SIM->get_param (*idptr);
+  const char **name;
+  for (name = paramList; *name != NULL; name++) {
+    bx_param_c *param = SIM->get_param (*name);
     if (param != NULL) {
       AddParam (param, sizer, plain);
     }
@@ -1883,6 +1884,7 @@ void ParamDialog::AddParam (
 
   ParamStruct *pstr = new ParamStruct ();
   pstr->param = param_generic;
+  pstr->param->get_param_path (pstr->path, sizeof(pstr->path));
   pstr->id = genId ();
   pstr->label = NULL;
   pstr->u.window = NULL;
@@ -1902,7 +1904,7 @@ void ParamDialog::AddParam (
 	if (!plain) sizer->Add (1, 1);  // spacer
 	pstr->u.checkbox = ckbx;
 	idHash->Put (pstr->id, pstr);
-	paramHash->Put (pstr->param->get_id (), pstr);
+	paramHash->Put (pstr->path, pstr);
         break;
       }
     case BXT_PARAM_NUM: {
@@ -1917,7 +1919,7 @@ void ParamDialog::AddParam (
 	if (!plain) sizer->Add (1, 1);  // spacer
 	pstr->u.text = textctrl;
 	idHash->Put (pstr->id, pstr);
-	paramHash->Put (pstr->param->get_id (), pstr);
+	paramHash->Put (pstr->path, pstr);
         break;
       }
     case BXT_PARAM_ENUM: {
@@ -1934,7 +1936,7 @@ void ParamDialog::AddParam (
 	choice->SetSelection (param->get() - param->get_min ());
 	pstr->u.choice = choice;
 	idHash->Put (pstr->id, pstr);
-	paramHash->Put (pstr->param->get_id (), pstr);
+	paramHash->Put (pstr->path, pstr);
         break;
       }
     case BXT_PARAM_STRING: {
@@ -1958,7 +1960,7 @@ void ParamDialog::AddParam (
 	}
 	pstr->u.text = txtctrl;
 	idHash->Put (pstr->id, pstr);
-	paramHash->Put (pstr->param->get_id (), pstr);
+	paramHash->Put (pstr->path, pstr);
         break;
       }
     case BXT_LIST: {
@@ -1987,7 +1989,7 @@ void ParamDialog::AddParam (
 	    for (int j=0; j<childl->get_size(); j++)
 	      AddParam (childl->get(j), plain, &newcontext);
 	    const char *pagename = child->get_ask_format ();
-	    if (!pagename) pagename = child->get_name ();
+	    if (!pagename) pagename = child->get_description ();
 	    panel->SetAutoLayout (TRUE);
 	    panel->SetSizer (boxsz);
 	    notebook->AddPage (panel, wxString(pagename));
@@ -1999,7 +2001,7 @@ void ParamDialog::AddParam (
 	  // add to hashes
 	  pstr->u.notebook = notebook;
 	  idHash->Put (pstr->id, pstr);
-	  paramHash->Put (pstr->param->get_id (), pstr);
+	  paramHash->Put (pstr->path, pstr);
 	} else {
 	  wxStaticBox *box = new wxStaticBox (context->parent, -1, prompt);
 	  wxStaticBoxSizer *boxsz = new wxStaticBoxSizer (box, wxVERTICAL);
@@ -2021,7 +2023,7 @@ void ParamDialog::AddParam (
 	  // add to hashes
 	  pstr->u.staticbox = box;
 	  idHash->Put (pstr->id, pstr);
-	  paramHash->Put (pstr->param->get_id (), pstr);
+	  paramHash->Put (pstr->path, pstr);
 	}
 	break;
       }
@@ -2107,9 +2109,11 @@ void ParamDialog::EnableChangedRecursive (
 {
   if (list==NULL) return;
   int i;
+  char path[BX_PARAM_PATH_MAX];
   for (i=0; i<list->get_size (); i++) {
     bx_param_c *param = list->get(i);
-    ParamStruct *pstr = (ParamStruct*) paramHash->Get (param->get_id ());
+    param->get_param_path (path, sizeof(path));
+    ParamStruct *pstr = (ParamStruct*) paramHash->Get (path);
     if (pstr) {
       if (param == pstrOfCheckbox->param) {
 	wxLogDebug ("not setting enable on checkbox '%s' that triggered the enable change", pstrOfCheckbox->param->get_name ());
@@ -2117,7 +2121,7 @@ void ParamDialog::EnableChangedRecursive (
       }
       wxLogDebug ("setting enable for param '%s' to %d", pstr->param->get_name (), en?1:0);
       if (en != pstr->u.window->IsEnabled ()) {
-	EnableParam (pstr->param->get_id (), en);
+	EnableParam (pstr->path, en);
 	//pstr->u.window->Enable (en);
 	//if (pstr->browseButton) pstr->browseButton->Enable (en);
 	//if (pstr->label) pstr->label->Enable (en);
@@ -2134,7 +2138,8 @@ void ParamDialog::EnableChangedRecursive (
   // if any enums changed, give them a chance to update
   for (i=0; i<list->get_size (); i++) {
     bx_param_c *param = list->get(i);
-    ParamStruct *pstr = (ParamStruct*) paramHash->Get (param->get_id ());
+    param->get_param_path (path, sizeof(path));
+    ParamStruct *pstr = (ParamStruct*) paramHash->Get (path);
     if (pstr) {
       if (pstr->param->get_type () == BXT_PARAM_ENUM)
 	EnumChanged (pstr);
@@ -2142,9 +2147,18 @@ void ParamDialog::EnableChangedRecursive (
   }
 }
 
-void ParamDialog::EnableParam (int param_id, bool enabled)
+void ParamDialog::EnableParam (bx_param_c *param, bool enabled)
 {
-  ParamStruct *pstr = (ParamStruct*) paramHash->Get (param_id);
+  // the paramHash is built using the full param path as the hash key.
+  // Build the param path and call the real EnableParam, below.
+  char path[BX_PARAM_PATH_MAX];
+  param->get_param_path (path, sizeof(path));
+  EnableParam (path, enabled);
+}
+
+void ParamDialog::EnableParam (const char *path, bool enabled)
+{
+  ParamStruct *pstr = (ParamStruct*) paramHash->Get (path);
   if (!pstr) return;
   if (pstr->label) pstr->label->Enable (enabled);
   if (pstr->browseButton) pstr->browseButton->Enable (enabled);
@@ -2153,43 +2167,42 @@ void ParamDialog::EnableParam (int param_id, bool enabled)
 
 void ParamDialog::EnumChanged (ParamStruct *pstr)
 {
+#warning THIS NEW PARAM CODE DOES NOT WORK YET
   wxLogDebug ("EnumChanged");
-  int id = pstr->param->get_id ();
-  switch (id) {
-    case BXP_ATA0_MASTER_TYPE:
-    case BXP_ATA0_SLAVE_TYPE:
-    case BXP_ATA1_MASTER_TYPE:
-    case BXP_ATA1_SLAVE_TYPE:
-    case BXP_ATA2_MASTER_TYPE:
-    case BXP_ATA2_SLAVE_TYPE:
-    case BXP_ATA3_MASTER_TYPE:
-    case BXP_ATA3_SLAVE_TYPE: {
-      int delta = id - BXP_ATA0_MASTER_TYPE;
-      // find out if "present" checkbox is checked
-      bx_id present_id = (bx_id) (BXP_ATA0_MASTER_PRESENT+delta);
-      ParamStruct *present = (ParamStruct*) paramHash->Get (present_id);
-      wxASSERT (present && present->param->get_type () == BXT_PARAM_BOOL);
-      if (!present->u.checkbox->GetValue ())
-	break;  // device not enabled, leave it alone
-      if (!present->u.checkbox->IsEnabled ())
-	break;  // enable button for the device is not enabled
-      wxASSERT (pstr->param->get_type () == BXT_PARAM_ENUM);
-      int type = pstr->u.choice->GetSelection ();
-      if (type == BX_ATA_DEVICE_DISK) {
-	// enable cylinders, heads, spt
-	wxLogDebug ("enabling disk parameters");
-	EnableParam (BXP_ATA0_MASTER_CYLINDERS+delta, 1);
-	EnableParam (BXP_ATA0_MASTER_HEADS+delta, 1);
-	EnableParam (BXP_ATA0_MASTER_SPT+delta, 1);
-	EnableParam (BXP_ATA0_MASTER_STATUS+delta, 0);
-      } else {
-	// enable inserted
-	wxLogDebug ("enabling cdrom parameters");
-	EnableParam (BXP_ATA0_MASTER_CYLINDERS+delta, 0);
-	EnableParam (BXP_ATA0_MASTER_HEADS+delta, 0);
-	EnableParam (BXP_ATA0_MASTER_SPT+delta, 0);
-	EnableParam (BXP_ATA0_MASTER_STATUS+delta, 1);
-      }
+  char path[BX_PARAM_PATH_MAX];
+  pstr->param->get_param_path (path, sizeof(path));
+  // is this an ata.N.master.type parameter?
+  if (0==strncmp ("ata.", path, 4)
+      && 0==strcmp("type", pstr->param->get_name())) 
+  {
+    bx_list_c *atadev = (bx_list_c *)pstr->param->get_parent ();
+    // find the wxWindows checkbox associated with "present".
+    bx_param_bool_c *present_param = (bx_param_bool_c*)
+      atadev->get_by_name ("present");
+    present_param->get_param_path (path, sizeof(path));
+    ParamStruct *present = (ParamStruct*) paramHash->Get (path);
+    wxASSERT (present && present->param->get_type () == BXT_PARAM_BOOL);
+    if (!present->u.checkbox->GetValue ())
+      return;  // device not enabled, leave it alone
+    if (!present->u.checkbox->IsEnabled ())
+      return;  // enable button for the device is not enabled
+    wxASSERT (pstr->param->get_type () == BXT_PARAM_ENUM);
+    // is it a disk or cdrom? look at the wxWindows select box that changed.
+    int type = pstr->u.choice->GetSelection ();
+    if (type == BX_ATA_DEVICE_DISK) {
+      // enable cylinders, heads, spt
+      wxLogDebug ("enabling disk parameters");
+      EnableParam (atadev->get_by_name ("cylinders"), 1);
+      EnableParam (atadev->get_by_name ("heads"), 1);
+      EnableParam (atadev->get_by_name ("spt"), 1);
+      EnableParam (atadev->get_by_name ("status"), 0);
+    } else {
+      // enable inserted
+      wxLogDebug ("enabling cdrom parameters");
+      EnableParam (atadev->get_by_name ("cylinders"), 0);
+      EnableParam (atadev->get_by_name ("heads"), 0);
+      EnableParam (atadev->get_by_name ("spt"), 0);
+      EnableParam (atadev->get_by_name ("status"), 1);
     }
   }
 }
@@ -2328,14 +2341,14 @@ CpuRegistersDialog::CpuRegistersDialog(
 {
   wxFlexGridSizer *column;
   nflags = 0;
-  bx_id mainRegList1[] = CPU_REGS_MAIN_REGS1;
-  bx_id mainRegList2[] = CPU_REGS_MAIN_REGS2;
-  bx_id mainRegList3[] = CPU_REGS_MAIN_REGS3;
-  bx_id flagList[]     = CPU_REGS_FLAGS;
-  bx_id controlList[]  = CPU_REGS_CONTROL_REGS;
-  bx_id debugList[]    = CPU_REGS_DEBUG_REGS;
-  bx_id testList[]     = CPU_REGS_TEST_REGS;
-  bx_id *idptr;
+  const char* mainRegList1[] = CPU_REGS_MAIN_REGS1;
+  const char* mainRegList2[] = CPU_REGS_MAIN_REGS2;
+  const char* mainRegList3[] = CPU_REGS_MAIN_REGS3;
+  const char* flagList[]     = CPU_REGS_FLAGS;
+  const char* controlList[]  = CPU_REGS_CONTROL_REGS;
+  const char* debugList[]    = CPU_REGS_DEBUG_REGS;
+  const char* testList[]     = CPU_REGS_TEST_REGS;
+  const char** idptr;
 
   // top level objects
   wxStaticBox *mainRegsBox = new wxStaticBox (this, -1, "Basic Registers");
@@ -2371,7 +2384,7 @@ CpuRegistersDialog::CpuRegistersDialog(
   // add flag parameters
   flagsSizer = new wxFlexGridSizer (CPU_REGS_MAX_FLAGS);
   flagsBoxSizer->Add (flagsSizer, 0, wxALL | wxALIGN_CENTER, 3);
-  for (idptr = flagList; *idptr != BXP_NULL; idptr++)
+  for (idptr = flagList; *idptr != NULL; idptr++)
     AddFlag (*idptr);
 
   // extRegsSizer contents
@@ -2402,14 +2415,15 @@ CpuRegistersDialog::CpuRegistersDialog(
 }
 
 void
-CpuRegistersDialog::AddFlag (bx_id paramId)
+CpuRegistersDialog::AddFlag (const char* paramPath)
 {
-  if (SIM->get_param (paramId) == NULL) {
-    wxLogDebug ("AddFlag on unregistered param id=%d", (int)paramId);
+  bx_param_c *param = SIM->get_param (paramPath);
+  if (param == NULL) {
+    wxLogDebug ("AddFlag on unknown param '%s'", paramPath);
     return;
   }
   wxASSERT (nflags < CPU_REGS_MAX_FLAGS);
-  flagid[nflags++] = paramId;
+  flag[nflags++] = param;
 }
 
 void
@@ -2418,18 +2432,18 @@ CpuRegistersDialog::Init ()
   int i;
   for (i=0; i<CPU_REGS_MAX_FLAGS; i++) {
     if (i<nflags) {
-      bx_param_c *param = SIM->get_param (flagid[i]);
+      bx_param_c *param = flag[i];
       flagsSizer->Add (new wxStaticText (this, -1, param->get_name ()), 0, wxALL|wxALIGN_LEFT, 4);
     } else {
       flagsSizer->Add (0, 0);  // spacer
     }
   }
   for (i=0; i<nflags; i++) {
-    bx_param_c *param = SIM->get_param (flagid[i]);
+    bx_param_c *param = flag[i];
     AddParam (param, flagsSizer, true);
   }
   // special case: make IOPL text field small
-  ParamStruct *pstr = (ParamStruct*) paramHash->Get (BXP_CPU_EFLAGS_IOPL);
+  ParamStruct *pstr = (ParamStruct*) paramHash->Get (BXPN_CPU_EFLAGS_IOPL);
   if (pstr != NULL) {
     wxSize size = pstr->u.text->GetSize ();
     size.SetWidth (size.GetWidth () / 2);
@@ -2613,7 +2627,6 @@ wxChoice *makeLogOptionChoiceBox (wxWindow *parent,
 {
   static char *choices[] = LOG_OPTS_CHOICES;
   static int integers[LOG_OPTS_N_CHOICES] = {0, 1, 2, 3, 4};
-  static const wxString stupid[2] = { "little1", "little2" };
   wxChoice *control = new wxChoice (parent, id, wxDefaultPosition, wxDefaultSize);
   int lastChoice = 0;  // remember index of last choice
   int nchoice = includeNoChange? LOG_OPTS_N_CHOICES : LOG_OPTS_N_CHOICES_NORMAL;

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-// $Id: wx.cc,v 1.54 2002/12/28 11:49:16 vruppert Exp $
+// $Id: wx.cc,v 1.54.4.1 2003/04/04 03:35:05 bdenney Exp $
 /////////////////////////////////////////////////////////////////
 //
 // wxWindows VGA display for Bochs.  wx.cc implements a custom
@@ -169,7 +169,7 @@ void MyPanel::OnPaint(wxPaintEvent& WXUNUSED(event))
 void MyPanel::ToggleMouse (bool fromToolbar)
 {
   static bool first_enable = true;
-  bx_param_bool_c *enable = SIM->get_param_bool (BXP_MOUSE_ENABLED);
+  bx_param_bool_c *enable = SIM->get_param_bool (BXPN_MOUSE_ENABLED);
   bool en = ! enable->get ();
   bool is_main_thread = wxThread::IsMain ();
   bool needmutex = !is_main_thread && SIM->is_sim_thread ();
@@ -221,7 +221,7 @@ void MyPanel::OnMouse(wxMouseEvent& event)
     return;
   }
 
-  if (!SIM->get_param_bool(BXP_MOUSE_ENABLED)->get ()) 
+  if (!SIM->get_param_bool(BXPN_MOUSE_ENABLED)->get ()) 
     return;  // mouse disabled, ignore the event
 
   // process buttons and motion together

@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////
-// $Id: wxdialog.h,v 1.47 2003/01/04 11:47:00 vruppert Exp $
+// $Id: wxdialog.h,v 1.47.4.1 2003/04/04 03:35:05 bdenney Exp $
 ////////////////////////////////////////////////////////////////////
 //
 // wxWindows dialogs for Bochs
@@ -24,6 +24,100 @@
 #define BTNLABEL_DEBUG_COMMIT "Commit"
 #define BTNLABEL_CLOSE "Close"
 #define BTNLABEL_EXECUTE "Execute"
+
+#define BXPN_CPU_EAX                    "cpu.0.gen_reg.0.dword.erx"
+#define BXPN_CPU_EBX                    "cpu.0.gen_reg.3.dword.erx"
+#define BXPN_CPU_ECX                    "cpu.0.gen_reg.1.dword.erx"
+#define BXPN_CPU_EDX                    "cpu.0.gen_reg.2.dword.erx"
+#define BXPN_CPU_EBP                    "cpu.0.gen_reg.5.dword.erx"
+#define BXPN_CPU_ESI                    "cpu.0.gen_reg.6.dword.erx"
+#define BXPN_CPU_EDI                    "cpu.0.gen_reg.7.dword.erx"
+#define BXPN_CPU_ESP                    "cpu.0.gen_reg.4.dword.erx"
+#define BXPN_CPU_EIP                    "cpu.0.dword.eip"
+#define BXPN_CPU_SEG_CS                 "cpu.0.sregs.1.selector.value"
+#define BXPN_CPU_SEG_SS                 "cpu.0.sregs.2.selector.value"
+#define BXPN_CPU_SEG_DS                 "cpu.0.sregs.3.selector.value"
+#define BXPN_CPU_SEG_ES                 "cpu.0.sregs.0.selector.value"
+#define BXPN_CPU_SEG_FS                 "cpu.0.sregs.4.selector.value"
+#define BXPN_CPU_SEG_GS                 "cpu.0.sregs.5.selector.value"
+
+#warning FIXME: EFLAGS param path
+#define BXPN_CPU_EFLAGS                 "cpu.0.dword.eip"
+#define BXPN_CPU_EFLAGS_ID              ""
+#define BXPN_CPU_EFLAGS_VIP             ""
+#define BXPN_CPU_EFLAGS_VIF             ""
+#define BXPN_CPU_EFLAGS_AC              ""
+#define BXPN_CPU_EFLAGS_VM              ""
+#define BXPN_CPU_EFLAGS_RF              ""
+#define BXPN_CPU_EFLAGS_NT              ""
+#define BXPN_CPU_EFLAGS_IOPL            ""
+#define BXPN_CPU_EFLAGS_OF              ""
+#define BXPN_CPU_EFLAGS_DF              ""
+#define BXPN_CPU_EFLAGS_IF              ""
+#define BXPN_CPU_EFLAGS_TF              ""
+#define BXPN_CPU_EFLAGS_SF              ""
+#define BXPN_CPU_EFLAGS_ZF              ""
+#define BXPN_CPU_EFLAGS_AF              ""
+#define BXPN_CPU_EFLAGS_PF              ""
+#define BXPN_CPU_EFLAGS_CF              ""
+#define BXPN_CPU_EFLAGS_IOPL            "cpu.0.eflags.iopl"
+
+#define BXPN_CPU_SEG_LDTR               "cpu.0.ldtr.selector.value"
+#define BXPN_CPU_SEG_TR                 "cpu.0.tr.selector.value"
+#define BXPN_CPU_GDTR_BASE              "cpu.0.gdtr.base"
+#define BXPN_CPU_GDTR_LIMIT             "cpu.0.gdtr.limit"
+#define BXPN_CPU_IDTR_BASE              "cpu.0.idtr.base"
+#define BXPN_CPU_IDTR_LIMIT             "cpu.0.idtr.limit"
+#define BXPN_CPU_DR0                    "cpu.0.dr0"
+#define BXPN_CPU_DR1                    "cpu.0.dr1"
+#define BXPN_CPU_DR2                    "cpu.0.dr2"
+#define BXPN_CPU_DR3                    "cpu.0.dr3"
+#define BXPN_CPU_DR6                    "cpu.0.dr6"
+#define BXPN_CPU_DR7                    "cpu.0.dr7"
+#define BXPN_CPU_TR3                    "cpu.0.tr3"
+#define BXPN_CPU_TR4                    "cpu.0.tr4"
+#define BXPN_CPU_TR5                    "cpu.0.tr5"
+#define BXPN_CPU_TR6                    "cpu.0.tr6"
+#define BXPN_CPU_TR7                    "cpu.0.tr7"
+#define BXPN_CPU_CR0                    "cpu.0.cr0.val"
+#define BXPN_CPU_CR1                    "cpu.0.cr1"
+#define BXPN_CPU_CR2                    "cpu.0.cr2"
+#define BXPN_CPU_CR3                    "cpu.0.cr3"
+#define BXPN_CPU_CR4                    "cpu.0.cr4.registerValue"
+#define BXPN_LOG_FILENAME               "log.path"
+#define BXPN_BOCHS_START                "misc.start_mode"
+#define BXPN_FLOPPYA_DEVTYPE            "floppy.0.devtype"
+#define BXPN_BOOTDRIVE                  "boot_params.boot_drive"
+#define BXPN_ROM_PATH                   "memory.rom.path"
+#define BXPN_ROM_ADDRESS                "memory.rom.addr"
+#define BXPN_VGA_ROM_PATH               "memory.vgarom.path"
+#define BXPN_ATAx_MENU                  "menu.ata%d"
+#define BXPN_OPTROMx                    "memory.optional_rom.%d"
+#define BXPN_REALTIME_PIT               "pit.realtime"
+#define BXPN_CMOS_IMAGE                 "cmos.use_image"
+#define BXPN_CMOS_PATH                  "cmos.path"
+#define BXPN_CMOS_TIME0                 "cmos.time0"
+#define BXPN_NE2K_PRESENT               "ne2k.0.present"
+#define BXPN_NE2K_IOADDR                "ne2k.0.ioaddr"
+#define BXPN_NE2K_IRQ                   "ne2k.0.irq"
+#define BXPN_NE2K_MACADDR               "ne2k.0.macaddr"
+#define BXPN_NE2K_ETHMOD                "ne2k.0.ethmod"
+#define BXPN_NE2K_ETHDEV                "ne2k.0.ethdev"
+#define BXPN_NE2K_SCRIPT                "ne2k.0.script"
+#define BXPN_KBD_TYPE                   "keyboard.type"
+#define BXPN_KBD_SERIAL_DELAY           "keyboard.serial_delay"
+#define BXPN_KEYBOARD_USEMAPPING        "keyboard.use_mapping"
+#define BXPN_KEYBOARD_MAP               "keyboard.map"
+#define BXPN_LOAD32BITOS                "boot_params.load32bitos"
+#define BXPN_SEL_DISPLAY_LIBRARY        "display.display_library"
+#define BXPN_SEL_CONFIG_INTERFACE       "display.config_interface"
+#define BXPN_FLOPPY_CMD_DELAY           "floppy.cmd_delay"
+#define BXPN_PRIVATE_COLORMAP           "display.private_colormap"
+#define BXPN_I440FX_SUPPORT             "pci.enable"
+#define BXPN_KBD                        "keyboard"
+#define BXPN_ATA0_PRESENT               "ata.0.present"
+#define BXPN_ATA0_SLAVE_TYPE            "ata.0.slave.type"
+#define BXPN_ATAx                       "ata.%d"
 
 #if defined(WIN32)
 // On win32, apparantly the spinctrl depends on a native control which only
@@ -739,6 +833,7 @@ DECLARE_EVENT_TABLE()
 
 struct ParamStruct : public wxObject {
   bx_param_c *param;
+  char path[BX_PARAM_PATH_MAX];
   int id;
   wxStaticText *label;
   union _u_tag {
@@ -782,14 +877,23 @@ private:
   int nbuttons;
 protected:
   wxBoxSizer *mainSizer, *buttonSizer;
-  // hash table that maps the ID of a wxWindows control (e.g. wxChoice,
-  // wxTextCtrl) to the associated ParamStruct object.  Data in the hash table
-  // is of ParamStruct*.
+  // hash table that maps the wxWindows ID of a wxWindows control (e.g.
+  // wxChoice, wxTextCtrl) to the associated ParamStruct object.  Data in the
+  // hash table is of type ParamStruct*.  idHash is used in event handlers
+  // to figure out which parameter is associated with a given wxWindows 
+  // control.
   wxHashTable *idHash;
-  // map parameter ID (BXP_*) onto ParamStruct.
+  // map parameter ID (BXP_*) onto ParamStruct.  When a parameter with
+  // dependents changes value, this hash is used to locate the ParamStructs
+  // associated with each dependent parameter.  Basically, it answers the
+  // question, "How do you find the ParamStruct, given a parameter?"
+  // Could the hash key be the full path of the param?  The pointer to the
+  // param?  Pointer to param is dangerous, because it may not be the same
+  // length as a long.  Use the path.
   wxHashTable *paramHash;
   virtual void EnableChanged ();
-  void EnableParam (int param_id, bool enabled);
+  void EnableParam (const char *path, bool enabled);
+  void EnableParam (bx_param_c *param, bool enabled);
   void EnumChanged (ParamStruct *pstr);
   void EnableChangedRecursive (bx_list_c *list, bool en, ParamStruct *pstrOfCheckbox);
   void EnableChanged (ParamStruct *pstr);
@@ -811,7 +915,7 @@ public:
   bool Show (bool val) { isShowing = val; return wxDialog::Show (val); }
   void AddParam (bx_param_c *param, wxFlexGridSizer *sizer, bool plain = false);
   void AddParam (bx_param_c *param, bool plain = false, AddParamContext *context = NULL);
-  void AddParamList (bx_id *idList, wxFlexGridSizer *sizer = NULL, bool plain = false);
+  void AddParamList (const char *paramList[], wxFlexGridSizer *sizer = NULL, bool plain = false);
   virtual void CopyParamToGui ();
   bool IsShowing () { return isShowing; }
 DECLARE_EVENT_TABLE()
@@ -859,45 +963,46 @@ DECLARE_EVENT_TABLE()
 // |      [Go]  [Stop]  [Step]  [Step N]  N=[____]           |
 // +---------------------------------------------------------+
 //
+
 class CpuRegistersDialog : public ParamDialog
 {
 
 #define CPU_REGS_MAIN_REGS1                                             \
-  { BXP_CPU_EAX, BXP_CPU_EBX, BXP_CPU_ECX, BXP_CPU_EDX,                 \
-    BXP_CPU_EBP, BXP_CPU_ESI, BXP_CPU_EDI, BXP_CPU_ESP,                 \
-    BXP_NULL }
+  { BXPN_CPU_EAX, BXPN_CPU_EBX, BXPN_CPU_ECX, BXPN_CPU_EDX,                 \
+    BXPN_CPU_EBP, BXPN_CPU_ESI, BXPN_CPU_EDI, BXPN_CPU_ESP,                 \
+    NULL }
 #define CPU_REGS_MAIN_REGS2                                             \
-  { BXP_CPU_EIP, BXP_CPU_SEG_CS, BXP_CPU_SEG_SS, BXP_CPU_SEG_DS,        \
-    BXP_CPU_SEG_ES, BXP_CPU_SEG_FS, BXP_CPU_SEG_GS, BXP_CPU_EFLAGS,     \
-    BXP_NULL }
+  { BXPN_CPU_EIP, BXPN_CPU_SEG_CS, BXPN_CPU_SEG_SS, BXPN_CPU_SEG_DS,        \
+    BXPN_CPU_SEG_ES, BXPN_CPU_SEG_FS, BXPN_CPU_SEG_GS, BXPN_CPU_EFLAGS,     \
+    NULL }
 #define CPU_REGS_MAIN_REGS3                                             \
-  { BXP_CPU_SEG_LDTR, BXP_CPU_SEG_TR,                                   \
-    BXP_CPU_GDTR_BASE, BXP_CPU_IDTR_LIMIT,                              \
-    BXP_CPU_IDTR_BASE, BXP_CPU_GDTR_LIMIT,                              \
-    BXP_NULL }
+  { BXPN_CPU_SEG_LDTR, BXPN_CPU_SEG_TR,                                   \
+    BXPN_CPU_GDTR_BASE, BXPN_CPU_IDTR_LIMIT,                              \
+    BXPN_CPU_IDTR_BASE, BXPN_CPU_GDTR_LIMIT,                              \
+    NULL }
 #define CPU_REGS_FLAGS                                                  \
-  { BXP_CPU_EFLAGS_ID, BXP_CPU_EFLAGS_VIP, BXP_CPU_EFLAGS_VIF,          \
-    BXP_CPU_EFLAGS_AC, BXP_CPU_EFLAGS_VM, BXP_CPU_EFLAGS_RF,            \
-    BXP_CPU_EFLAGS_NT, BXP_CPU_EFLAGS_IOPL, BXP_CPU_EFLAGS_OF,          \
-    BXP_CPU_EFLAGS_DF, BXP_CPU_EFLAGS_IF, BXP_CPU_EFLAGS_TF,            \
-    BXP_CPU_EFLAGS_SF, BXP_CPU_EFLAGS_ZF, BXP_CPU_EFLAGS_AF,            \
-    BXP_CPU_EFLAGS_PF, BXP_CPU_EFLAGS_CF, \
-    BXP_NULL }
+  { BXPN_CPU_EFLAGS_ID, BXPN_CPU_EFLAGS_VIP, BXPN_CPU_EFLAGS_VIF,          \
+    BXPN_CPU_EFLAGS_AC, BXPN_CPU_EFLAGS_VM, BXPN_CPU_EFLAGS_RF,            \
+    BXPN_CPU_EFLAGS_NT, BXPN_CPU_EFLAGS_IOPL, BXPN_CPU_EFLAGS_OF,          \
+    BXPN_CPU_EFLAGS_DF, BXPN_CPU_EFLAGS_IF, BXPN_CPU_EFLAGS_TF,            \
+    BXPN_CPU_EFLAGS_SF, BXPN_CPU_EFLAGS_ZF, BXPN_CPU_EFLAGS_AF,            \
+    BXPN_CPU_EFLAGS_PF, BXPN_CPU_EFLAGS_CF, \
+    NULL }
 #define CPU_REGS_DEBUG_REGS                                             \
-  { BXP_CPU_DR0, BXP_CPU_DR1, BXP_CPU_DR2,                              \
-    BXP_CPU_DR3, BXP_CPU_DR6, BXP_CPU_DR7,                              \
-    BXP_NULL }
+  { BXPN_CPU_DR0, BXPN_CPU_DR1, BXPN_CPU_DR2,                              \
+    BXPN_CPU_DR3, BXPN_CPU_DR6, BXPN_CPU_DR7,                              \
+    NULL }
 #define CPU_REGS_TEST_REGS                                              \
-  { BXP_CPU_TR3, BXP_CPU_TR4, BXP_CPU_TR5, BXP_CPU_TR6, BXP_CPU_TR7,    \
-    BXP_NULL }
+  { BXPN_CPU_TR3, BXPN_CPU_TR4, BXPN_CPU_TR5, BXPN_CPU_TR6, BXPN_CPU_TR7,    \
+    NULL }
 #define CPU_REGS_CONTROL_REGS                                           \
-  { BXP_CPU_CR0, BXP_CPU_CR1, BXP_CPU_CR2, BXP_CPU_CR3, BXP_CPU_CR4,    \
-    BXP_NULL  }
+  { BXPN_CPU_CR0, BXPN_CPU_CR1, BXPN_CPU_CR2, BXPN_CPU_CR3, BXPN_CPU_CR4,    \
+    NULL  }
 
   void Init ();  // called automatically by ShowModal()
   wxFlexGridSizer *mainRegsSizer, *flagsSizer, *extRegsSizer;
 #define CPU_REGS_MAX_FLAGS 17
-  bx_id flagid[CPU_REGS_MAX_FLAGS];
+  bx_param_c *flag[CPU_REGS_MAX_FLAGS];
   int nflags;
 #if BX_DEBUGGER
   wxButton *contButton, *stopButton, *stepButton, *commitButton;
@@ -906,7 +1011,7 @@ class CpuRegistersDialog : public ParamDialog
 public:
   CpuRegistersDialog(wxWindow* parent, wxWindowID id);
   int ShowModal() { Init(); return wxDialog::ShowModal(); }
-  void AddFlag (bx_id paramId);
+  void AddFlag (const char *paramPath);
   void OnEvent (wxCommandEvent& event);
   virtual void CopyParamToGui ();
   DECLARE_EVENT_TABLE()
