@@ -63,6 +63,7 @@ OBJS = \
 	ctrl_xfer16.o \
 	mmx.o \
 	3dnow.o \
+        softfloat.o \
         fpu.o \
 	sse.o \
 	sse_move.o \
@@ -535,6 +536,8 @@ mmx.o: mmx.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h ../debug/debug.h \
  ../iodev/serial.h ../iodev/unmapped.h ../iodev/eth.h ../iodev/ne2k.h \
  ../iodev/guest2host.h ../iodev/slowdown_timer.h \
  ../instrument/stubs/instrument.h
+softfloat.o: softfloat.cc ../config.h ../cpu/softfloat-macros.h \
+ ../cpu/softfloat-specialize.h ../cpu/softfloat.h
 3dnow.o: 3dnow.@CPP_SUFFIX@ ../bochs.h ../config.h ../osdep.h ../debug/debug.h \
  ../bxversion.h ../gui/siminterface.h ../state_file.h ../cpu/cpu.h \
  ../cpu/lazy_flags.h ../cpu/i387.h ../memory/memory.h ../pc_system.h \

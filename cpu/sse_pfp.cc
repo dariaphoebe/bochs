@@ -18,12 +18,62 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
 
-
-
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
+#include "softfloat.h"
+
+#if BX_SUPPORT_SSE
+
+/* MXCSR REGISTER FIELDS DESCRIPTION */
+
+/*
+ * 15|14|13|12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0
+ * ==|==|=====|==|==|==|==|==|==|==|==|==|==|==|==
+ * FZ| R C |PM|UM|OM|ZM|DM|IM|DZ|PE|UE|OE|ZE|DE|IE
+ */
+
+/*
+ * IE  0    Invalid-Operation Exception             0
+ * DE  1    Denormalized-Operand Exception          0
+ * ZE  2    Zero-Divide Exception                   0
+ * OE  3    Overflow Exception                      0
+ * UE  4    Underflow Exception                     0
+ * PE  5    Precision Exception                     0
+ * DZ  6    Denormals are Zeros                     0
+ * IM  7    Invalid-Operation Exception Mask        1
+ * DM  8    Denormalized-Operand Exception Mask     1
+ * ZM  9    Zero-Divide Exception Mask              1
+ * OM 10    Overflow Exception Mask                 1
+ * UM 11    Underflow Exception Mask                1
+ * PM 12    Precision Exception Mask                1
+ * RC 13-14 Floating-Point Rounding Control         00
+ * FZ 15    Flush-to-Zero for Masked Underflow      0
+ */
+
+static softfloat_status_word_t BX_CPP_AttrRegparmN(1) 
+                 MXCSR_to_softfloat_status_word(bx_mxcsr_t mxcsr)
+{
+  softfloat_status_word_t status_word;
+
+  status_word.float_detect_tininess = float_tininess_before_rounding;
+  /* all exceptions are clear before instruction execution */
+  status_word.float_exception_flags = 0;
+  status_word.float_rounding_mode = 0;    	// FixME
+  status_word.denormals_are_zeroes = 0;   	// FixME
+  status_word.underflow_flush_to_zero = 0; 	// FixME
+
+  return status_word;
+}
+
+void BX_CPU_C::SSE_check_exceptions(int exception_flag)
+{
+   // FixMe, check exceptions one after one and if not masked -> add to MXCSR
+   // Generate appropriate exception flag if there is non masked exceptions
+}
+
+#endif
 
 void BX_CPU_C::CVTSI2SD_VsdEd(bxInstruction_c *i)
 {
@@ -438,7 +488,24 @@ void BX_CPU_C::ADDSS_VssWss(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("ADDSS_VssWss: SSE instruction still not implemented"));
+  Float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word = 
+        MXCSR_to_softfloat_status_word(BX_CPU_THIS_PTR mxcsr);
+  result = float32_add(op1, op2, status_word);
+  BX_CPU_THIS_PTR SSE_check_exceptions(status_word.float_exception_flags);
+
+  BX_WRITE_XMM_REG_LO_DWORD(i->nnn(), result);
+
 #else
   BX_INFO(("ADDSS_VssWss: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -450,7 +517,24 @@ void BX_CPU_C::ADDSD_VsdWsd(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("ADDSD_VsdWsd: SSE2 instruction still not implemented"));
+  Float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word = 
+        MXCSR_to_softfloat_status_word(BX_CPU_THIS_PTR mxcsr);
+  result = float64_add(op1, op2, status_word);
+  BX_CPU_THIS_PTR SSE_check_exceptions(status_word.float_exception_flags);
+
+  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), result);
+
 #else
   BX_INFO(("ADDSD_VsdWsd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -486,7 +570,24 @@ void BX_CPU_C::MULSS_VssWss(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("MULSS_VssWss: SSE instruction still not implemented"));
+  Float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word = 
+        MXCSR_to_softfloat_status_word(BX_CPU_THIS_PTR mxcsr);
+  result = float32_mul(op1, op2, status_word);
+  BX_CPU_THIS_PTR SSE_check_exceptions(status_word.float_exception_flags);
+
+  BX_WRITE_XMM_REG_LO_DWORD(i->nnn(), result);
+
 #else
   BX_INFO(("MULSS_VssWss: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -498,7 +599,24 @@ void BX_CPU_C::MULSD_VsdWsd(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("MULSD_VsdWsd: SSE2 instruction still not implemented"));
+  Float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word = 
+        MXCSR_to_softfloat_status_word(BX_CPU_THIS_PTR mxcsr);
+  result = float64_mul(op1, op2, status_word);
+  BX_CPU_THIS_PTR SSE_check_exceptions(status_word.float_exception_flags);
+
+  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), result);
+
 #else
   BX_INFO(("MULSD_VsdWsd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -534,7 +652,24 @@ void BX_CPU_C::SUBSS_VssWss(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("SUBSS_VssWss: SSE instruction still not implemented"));
+  Float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word = 
+        MXCSR_to_softfloat_status_word(BX_CPU_THIS_PTR mxcsr);
+  result = float32_sub(op1, op2, status_word);
+  BX_CPU_THIS_PTR SSE_check_exceptions(status_word.float_exception_flags);
+
+  BX_WRITE_XMM_REG_LO_DWORD(i->nnn(), result);
+
 #else
   BX_INFO(("SUBSS_VssWss: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -546,7 +681,22 @@ void BX_CPU_C::SUBSD_VsdWsd(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("SUBSD_VsdWsd: SSE2 instruction still not implemented"));
+  Float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+  }
+
+  softfloat_status_word_t status_word = 
+        MXCSR_to_softfloat_status_word(BX_CPU_THIS_PTR mxcsr);
+  result = float64_sub(op1, op2, status_word);
+  BX_CPU_THIS_PTR SSE_check_exceptions(status_word.float_exception_flags);
+
 #else
   BX_INFO(("SUBSD_VsdWsd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -582,7 +732,21 @@ void BX_CPU_C::MINSS_VssWss(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
+  Float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op2);
+  }
+
   BX_PANIC(("MINSS_VssWss: SSE instruction still not implemented"));
+
+  BX_WRITE_XMM_REG_LO_DWORD(i->nnn(), result);
+
 #else
   BX_INFO(("MINSS_VssWss: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -594,7 +758,20 @@ void BX_CPU_C::MINSD_VsdWsd(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
+  Float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+  }
+
   BX_PANIC(("MINSD_VsdWsd: SSE2 instruction still not implemented"));
+
+  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), result);
 #else
   BX_INFO(("MINSD_VsdWsd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -690,7 +867,20 @@ void BX_CPU_C::MAXSS_VssWss(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
+  Float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op2);
+  }
+
   BX_PANIC(("MAXSS_VssWss: SSE instruction still not implemented"));
+
+  BX_WRITE_XMM_REG_LO_DWORD(i->nnn(), result);
 #else
   BX_INFO(("MAXSS_VssWss: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -702,7 +892,20 @@ void BX_CPU_C::MAXSD_VsdWsd(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
+  Float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->nnn()), op2, result;
+
+  /* op2 is a register or memory reference */
+  if (i->modC0()) {
+    op2 = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+  }
+
   BX_PANIC(("MAXSD_VsdWsd: SSE2 instruction still not implemented"));
+
+  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), result);
 #else
   BX_INFO(("MAXSD_VsdWsd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);

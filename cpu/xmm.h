@@ -108,8 +108,11 @@ typedef union bx_xmm_reg_t {
  * FZ 15    Flush-to-Zero for Masked Underflow      0
  */
 
+#define MXCSR_ROUND_CONTROL_MASK 0x00006000
+#define MXCSR_DAZ_MASK           0x00000040
+
 struct bx_mxcsr_t {
-   Bit32u mxcsr;      /* define bitfields accessors later */
+   Bit32u mxcsr;
 };
 
 #define MXCSR_MASK  0x0000ffbf  /* reset reserved bits */

@@ -301,6 +301,7 @@ static BxOpcodeInfo_t Bx3DNowOpcodeInfo[256] = {
 /* ************************************************************************ */
 /* SSE Opcode Groups */
 
+
 /*** Duplicate SSE/SSE2 instructions ***/
 
 #define MOVUPD_VpdWpd  /* 66 0f 10 */ MOVUPS_VpsWps    /*    0f 10 */
@@ -335,6 +336,10 @@ static BxOpcodeInfo_t Bx3DNowOpcodeInfo[256] = {
 #define MOVNTPD_MdqVpd /* 66 0f 2b */ MOVNTPS_MdqVps   /*    0f 2b */
 #define MOVNTDQ_MdqVdq /* 66 0f e7 */ MOVNTPD_MdqVpd   /* 66 0f 2b */
 
+
+/* ********** */
+/* SSE Groups */
+/* ********** */
 
 static BxOpcodeInfo_t BxOpcodeGroupSSE_0f10[4] = {
   /* -- */  { 0, &BX_CPU_C::MOVUPS_VpsWps },

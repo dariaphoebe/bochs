@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.137.2.1 2003/04/29 10:48:39 sshwarts Exp $
+// $Id: cpu.h,v 1.137.2.2 2003/04/29 15:18:57 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -2067,6 +2067,7 @@ union {
 
 #if BX_SUPPORT_SSE
   BX_SMF void prepareSSE(void);
+  BX_SMF void SSE_check_exceptions(int);
 #endif
 
 #if BX_SUPPORT_3DNOW
