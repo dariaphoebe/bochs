@@ -19,7 +19,7 @@ these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
 // Pentium CPU uses only 68-bit precision M_PI approximation
-#define BETTER_THAN_PENTIUM
+// #define BETTER_THAN_PENTIUM
 
 /*============================================================================
  * Written for Bochs (x86 achitecture simulator) by
