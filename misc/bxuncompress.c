@@ -1,6 +1,6 @@
 /*
  * misc/bximage.c
- * $Id: bxuncompress.c,v 1.1.2.1 2004/04/30 17:14:27 cbothamy Exp $
+ * $Id: bxuncompress.c,v 1.1.2.2 2004/05/31 19:29:29 cbothamy Exp $
  *
  * Uncompresses a compressed disk image to a flat disk image for bochs
  *
@@ -41,7 +41,7 @@
 #include "../iodev/harddrv.h"
 
 char *EOF_ERR = "ERROR: End of input";
-char *rcsid = "$Id: bxuncompress.c,v 1.1.2.1 2004/04/30 17:14:27 cbothamy Exp $";
+char *rcsid = "$Id: bxuncompress.c,v 1.1.2.2 2004/05/31 19:29:29 cbothamy Exp $";
 char *divider = "========================================================================";
 
 void myexit (int code)
@@ -229,15 +229,15 @@ int lookup_image_type (char *filename)
      fatal ("ERROR: file not found\n");
   }
 
-  if (read(fd, &header, STANDARD_HEADER_SIZE) != STANDARD_HEADER_SIZE)
+  if (read(fd, &header, BX_HD_STANDARD_HEADER_SIZE) != BX_HD_STANDARD_HEADER_SIZE)
      return DISK_IMAGE_UNKNOWN;
   close(fd);
 
-  if (strcmp(header.generic.magic, STANDARD_HEADER_MAGIC) != 0)
+  if (strcmp(header.generic.magic, BX_HD_STANDARD_HEADER_MAGIC) != 0)
      return DISK_IMAGE_FLAT;
 
-  if ((strcmp(header.generic.type, COMPRESSED_TYPE) == 0)
-    &&(strcmp(header.generic.subtype, COMPRESSED_SUBTYPE_ZLIB) == 0))
+  if ((strcmp(header.generic.type, BX_HD_COMPRESSED_TYPE) == 0)
+    &&(strcmp(header.generic.subtype, BX_HD_COMPRESSED_SUBTYPE_ZLIB) == 0))
     return DISK_IMAGE_COMPRESSED;
 
   return DISK_IMAGE_UNKNOWN;
@@ -319,18 +319,18 @@ int uncompress_image (char *flat_filename, char *compressed_filename)
                 printf("\x8\x8\x8\x8\x8%3d%%]", (extentCount+1)*100/extentTotal);
 
                 // Read catalog for current extent
-                fseek(zfd, STANDARD_HEADER_SIZE + (extentCount * sizeof(Bit64u)), SEEK_SET);
+                fseek(zfd, BX_HD_STANDARD_HEADER_SIZE + (extentCount * sizeof(Bit64u)), SEEK_SET);
                 fread(&catalog, sizeof(Bit64u), 1, zfd);
                 catalog = dtoh64(catalog);
 
-                if(COMPRESSED_EXTENT_IS_ALLOCATED(catalog)) {
+                if(BX_HD_COMPRESSED_EXTENT_IS_ALLOCATED(catalog)) {
                         // Extent is allocated, we have to read data
-                        extentPosition = COMPRESSED_EXTENT_POSITION(catalog);
-                        zBlocks = COMPRESSED_EXTENT_SIZE(catalog);
+                        extentPosition = BX_HD_COMPRESSED_EXTENT_POSITION(catalog);
+                        zBlocks = BX_HD_COMPRESSED_EXTENT_SIZE(catalog);
                         fBlocks = extentSize / 512;
 
                         // read n 512-bytes data
-                        fseek(zfd, STANDARD_HEADER_SIZE + catalogSize + (extentPosition * 512), SEEK_SET);
+                        fseek(zfd, BX_HD_STANDARD_HEADER_SIZE + catalogSize + (extentPosition * 512), SEEK_SET);
                         fread(zbuffer, 512, zBlocks, zfd);
 
                         if(zBlocks < fBlocks) {

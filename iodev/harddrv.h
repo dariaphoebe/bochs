@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.25.10.2 2004/05/18 20:35:14 cbothamy Exp $
+// $Id: harddrv.h,v 1.25.10.3 2004/05/31 19:29:29 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -577,7 +577,7 @@ class cached_image_t : public device_image_t
       off_t   offset;
 };
 
-#if BX_HD_COMPRESSED_HD_SUPPORT
+#if BX_COMPRESSED_HD_SUPPORT
 
 #include <zlib.h>
 
@@ -594,6 +594,9 @@ class z_compressed_image_t : public cached_image_t
 
       // Close the image.
       void close ();
+
+      // Reclaim space lost during run
+      void reclaim_lost_space ();
 
       // Physical read
       ssize_t physical_read (off_t offset, void* buf, size_t count);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.120.10.2 2004/05/18 20:35:14 cbothamy Exp $
+// $Id: harddrv.cc,v 1.120.10.3 2004/05/31 19:29:29 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -157,7 +157,7 @@ bx_hard_drive_c::init(void)
   char  string[5];
   char  sbtext[8];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.120.10.2 2004/05/18 20:35:14 cbothamy Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.120.10.3 2004/05/31 19:29:29 cbothamy Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
@@ -353,7 +353,7 @@ bx_hard_drive_c::init(void)
             break;
 #endif //BX_FAT_VIRTUAL_HD_SUPPORT==1
 
-#if BX_HD_COMPRESSED_HD_SUPPORT
+#if BX_COMPRESSED_HD_SUPPORT
           case BX_ATA_MODE_Z_COMPRESSED:
             BX_INFO(("HD on ata%d-%d: '%s' 'z-compressed' mode ", channel, device, 
                                     bx_options.atadevice[channel][device].Opath->getptr ()));
@@ -375,7 +375,7 @@ bx_hard_drive_c::init(void)
             channels[channel].drives[device].hard_drive = new z_volatile_image_t(disk_size,
                             bx_options.atadevice[channel][device].Ojournal->getptr());
             break;
-#endif //BX_HD_COMPRESSED_HD_SUPPORT
+#endif //BX_COMPRESSED_HD_SUPPORT
 
           default:
             BX_PANIC(("HD on ata%d-%d: '%s' unsupported HD mode : %s", channel, device, 
@@ -4914,6 +4914,8 @@ Bit16u cached_image_t::lookup_cache(void)
 // Flush all cache
 void cached_image_t::flush_cache()
 {
+        BX_INFO(("cached : flushing buffers"));
+
         for (Bit16u i=0; i < BX_HD_CACHES; i++) {
                 flush_cache(i);
         }
@@ -4926,6 +4928,7 @@ void cached_image_t::flush_cache(Bit16u index)
                 BX_PANIC(("cached : index %d in not consistent",index));
 
         if (cache_flag[index] == BX_HD_CACHE_FLAG_MODIFIED) {
+                BX_INFO(("cached : flushing buffer #%d",index));
                 if (physical_write(cache_position[index], cache_buffers[index], cache_size) != cache_size)
                         BX_PANIC(("cached : physical_write wrote short block"));
                 cache_flag[index] = BX_HD_CACHE_FLAG_READ;
@@ -4936,7 +4939,7 @@ void cached_image_t::flush_cache(Bit16u index)
 
 
 
-#if BX_HD_COMPRESSED_HD_SUPPORT
+#if BX_COMPRESSED_HD_SUPPORT
 
 /*** z_compressed_image_t class definitions ***/
 
@@ -5047,7 +5050,11 @@ int z_compressed_image_t::open (const char* pathname)
 void 
 z_compressed_image_t::close ()
 {
+        // give a chance to the cache top flush its buffers
         cached_image_t::close();
+
+        // Now we can reclaim lost space
+        reclaim_lost_space();
 
         if (fd >= 0)
         {
@@ -5219,6 +5226,21 @@ ssize_t z_compressed_image_t::physical_write (off_t offset, const void* buf, siz
         }
         
         return count;
+}
+
+void z_compressed_image_t::reclaim_lost_space()
+{
+        // The idea is to browse the catalog and rewrite adjacently
+        // the compressed blocks so lost space will be removed.
+        // We have to truncate the file when finished.
+        // This operation is potentially intensive, as the catalog
+        // is logically ordered, while actual blocks are out of order.
+        Bit32u index;
+
+        // Find lowest physical compressed block
+        for (index=0; index<dtoh32(header.specific.catalog); index++) {
+
+        }
 }
 
 /*** z_ro_image_t function definitions ***/

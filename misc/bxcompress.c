@@ -1,6 +1,6 @@
 /*
  * misc/bximage.c
- * $Id: bxcompress.c,v 1.1.2.2 2004/05/18 20:35:15 cbothamy Exp $
+ * $Id: bxcompress.c,v 1.1.2.3 2004/05/31 19:29:29 cbothamy Exp $
  *
  * Compresses a flat disk image to a compressed disk image for bochs
  * Also reclaims space unused in a compressed disk image for bochs
@@ -42,7 +42,7 @@
 #include "../iodev/harddrv.h"
 
 char *EOF_ERR = "ERROR: End of input";
-char *rcsid = "$Id: bxcompress.c,v 1.1.2.2 2004/05/18 20:35:15 cbothamy Exp $";
+char *rcsid = "$Id: bxcompress.c,v 1.1.2.3 2004/05/31 19:29:29 cbothamy Exp $";
 char *divider = "========================================================================";
 
 void myexit (int code)
@@ -217,11 +217,11 @@ void make_compressed_header(compressed_header_t *header, const char* type, Bit64
         Bit64u maxsize;
 
         // Set generic header values
-        strcpy((char*)header->generic.magic, STANDARD_HEADER_MAGIC);
-        strcpy((char*)header->generic.type, COMPRESSED_TYPE);
+        strcpy((char*)header->generic.magic, BX_HD_STANDARD_HEADER_MAGIC);
+        strcpy((char*)header->generic.type, BX_HD_COMPRESSED_TYPE);
         strcpy((char*)header->generic.subtype, type);
-        header->generic.version = htod32(STANDARD_HEADER_VERSION);
-        header->generic.header = htod32(STANDARD_HEADER_SIZE);
+        header->generic.version = htod32(BX_HD_STANDARD_HEADER_VERSION);
+        header->generic.header = htod32(BX_HD_STANDARD_HEADER_SIZE);
 
         entries = 4 * 1024;
         extent_size = 16 * 512; // bytes
@@ -268,15 +268,15 @@ int lookup_image_type (char *filename)
      fatal ("ERROR: file not found\n");
   }
 
-  if (read(fd, &header, STANDARD_HEADER_SIZE) != STANDARD_HEADER_SIZE)
+  if (read(fd, &header, BX_HD_STANDARD_HEADER_SIZE) != BX_HD_STANDARD_HEADER_SIZE)
      return DISK_IMAGE_UNKNOWN;
   close(fd);
 
-  if (strcmp(header.generic.magic, STANDARD_HEADER_MAGIC) != 0)
+  if (strcmp(header.generic.magic, BX_HD_STANDARD_HEADER_MAGIC) != 0)
      return DISK_IMAGE_FLAT;
 
-  if ((strcmp(header.generic.type, COMPRESSED_TYPE) == 0)
-    &&(strcmp(header.generic.subtype, COMPRESSED_SUBTYPE_ZLIB) == 0))
+  if ((strcmp(header.generic.type, BX_HD_COMPRESSED_TYPE) == 0)
+    &&(strcmp(header.generic.subtype, BX_HD_COMPRESSED_SUBTYPE_ZLIB) == 0))
     return DISK_IMAGE_COMPRESSED;
 
   return DISK_IMAGE_UNKNOWN;
@@ -294,7 +294,7 @@ int compress_flat_image (char *flat_filename, char *compressed_filename)
         Bit32u zBlocks, fBlocks, oBlocks;
         Bit32u extentCount, extentTotal;
         fpos_t lastPos;
-        Bit64u notAllocated = htod64(COMPRESSED_EXTENT_NOT_ALLOCATED);
+        Bit64u notAllocated = htod64(BX_HD_COMPRESSED_EXTENT_NOT_ALLOCATED);
         Bit64u catalog, extentPosition, inCount, outCount;
 
         if (stat(flat_filename, &statbuf)<0) {
@@ -303,7 +303,7 @@ int compress_flat_image (char *flat_filename, char *compressed_filename)
 
         // make header
         memset(&header, 0, sizeof(header));
-        make_compressed_header(&header, COMPRESSED_SUBTYPE_ZLIB, statbuf.st_size);
+        make_compressed_header(&header, BX_HD_COMPRESSED_SUBTYPE_ZLIB, statbuf.st_size);
 
         // Estimate number of extents, no need to be perfectly exact
         extentTotal = ((statbuf.st_size) / dtoh32(header.specific.extent)) + 1;
@@ -429,8 +429,8 @@ int compress_flat_image (char *flat_filename, char *compressed_filename)
                         fgetpos(zfd, &lastPos);
                 }
 
-                fseek(zfd, STANDARD_HEADER_SIZE + (extentCount * sizeof(Bit64u)), SEEK_SET);
-                catalog = htod64(COMPRESSED_EXTENT_CATALOG(extentPosition, oBlocks));
+                fseek(zfd, BX_HD_STANDARD_HEADER_SIZE + (extentCount * sizeof(Bit64u)), SEEK_SET);
+                catalog = htod64(BX_HD_COMPRESSED_EXTENT_CATALOG(extentPosition, oBlocks));
                 fwrite(&catalog, sizeof(Bit64u), 1, zfd);
 
                 extentPosition += (Bit64u)oBlocks;
