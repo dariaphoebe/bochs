@@ -681,7 +681,7 @@ void BX_CPU_C::PCMPEQD_PqQq(bxInstruction_c *i)
 /* 0F 77 */
 void BX_CPU_C::EMMS(bxInstruction_c *i)
 {
-#if BX_SUPPORT_MMX
+#if BX_SUPPORT_MMX || BX_SUPPORT_3DNOW
   BX_CPU_THIS_PTR prepareMMX();
   FPU_TWD  = 0xffff;
 #else

@@ -132,8 +132,7 @@ BX_CPP_INLINE void
 *----------------------------------------------------------------------------*/
 
 BX_CPP_INLINE void
- add128(
-     Bit64u a0, Bit64u a1, Bit64u b0, Bit64u b1, Bit64u *z0Ptr, Bit64u *z1Ptr)
+ add128(Bit64u a0, Bit64u a1, Bit64u b0, Bit64u b1, Bit64u *z0Ptr, Bit64u *z1Ptr)
 {
     Bit64u z1;
 
@@ -151,8 +150,7 @@ BX_CPP_INLINE void
 *----------------------------------------------------------------------------*/
 
 BX_CPP_INLINE void
- sub128(
-     Bit64u a0, Bit64u a1, Bit64u b0, Bit64u b1, Bit64u *z0Ptr, Bit64u *z1Ptr)
+ sub128(Bit64u a0, Bit64u a1, Bit64u b0, Bit64u b1, Bit64u *z0Ptr, Bit64u *z1Ptr)
 {
 
     *z1Ptr = a1 - b1;

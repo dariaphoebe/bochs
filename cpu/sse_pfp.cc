@@ -380,28 +380,28 @@ void BX_CPU_C::SQRTPS_VpsWps(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BxPackedXmmRegister op1 = BX_READ_XMM_REG(i->nnn()), op2, result;
+  BxPackedXmmRegister op, result;
 
-  /* op2 is a register or memory reference */
+  /* op is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_XMM_REG(i->rm());
+    op = BX_READ_XMM_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op2);
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op);
   }
 
   softfloat_status_word_t status_word;
   status_word = MXCSR_to_softfloat_status_word(MXCSR);
 
   result.xmm32u(0) = 
-     float32_sqrt(op1.xmm32u(0), op2.xmm32u(0), status_word);
+     float32_sqrt(op.xmm32u(0), status_word);
   result.xmm32u(1) = 
-     float32_sqrt(op1.xmm32u(1), op2.xmm32u(1), status_word);
+     float32_sqrt(op.xmm32u(1), status_word);
   result.xmm32u(2) = 
-     float32_sqrt(op1.xmm32u(2), op2.xmm32u(2), status_word);
+     float32_sqrt(op.xmm32u(2), status_word);
   result.xmm32u(3) = 
-     float32_sqrt(op1.xmm32u(3), op2.xmm32u(3), status_word);
+     float32_sqrt(op.xmm32u(3), status_word);
 
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
   BX_WRITE_XMM_REG(i->nnn(), result);
@@ -422,24 +422,24 @@ void BX_CPU_C::SQRTPD_VpdWpd(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BxPackedXmmRegister op1 = BX_READ_XMM_REG(i->nnn()), op2, result;
+  BxPackedXmmRegister op, result;
 
-  /* op2 is a register or memory reference */
+  /* op is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_XMM_REG(i->rm());
+    op = BX_READ_XMM_REG(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op2);
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op);
   }
 
   softfloat_status_word_t status_word;
   status_word = MXCSR_to_softfloat_status_word(MXCSR);
 
   result.xmm64u(0) = 
-     float64_sqrt(op1.xmm64u(0), op2.xmm64u(0), status_word);
+     float64_sqrt(op.xmm64u(0), status_word);
   result.xmm64u(1) = 
-     float32_sqrt(op1.xmm64u(1), op2.xmm64u(1), status_word);
+     float32_sqrt(op.xmm64u(1), status_word);
 
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
   BX_WRITE_XMM_REG(i->nnn(), result);
@@ -460,21 +460,21 @@ void BX_CPU_C::SQRTSD_VsdWsd(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  Float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->nnn()), op2, result;
+  Float64 op, result;
 
-  /* op2 is a register or memory reference */
+  /* op is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_XMM_REG_LO_QWORD(i->rm());
+    op = BX_READ_XMM_REG_LO_QWORD(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_qword(i->seg(), RMAddr(i), &op2);
+    read_virtual_qword(i->seg(), RMAddr(i), &op);
   }
 
   softfloat_status_word_t status_word = 
              MXCSR_to_softfloat_status_word(MXCSR);
 
-  result = float64_sqrt(op1, op2, status_word);
+  result = float64_sqrt(op, status_word);
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
   BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), result);
 
@@ -494,21 +494,21 @@ void BX_CPU_C::SQRTSS_VssWss(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  Float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->nnn()), op2, result;
+  Float32 op, result;
 
-  /* op2 is a register or memory reference */
+  /* op is a register or memory reference */
   if (i->modC0()) {
-    op2 = BX_READ_XMM_REG_LO_DWORD(i->rm());
+    op = BX_READ_XMM_REG_LO_DWORD(i->rm());
   }
   else {
     /* pointer, segment address pair */
-    read_virtual_dword(i->seg(), RMAddr(i), &op2);
+    read_virtual_dword(i->seg(), RMAddr(i), &op);
   }
 
   softfloat_status_word_t status_word = 
              MXCSR_to_softfloat_status_word(MXCSR);
 
-  result = float32_sqrt(op1, op2, status_word);
+  result = float32_sqrt(op, status_word);
   BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
   BX_WRITE_XMM_REG_LO_DWORD(i->nnn(), result);
 
@@ -1242,18 +1242,6 @@ void BX_CPU_C::MAXSD_VsdWsd(bxInstruction_c *i)
 #endif
 }
 
-void BX_CPU_C::CMPPS_VpsWpsIb(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 1
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CMPPS_VpsWpsIb: SSE instruction still not implemented"));
-#else
-  BX_INFO(("CMPPS_VpsWpsIb: required SSE, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
 void BX_CPU_C::MAXSS_VssWss(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
@@ -1262,6 +1250,18 @@ void BX_CPU_C::MAXSS_VssWss(bxInstruction_c *i)
   BX_PANIC(("MAXSS_VssWss: SSE instruction still not implemented"));
 #else
   BX_INFO(("MAXSS_VssWss: required SSE, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+void BX_CPU_C::CMPPS_VpsWpsIb(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 1
+  BX_CPU_THIS_PTR prepareSSE();
+
+  BX_PANIC(("CMPPS_VpsWpsIb: SSE instruction still not implemented"));
+#else
+  BX_INFO(("CMPPS_VpsWpsIb: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
