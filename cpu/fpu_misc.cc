@@ -47,7 +47,6 @@ void BX_CPU_C::FXCH_STi(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
-BX_INFO(("FXCH_STi: executed"));
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
   int sti_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(i->rm());
@@ -92,7 +91,6 @@ void BX_CPU_C::FCHS(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
-BX_INFO(("FCHS: executed"));
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
 
@@ -116,7 +114,6 @@ void BX_CPU_C::FABS(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
-BX_INFO(("FABS: executed"));
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
 

@@ -44,8 +44,7 @@ void BX_CPU_C::prepareFPU(bxInstruction_c *i,
 
   if (update_last_instruction)
   {
-    BX_CPU_THIS_PTR the_i387.foo = ((Bit32u)(i->b1()) << 8) | (Bit32u)(i->modrm());
-    BX_CPU_THIS_PTR the_i387.fcs_= BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].selector.value;
+    BX_CPU_THIS_PTR the_i387.foo = ((Bit32u)(i->b1()) << 8) | (Bit32u)(i->modrm());    BX_CPU_THIS_PTR the_i387.fcs_= BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].selector.value;
     BX_CPU_THIS_PTR the_i387.fip_= BX_CPU_THIS_PTR prev_eip;
 
     if (! i->modC0()) {
@@ -74,6 +73,7 @@ void BX_CPU_C::FPU_check_pending_exceptions(void)
 }
 #endif
 
+/* 9B */
 void BX_CPU_C::FWAIT(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
