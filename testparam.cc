@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: testparam.cc,v 1.1.2.1 2003/03/30 07:53:53 bdenney Exp $
+// $Id: testparam.cc,v 1.1.2.2 2003/03/30 08:07:54 bdenney Exp $
 // bx_param's can now be compiled separately from Bochs
 // This demonstrates parameter registration and save/restore on a very small
 // scale.
@@ -14,19 +14,28 @@ bx_param_c *root = NULL;
 
 /*
 Here is the parameter tree:
-foo_device
+foo
   enable
   status
   irq
-bar_device
+bar
   enable
   status
   irq
-baz_device
+baz
   enable
   status
   irq
 */
+
+struct device {
+  int enable;
+  int status;
+  int irq;
+}
+device *foo = new device();
+device *bar = new device();
+device *baz = new device();
 
 void register_params ()
 {
