@@ -52,7 +52,7 @@ L_TARGET = libfpu.a
 
 BX_INCDIRS = -I.. -I$(srcdir)/.. -I../@INSTRUMENT_DIR@ -I$(srcdir)/../@INSTRUMENT_DIR@ -I. -I$(srcdir)/. -I./stubs -I$(srcdir)/./stubs
 
-FPU_FLAGS = -DUSE_WITH_CPU_SIM $(PARANOID) $(DEBUG)
+FPU_FLAGS = $(PARANOID) $(DEBUG)
 FPU_GLUE_OBJ = wmFPUemu_glue.o ferr.o fpu.o fpu_arith.o fpu_compare.o \
                fpu_const.o fpu_load_store.o fpu_misc.o fpu_trans.o \
                fprem.o fsincos.o softfloat.o softfloatx80.o \

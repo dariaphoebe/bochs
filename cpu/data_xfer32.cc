@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: data_xfer32.cc,v 1.26 2004/02/26 19:17:40 sshwarts Exp $
+// $Id: data_xfer32.cc,v 1.26.4.1 2004/05/31 21:13:18 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -263,7 +263,7 @@ BX_CPU_C::CMOV_GdEd(bxInstruction_c *i)
   //       of whether condition is true or not.  Thus, exceptions may
   //       occur even if the MOV does not take place.
 
-  bx_bool condition;
+  bx_bool condition = 0;
   Bit32u op2_32;
 
   switch (i->b1()) {
@@ -285,7 +285,6 @@ BX_CPU_C::CMOV_GdEd(bxInstruction_c *i)
     case 0x14E: condition = get_ZF() || (getB_SF() != getB_OF()); break;
     case 0x14F: condition = !get_ZF() && (getB_SF() == getB_OF()); break;
     default:
-      condition = 0;
       BX_PANIC(("CMOV_GdEd: default case"));
     }
 

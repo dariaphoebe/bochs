@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.161.4.3 2004/05/29 19:59:51 sshwarts Exp $
+// $Id: cpu.h,v 1.161.4.4 2004/05/31 21:13:17 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1976,20 +1976,10 @@ union {
   BX_SMF void FCOM_DOUBLE_REAL(bxInstruction_c *);
   BX_SMF void FICOM_WORD_INTEGER(bxInstruction_c *);
   BX_SMF void FICOM_DWORD_INTEGER(bxInstruction_c *);
-//BX_SMF void FCMOV_ST0_STj(bxInstruction_c *);
+  BX_SMF void FCMOV_ST0_STj(bxInstruction_c *);
 
   BX_SMF void FCOMPP(bxInstruction_c *);  
   BX_SMF void FUCOMPP(bxInstruction_c *);
-
-  // conditional mov
-  BX_SMF void FCMOVB_ST0_STj(bxInstruction_c *);
-  BX_SMF void FCMOVE_ST0_STj(bxInstruction_c *);
-  BX_SMF void FCMOVBE_ST0_STj(bxInstruction_c *);
-  BX_SMF void FCMOVU_ST0_STj(bxInstruction_c *);
-  BX_SMF void FCMOVNB_ST0_STj(bxInstruction_c *);
-  BX_SMF void FCMOVNE_ST0_STj(bxInstruction_c *);
-  BX_SMF void FCMOVNBE_ST0_STj(bxInstruction_c *);
-  BX_SMF void FCMOVNU_ST0_STj(bxInstruction_c *);
 
   // misc
   BX_SMF void FXCH_STi(bxInstruction_c *);
