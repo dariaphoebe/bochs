@@ -513,14 +513,14 @@ static BxOpcodeInfo_t BxOpcodeInfo_FloatingPoint[512] = {
   /* DD D5 */  { 0,  &BX_CPU_C::FST_STi    },
   /* DD D6 */  { 0,  &BX_CPU_C::FST_STi    },
   /* DD D7 */  { 0,  &BX_CPU_C::FST_STi    },
-  /* DD D8 */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
-  /* DD D9 */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
-  /* DD DA */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
-  /* DD DB */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
-  /* DD DC */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
-  /* DD DD */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
-  /* DD DE */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
-  /* DD DF */  { 0,  &BX_CPU_C::FST_STi    },	// FSTP_STi
+  /* DD D8 */  { 0,  &BX_CPU_C::FSTP_STi   },
+  /* DD D9 */  { 0,  &BX_CPU_C::FSTP_STi   },
+  /* DD DA */  { 0,  &BX_CPU_C::FSTP_STi   },
+  /* DD DB */  { 0,  &BX_CPU_C::FSTP_STi   },
+  /* DD DC */  { 0,  &BX_CPU_C::FSTP_STi   },
+  /* DD DD */  { 0,  &BX_CPU_C::FSTP_STi   },
+  /* DD DE */  { 0,  &BX_CPU_C::FSTP_STi   },
+  /* DD DF */  { 0,  &BX_CPU_C::FSTP_STi   },
   /* DD E0 */  { 0,  &BX_CPU_C::FUCOM_STi  },
   /* DD E1 */  { 0,  &BX_CPU_C::FUCOM_STi  },
   /* DD E2 */  { 0,  &BX_CPU_C::FUCOM_STi  },

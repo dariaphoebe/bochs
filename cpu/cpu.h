@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.159.2.4 2004/02/20 17:36:57 sshwarts Exp $
+// $Id: cpu.h,v 1.159.2.5 2004/02/20 22:10:57 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1884,6 +1884,7 @@ union {
 
   // store
   BX_SMF void FST_STi(bxInstruction_c *);
+  BX_SMF void FSTP_STi(bxInstruction_c *);
   BX_SMF void FST_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FSTP_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FST_DOUBLE_REAL(bxInstruction_c *);
@@ -2086,7 +2087,7 @@ union {
   BX_SMF void FPU_check_pending_exceptions(void);
   BX_SMF void FPU_stack_underflow(int stnr, int pop_stack = 0);
   BX_SMF void FPU_stack_overflow(void);
-  BX_SMF void FPU_exception(int exception);
+  BX_SMF int  FPU_exception(int exception);
 #endif
 
 #if BX_SUPPORT_MMX || BX_SUPPORT_SSE
