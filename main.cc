@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.10 2003/03/30 05:42:18 bdenney Exp $
+// $Id: main.cc,v 1.223.4.11 2003/03/30 07:53:52 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -1571,7 +1571,7 @@ void test_lookup (const char *pname)
 {
   printf ("looking up parameter '%s'\n", pname);
   bx_param_c *param = SIM->get_param (pname);
-  print_tree (param);
+  param_print_tree (param);
 }
 
 void bx_test_param_tree () {
@@ -1586,7 +1586,7 @@ void bx_test_param_tree () {
   bx_list_c *rom = new bx_list_c (memory_root, "rom", "", 5);
   new bx_param_num_c (rom, "address", "ROM Address",
       0, 0xffff, 0xf000);
-  print_tree (top);
+  param_print_tree (top);
   printf ("Finding memory size: \n");
   test_lookup (".");
   test_lookup ("memory.ram.size");
@@ -1621,6 +1621,7 @@ void bx_test_strtol_or_die ()
 
 int bxmain () {
   bx_init_siminterface ();   // create the SIM object
+  bx_init_param ();          // initialize parameter structure
   static jmp_buf context;
   if (setjmp (context) == 0) {
     SIM->set_quit_context (&context);
@@ -2392,7 +2393,7 @@ bx_init_hardware()
   printf ("after init_devices\n");
   printf ("------------------\n");
 #warning SLECHTA DISABLED because of segfault.  not sure why yet!  BBD reenabled because of lack of segfault.
-  print_tree (SIM->get_param ("."));
+  param_print_tree (SIM->get_param ("."));
   printf ("------------------\n");
   DEV_reset_devices(BX_RESET_HARDWARE);
   bx_gui->init_signal_handlers ();

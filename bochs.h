@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: bochs.h,v 1.120.2.1 2003/03/20 03:52:46 slechta Exp $
+// $Id: bochs.h,v 1.120.2.2 2003/03/30 07:53:52 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -83,7 +83,7 @@ extern "C" {
 #include "osdep.h"       /* platform dependent includes and defines */ 
 #include "debug/debug.h"
 #include "bxversion.h"
-
+#include "param.h"
 #include "gui/siminterface.h"
 
 // prototypes
@@ -303,7 +303,7 @@ enum {
   CPU2LOG, CPU3LOG, CPU4LOG, CPU5LOG, CPU6LOG, CPU7LOG, CPU8LOG, CPU9LOG,
   CPU10LOG, CPU11LOG, CPU12LOG, CPU13LOG, CPU14LOG, CPU15LOG, CTRLLOG,
   UNMAPLOG, SERRLOG, BIOSLOG, PIT81LOG, PIT82LOG, IODEBUGLOG, PCI2ISALOG,
-  PLUGINLOG, EXTFPUIRQLOG , PCIVGALOG, PCIUSBLOG, VTIMERLOG
+  PLUGINLOG, EXTFPUIRQLOG , PCIVGALOG, PCIUSBLOG, VTIMERLOG, PARAMLOG
 };
 
 class BOCHSAPI iofunctions {

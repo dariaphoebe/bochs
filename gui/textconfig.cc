@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: textconfig.cc,v 1.8.6.4 2003/03/24 02:21:24 bdenney Exp $
+// $Id: textconfig.cc,v 1.8.6.5 2003/03/30 07:53:53 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // This is code for a text-mode configuration interfac.  Note that this file
@@ -22,6 +22,7 @@ extern "C" {
 }
 #include "osdep.h"
 #include "textconfig.h"
+#include "param.h"
 #include "siminterface.h"
 #include "extplugin.h"
 
