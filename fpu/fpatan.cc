@@ -59,11 +59,32 @@ static float128 atan_arr[FPATAN_ARR_SIZE] =
     packFloat128(BX_CONST64(0x3ffa861861861861), BX_CONST64(0x8618618618618618))  /* 21 */
 };
 
+/* 1/4 < x < 3/4 */
 static float128 poly_atan(float128 x1, float_status_t &status)
 {
     float128 x2 = float128_mul(x1, x1, status);
     float128 x4 = float128_mul(x2, x2, status);
     float128 r1, r2;
+
+    //                 3     5     7     9     11     13     15     17
+    //                x     x     x     x     x      x      x      x
+    // atan(x) ~ x - --- + --- - --- + --- - ---- + ---- - ---- + ----
+    //                3     5     7     9     11     13     15     17
+    //
+    //                 2     4     6     8     10     12     14     16
+    //                x     x     x     x     x      x      x      x
+    //   = x * [ 1 - --- + --- - --- + --- - ---- + ---- - ---- + ---- ]
+    //                3     5     7     9     11     13     15     17
+    //
+    //           5                          5
+    //          --       4k                --        4k+2
+    //   p(x) = >  C  * x           q(x) = >  C   * x
+    //          --  2k                     --  2k+1
+    //          k=0                        k=0
+    //
+    //                            2
+    //    atan(x) ~ x * [ p(x) + x * q(x) ]
+    //
 
     // r1 = x2*(a_1 + x4*(a_3 + x4*(a_5+x4*(a_7+x4*a_9))));
     r1 = float128_mul(x4, atan_arr[9], status);
@@ -93,6 +114,51 @@ static float128 poly_atan(float128 x1, float_status_t &status)
     return 
         float128_mul(r1, x1, status);
 }
+
+// =================================================
+// FPATAN                  Compute y * log (x)
+//                                        2
+// =================================================
+
+//
+// Uses the following identities:
+//
+// 1. ----------------------------------------------------------
+//
+//   atan(-x) = -atan(x)
+//
+// 2. ----------------------------------------------------------
+//
+//                             x + y
+//   atan(x) + atan(y) = atan -------, xy < 1
+//                             1-xy
+//
+//                             x + y
+//   atan(x) + atan(y) = atan ------- + PI, x > 0, xy > 1
+//                             1-xy
+//
+//                             x + y
+//   atan(x) + atan(y) = atan ------- - PI, x < 0, xy > 1
+//                             1-xy
+//
+// 3. ----------------------------------------------------------
+//
+//   atan(x) = atan(INF) + atan(- 1/x)
+//
+//                           x-1
+//   atan(x) = PI/4 + atan( ----- )
+//                           x+1
+//
+//                           x * sqrt(3) - 1 
+//   atan(x) = PI/6 + atan( ----------------- )
+//                             x + sqrt(3)
+//
+// 4. ----------------------------------------------------------
+//                   3     5     7     9                 2n+1
+//                  x     x     x     x              n  x
+//   atan(x) = x - --- + --- - --- + --- - ... + (-1)  ------ + ...
+//                  3     5     7     9                 2n+1
+//
 
 floatx80 fpatan(floatx80 a, floatx80 b, float_status_t &status)
 {
@@ -198,7 +264,7 @@ return_PI_or_ZERO:
     Bit32s xExp = extractFloat128Exp(x);
     floatx80 result;
 
-    if (xExp <= EXP_BIAS-68) {
+    if (xExp <= EXP_BIAS-40) {
         result = float128_to_floatx80(x, status);
         goto approximation_completed;
     }
