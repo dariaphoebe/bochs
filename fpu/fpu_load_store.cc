@@ -435,25 +435,14 @@ void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
   }
   else
   {
-     floatx80 a = BX_READ_FPU_REG(0);
-     
-     if (floatx80_is_unsupported(a))
-     {
-         BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
+      softfloat_status_word_t status = 
+         FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-         if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
-            return;
-     }
-     else
-     {
-         softfloat_status_word_t status = 
-            FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+      /* floatx80_to_int16 successfully handle unsupported encodings */
+      save_reg = floatx80_to_int16(BX_READ_FPU_REG(0), status);
 
-         save_reg = floatx80_to_int16(a, status);
-
-         if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-            return;
-     }
+      if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+        return;
   }
 
   write_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&save_reg));
@@ -661,25 +650,14 @@ void BX_CPU_C::FISTTP16(bxInstruction_c *i)
   }
   else
   {
-     floatx80 a = BX_READ_FPU_REG(0);
-     
-     if (floatx80_is_unsupported(a))
-     {
-         BX_CPU_THIS_PTR FPU_exception(float_flag_invalid);
+      softfloat_status_word_t status = 
+         FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-         if (! (BX_CPU_THIS_PTR the_i387.is_IA_masked()))
-            return;
-     }
-     else
-     {
-         softfloat_status_word_t status = 
-            FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+      /* floatx80_to_int16_round_to_zero successfully handle unsupported encodings */
+      save_reg = floatx80_to_int16_round_to_zero(BX_READ_FPU_REG(0), status);
 
-         save_reg = floatx80_to_int16_round_to_zero(a, status);
-
-         if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
-            return;
-     }
+      if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+        return;
   }
 
   write_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&save_reg));

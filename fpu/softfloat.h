@@ -298,17 +298,9 @@ floatx80 floatx80_sub(floatx80, floatx80, float_status_t &status);
 floatx80 floatx80_mul(floatx80, floatx80, float_status_t &status);
 floatx80 floatx80_div(floatx80, floatx80, float_status_t &status);
 floatx80 floatx80_sqrt(floatx80, float_status_t &status);
-int floatx80_eq(floatx80, floatx80, float_status_t &status);
-int floatx80_le(floatx80, floatx80, float_status_t &status);
-int floatx80_lt(floatx80, floatx80, float_status_t &status);
-int floatx80_eq_signaling(floatx80, floatx80, float_status_t &status);
-int floatx80_le_quiet(floatx80, floatx80, float_status_t &status);
-int floatx80_lt_quiet(floatx80, floatx80, float_status_t &status);
-int floatx80_compare(floatx80, floatx80, float_status_t &status);
-int floatx80_compare_quiet(floatx80, floatx80, float_status_t &status);
 
-float_class_t floatx80_class(floatx80);
 int floatx80_is_signaling_nan(floatx80);
-#endif
+
+#endif  /* FLOATX80 */
 
 #endif

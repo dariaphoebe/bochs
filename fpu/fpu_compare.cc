@@ -27,11 +27,11 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-#if BX_SUPPORT_FPU
-#include "softfloat-specialize.h"
-#endif
 
 #if BX_SUPPORT_FPU
+
+#include "softfloatx80.h"
+
 static int status_word_flags_fpu_compare(int float_relation)
 {
   switch(float_relation) {

@@ -32,8 +32,8 @@ these four paragraphs for those parts of this code that are retained.
  *            Stanislav Shwartsman (gate@fidonet.org.il)
  * ==========================================================================*/ 
 
-#ifndef SOFTFLOAT_MACROS
-#define SOFTFLOAT_MACROS
+#ifndef SOFTFLOAT_MACROS_H
+#define SOFTFLOAT_MACROS_H
 
 /*----------------------------------------------------------------------------
 | Shifts `a' right by the number of bits given in `count'.  If any nonzero

@@ -27,8 +27,8 @@ the work is derivative, and (2) the source code includes prominent notice with
 these four paragraphs for those parts of this code that are retained.
 =============================================================================*/
 
-#ifndef SOFTFLOAT_SPECIALIZE
-#define SOFTFLOAT_SPECIALIZE
+#ifndef SOFTFLOAT_SPECIALIZE_H
+#define SOFTFLOAT_SPECIALIZE_H
 
 /*============================================================================
  * Adapted for Bochs (x86 achitecture simulator) by
