@@ -370,7 +370,7 @@ void BX_CPU_C::FSTP_EXTENDED_REAL(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  floatx80 save_reg = Const_QNaN; /* The masked response */
+  floatx80 save_reg = floatx80_default_nan; /* The masked response */
 
   if (IS_TAG_EMPTY(0))
   {

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.8.6 2004/03/27 20:09:53 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.8.7 2004/04/06 13:41:30 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -620,13 +620,11 @@ static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n)
 
   work = st1 >> 32;
   work *= (u32)q;
-  x -= work << 32;
+  x -= work;
 
   work = (u32)st1;
   work *= q >> 32;
-  x -= work << 32;
-  
-  *y = x;
+  x -= work;
 }
 
 
@@ -1423,163 +1421,4 @@ void fyl2xp1(FPU_REG *st0_ptr, u_char st0_tag)
 #endif /* PARANOID */
 
   FPU_pop();
-  return;
-
-}
-
-
-void fscale(FPU_REG *st0_ptr, u_char st0_tag)
-{
-  FPU_REG *st1_ptr = &st(1);
-  u_char st1_tag = FPU_gettagi(1);
-  int old_cw = FPU_control_word;
-  u_char sign = getsign(st0_ptr);
-
-  clear_C1();
-  if (!((st0_tag ^ TAG_Valid) | (st1_tag ^ TAG_Valid)))
-    {
-      s32 scale;
-      FPU_REG tmp;
-
-      /* Convert register for internal use. */
-      setexponent16(st0_ptr, exponent(st0_ptr));
-
-    valid_scale:
-
-      if (exponent(st1_ptr) > 30)
-	{
-	  /* 2^31 is far too large, would require 2^(2^30) or 2^(-2^30) */
-
-	  if (signpositive(st1_ptr))
-	    {
-	      EXCEPTION(EX_Overflow);
-	      FPU_copy_to_reg0(&CONST_INF, TAG_Special);
-	    }
-	  else
-	    {
-	      EXCEPTION(EX_Underflow);
-	      FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
-	    }
-	  setsign(st0_ptr, sign);
-	  return;
-	}
-
-      FPU_control_word &= ~FPU_CW_RC;
-      FPU_control_word |= FPU_RC_CHOP;
-      reg_copy(st1_ptr, &tmp);
-      FPU_round_to_int(&tmp, st1_tag);      /* This can never overflow here */
-      FPU_control_word = old_cw;
-      scale = signnegative(st1_ptr) ? -tmp.sigl : tmp.sigl;
-      scale += exponent16(st0_ptr);
-
-      setexponent16(st0_ptr, scale);
-
-      /* Use FPU_round() to properly detect under/overflow etc */
-      FPU_round(st0_ptr, 0, FPU_control_word, sign);
-
-      return;
-    }
-
-  if (st0_tag == TAG_Special)
-    st0_tag = FPU_Special(st0_ptr);
-  if (st1_tag == TAG_Special)
-    st1_tag = FPU_Special(st1_ptr);
-
-  if ((st0_tag == TAG_Valid) || (st0_tag == TW_Denormal))
-    {
-      switch (st1_tag)
-	{
-	case TAG_Valid:
-	  /* st(0) must be a denormal */
-	  if ((st0_tag == TW_Denormal) && (denormal_operand() < 0))
-	    return;
-
-	  FPU_to_exp16(st0_ptr, st0_ptr);  /* Will not be left on stack */
-	  goto valid_scale;
-
-	case TAG_Zero:
-	  if (st0_tag == TW_Denormal)
-	    denormal_operand();
-	  return;
-
-	case TW_Denormal:
-	  denormal_operand();
-	  return;
-
-	case TW_Infinity:
-	  if ((st0_tag == TW_Denormal) && (denormal_operand() < 0))
-	    return;
-
-	  if (signpositive(st1_ptr))
-	    FPU_copy_to_reg0(&CONST_INF, TAG_Special);
-	  else
-	    FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
-	  setsign(st0_ptr, sign);
-	  return;
-
-	case TW_NaN:
-	  real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr);
-	  return;
-	}
-    }
-  else if (st0_tag == TAG_Zero)
-    {
-      switch (st1_tag)
-	{
-	case TAG_Valid:
-	case TAG_Zero:
-	  return;
-
-	case TW_Denormal:
-	  denormal_operand();
-	  return;
-
-	case TW_Infinity:
-	  if (signpositive(st1_ptr))
-	    arith_invalid(0); /* Zero scaled by +Infinity */
-	  return;
-
-	case TW_NaN:
-	  real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr);
-	  return;
-	}
-    }
-  else if (st0_tag == TW_Infinity)
-    {
-      switch (st1_tag)
-	{
-	case TAG_Valid:
-	case TAG_Zero:
-	  return;
-
-	case TW_Denormal:
-	  denormal_operand();
-	  return;
-
-	case TW_Infinity:
-	  if (signnegative(st1_ptr))
-	    arith_invalid(0); /* Infinity scaled by -Infinity */
-	  return;
-
-	case TW_NaN:
-	  real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr);
-	  return;
-	}
-    }
-  else if (st0_tag == TW_NaN)
-    {
-      if (st1_tag != TAG_Empty)
-	{ real_2op_NaN(st1_ptr, st1_tag, 0, st0_ptr); return; }
-    }
-
-#ifdef PARANOID
-  if (!((st0_tag == TAG_Empty) || (st1_tag == TAG_Empty)))
-    {
-      INTERNAL(0x115);
-      return;
-    }
-#endif
-
-  /* At least one of st(0), st(1) must be empty */
-  FPU_stack_underflow();
 }

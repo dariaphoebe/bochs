@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.23.6.6 2004/03/28 20:26:53 sshwarts Exp $
+ |  $Id: fpu_emu.h,v 1.23.6.7 2004/04/06 13:41:30 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -47,9 +47,6 @@
 #define TAG_Zero	 1 	/* zero */
 #define TAG_Special	 2 	/* De-normal, + or - infinity, or NaN */
 #define TAG_Empty	 3 	/* empty */
-
-/* Special st() number to identify loaded data (not on stack). */
-#define LOADED_DATA	(10101)	
 
 /* A few flags (must be >= 0x10). */
 #define REV             0x10

@@ -31,7 +31,7 @@
 /// TODO: Handle FPU last instruction and data pointers 
 ///////////////////////////////////////////////////////
 
-#include "softfloatx80.h"
+#include "softfloat-specialize.h"
 
 #if BX_SUPPORT_FPU
 
@@ -70,7 +70,7 @@ void BX_CPU_C::FPU_stack_overflow(void)
   if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
   {
       BX_CPU_THIS_PTR the_i387.FPU_push();
-      BX_WRITE_FPU_REGISTER_AND_TAG(Const_QNaN, FPU_Tag_Special, 0);
+      BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_default_nan, FPU_Tag_Special, 0);
   }
   BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Overflow);
 }
@@ -80,7 +80,7 @@ void BX_CPU_C::FPU_stack_underflow(int stnr, int pop_stack)
   /* The masked response */
   if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
   {
-     BX_WRITE_FPU_REGISTER_AND_TAG(Const_QNaN, FPU_Tag_Special, stnr);
+     BX_WRITE_FPU_REGISTER_AND_TAG(floatx80_default_nan, FPU_Tag_Special, stnr);
      if (pop_stack) 
           BX_CPU_THIS_PTR the_i387.FPU_pop();
   }
@@ -107,8 +107,8 @@ softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word)
      default:
     /* With the precision control bits set to 01 "(reserved)", a 
        real CPU behaves as if the precision control bits were 
-       set to 11 "64 bits" */
-       status.float_rounding_precision = 64;
+       set to 11 "80 bits" */
+       status.float_rounding_precision = 80;
   }
 
   status.float_detect_tininess = float_tininess_after_rounding;

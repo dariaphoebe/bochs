@@ -42,6 +42,7 @@ Bit16s floatx80_to_int16_round_to_zero(floatx80, float_status_t &status);
 
 floatx80 floatx80_extract(floatx80 &a, float_status_t &status);
 float_class_t floatx80_class(floatx80);
+floatx80 floatx80_scale(floatx80 a, floatx80 b, float_status_t &status);
 
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE extended double-precision compare.

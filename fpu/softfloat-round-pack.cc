@@ -517,8 +517,7 @@ floatx80 roundAndPackFloatx80(int roundingPrecision,
             }
             if (increment) {
                 ++zSig0;
-                zSig0 &=
-                    ~(((Bit64u) (zSig1<<1) == 0) & roundNearestEven);
+                zSig0 &= ~(((Bit64u) (zSig1<<1) == 0) & roundNearestEven);
                 if ((Bit64s) zSig0 < 0) zExp = 1;
             }
             return packFloatx80(zSign, zExp, zSig0);

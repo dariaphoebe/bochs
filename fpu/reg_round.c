@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_round.c                                                              |
- |  $Id: reg_round.c,v 1.8.8.3 2004/03/26 21:36:09 sshwarts Exp $
+ |  $Id: reg_round.c,v 1.8.8.4 2004/04/06 13:41:30 sshwarts Exp $
  |                                                                           |
  | Rounding/truncation/etc for FPU basic arithmetic functions.               |
  |                                                                           |
@@ -225,15 +225,10 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
   switch (control_w & FPU_CW_PC)
     {
     case 01:
-#ifndef PECULIAR_486
       /* With the precision control bits set to 01 "(reserved)", a real 80486
 	 behaves as if the precision control bits were set to 11 "64 bits" */
-#ifdef PARANOID
-	INTERNAL(0x236);
-	return -1;
-#endif
-#endif
-	/* Fall through to the 64 bit case. */
+
+      /* Fall through to the 80 bit case. */
     case FPU_PR_80_BITS:
       if (extent)
 	{

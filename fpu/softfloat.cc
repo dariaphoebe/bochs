@@ -2111,11 +2111,8 @@ Bit32s floatx80_to_int32_round_to_zero(floatx80 a, float_status_t &status)
     aExp = extractFloatx80Exp(a);
     int aSign = extractFloatx80Sign(a);
 
-    if (0x401E < aExp) {
-        if ((aExp == 0x7FFF) && (Bit64u) (aSig<<1)) aSign = 0;
-        goto invalid;
-    }
-    else if (aExp < 0x3FFF) {
+    if (aExp > 0x401E) goto invalid;
+    if (aExp < 0x3FFF) {
         if (aExp || aSig) float_raise(status, float_flag_inexact);
         return 0;
     }
@@ -2299,7 +2296,6 @@ float64 floatx80_to_float64(floatx80 a, float_status_t &status)
 floatx80 floatx80_round_to_int(floatx80 a, float_status_t &status)
 {
     int aSign;
-    Bit32s aExp;
     Bit64u lastBitMask, roundBitsMask;
     Bit8u roundingMode;
     floatx80 z;
@@ -2311,26 +2307,24 @@ floatx80 floatx80_round_to_int(floatx80 a, float_status_t &status)
         return floatx80_default_nan;
     }
 
-    aExp = extractFloatx80Exp(a);
+    Bit32s aExp = extractFloatx80Exp(a);
+    Bit64u aSig = extractFloatx80Frac(a);
     if (0x403E <= aExp) {
-        if ((aExp == 0x7FFF) && (Bit64u) (extractFloatx80Frac(a)<<1)) {
+        if ((aExp == 0x7FFF) && (Bit64u) (aSig<<1)) {
             return propagateFloatx80NaN(a, status);
         }
         return a;
     }
     if (aExp < 0x3FFF) {
-        if ((aExp == 0) && ((Bit64u) (extractFloatx80Frac(a)<<1) == 0)) 
-        {
+        if ((aExp == 0) && ((Bit64u) (aSig<<1) == 0)) {
             return a;
         }
         float_raise(status, float_flag_inexact);
         aSign = extractFloatx80Sign(a);
         switch (get_float_rounding_mode(status)) {
          case float_round_nearest_even:
-            if ((aExp == 0x3FFE) && (Bit64u) (extractFloatx80Frac(a)<<1)) 
-            {
+            if ((aExp == 0x3FFE) && (Bit64u) (aSig<<1)) 
                 return packFloatx80(aSign, 0x3FFF, BX_CONST64(0x8000000000000000));
-            }
             break;
          case float_round_down:
             return aSign ?

@@ -26,7 +26,6 @@
 // FPU emulator written by Bill Metzenthen to bochs.
 //
 
-
 #include "bochs.h"
 #include <math.h>
 

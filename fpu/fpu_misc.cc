@@ -55,12 +55,12 @@ void BX_CPU_C::FXCH_STi(bxInstruction_c *i)
 	  /* Masked response */
           if (st0_tag == FPU_Tag_Empty)
           {
-              st0_reg = Const_QNaN;
+              st0_reg = floatx80_default_nan;
               st0_tag = FPU_Tag_Special;
           }
           if (sti_tag == FPU_Tag_Empty)
           {
-              sti_reg = Const_QNaN;
+              sti_reg = floatx80_default_nan;
               sti_tag = FPU_Tag_Special;
           }
       }
