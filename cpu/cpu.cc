@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.cc,v 1.54 2002/09/28 09:38:58 sshwarts Exp $
+// $Id: cpu.cc,v 1.54.2.1 2002/09/29 10:19:21 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -64,6 +64,9 @@ const Boolean bx_parity_lookup[256] = {
   };
 #endif
 
+#if BX_SUPPORT_APIC
+Bit32u BX_CPU_C::cpu_online_map = 0;
+#endif
 
 #if BX_SMP_PROCESSORS==1
 // single processor simulation, so there's one of everything

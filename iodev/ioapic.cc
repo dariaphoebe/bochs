@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.cc,v 1.9 2002/08/29 16:52:47 bdenney Exp $
+// $Id: ioapic.cc,v 1.9.2.1 2002/09/29 10:19:21 zwane Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 #include <stdio.h>
@@ -11,16 +11,22 @@ class bx_ioapic_c bx_ioapic;
 void
 bx_io_redirect_entry_t::parse_value ()
 {
-  dest = (value >> 56) & 0xff;
+  dest = (value >> 56) & APIC_ID_MASK;
   masked = (value >> 16) & 1;
   trig_mode = (value >> 15) & 1;
   remote_irr = (value >> 14) & 1;
   polarity = (value >> 13) & 1;
   //delivery_status = (value >> 12) & 1;
-  delivery_status = 0;  // always say the message has gone through
+  delivery_status = 0;			// we'll change this later...
   dest_mode = (value >> 11) & 1;
+#if 0
+  if (dest_mode == 1)
+    dest = (value >> 56) & APIC_ID_MAX;	// processor mask
+  else
+    dest = (value >> 56) & APIC_ID_MASK;	// APIC ID
+#endif
   delivery_mode = (value >> 8) & 7;
-  vector = (value >> 0) & 0xff;
+  vector = value & 0xff;
 }
 
 void
@@ -45,6 +51,7 @@ bx_ioapic_c::init ()
   bx_generic_apic_c::init ();
   BX_DEBUG(("initializing I/O APIC"));
   base_addr = 0xfec00000;
+  set_id(BX_IOAPIC_DEFAULT_ID);
   ioregsel = 0;
   // all interrupts masked
   for (int i=0; i<BX_IOAPIC_NUM_PINS; i++) {
@@ -74,15 +81,14 @@ bx_ioapic_c::read_aligned(Bit32u address, Bit32u *data, unsigned len)
   }
   // only reached when reading data register
   switch (ioregsel) {
-  case 0x00:  // APIC ID
-    *data = ((id & 0xf) << 24);
+  case 0x00:  // APIC ID, note this is 4bits, the upper 4 are reserved
+    *data = ((id & APIC_ID_MASK) << 24);
     return;
   case 0x01:  // version
     *data = (((BX_IOAPIC_NUM_PINS-1) & 0xff) << 16) 
             | (BX_IOAPIC_VERSION_ID & 0x0f);
     return;
   case 0x02:
-    BX_INFO(("IOAPIC: arbitration ID unsupported, returned 0"));
     *data = 0;
     return;
   default:
@@ -111,7 +117,7 @@ bx_ioapic_c::write(Bit32u address, Bit32u *value, unsigned len)
   switch (ioregsel) {
     case 0x00: // set APIC ID
       {
-	Bit8u newid = (*value >> 24) & 0xf;
+	Bit8u newid = (*value >> 24) & APIC_ID_MASK;
 	BX_INFO(("IOAPIC: setting id to 0x%x", newid));
 	set_id (newid);
 	return;
@@ -140,14 +146,16 @@ bx_ioapic_c::write(Bit32u address, Bit32u *value, unsigned len)
 
 void bx_ioapic_c::trigger_irq (unsigned vector, unsigned from) 
 {
-  BX_DEBUG(("IOAPIC: received interrupt %d", vector));
-  if (vector >= 0 && vector < BX_IOAPIC_NUM_PINS) {
+  BX_DEBUG(("IOAPIC: received vector %d", vector));
+  if ((vector >= 0) && (vector <= BX_APIC_LAST_VECTOR)) {
     Bit32u bit = 1<<vector;
     if ((irr & bit) == 0) {
       irr |= bit;
       service_ioapic ();
     }
-  } else BX_PANIC(("IOAPIC: vector %d out of range", vector));
+  } else {
+    BX_PANIC(("IOAPIC: vector %#x out of range", vector));
+  }
 }
 
 void bx_ioapic_c::untrigger_irq (unsigned num, unsigned from) 
@@ -157,16 +165,34 @@ void bx_ioapic_c::untrigger_irq (unsigned num, unsigned from)
 
 void bx_ioapic_c::service_ioapic ()
 {
+  static unsigned int stuck = 0;
   // look in IRR and deliver any interrupts that are not masked.
   BX_DEBUG(("IOAPIC: servicing"));
+  
   for (unsigned bit=0; bit < BX_IOAPIC_NUM_PINS; bit++) {
     if (irr & (1<<bit)) {
       bx_io_redirect_entry_t *entry = ioredtbl + bit;
+      entry->parse_value();
       if (!entry->masked) {
-	// clear irr bit and deliver
-	Boolean done = deliver (entry->dest, entry->dest_mode, entry->delivery_mode, entry->vector, entry->polarity, entry->trig_mode);
-	if (done) irr &= ~(1<<bit);
+	Boolean done;
+	// deliver and clear irr bit
+	done = deliver (entry->dest, entry->dest_mode,
+                          entry->delivery_mode, entry->vector,
+                          entry->polarity, entry->trig_mode);
+
+	if (done) {
+	  irr &= ~(1<<bit);
+	  entry->delivery_status = 0;
+	  stuck = 0;
+	} else {
+	  entry->delivery_status = 1;
+	  stuck++;
+	  if (stuck > 5)
+	    BX_INFO(("vector %#x stuck?\n", entry->vector));
+	}
+	
       }
     }
   }
 }
+
