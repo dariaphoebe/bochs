@@ -20,9 +20,9 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
-VERSION=1.1.2
-VER_STRING=cvs-snapshot
-REL_STRING=
+VERSION=1.2
+VER_STRING=1.2-pre1
+REL_STRING=Tue May 22 23:57:25 EDT 2001
 PREFIX=/usr/local/bochs
 BINPATH=/usr/local/bin
 INSTALL_LIST=bios/BIOS-* CHANGES.txt COPYING README bios/VGABIOS*
@@ -33,6 +33,7 @@ MV=mv
 LN_S=ln -sf
 DLXLINUX_TAR=dlxlinux1.tar.gz
 DLXLINUX_TAR_URL=http://bochs.sourceforge.net/guestos/${DLXLINUX_TAR}
+DLXLINUX_ROMFILE=BIOS-bochs-2001_0517
 GUNZIP=gunzip
 WGET=wget
 SED=sed
@@ -233,6 +234,7 @@ install_dlx::
 	${RM} -rf ${PREFIX}/dlxlinux
 	${GUNZIP} -c ${DLXLINUX_TAR} | (cd ${PREFIX}; tar -xvf -)
 	test -d ${PREFIX}/dlxlinux
+	(cd ${PREFIX}/dlxlinux; ${MV} .bochsrc .bochsrc.orig; ${SED} -e "s/BIOS-bochs-990925a/${DLXLINUX_ROMFILE}/" -e "s/1\.1\.2/${VERSION}/g"< .bochsrc.orig > bochsrc; rm -f .bochsrc.orig)
 
 erase_install::
 	${RM} -rf ${PREFIX}/${VERSION}
