@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: misc_mem.cc,v 1.36.2.2 2003/03/30 04:15:19 bdenney Exp $
+// $Id: misc_mem.cc,v 1.36.2.3 2003/03/30 04:17:33 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -54,7 +54,7 @@ BX_MEM_C::BX_MEM_C(void)
   settype(MEMLOG);
 
   vector = NULL;
-  actual_vector = NULL;
+  alloc_vector = NULL;
   len    = 0;
   megabytes = 0;
 }
@@ -66,24 +66,24 @@ BX_MEM_C::BX_MEM_C(void)
 void BX_CPP_AttrRegparmN(2)
 BX_MEM_C::alloc_vector_aligned (size_t bytes, size_t alignment)
 {
-  if (actual_vector != NULL) {
+  if (alloc_vector != NULL) {
     BX_INFO (("freeing existing memory vector"));
-    delete [] actual_vector;
-    actual_vector = NULL;
+    delete [] alloc_vector;
+    alloc_vector = NULL;
     vector = NULL;
   }
   Bit64u test_mask = alignment - 1;
-  actual_vector = new Bit8u [bytes+test_mask];
+  alloc_vector = new Bit8u [bytes+test_mask];
   // round address forward to nearest multiple of alignment.  Alignment 
   // MUST BE a power of two for this to work.
-  Bit64u masked = ((Bit64u) actual_vector + test_mask) & ~test_mask;
+  Bit64u masked = ((Bit64u) alloc_vector + test_mask) & ~test_mask;
   vector = (Bit8u *)masked;
   // sanity check: no lost bits during pointer conversion
   BX_ASSERT (sizeof(masked) >= sizeof(vector));
   // sanity check: after realignment, everything fits in allocated space
-  BX_ASSERT (vector+bytes <= actual_vector+bytes+test_mask);
+  BX_ASSERT (vector+bytes <= alloc_vector+bytes+test_mask);
   BX_INFO (("allocated memory at %p. after alignment, vector=%p", 
-	actual_vector, vector));
+	alloc_vector, vector));
 }
 #endif
 
@@ -92,7 +92,7 @@ BX_MEM_C::alloc_vector_aligned (size_t bytes, size_t alignment)
 BX_MEM_C::BX_MEM_C(size_t memsize)
 {
   vector = NULL;
-  actual_vector = NULL;
+  alloc_vector = NULL;
   alloc_vector_aligned (memsize, BX_MEM_VECTOR_ALIGN);
   len    = memsize;
   megabytes = len / (1024*1024);
@@ -105,8 +105,8 @@ BX_MEM_C::BX_MEM_C(size_t memsize)
 BX_MEM_C::~BX_MEM_C(void)
 {
   if (this-> vector != NULL) {
-    delete [] actual_vector;
-    actual_vector = NULL;
+    delete [] alloc_vector;
+    alloc_vector = NULL;
     vector = NULL;
     }
   else {
@@ -120,7 +120,7 @@ BX_MEM_C::~BX_MEM_C(void)
   void
 BX_MEM_C::init_memory(int memsize)
 {
-	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.36.2.2 2003/03/30 04:15:19 bdenney Exp $"));
+	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.36.2.3 2003/03/30 04:17:33 bdenney Exp $"));
   // you can pass 0 if memory has been allocated already through
   // the constructor, or the desired size of memory if it hasn't
   BX_INFO(("%.2fMB", (float)(BX_MEM_THIS megabytes) ));
@@ -151,7 +151,7 @@ Bit64s mem_vector_restore(bx_param_c *param_p, int set, Bit64s val)
         get_by_name("vector");
       BX_ASSERT((vector_param_p != NULL));
       bx_param_c *actual_vector_param_p = param_p->get_parent()->
-        get_by_name("actual_vector");
+        get_by_name("alloc_vector");
       BX_ASSERT((actual_vector_param_p != NULL));
       
       

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: memory.h,v 1.14.2.1 2003/03/29 19:57:19 slechta Exp $
+// $Id: memory.h,v 1.14.2.2 2003/03/30 04:17:33 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -43,7 +43,7 @@
 class BOCHSAPI BX_MEM_C : public logfunctions {
 
 public:
-  Bit8u   *actual_vector;
+  Bit8u   *alloc_vector;
   Bit8u   *vector;  // aligned correctly
   size_t  len;
   size_t  megabytes;  // (len in Megabytes)
