@@ -1,7 +1,20 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: apic.cc,v 1.18.2.1 2002/09/29 10:19:21 zwane Exp $
+// $Id: apic.cc,v 1.18.2.2 2002/10/06 13:38:19 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
+// NOTE: for a good block diagram of how the APIC/IOAPIC/PIC should be
+// connected in an SMP environment, see page 4 of the Intel 82093 I/O
+// apic datasheet at
+// http://bochs.sourceforge.net/techspec/intel-82093-apic.pdf.gz 
+//
+// Still looking for a good block diagram of a uniprocessor
+// environment, with or without I/O APIC.  Please add reference here
+// if you find one.
+//
+// NOTE: Based on this block diagram our PIC is connected wrong in an
+// SMP environment.  Its INTR should go to the I/O apic, not directly
+// to the CPU.
+
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
 
