@@ -204,10 +204,31 @@ extern Bit8u DTPageDirty[];
 
 #define MAGIC_LOGNUM 0x12345678
 
+
+typedef class logfunctions {
+	char *prefix;
+	int type;
+	class iofunctions *logio;
+public:
+	logfunctions(void);
+	logfunctions(class iofunctions *);
+	~logfunctions(void);
+
+	void info(char *fmt, ...);
+	void error(char *fmt, ...);
+	void panic(char *fmt, ...);
+	void ldebug(char *fmt, ...);
+	void setprefix(char *);
+	void settype(int);
+	void setio(class iofunctions *);
+} logfunc_t;
+
 class iofunctions {
 
 	int showtick,magic;
 	FILE *logfd;
+	class logfunctions *log;
+	int onoff[5];
 	void init(void);
 	void flush(void);
 	char *getlevel(int i) {
@@ -286,7 +307,7 @@ public:
 	iofunctions(char *);
 	~iofunctions(void);
 
-	FILE *out(int facility,int level,char *pre, char *fmt, ...);
+	void out(int facility, int level, char *pre, char *fmt, va_list ap);
 
 	void init_log(char *fn);
 	void init_log(int fd);
@@ -297,23 +318,6 @@ protected:
 
 typedef class iofunctions iofunc_t;
 
-typedef class logfunctions {
-	char *prefix;
-	int type;
-	iofunc_t *logio;
-public:
-	logfunctions(void);
-	logfunctions(iofunc_t *);
-	~logfunctions(void);
-
-	void info(char *fmt, ...);
-	void error(char *fmt, ...);
-	void panic(char *fmt, ...);
-	void ldebug(char *fmt, ...);
-	void setprefix(char *);
-	void settype(int);
-	void setio(iofunc_t *);
-} logfunc_t;
 
 #define SAFE_GET_IOFUNC() \
   ((io==NULL)? (io=new iofunc_t("/dev/stderr")) : io)

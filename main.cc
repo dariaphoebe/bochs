@@ -92,8 +92,13 @@ static void parse_line_unformatted(char *line);
 static void parse_line_formatted(int num_params, char *params[]);
 static void parse_bochsrc(void);
 
-#if 1
 
+// Just for the iofunctions
+
+#undef LOG_THIS
+#define LOG_THIS this->log->
+
+int Allocio=0;
 
 void
 iofunctions::flush(void) {
@@ -109,6 +114,14 @@ iofunctions::init(void) {
 	magic=MAGIC_LOGNUM;
 	showtick = 1;
 	init_log(stderr);
+	log = new logfunc_t(this);
+	LOG_THIS setprefix("[IO  ]");
+	LOG_THIS settype(IOLOG);
+	onoff[LOGLEV_DEBUG]=1;
+	onoff[LOGLEV_ERROR]=1;
+	onoff[LOGLEV_PANIC]=1; // XXX careful, disable this, and you disable panics!
+	onoff[LOGLEV_INFO]=1;
+	BX_DEBUG(("Output log initialized: '%s'.\n",logfn));
 }
 
 void
@@ -123,9 +136,9 @@ iofunctions::init_log(char *fn)
 		newfd = fopen(fn, "w");
 		if(newfd != NULL) {
 			newfn = strdup(fn);
-			out( IOLOG, LOGLEV_DEBUG, "[IO  ]", "Opened log file '%s'.\n", fn );
+			BX_DEBUG(("Opened log file '%s'.\n", fn ));
 		} else {
-			out( IOLOG, LOGLEV_ERROR, "[IO  ]", "Log file '%s' not there?\n", fn);
+			BX_DEBUG(("Log file '%s' not there?\n", fn));
 			newfd = NULL;
 			logfn = "(none)";
 		}
@@ -168,84 +181,46 @@ iofunctions::init_log(int fd)
 //  DO NOT nest out() from ::info() and the like.
 //    fmt and ap retained for direct printinf from iofunctions only!
 
-FILE *
-iofunctions::out(int f, int l, char *prefix, char *fmt, ...)
+void
+iofunctions::out(int f, int l, char *prefix, char *fmt, va_list ap)
 {
-	va_list ap;
-
 	assert (magic==MAGIC_LOGNUM);
 	assert (this != NULL);
 	assert (logfd != NULL);
 
-	if(l == LOGLEV_DEBUG) {
-		return fopen("/dev/null","w");
-	}
-	if( showtick ) {
+	if(!onoff[l]) 
+		return;
+
+	if( showtick )
 		fprintf(logfd, "%011lld ", bx_pc_system.time_ticks());
-	}
-	if(prefix != NULL) {
+
+	if(prefix != NULL)
 		fprintf(logfd, "%s ", prefix);
-	}
-	va_start(ap, fmt);
+
 	vfprintf(logfd, fmt, ap);
-	va_end(ap);
 	fflush(logfd);
-	return logfd;
 
-#if 0
-	FILE *filst;
-	/* Unfortunately, this can get called before being instantiated. */
-	if(this == NULL || magic != MAGIC_LOGNUM) {
-		filst = stderr;
-		fprintf(filst, "[IO  ] Warning! (this:'0x%x') io::out called before init()\n", this);
-		fprintf(filst, "[IO  ] ");
-	} else {
-
-		if( logfd != NULL) {
-			filst = logfd;
-			if( showtick ) {
-				fprintf(filst, "%010lld ", bx_pc_system.time_ticks());
-			}
-
-			//fprintf(filst, "(%d,%d)->(%s,%s) ", f,l,getclass(f),getlevel(l));
-		} else {
-			filst = stderr;
-			fprintf(filst, "[IO  ] Warning! (this:'0x%x') io::out called with no logfd\n", this);
-			fprintf(filst, "[IO  ] ");
-		}
-		if(prefix != NULL) {
-			fprintf(filst, "%s ", prefix);
-		}
-	}
-	va_start(ap, fmt);
-	vfprintf(filst, fmt, ap);
-	va_end(ap);
-	fflush(filst);
-	return filst;
-#endif
+	return;
 }
 
 iofunctions::iofunctions(FILE *fs)
 {
 	init();
 	init_log(fs);
-	out( IOLOG, LOGLEV_DEBUG, "[IO  ]", "Output log initialized: '%s'.\n", logfn);
 }
 
 iofunctions::iofunctions(char *fn)
 {
 	init();
 	init_log(fn);
-	out( IOLOG, LOGLEV_DEBUG, "[IO  ]", "Output log initialized: '%s'.\n", logfn);
 }
 
 iofunctions::iofunctions(int fd)
 {
 	init();
 	init_log(fd);
-	out( IOLOG, LOGLEV_INFO, "[IO  ]" , "Output log initialized: '%s'.\n", logfn );
 }
-	
+
 iofunctions::iofunctions(void)
 {
 	this->init();
@@ -258,12 +233,17 @@ iofunctions::~iofunctions(void)
 	this->magic=0;
 }
 
+#undef LOG_THIS
+#define LOG_THIS genlog->
+
 logfunctions::logfunctions(void)
 {
 	setprefix("[GEN ]");
 	settype(GENLOG);
-	if(io == NULL)
+	if(io == NULL && Allocio == 0) {
+		Allocio = 1;
 		io = new iofunc_t(stderr);
+	}
 	setio(io);
 }
 
@@ -304,10 +284,9 @@ logfunctions::info(char *fmt, ...)
 
 	assert (this != NULL);
 	assert (this->logio != NULL);
-	fs = this->logio->out(this->type,LOGLEV_INFO,this->prefix, "%s", "");
 
 	va_start(ap, fmt);
-	vfprintf(fs,fmt,ap);
+	this->logio->out(this->type,LOGLEV_INFO,this->prefix, fmt, ap);
 	va_end(ap);
 }
 
@@ -319,10 +298,9 @@ logfunctions::error(char *fmt, ...)
 
 	assert (this != NULL);
 	assert (this->logio != NULL);
-	fs = this->logio->out(this->type,LOGLEV_ERROR,this->prefix, "%s", "");
 
 	va_start(ap, fmt);
-	vfprintf(fs,fmt,ap);
+	this->logio->out(this->type,LOGLEV_ERROR,this->prefix, fmt, ap);
 	va_end(ap);
 }
 void
@@ -333,10 +311,9 @@ logfunctions::panic(char *fmt, ...)
 
 	assert (this != NULL);
 	assert (this->logio != NULL);
-	fs = this->logio->out(this->type,LOGLEV_PANIC,this->prefix, "%s", "");
 
 	va_start(ap, fmt);
-	vfprintf(fs,fmt,ap);
+	this->logio->out(this->type,LOGLEV_PANIC,this->prefix, fmt, ap);
 	va_end(ap);
 
 #if !BX_PANIC_IS_FATAL
@@ -364,14 +341,11 @@ logfunctions::ldebug(char *fmt, ...)
 
 	assert (this != NULL);
 	assert (this->logio != NULL);
-	fs = this->logio->out(this->type,LOGLEV_DEBUG,this->prefix, "%s", "");
 
 	va_start(ap, fmt);
-	vfprintf(fs,fmt,ap);
+	this->logio->out(this->type,LOGLEV_DEBUG,this->prefix, fmt, ap);
 	va_end(ap);
 }
-
-#endif
 
 iofunc_t *io = NULL;
 logfunc_t *genlog = NULL;
@@ -441,7 +415,8 @@ bx_bochs_init(int argc, char *argv[])
 
   bx_pc_system.init_ips(bx_options.ips);
 
-  io->init_log(logfilename);
+  if(logfilename[0]!='-')
+  	io->init_log(logfilename);
 
 #if BX_DEBUGGER == 0
   // debugger will do this work, if enabled
