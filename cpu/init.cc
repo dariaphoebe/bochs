@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.46.4.1 2003/03/20 05:16:37 bdenney Exp $
+// $Id: init.cc,v 1.46.4.2 2003/03/30 05:42:18 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -49,126 +49,9 @@ BX_CPU_C::BX_CPU_C(): bx_cpuid(0)
 }
 
 
-#if BX_WITH_WX
-
-#if BX_SMP_PROCESSORS!=1
-#ifdef __GNUC__
-#warning cpu_param_handler only supports parameters for one processor.
-#endif
-// To fix this, I think I will need to change bx_param_num_c::set_handler
-// so that I pass in a void* data value.  The void* will be passed to each
-// handler.  In this case, I would pass a pointer to the BX_CPU_C object
-// in the void*, then in the handler I'd cast it back to BX_CPU_C and call
-// BX_CPU_C::cpu_param_handler() which then could be a member function. -BBD
-#endif
-
-#define CASE_SEG_REG_GET(x) \
-  case BXP_CPU_SEG_##x: \
-    return BX_CPU(0)->sregs[BX_SEG_REG_##x].selector.value;
-#define CASE_SEG_REG_SET(reg, val) \
-  case BXP_CPU_SEG_##reg: \
-    BX_CPU(0)->load_seg_reg (&BX_CPU(0)->sregs[BX_SEG_REG_##reg],val); \
-    break;
-#define CASE_LAZY_EFLAG_GET(flag) \
-    case BXP_CPU_EFLAGS_##flag: \
-      return BX_CPU(0)->get_##flag ();
-#define CASE_LAZY_EFLAG_SET(flag, val) \
-    case BXP_CPU_EFLAGS_##flag: \
-      BX_CPU(0)->set_##flag(val); \
-      break;
-#define CASE_EFLAG_GET(flag) \
-    case BXP_CPU_EFLAGS_##flag: \
-      return BX_CPU(0)->get_##flag ();
-#define CASE_EFLAG_SET(flag, val) \
-    case BXP_CPU_EFLAGS_##flag: \
-      BX_CPU(0)->set_##flag(val); \
-      break;
-
-
-// implement get/set handler for parameters that need unusual set/get
-static Bit64s
-cpu_param_handler (bx_param_c *param, int set, Bit64s val)
-{
-  bx_id id = param->get_id ();
-  if (set) {
-    switch (id) {
-      CASE_SEG_REG_SET (CS, val);
-      CASE_SEG_REG_SET (DS, val);
-      CASE_SEG_REG_SET (SS, val);
-      CASE_SEG_REG_SET (ES, val);
-      CASE_SEG_REG_SET (FS, val);
-      CASE_SEG_REG_SET (GS, val);
-      case BXP_CPU_SEG_LDTR:
-        BX_CPU(0)->panic("setting LDTR not implemented");
-        break;
-      case BXP_CPU_SEG_TR:
-        BX_CPU(0)->panic ("setting TR not implemented");
-        break;
-      CASE_LAZY_EFLAG_SET (OF, val);
-      CASE_LAZY_EFLAG_SET (SF, val);
-      CASE_LAZY_EFLAG_SET (ZF, val);
-      CASE_LAZY_EFLAG_SET (AF, val);
-      CASE_LAZY_EFLAG_SET (PF, val);
-      CASE_LAZY_EFLAG_SET (CF, val);
-      CASE_EFLAG_SET (ID,   val);
-      //CASE_EFLAG_SET (VIP,  val);
-      //CASE_EFLAG_SET (VIF,  val);
-      CASE_EFLAG_SET (AC,   val);
-      CASE_EFLAG_SET (VM,   val);
-      CASE_EFLAG_SET (RF,   val);
-      CASE_EFLAG_SET (NT,   val);
-      CASE_EFLAG_SET (IOPL, val);
-      CASE_EFLAG_SET (DF,   val);
-      CASE_EFLAG_SET (IF,   val);
-      CASE_EFLAG_SET (TF,   val);
-      default:
-        BX_CPU(0)->panic ("cpu_param_handler set id %d not handled", id);
-    }
-  } else {
-    switch (id) {
-      CASE_SEG_REG_GET (CS);
-      CASE_SEG_REG_GET (DS);
-      CASE_SEG_REG_GET (SS);
-      CASE_SEG_REG_GET (ES);
-      CASE_SEG_REG_GET (FS);
-      CASE_SEG_REG_GET (GS);
-      case BXP_CPU_SEG_LDTR:
-        return BX_CPU(0)->ldtr.selector.value;
-        break;
-      case BXP_CPU_SEG_TR:
-        return BX_CPU(0)->tr.selector.value;
-        break;
-      CASE_LAZY_EFLAG_GET (OF);
-      CASE_LAZY_EFLAG_GET (SF);
-      CASE_LAZY_EFLAG_GET (ZF);
-      CASE_LAZY_EFLAG_GET (AF);
-      CASE_LAZY_EFLAG_GET (PF);
-      CASE_LAZY_EFLAG_GET (CF);
-      CASE_EFLAG_GET (ID);
-      //CASE_EFLAG_GET (VIP);
-      //CASE_EFLAG_GET (VIF);
-      CASE_EFLAG_GET (AC);
-      CASE_EFLAG_GET (VM);
-      CASE_EFLAG_GET (RF);
-      CASE_EFLAG_GET (NT);
-      CASE_EFLAG_GET (IOPL);
-      CASE_EFLAG_GET (DF);
-      CASE_EFLAG_GET (IF);
-      CASE_EFLAG_GET (TF);
-      default:
-        BX_CPU(0)->panic ("cpu_param_handler get id %d ('%s') not handled", id, param->get_name ());
-    }
-  }
-  return val;
-}
-#undef CASE_SEG_REG_GET
-#undef CASE_SEG_REG_SET
-
-#endif
-
 void BX_CPU_C::init(BX_MEM_C *addrspace)
 {
-  BX_DEBUG(( "Init $Id: init.cc,v 1.46.4.1 2003/03/20 05:16:37 bdenney Exp $"));
+  BX_DEBUG(( "Init $Id: init.cc,v 1.46.4.2 2003/03/30 05:42:18 bdenney Exp $"));
   // BX_CPU_C constructor
   BX_CPU_THIS_PTR set_INTR (0);
 #if BX_SUPPORT_APIC

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.9 2003/03/29 20:07:36 bdenney Exp $
+// $Id: main.cc,v 1.223.4.10 2003/03/30 05:42:18 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -57,6 +57,25 @@
 #define BXPN_MOUSE_ENABLED               "keyboard.enable_mouse"
 #define BXPN_KBD_PASTE_DELAY             "keyboard.paste_delay"
 #define BXPN_SCREENMODE                  "display.screen_mode"
+#define BXPN_FLOPPYA                     "floppy.0"
+#define BXPN_FLOPPYB                     "floppy.1"
+#define BXPN_ATA0                        "ata.0"
+#define BXPN_ATA0_MASTER                 "ata.0.master"
+#define BXPN_ATA0_SLAVE                  "ata.0.master"
+#define BXPN_ATA1                        "ata.1"
+#define BXPN_ATA1_MASTER                 "ata.1.master"
+#define BXPN_ATA1_SLAVE                  "ata.1.master"
+#define BXPN_ATA2                        "ata.2"
+#define BXPN_ATA2_MASTER                 "ata.2.master"
+#define BXPN_ATA2_SLAVE                  "ata.2.master"
+#define BXPN_ATA3                        "ata.3"
+#define BXPN_ATA3_MASTER                 "ata.3.master"
+#define BXPN_ATA3_SLAVE                  "ata.3.master"
+#define BXPN_NEWHARDDRIVESUPPORT         "ata.new_drive_support"
+#define BXPN_BOOTDRIVE                   "boot_param.boot_drive"
+#define BXPN_FLOPPYSIGCHECK              "boot_param.floppy_sig_check"
+#define BXPN_MEM_SIZE "memory.ram.megs"
+#define BXPN_RAM "memory.ram"
 
 int bochsrc_include_count = 0;
 
@@ -144,7 +163,7 @@ bx_param_handler (bx_param_c *param, int set, Bit64s val)
 {
   char pname[BX_PATHNAME_LEN];
   param->get_param_path (pname, BX_PATHNAME_LEN);
-  BX_INFO (("bx_param_handler called with param '%s', set=%d, new value %d", pname, set, val));
+  BX_INFO (("bx_param_handler called with param '%s', set=%d, new value %lld", pname, set, val));
   if (!strcmp (pname, BXPN_VGA_UPDATE_INTERVAL)) {
     // if after init, notify the vga device to change its timer.
     if (set && SIM->get_init_done ())
@@ -379,12 +398,12 @@ void bx_init_options ()
   bx_list_c *pci_root = new bx_list_c (param_root, "pci", "");
   bx_list_c *keyboard_root = new bx_list_c (param_root, "keyboard", "", 20);
   bx_list_c *menu_root = new bx_list_c (param_root, "menu", "all menus", 20);
-  bx_list_c *boot_params_root = new bx_list_c (param_root, "boot_param", "", 20);
+  bx_list_c *boot_param_root = new bx_list_c (param_root, "boot_param", "", 20);
   bx_list_c *time_root = new bx_list_c (param_root, "time", "");
   bx_list_c *display_root = new bx_list_c (param_root, "display", "");
   bx_list_c *misc_root = new bx_list_c (param_root, "misc", "misc options", 20);
   bx_list_c *log_root = new bx_list_c (param_root, "log", "");
-  bx_list_c *debugger_root = new bx_list_c (param_root, "debugger", "");
+  bx_list_c *debugger_root = new bx_list_c (param_root, "debug", "");
 
   // quick start option, set by command line arg
   new bx_param_enum_c (misc_root,
@@ -725,8 +744,8 @@ void bx_init_options ()
       "Enables new features found on newer hard drives.",
       1);
 
-  bx_options.Obootdrive = new bx_param_enum_c (boot_params_root,
-      "bootdrive",
+  bx_options.Obootdrive = new bx_param_enum_c (boot_param_root,
+      "boot_drive",
       "Boot A, C or CD",
       floppy_bootdisk_names,
       BX_BOOT_FLOPPYA,
@@ -734,7 +753,7 @@ void bx_init_options ()
   bx_options.Obootdrive->set_format ("Boot from: %s drive");
   bx_options.Obootdrive->set_ask_format ("Boot from floppy drive, hard drive or cdrom ? [%s] ");
 
-  bx_options.OfloppySigCheck = new bx_param_bool_c (boot_params_root,
+  bx_options.OfloppySigCheck = new bx_param_bool_c (boot_param_root,
       "floppy_sig_check",
       "Skips check for the 0xaa55 signature on floppy boot device.",
       0);
@@ -743,35 +762,37 @@ void bx_init_options ()
 #if 0
   // disk menu
   bx_param_c *disk_menu_init_list[] = {
-    SIM->get_param (BXP_FLOPPYA),
-    SIM->get_param (BXP_FLOPPYB),
-    //SIM->get_param (BXP_DISKC),
-    //SIM->get_param (BXP_DISKD),
-    //SIM->get_param (BXP_CDROMD),
-    SIM->get_param (BXP_ATA0),
-    SIM->get_param (BXP_ATA0_MASTER),
-    SIM->get_param (BXP_ATA0_SLAVE),
+    SIM->get_param (BXPN_FLOPPYA),
+    SIM->get_param (BXPN_FLOPPYB),
+    //SIM->get_param (BXPN_DISKC),
+    //SIM->get_param (BXPN_DISKD),
+    //SIM->get_param (BXPN_CDROMD),
+    SIM->get_param (BXPN_ATA0),
+    SIM->get_param (BXPN_ATA0_MASTER),
+    SIM->get_param (BXPN_ATA0_SLAVE),
 #if BX_MAX_ATA_CHANNEL>1
-    SIM->get_param (BXP_ATA1),
-    SIM->get_param (BXP_ATA1_MASTER),
-    SIM->get_param (BXP_ATA1_SLAVE),
+    SIM->get_param (BXPN_ATA1),
+    SIM->get_param (BXPN_ATA1_MASTER),
+    SIM->get_param (BXPN_ATA1_SLAVE),
 #endif
 #if BX_MAX_ATA_CHANNEL>2
-    SIM->get_param (BXP_ATA2),
-    SIM->get_param (BXP_ATA2_MASTER),
-    SIM->get_param (BXP_ATA2_SLAVE),
+    SIM->get_param (BXPN_ATA2),
+    SIM->get_param (BXPN_ATA2_MASTER),
+    SIM->get_param (BXPN_ATA2_SLAVE),
 #endif
 #if BX_MAX_ATA_CHANNEL>3
-    SIM->get_param (BXP_ATA3),
-    SIM->get_param (BXP_ATA3_MASTER),
-    SIM->get_param (BXP_ATA3_SLAVE),
+    SIM->get_param (BXPN_ATA3),
+    SIM->get_param (BXPN_ATA3_MASTER),
+    SIM->get_param (BXPN_ATA3_SLAVE),
 #endif
-    SIM->get_param (BXP_NEWHARDDRIVESUPPORT),
-    SIM->get_param (BXP_BOOTDRIVE),
-    SIM->get_param (BXP_FLOPPYSIGCHECK),
+    SIM->get_param (BXPN_NEWHARDDRIVESUPPORT),
+    SIM->get_param (BXPN_BOOTDRIVE),
+    SIM->get_param (BXPN_FLOPPYSIGCHECK),
     NULL
   };
 #endif
+
+
 
   // memory options menu
   bx_options.memory.Osize = new bx_param_num_c (ram,
@@ -784,9 +805,9 @@ void bx_init_options ()
 
   // initialize serial and parallel port options
 #define PAR_SER_INIT_LIST_MAX \
-  ((BXP_PARAMS_PER_PARALLEL_PORT * BX_N_PARALLEL_PORTS) \
-  + (BXP_PARAMS_PER_SERIAL_PORT * BX_N_SERIAL_PORTS) \
-  + (BXP_PARAMS_PER_USB_HUB * BX_N_USB_HUBS))
+  ((2 * BX_N_PARALLEL_PORTS) \
+  + (2 * BX_N_SERIAL_PORTS) \
+  + (2 * BX_N_USB_HUBS))
   bx_param_c *par_ser_init_list[1+PAR_SER_INIT_LIST_MAX];
   bx_param_c **par_ser_ptr = &par_ser_init_list[0];
 
@@ -879,19 +900,18 @@ void bx_init_options ()
   }
   // add final NULL at the end, and build the menu
   *par_ser_ptr = NULL;
-  // was BXP_MENU_SERIAL_PARALLEL
   menu = new bx_list_c (menu_root,
           "serial_parallel",
           "Serial and Parallel Port Options",
           par_ser_init_list);
   menu->get_options ()->set (menu->SHOW_PARENT);
 
-  bx_options.rom.Opath = new bx_param_filename_c (memory_root,
-      "romimage",
+  bx_options.rom.Opath = new bx_param_filename_c (rom,
+      "image",
       "Pathname of ROM image to load",
       "", BX_PATHNAME_LEN);
   bx_options.rom.Opath->set_format ("Name of ROM BIOS image: %s");
-  bx_options.rom.Oaddress = new bx_param_num_c (memory_root,
+  bx_options.rom.Oaddress = new bx_param_num_c (rom,
       "address",
       "The address at which the ROM image should be loaded",
       0, BX_MAX_BIT32U, 
@@ -939,7 +959,6 @@ void bx_init_options ()
     bx_options.optrom[3].Oaddress,
     NULL
   };
-  // was BXP_MENU_MEMORY
   menu = new bx_list_c (menu_root, "memory", "Bochs Memory Options", memory_init_list);
   menu->get_options ()->set (menu->SHOW_PARENT);
 
@@ -1067,7 +1086,6 @@ void bx_init_options ()
 #endif
     NULL
   };
-  // was BXP_MENU_INTERFACE
   menu = new bx_list_c (menu_root, "interface", "Bochs Interface Menu", interface_init_list);
   menu->get_options ()->set (menu->SHOW_PARENT);
 
@@ -1164,7 +1182,6 @@ void bx_init_options ()
     bx_options.sb16.Odmatimer,
     NULL
   };
-  // was BXP_SB16
   menu_root->add (sb16_root);
   // sb16_dependent_list is a null-terminated list including all the
   // sb16 fields except for the "present" field.  These will all be enabled/
@@ -1192,7 +1209,7 @@ void bx_init_options ()
   bx_options.log.Odebugger_filename->set_ask_format ("Enter debugger log filename: [%s] ");
 
   // loader
-  bx_list_c *load32bitos_root = new bx_list_c (boot_params_root, "load32bitos", "32-bit OS Loader");
+  bx_list_c *load32bitos_root = new bx_list_c (boot_param_root, "load32bitos", "32-bit OS Loader");
   bx_options.load32bitOSImage.OwhichOS = new bx_param_enum_c (load32bitos_root,
       "which_os",
       "Which OS to boot",
@@ -1318,7 +1335,6 @@ void bx_init_options ()
       bx_options.Ouser_shortcut,
       NULL
   };
-  // was BXP_MENU_MISC
   menu = new bx_list_c (menu_root, "misc", "Configure Everything Else", other_init_list);
   menu->get_options ()->set (menu->SHOW_PARENT);
 }
@@ -2285,11 +2301,9 @@ bx_init_hardware()
   }
 
 #if BX_SMP_PROCESSORS==1
-  bx_param_num_c *memsize = SIM->get_param_num("memory.ram.megs");
+  bx_param_num_c *memsize = SIM->get_param_num(BXPN_MEM_SIZE);
   BX_MEM(0)->init_memory(memsize->get() * 1024*1024);
-  bx_list_c *mem_list_p = 
-    new bx_list_c (SIM->get_param("."), "mem", "mem", 100);
-  BX_MEM(0)->register_state(mem_list_p);
+  BX_MEM(0)->register_state(SIM->get_param (BXPN_RAM));
 
   // First load the optional ROM images
   if (strcmp(bx_options.optrom[0].Opath->getptr (),"") !=0 )
@@ -2306,9 +2320,11 @@ bx_init_hardware()
   BX_MEM(0)->load_ROM(bx_options.vgarom.Opath->getptr (), 0xc0000);
 
   BX_CPU(0)->init (BX_MEM(0));
-  bx_list_c *cpu_list_p = 
-    new bx_list_c (SIM->get_param("."), "cpu", "cpu", 100);
-  BX_CPU(0)->register_state(cpu_list_p);
+  bx_list_c *cpu_param_root = 
+    new bx_list_c (SIM->get_param("."), "cpu", "cpu", 20);
+  bx_list_c *cpu_param_p = 
+    new bx_list_c (cpu_param_root, "0", "cpu #0", 100);
+  BX_CPU(0)->register_state(cpu_param_p);
 
   BX_CPU(0)->set_cpu_id(0);
 #if BX_SUPPORT_APIC
@@ -2316,6 +2332,7 @@ bx_init_hardware()
 #endif
   BX_INSTR_INIT(0);
   BX_CPU(0)->reset(BX_RESET_HARDWARE);
+#warning SMP param registration and save/restore mechanisms have NOT been tested
 #else
   // SMP initialization
   bx_mem_array[0] = new BX_MEM_C (bx_options.memory.Osize->get() * 1024*1024);
@@ -2337,7 +2354,6 @@ bx_init_hardware()
   bx_mem_array[0]->load_ROM(bx_options.vgarom.Opath->getptr (), 0xc0000);
 
 
-#warning SMP save/restore mechanisms have NOT been tested
   static char param_cpu_buf[BX_SMP_PROCESSORS][30];
   bx_list_c *cpu_list_p = 
     new bx_list_c (SIM->get_param("."), "cpu", "cpu", 100);
@@ -2375,8 +2391,8 @@ bx_init_hardware()
   DEV_init_devices();
   printf ("after init_devices\n");
   printf ("------------------\n");
-#warning SLECHTA DISABLED because of segfault.  not sure why yet!
-  //print_tree (SIM->get_param ("."));
+#warning SLECHTA DISABLED because of segfault.  not sure why yet!  BBD reenabled because of lack of segfault.
+  print_tree (SIM->get_param ("."));
   printf ("------------------\n");
   DEV_reset_devices(BX_RESET_HARDWARE);
   bx_gui->init_signal_handlers ();

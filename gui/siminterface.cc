@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94.4.11 2003/03/29 19:57:18 slechta Exp $
+// $Id: siminterface.cc,v 1.94.4.12 2003/03/30 05:42:19 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -33,8 +33,6 @@ class bx_real_sim_c : public bx_simulator_interface_c {
   config_interface_callback_t ci_callback;
   void *ci_callback_data;
   int init_done;
-  bx_param_c **param_registry;
-  int registry_alloc_size;
   int enabled;
   // save context to jump to if we must quit unexpectedly
   jmp_buf *quit_context;
@@ -45,48 +43,13 @@ public:
   virtual void set_quit_context (jmp_buf *context) { quit_context = context; }
   virtual int get_init_done () { return init_done; }
   virtual int set_init_done (int n) { init_done = n; return 0;}
-  virtual void get_param_id_range (int *min, int *max) {
-    *min = BXP_NULL;
-    *max = BXP_THIS_IS_THE_LAST-1;
-  }
-  virtual int register_param (bx_id id, bx_param_c *it);
   virtual void reset_all_param ();
 
-  // All lookups by ID will be eliminated soon.  They will not work anymore.
-  virtual bx_param_c *get_param (bx_id id) {
-    BX_INFO (("get_param called with id=%d. This method is no longer usable and will be eliminated soon. Replace it with a call to get_param(name).", (int)id));
-    assert (0);
-    return NULL;
-  }
-  virtual bx_param_num_c *get_param_num (bx_id id) {
-    BX_INFO (("get_param_num called with id=%d. This method is no longer usable and will be eliminated soon. Replace it with a call to get_param_num(name).", (int)id));
-    assert (0);
-    return NULL;
-  }
-  virtual bx_param_string_c *get_param_string (bx_id id) {
-    BX_INFO (("get_param_string called with id=%d. This method is no longer usable and will be eliminated soon. Replace it with a call to get_param_string(name).", (int)id));
-    assert (0);
-    return NULL;
-  }
-  virtual bx_param_bool_c *get_param_bool (bx_id id) {
-    BX_INFO (("get_param_bool called with id=%d. This method is no longer usable and will be eliminated soon. Replace it with a call to get_param_bool(name).", (int)id));
-    assert (0);
-    return NULL;
-  }
-  virtual bx_param_enum_c *get_param_enum (bx_id id) {
-    BX_INFO (("get_param_enum called with id=%d. This method is no longer usable and will be eliminated soon. Replace it with a call to get_param_enum(name).", (int)id));
-    BX_ASSERT (0);
-    return NULL;
-  }
-
-
-
-
-  virtual bx_param_c *get_param (const char *pname, bx_param_c *base=NULL);
-  virtual bx_param_num_c *get_param_num (const char *pname);
-  virtual bx_param_string_c *get_param_string (const char *pname);
-  virtual bx_param_bool_c *get_param_bool (const char *pname);
-  virtual bx_param_enum_c *get_param_enum (const char *pname);
+  virtual bx_param_c *get_param (const char *ppath, bx_param_c *base=NULL);
+  virtual bx_param_num_c *get_param_num (const char *ppath);
+  virtual bx_param_string_c *get_param_string (const char *ppath);
+  virtual bx_param_bool_c *get_param_bool (const char *ppath);
+  virtual bx_param_enum_c *get_param_enum (const char *ppath);
   virtual int get_n_log_modules ();
   virtual char *get_prefix (int mod);
   virtual int get_log_action (int mod, int level);
@@ -118,7 +81,8 @@ public:
   virtual void get_notify_callback (bxevent_handler *func, void **arg);
   virtual BxEvent* sim_to_ci_event (BxEvent *event);
   virtual int log_msg (const char *prefix, int level, const char *msg);
-  virtual int ask_param (bx_id which);
+  virtual int ask_param (const char *ppath);
+  virtual int ask_param (bx_param_c *param);
   // ask the user for a pathname
   virtual int ask_filename (char *filename, int maxlen, char *prompt, char *the_default, int flags);
   // called at a regular interval, currently by the keyboard handler.
@@ -171,12 +135,12 @@ public:
 
 // recursive function to find parameters from the path
 static
-bx_param_c *find_param (const char *full_pname, const char *rest_of_pname, bx_param_c *base)
+bx_param_c *find_param (const char *full_ppath, const char *rest_of_ppath, bx_param_c *base)
 {
-  const char *from = rest_of_pname;
+  const char *from = rest_of_ppath;
   char component[BX_PATHNAME_LEN];
   char *to = component;
-  // copy the first piece of pname into component, stopping at first separator
+  // copy the first piece of ppath into component, stopping at first separator
   // or at the end of the string
   while (*from != 0 && *from != '.') {
     *to = *from;
@@ -185,7 +149,7 @@ bx_param_c *find_param (const char *full_pname, const char *rest_of_pname, bx_pa
   }
   *to = 0;
   if (!component[0]) {
-    BX_PANIC (("find_param: found empty component in parameter name %s", full_pname));
+    BX_PANIC (("find_param: found empty component in parameter name %s", full_ppath));
     // or does that mean that we're done?
   }
   if (base->get_type() != BXT_LIST) {
@@ -205,70 +169,70 @@ bx_param_c *find_param (const char *full_pname, const char *rest_of_pname, bx_pa
   // continue parsing the path
   BX_ASSERT(from[0] == '.');
   from++;  // skip over the separator
-  return find_param (full_pname, from, child);
+  return find_param (full_ppath, from, child);
 }
 
 bx_param_c *
-bx_real_sim_c::get_param (const char *pname, bx_param_c *base) 
+bx_real_sim_c::get_param (const char *ppath, bx_param_c *base) 
 {
   if (base == NULL)
     base = root_param;
   // to access top level object, look for parameter "."
-  if (pname[0] == '.' && pname[1] == 0)
+  if (ppath[0] == '.' && ppath[1] == 0)
     return base;
-  return find_param (pname, pname, base);
+  return find_param (ppath, ppath, base);
 }
 
 bx_param_num_c *
-bx_real_sim_c::get_param_num (const char *pname) {
-  bx_param_c *generic = get_param(pname);
+bx_real_sim_c::get_param_num (const char *ppath) {
+  bx_param_c *generic = get_param(ppath);
   if (generic==NULL) {
-    BX_PANIC (("get_param_num(%s) could not find a parameter", pname));
+    BX_PANIC (("get_param_num(%s) could not find a parameter", ppath));
     return NULL;
   }
   int type = generic->get_type ();
   if (type == BXT_PARAM_NUM || type == BXT_PARAM_BOOL || type == BXT_PARAM_ENUM)
     return (bx_param_num_c *)generic;
-  BX_PANIC (("get_param_num(%s) could not find an integer parameter with that name", pname));
+  BX_PANIC (("get_param_num(%s) could not find an integer parameter with that name", ppath));
   return NULL;
 }
 
 bx_param_string_c *
-bx_real_sim_c::get_param_string (const char *pname) {
-  bx_param_c *generic = get_param(pname);
+bx_real_sim_c::get_param_string (const char *ppath) {
+  bx_param_c *generic = get_param(ppath);
   if (generic==NULL) {
-    BX_PANIC (("get_param_string(%s) could not find a parameter", pname));
+    BX_PANIC (("get_param_string(%s) could not find a parameter", ppath));
     return NULL;
   }
   if (generic->get_type () == BXT_PARAM_STRING)
     return (bx_param_string_c *)generic;
-  BX_PANIC (("get_param_string(%s) could not find an integer parameter with that name", pname));
+  BX_PANIC (("get_param_string(%s) could not find an integer parameter with that name", ppath));
   return NULL;
 }
 
 bx_param_bool_c *
-bx_real_sim_c::get_param_bool (const char *pname) {
-  bx_param_c *generic = get_param(pname);
+bx_real_sim_c::get_param_bool (const char *ppath) {
+  bx_param_c *generic = get_param(ppath);
   if (generic==NULL) {
-    BX_PANIC (("get_param_bool(%s) could not find a parameter", pname));
+    BX_PANIC (("get_param_bool(%s) could not find a parameter", ppath));
     return NULL;
   }
   if (generic->get_type () == BXT_PARAM_BOOL)
     return (bx_param_bool_c *)generic;
-  BX_PANIC (("get_param_bool(%s) could not find a bool parameter with that name", pname));
+  BX_PANIC (("get_param_bool(%s) could not find a bool parameter with that name", ppath));
   return NULL;
 }
 
 bx_param_enum_c *
-bx_real_sim_c::get_param_enum (const char *pname) {
-  bx_param_c *generic = get_param(pname);
+bx_real_sim_c::get_param_enum (const char *ppath) {
+  bx_param_c *generic = get_param(ppath);
   if (generic==NULL) {
-    BX_PANIC (("get_param_enum(%s) could not find a parameter", pname));
+    BX_PANIC (("get_param_enum(%s) could not find a parameter", ppath));
     return NULL;
   }
   if (generic->get_type () == BXT_PARAM_ENUM)
     return (bx_param_enum_c *)generic;
-  BX_PANIC (("get_param_enum(%s) could not find a enum parameter with that name", pname));
+  BX_PANIC (("get_param_enum(%s) could not find a enum parameter with that name", ppath));
   return NULL;
 }
 
@@ -301,12 +265,7 @@ bx_real_sim_c::bx_real_sim_c ()
   wxsel = false;
   
   enabled = 1;
-  int i;
   init_done = 0;
-  registry_alloc_size = BXP_THIS_IS_THE_LAST - BXP_NULL;
-  param_registry = new bx_param_c*  [registry_alloc_size];
-  for (i=0; i<registry_alloc_size; i++)
-    param_registry[i] = NULL;
   quit_context = NULL;
   exit_code = 0;
 }
@@ -316,29 +275,13 @@ bx_real_sim_c::bx_real_sim_c ()
 // which can be used to look them up by number (get_param).
 bx_real_sim_c::~bx_real_sim_c ()
 {
-    if ( param_registry != NULL )
-    {
-        delete [] param_registry;
-        param_registry = NULL;
-    }
-}
-
-int
-bx_real_sim_c::register_param (bx_id id, bx_param_c *it)
-{
-  if (id == BXP_NULL) return 0;
-  BX_ASSERT (id >= BXP_NULL && id < BXP_THIS_IS_THE_LAST);
-  int index = (int)id - BXP_NULL;
-  if (this->param_registry[index] != NULL) {
-    BX_INFO (("register_param is overwriting parameter id %d", id));
-  }
-  this->param_registry[index] = it;
-  return 0;
 }
 
 void 
 bx_real_sim_c::reset_all_param ()
 {
+#warning FIXME: reset_all_param can no longer be used to "restore to factory defaults"
+  BX_PANIC (("reset_all_param used to be used to reset configuration parameters.  But now every state of every devices is a parameter.  Resetting everything back to its original values would be basically resetting the machine. This needs work."));
   bx_reset_options ();
 }
 
@@ -592,16 +535,22 @@ bx_real_sim_c::log_msg (const char *prefix, int level, const char *msg)
 // send it to the CI, and wait for the response.  The CI will call the
 // set() method on the parameter if the user changes the value.
 int 
-bx_real_sim_c::ask_param (bx_id param)
+bx_real_sim_c::ask_param (bx_param_c *param)
 {
-  bx_param_c *paramptr = SIM->get_param(param);
-  BX_ASSERT (paramptr != NULL);
+  BX_ASSERT (param != NULL);
   // create appropriate event
   BxEvent event;
   event.type = BX_SYNC_EVT_ASK_PARAM;
-  event.u.param.param = paramptr;
+  event.u.param.param = param;
   sim_to_ci_event (&event);
   return event.retcode;
+}
+
+int
+bx_real_sim_c::ask_param (const char *ppath)
+{
+  bx_param_c *param = SIM->get_param(ppath);
+  return ask_param (param);
 }
 
 int
@@ -872,10 +821,8 @@ bx_real_sim_c::restore_state (const char *checkpoint_name)
 // define methods of bx_param_* and family
 /////////////////////////////////////////////////////////////////////////
 
-bx_object_c::bx_object_c (bx_id id)
+bx_object_c::bx_object_c ()
 {
-  this->id = id;
-  this->type = BXT_OBJECT;
 }
 
 void
@@ -887,7 +834,7 @@ bx_object_c::set_type (bx_objtype type)
 const char* bx_param_c::default_text_format = NULL;
 
 bx_param_c::bx_param_c (bx_param_c *parent, char *name, char *description)
-  : bx_object_c (BXP_NULL)
+  : bx_object_c ()
 {
   set_type (BXT_PARAM);
   this->name = name;
@@ -925,9 +872,9 @@ bx_param_c *bx_param_c::get_by_name (const char *name)
   if (is_type (BXT_LIST)) {
     return ((bx_list_c *)this)->get_by_name (name);
   }
-  char pname[BX_PATHNAME_LEN];
-  get_param_path (pname, BX_PATHNAME_LEN);
-  BX_PANIC (("get_by_name called on non-list param %s", pname));
+  char ppath[BX_PATHNAME_LEN];
+  get_param_path (ppath, BX_PATHNAME_LEN);
+  BX_PANIC (("get_by_name called on non-list param %s", ppath));
   return NULL;
 }
 
@@ -1034,9 +981,9 @@ bx_param_num_c::set (Bit64s newval, bx_bool ignore_handler)
     val.number = newval;
   }
   if ((val.number < min || val.number > max) && max != BX_MAX_BIT64U) {
-    char pname[BX_PATHNAME_LEN];
-    get_param_path (pname, BX_PATHNAME_LEN);
-    BX_PANIC (("numerical parameter '%s' was set to %lld, which is out of range %lld to %lld", pname, val.number, min, max));
+    char ppath[BX_PATHNAME_LEN];
+    get_param_path (ppath, BX_PATHNAME_LEN);
+    BX_PANIC (("numerical parameter '%s' was set to %lld, which is out of range %lld to %lld", ppath, val.number, min, max));
   }
   if (dependent_list != NULL) update_dependents (dependent_list);
 }
@@ -1229,9 +1176,9 @@ bx_shadow_num_c::set (Bit64s newval, bx_bool ignore_handler)
 {
   Bit64u tmp = 0;
   if ((newval < min || newval > max) && max != BX_MAX_BIT64U) {
-    char pname[BX_PATHNAME_LEN];
-    get_param_path (pname, BX_PATHNAME_LEN);
-    BX_PANIC (("numerical parameter %s was set to %lld, which is out of range %lld to %lld", pname, newval, min, max));
+    char ppath[BX_PATHNAME_LEN];
+    get_param_path (ppath, BX_PATHNAME_LEN);
+    BX_PANIC (("numerical parameter %s was set to %lld, which is out of range %lld to %lld", ppath, newval, min, max));
   }
   switch (varsize) {
     case 8: 
@@ -1545,8 +1492,11 @@ bx_list_c::clone ()
 void
 bx_list_c::add (bx_param_c *param)
 {
-  if (this->size >= this->maxsize)
-    BX_PANIC (("add param %u to bx_list_c id=%u: list capacity exceeded", param->get_id (), get_id ()));
+  if (this->size >= this->maxsize) {
+    char ppath[BX_PATHNAME_LEN];
+    get_param_path (ppath, BX_PATHNAME_LEN);
+    BX_PANIC (("add param '%s' to bx_list_c '%s': list capacity exceeded", param->get_name (), ppath));
+  }
   list[size] = param;
   size++;
 }
@@ -1609,10 +1559,10 @@ void print_tree (bx_param_c *node, int level)
           // do not descend into the object.
           bx_bool is_link = (list != list->get(i)->get_parent ());
           if (is_link) {
-            char pname[BX_PATHNAME_LEN];
-            list->get(i)->get_param_path (pname, sizeof(pname));
+            char ppath[BX_PATHNAME_LEN];
+            list->get(i)->get_param_path (ppath, sizeof(ppath));
             for (int indent=0; indent<level+1; indent++) printf ("  ");
-            printf ("%s --> link to %s\n", list->get(i)->get_name (), pname);
+            printf ("%s --> link to %s\n", list->get(i)->get_name (), ppath);
 	    } else {
               print_tree (list->get(i), level+1);
 	    }
@@ -1737,10 +1687,10 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
         // do not descend into the object.
         bx_bool is_link = (list != list->get(i)->get_parent ());
         if (is_link) {
-          char pname[BX_PATHNAME_LEN];
-          list->get(i)->get_param_path (pname, sizeof(pname));
+          char ppath[BX_PATHNAME_LEN];
+          list->get(i)->get_param_path (ppath, sizeof(ppath));
           for (int indent=0; indent<level+1; indent++) fprintf (m_ascii_fp, " ");
-          fprintf (m_ascii_fp, "%s=<link>\"%s\"\n", list->get(i)->get_name (), pname);
+          fprintf (m_ascii_fp, "%s=<link>\"%s\"\n", list->get(i)->get_name (), ppath);
         } else {
           save_param_tree (list->get(i), level+1);
         }

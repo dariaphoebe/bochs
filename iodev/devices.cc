@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.52.2.9 2003/03/29 01:57:09 slechta Exp $
+// $Id: devices.cc,v 1.52.2.10 2003/03/30 05:42:19 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -93,7 +93,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.9 2003/03/29 01:57:09 slechta Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.10 2003/03/30 05:42:19 bdenney Exp $"));
   mem = newmem;
 
   /* no read / write handlers defined */
@@ -714,32 +714,35 @@ bx_devices_c::outp(Bit16u addr, Bit32u value, unsigned io_len)
 bx_bool bx_devices_c::is_serial_enabled ()
 {
 #warning FIXME: serial enable checking is disabled
-  return false;
+#if 0
   for (int i=0; i<BX_N_SERIAL_PORTS; i++) {
     if (SIM->get_param_bool (BXP_COMx_ENABLED(i+1))->get())
       return true;
   }
+#endif
   return false;
 }
 
 bx_bool bx_devices_c::is_usb_enabled ()
 {
 #warning FIXME: usb enable checking is disabled
-  return false;
+#if 0
   for (int i=0; i<BX_N_USB_HUBS; i++) {
     if (SIM->get_param_bool (BXP_USBx_ENABLED(i+1))->get())
        return true;
   }
+#endif
   return false;
 }
 
 bx_bool bx_devices_c::is_parallel_enabled ()
 {
 #warning FIXME: parallel enable checking is disabled
-  return false;
+#if 0
   for (int i=0; i<BX_N_PARALLEL_PORTS; i++) {
     if (SIM->get_param_bool (BXP_PARPORTx_ENABLED(i+1))->get())
       return true;
   }
+#endif
   return false;
 }

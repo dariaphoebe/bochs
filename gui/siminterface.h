@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.12 2003/03/29 19:57:18 slechta Exp $
+// $Id: siminterface.h,v 1.99.4.13 2003/03/30 05:42:19 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -118,322 +118,6 @@ typedef enum {
   BXT_PARAM_DATA,
   BXT_LIST
 } bx_objtype;
-
-// list if parameter id values.  The actual values are not important;
-// it's only important that they all be different from each other.
-typedef enum {
-  BXP_NULL = 301,
-  BXP_IPS,
-  BXP_REALTIME_PIT,
-  BXP_TEXT_SNAPSHOT_CHECK,
-  BXP_VGA_UPDATE_INTERVAL,
-  BXP_MOUSE_ENABLED,
-  BXP_MEM_SIZE,
-  BXP_ROM_PATH,
-  BXP_ROM_ADDRESS,
-  BXP_VGA_ROM_PATH,
-  BXP_OPTROM1_PATH,
-  BXP_OPTROM2_PATH,
-  BXP_OPTROM3_PATH,
-  BXP_OPTROM4_PATH,
-  BXP_OPTROM1_ADDRESS,
-  BXP_OPTROM2_ADDRESS,
-  BXP_OPTROM3_ADDRESS,
-  BXP_OPTROM4_ADDRESS,
-  BXP_KBD_SERIAL_DELAY,
-  BXP_KBD_PASTE_DELAY,
-  BXP_KBD_TYPE,
-  BXP_FLOPPY_CMD_DELAY,
-  BXP_FLOPPYA_DEVTYPE,
-  BXP_FLOPPYA_PATH,
-  BXP_FLOPPYA_TYPE,
-  BXP_FLOPPYA_STATUS,
-  BXP_FLOPPYA,
-  BXP_FLOPPYB_DEVTYPE,
-  BXP_FLOPPYB_PATH,
-  BXP_FLOPPYB_TYPE,
-  BXP_FLOPPYB_STATUS,
-  BXP_FLOPPYB,
-  BXP_ATA0_MENU,
-  BXP_ATA1_MENU,
-  BXP_ATA2_MENU,
-  BXP_ATA3_MENU,
-  BXP_ATA0,
-  BXP_ATA1,
-  BXP_ATA2,
-  BXP_ATA3,
-  BXP_ATA0_PRESENT,
-  BXP_ATA1_PRESENT,
-  BXP_ATA2_PRESENT,
-  BXP_ATA3_PRESENT,
-  BXP_ATA0_IOADDR1,
-  BXP_ATA1_IOADDR1,
-  BXP_ATA2_IOADDR1,
-  BXP_ATA3_IOADDR1,
-  BXP_ATA0_IOADDR2,
-  BXP_ATA1_IOADDR2,
-  BXP_ATA2_IOADDR2,
-  BXP_ATA3_IOADDR2,
-  BXP_ATA0_IRQ,
-  BXP_ATA1_IRQ,
-  BXP_ATA2_IRQ,
-  BXP_ATA3_IRQ,
-  BXP_ATA0_MASTER,
-  BXP_ATA0_SLAVE,
-  BXP_ATA1_MASTER,
-  BXP_ATA1_SLAVE,
-  BXP_ATA2_MASTER,
-  BXP_ATA2_SLAVE,
-  BXP_ATA3_MASTER,
-  BXP_ATA3_SLAVE,
-  BXP_ATA0_MASTER_PRESENT,
-  BXP_ATA0_SLAVE_PRESENT,
-  BXP_ATA1_MASTER_PRESENT,
-  BXP_ATA1_SLAVE_PRESENT,
-  BXP_ATA2_MASTER_PRESENT,
-  BXP_ATA2_SLAVE_PRESENT,
-  BXP_ATA3_MASTER_PRESENT,
-  BXP_ATA3_SLAVE_PRESENT,
-  BXP_ATA0_MASTER_TYPE,
-  BXP_ATA0_SLAVE_TYPE,
-  BXP_ATA1_MASTER_TYPE,
-  BXP_ATA1_SLAVE_TYPE,
-  BXP_ATA2_MASTER_TYPE,
-  BXP_ATA2_SLAVE_TYPE,
-  BXP_ATA3_MASTER_TYPE,
-  BXP_ATA3_SLAVE_TYPE,
-  BXP_ATA0_MASTER_PATH,
-  BXP_ATA0_SLAVE_PATH,
-  BXP_ATA1_MASTER_PATH,
-  BXP_ATA1_SLAVE_PATH,
-  BXP_ATA2_MASTER_PATH,
-  BXP_ATA2_SLAVE_PATH,
-  BXP_ATA3_MASTER_PATH,
-  BXP_ATA3_SLAVE_PATH,
-  BXP_ATA0_MASTER_CYLINDERS,
-  BXP_ATA0_SLAVE_CYLINDERS,
-  BXP_ATA1_MASTER_CYLINDERS,
-  BXP_ATA1_SLAVE_CYLINDERS,
-  BXP_ATA2_MASTER_CYLINDERS,
-  BXP_ATA2_SLAVE_CYLINDERS,
-  BXP_ATA3_MASTER_CYLINDERS,
-  BXP_ATA3_SLAVE_CYLINDERS,
-  BXP_ATA0_MASTER_HEADS,
-  BXP_ATA0_SLAVE_HEADS,
-  BXP_ATA1_MASTER_HEADS,
-  BXP_ATA1_SLAVE_HEADS,
-  BXP_ATA2_MASTER_HEADS,
-  BXP_ATA2_SLAVE_HEADS,
-  BXP_ATA3_MASTER_HEADS,
-  BXP_ATA3_SLAVE_HEADS,
-  BXP_ATA0_MASTER_SPT,
-  BXP_ATA0_SLAVE_SPT,
-  BXP_ATA1_MASTER_SPT,
-  BXP_ATA1_SLAVE_SPT,
-  BXP_ATA2_MASTER_SPT,
-  BXP_ATA2_SLAVE_SPT,
-  BXP_ATA3_MASTER_SPT,
-  BXP_ATA3_SLAVE_SPT,
-  BXP_ATA0_MASTER_STATUS,
-  BXP_ATA0_SLAVE_STATUS,
-  BXP_ATA1_MASTER_STATUS,
-  BXP_ATA1_SLAVE_STATUS,
-  BXP_ATA2_MASTER_STATUS,
-  BXP_ATA2_SLAVE_STATUS,
-  BXP_ATA3_MASTER_STATUS,
-  BXP_ATA3_SLAVE_STATUS,
-  BXP_ATA0_MASTER_MODEL,
-  BXP_ATA0_SLAVE_MODEL,
-  BXP_ATA1_MASTER_MODEL,
-  BXP_ATA1_SLAVE_MODEL,
-  BXP_ATA2_MASTER_MODEL,
-  BXP_ATA2_SLAVE_MODEL,
-  BXP_ATA3_MASTER_MODEL,
-  BXP_ATA3_SLAVE_MODEL,
-  BXP_ATA0_MASTER_BIOSDETECT,
-  BXP_ATA0_SLAVE_BIOSDETECT,
-  BXP_ATA1_MASTER_BIOSDETECT,
-  BXP_ATA1_SLAVE_BIOSDETECT,
-  BXP_ATA2_MASTER_BIOSDETECT,
-  BXP_ATA2_SLAVE_BIOSDETECT,
-  BXP_ATA3_MASTER_BIOSDETECT,
-  BXP_ATA3_SLAVE_BIOSDETECT,
-  BXP_ATA0_MASTER_TRANSLATION,
-  BXP_ATA0_SLAVE_TRANSLATION,
-  BXP_ATA1_MASTER_TRANSLATION,
-  BXP_ATA1_SLAVE_TRANSLATION,
-  BXP_ATA2_MASTER_TRANSLATION,
-  BXP_ATA2_SLAVE_TRANSLATION,
-  BXP_ATA3_MASTER_TRANSLATION,
-  BXP_ATA3_SLAVE_TRANSLATION,
-#define BXP_PARAMS_PER_SERIAL_PORT 2
-  BXP_COM1_ENABLED,
-  BXP_COM1_PATH,
-  BXP_COM2_ENABLED,
-  BXP_COM2_PATH,
-  BXP_COM3_ENABLED,
-  BXP_COM3_PATH,
-  BXP_COM4_ENABLED,
-  BXP_COM4_PATH,
-#define BXP_PARAMS_PER_USB_HUB 3
-  BXP_USB1_ENABLED,
-  BXP_USB1_IOADDR,
-  BXP_USB1_IRQ,
-  BXP_PRIVATE_COLORMAP,
-  BXP_FULLSCREEN,
-  BXP_SCREENMODE,
-  BXP_I440FX_SUPPORT,
-  BXP_NEWHARDDRIVESUPPORT,
-  BXP_LOG_FILENAME,
-  BXP_LOG_PREFIX,
-  BXP_DEBUGGER_LOG_FILENAME,
-  BXP_CMOS_PATH,
-  BXP_CMOS_IMAGE,
-  BXP_CMOS_TIME0,
-  BXP_LOAD32BITOS_WHICH,
-  BXP_LOAD32BITOS_PATH,
-  BXP_LOAD32BITOS_IOLOG,
-  BXP_LOAD32BITOS_INITRD,
-  BXP_LOAD32BITOS,
-  BXP_BOOTDRIVE,
-  BXP_FLOPPYSIGCHECK,
-  BXP_MENU_MAIN,
-  BXP_MENU_MEMORY,
-  BXP_MENU_INTERFACE,
-  BXP_MENU_DISK,
-  BXP_MENU_SERIAL_PARALLEL,
-  BXP_MENU_SOUND,
-  BXP_MENU_MISC,
-  BXP_MENU_RUNTIME,
-  BXP_SYSTEM_CLOCK_SYNC,
-  BXP_MAX_IPS,
-  BXP_NE2K_PRESENT,
-  BXP_NE2K_IOADDR,
-  BXP_NE2K_IRQ,
-  BXP_NE2K_MACADDR,
-  BXP_NE2K_ETHMOD,
-  BXP_NE2K_ETHDEV,
-  BXP_NE2K_SCRIPT,
-  BXP_NE2K,
-  BXP_SB16_PRESENT,
-  BXP_SB16_MIDIFILE,
-  BXP_SB16_WAVEFILE,
-  BXP_SB16_LOGFILE,
-  BXP_SB16_MIDIMODE,
-  BXP_SB16_WAVEMODE,
-  BXP_SB16_LOGLEVEL,
-  BXP_SB16_DMATIMER,
-  BXP_SB16,
-#define BXP_PARAMS_PER_PARALLEL_PORT 2
-  BXP_PARPORT1_ENABLED,
-  BXP_PARPORT1_OUTFILE,
-  BXP_PARPORT2_ENABLED,
-  BXP_PARPORT2_OUTFILE,
-  BXP_KEYBOARD_USEMAPPING,
-  BXP_KEYBOARD_MAP,
-  BXP_KEYBOARD,
-  BXP_USER_SHORTCUT,
-  BXP_ASK_FOR_PATHNAME,   // for general file selection dialog
-  BXP_BOCHS_START,        // How Bochs starts
-  // experiment: add params for CPU registers
-  BXP_CPU_PARAMETERS,
-  BXP_CPU_EAX,
-  BXP_CPU_EBX,
-  BXP_CPU_ECX,
-  BXP_CPU_EDX,
-  BXP_CPU_EBP,
-  BXP_CPU_ESI,
-  BXP_CPU_EDI,
-  BXP_CPU_ESP,
-  BXP_CPU_EIP,
-  BXP_CPU_SEG_CS,
-  BXP_CPU_SEG_DS,
-  BXP_CPU_SEG_SS,
-  BXP_CPU_SEG_ES,
-  BXP_CPU_SEG_FS,
-  BXP_CPU_SEG_GS,
-  BXP_CPU_SEG_LDTR,
-  BXP_CPU_SEG_TR,
-  BXP_CPU_GDTR_BASE,
-  BXP_CPU_GDTR_LIMIT,
-  BXP_CPU_IDTR_BASE,
-  BXP_CPU_IDTR_LIMIT,
-  BXP_CPU_EFLAGS,
-  BXP_CPU_EFLAGS_ID,
-  BXP_CPU_EFLAGS_VIP,
-  BXP_CPU_EFLAGS_VIF,
-  BXP_CPU_EFLAGS_AC,
-  BXP_CPU_EFLAGS_VM,
-  BXP_CPU_EFLAGS_RF,
-  BXP_CPU_EFLAGS_NT,
-  BXP_CPU_EFLAGS_IOPL,
-  BXP_CPU_EFLAGS_OF,
-  BXP_CPU_EFLAGS_DF,
-  BXP_CPU_EFLAGS_IF,
-  BXP_CPU_EFLAGS_TF,
-  BXP_CPU_EFLAGS_SF,
-  BXP_CPU_EFLAGS_ZF,
-  BXP_CPU_EFLAGS_AF,
-  BXP_CPU_EFLAGS_PF,
-  BXP_CPU_EFLAGS_CF,
-  BXP_CPU_DR0,
-  BXP_CPU_DR1,
-  BXP_CPU_DR2,
-  BXP_CPU_DR3,
-  BXP_CPU_DR6,
-  BXP_CPU_DR7,
-  BXP_CPU_TR3,
-  BXP_CPU_TR4,
-  BXP_CPU_TR5,
-  BXP_CPU_TR6,
-  BXP_CPU_TR7,
-  BXP_CPU_CR0,
-  BXP_CPU_CR1,
-  BXP_CPU_CR2,
-  BXP_CPU_CR3,
-  BXP_CPU_CR4,
-  // a few parameters for the keyboard
-  BXP_KBD_PARAMETERS,
-  BXP_KBD_PARE,
-  BXP_KBD_TIM ,
-  BXP_KBD_AUXB,
-  BXP_KBD_KEYL,
-  BXP_KBD_C_D,
-  BXP_KBD_SYSF,
-  BXP_KBD_INPB,
-  BXP_KBD_OUTB,
-  BXP_KBD_TIMER_PENDING,
-  BXP_KBD_IRQ1_REQ,
-  BXP_KBD_IRQ12_REQ,
-#if BX_DEBUGGER
-  // in debugger, is the simulation running (continue command) or waiting.
-  // This is only modified by debugger code, not by the user.
-  BXP_DEBUG_RUNNING,
-#endif
-  BXP_SEL_CONFIG_INTERFACE,
-  BXP_SEL_DISPLAY_LIBRARY,
-  BXP_THIS_IS_THE_LAST    // used to determine length of list
-} bx_id;
-
-// use x=1,2,3,4
-#define BXP_COMx_ENABLED(x) \
-   (bx_id)(BXP_COM1_ENABLED + (((x)-1)*BXP_PARAMS_PER_SERIAL_PORT))
-#define BXP_COMx_PATH(x) \
-  (bx_id)(BXP_COM1_PATH + (((x)-1)*BXP_PARAMS_PER_SERIAL_PORT))
-
-// use x=1
-#define BXP_USBx_ENABLED(x) \
-   (bx_id)(BXP_USB1_ENABLED + (((x)-1)*BXP_PARAMS_PER_USB_HUB))
-#define BXP_USBx_IOADDR(x) \
-   (bx_id)(BXP_USB1_IOADDR + (((x)-1)*BXP_PARAMS_PER_USB_HUB))
-#define BXP_USBx_IRQ(x) \
-   (bx_id)(BXP_USB1_IRQ + (((x)-1)*BXP_PARAMS_PER_USB_HUB))
-
-// use x=1,2
-#define BXP_PARPORTx_ENABLED(x) \
-  (bx_id)(BXP_PARPORT1_ENABLED + (((x)-1)*BXP_PARAMS_PER_PARALLEL_PORT))
-#define BXP_PARPORTx_OUTFILE(x) \
-  (bx_id)(BXP_PARPORT1_OUTFILE + (((x)-1)*BXP_PARAMS_PER_PARALLEL_PORT))
 
 typedef enum {
   BX_TOOLBAR_UNDEFINED,
@@ -767,13 +451,11 @@ class bx_list_c;
 
 class BOCHSAPI bx_object_c {
 private:
-  bx_id id;
   bx_objtype type;
 protected:
   void set_type (bx_objtype type);
 public:
-  bx_object_c (bx_id id);
-  bx_id get_id () { return id; }
+  bx_object_c ();
   Bit8u get_type () { return type; }
   bx_bool is_type (Bit8u test_type) {
     // for now, do simple type comparison.
@@ -1732,19 +1414,8 @@ public:
   virtual void set_quit_context (jmp_buf *context) {}
   virtual int get_init_done () { return -1; }
   virtual int set_init_done (int n) {return -1;}
-  virtual void get_param_id_range (int *min, int *max) {}
-  virtual int register_param (bx_id id, bx_param_c *it) {return -1;}
   virtual void reset_all_param () {}
-  virtual bx_param_c *get_param (bx_id id) {return NULL;}
   virtual bx_param_c *get_param (const char *pname, bx_param_c *base=NULL) {return NULL;}
-  // deprecated
-  virtual bx_param_num_c *get_param_num (bx_id id) {return NULL;}
-  // deprecated
-  virtual bx_param_string_c *get_param_string (bx_id id) {return NULL;}
-  // deprecated
-  virtual bx_param_bool_c *get_param_bool (bx_id id) {return NULL;}
-  // deprecated
-  virtual bx_param_enum_c *get_param_enum (bx_id id) {return NULL;}
   virtual bx_param_num_c *get_param_num (const char *pname) {return NULL;}
   virtual bx_param_string_c *get_param_string (const char *pname) {return NULL;}
   virtual bx_param_bool_c *get_param_bool (const char *pname) {return NULL;}
@@ -1804,7 +1475,8 @@ public:
   virtual int log_msg (const char *prefix, int level, const char *msg) {return -1;}
 
   // tell the CI to ask the user for the value of a parameter.
-  virtual int ask_param (bx_id param) {return -1;}
+  virtual int ask_param (const char *ppath) {return -1;}
+  virtual int ask_param (bx_param_c *param) {return -1;}
 
   // ask the user for a pathname
   virtual int ask_filename (char *filename, int maxlen, char *prompt, char *the_default, int flags) {return -1;}

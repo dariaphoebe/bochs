@@ -1,4 +1,4 @@
-$Id: PARAM_TREE.txt,v 1.1.2.7 2003/03/30 04:30:33 bdenney Exp $
+$Id: PARAM_TREE.txt,v 1.1.2.8 2003/03/30 05:42:18 bdenney Exp $
 
 I'm trying to organize the parameters into a tree structure instead of
 a huge flat list.  Once the parameter code is improved, I hope to use
@@ -36,13 +36,15 @@ Notes:
   structure.  Fix old functionality and test side-by-side with cvs head to
   ensure that the config menus are still usable.
 - wxWindows have probably been damaged as well.  Regression test them too.
-- (Bryce, 75% done) get rid of bx_id enumerated type and parameter id numbers
+- (Bryce, 90% done) get rid of bx_id enumerated type and parameter id numbers
   (e.g.  BXP_FLOPPYA_PATH) These id numbers are ok for scalar parameters like
   "memory size in megabytes" but very bad for parameters of replicated
   devices, like com1,2,3,4, ata1,2,3,4, with master and slave, etc.  The only
   reason that we have id numbers at all is to be able to find the pointer to a
   parameter.  In a tree structure, the parameters will be found by name
   instead.
+  - (DONE) everything except for wxWindows compiles with bx_id and all BXP_*
+    values removed.
 - when we save a checkpoint, we need to save exact hard drive and floppy
   contents (maybe option to skip some).  When we restore...hmmm.
 - param handler functions are somewhat bizarre and can be improved.

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dbg_main.cc,v 1.98 2002/12/17 03:36:53 yakovlev Exp $
+// $Id: dbg_main.cc,v 1.98.6.1 2003/03/30 05:42:18 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -23,6 +23,8 @@
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+
+#define BXPN_DEBUG           "debug"
 
 extern "C" {
 #include <signal.h>
@@ -416,8 +418,8 @@ process_sim2:
   // create a boolean parameter that will tell if the simulation is
   // running (continue command) or waiting for user response.  This affects
   // some parts of the GUI.
-  sim_running = new bx_param_bool_c (BXP_DEBUG_RUNNING, 
-      "Simulation is running", "",
+  sim_running = new bx_param_bool_c (SIM->get_param(BXPN_DEBUG), 
+      "running", "Simulation is running",
       0);
 
   // setup Ctrl-C handler

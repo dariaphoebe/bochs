@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: gui.cc,v 1.65 2003/02/09 18:59:19 vruppert Exp $
+// $Id: gui.cc,v 1.65.4.1 2003/03/30 05:42:19 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -41,6 +41,10 @@
 #if BX_WITH_MACOS
 #  include <Disks.h>
 #endif
+
+#define BXPN_FLOPPYA_PATH                     "floppy.0.path"
+#define BXPN_FLOPPYB_PATH                     "floppy.1.path"
+#define BXPN_USER_SHORTCUT                    "keyboard.user_shortcut"
 
 bx_gui_c *bx_gui = NULL;
 
@@ -214,7 +218,7 @@ bx_gui_c::floppyA_handler(void)
               "wx")) {
     // instead of just toggling the status, call wxWindows to bring up 
     // a dialog asking what disk image you want to switch to.
-    int ret = SIM->ask_param (BXP_FLOPPYA_PATH);
+    int ret = SIM->ask_param (BXPN_FLOPPYA_PATH);
     if (ret < 0) return;  // cancelled
     // eject and then insert the disk.  If the new path is invalid,
     // the status will return 0.
@@ -238,7 +242,7 @@ bx_gui_c::floppyB_handler(void)
               "wx")) {
     // instead of just toggling the status, call wxWindows to bring up 
     // a dialog asking what disk image you want to switch to.
-    int ret = SIM->ask_param (BXP_FLOPPYB_PATH);
+    int ret = SIM->ask_param (BXPN_FLOPPYB_PATH);
     if (ret < 0) return;  // cancelled
     // eject and then insert the disk.  If the new path is invalid,
     // the status will return 0.
@@ -269,7 +273,7 @@ bx_gui_c::cdromD_handler(void)
     bx_param_c *cdrom = SIM->get_first_cdrom ();
     if (cdrom == NULL)
       return;  // no cdrom found
-    int ret = SIM->ask_param (cdrom->get_id ());
+    int ret = SIM->ask_param (cdrom);
     if (ret < 0) return;  // cancelled
     // eject and then insert the disk.  If the new path is invalid,
     // the status will return 0.
@@ -480,7 +484,7 @@ bx_gui_c::userbutton_handler(void)
   len = 0;
   if (!strcmp(bx_options.Osel_config->get_choice(bx_options.Osel_config->get()),
               "wx")) {
-    ret = SIM->ask_param (BXP_USER_SHORTCUT);
+    ret = SIM->ask_param (BXPN_USER_SHORTCUT);
   }
   user_shortcut = bx_options.Ouser_shortcut->getptr();
   if ((ret > 0) && user_shortcut[0] && (strcmp(user_shortcut, "none"))) {
