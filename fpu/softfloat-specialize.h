@@ -407,7 +407,7 @@ BX_CPP_INLINE floatx80 packFloatx80(int zSign, Bit32s zExp, Bit64u zSig)
 {
     floatx80 z;
     z.fraction = zSig;
-    z.exp = (((Bit16u) zSign)<<15) + zExp;
+    z.exp = (zSign << 15) + zExp;
     return z;
 }
 

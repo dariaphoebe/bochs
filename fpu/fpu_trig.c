@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.8.2 2004/03/19 13:29:46 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.8.3 2004/03/26 21:10:59 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -572,9 +572,7 @@ int fsin(FPU_REG *st0_ptr, u_char tag)
 
 static int f_cos(FPU_REG *st0_ptr, u_char tag)
 {
-  u_char st0_sign;
-
-  st0_sign = getsign(st0_ptr);
+  u_char st0_sign = getsign(st0_ptr);
 
   if (tag == TAG_Valid)
     {
@@ -655,12 +653,10 @@ static int f_cos(FPU_REG *st0_ptr, u_char tag)
     }
 }
 
-
 void fcos(FPU_REG *st0_ptr, u_char st0_tag)
 {
   f_cos(st0_ptr, st0_tag);
 }
-
 
 void fsincos(FPU_REG *st0_ptr, u_char st0_tag)
 {
@@ -902,11 +898,7 @@ static void do_fprem(FPU_REG *st0_ptr, u_char st0_tag, int round)
 	      FPU_partial_status = saved_status;
 	      FPU_copy_to_reg0(&CONST_Z, TAG_Zero);
 	      setsign(&st0, st0_sign);
-#ifdef PECULIAR_486
 	      setcc(SW_C2);
-#else
-	      setcc(0);
-#endif /* PECULIAR_486 */
 	      return;
 	    }
 	  cc = SW_C2;

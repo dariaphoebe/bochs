@@ -29,8 +29,8 @@ these four paragraphs for those parts of this code that are retained.
  * precision floating point values.
  * ==========================================================================*/ 
 
-#ifndef SOFTFLOATX80_EXTENSIONS
-#define SOFTFLOATX80_EXTENSIONS
+#ifndef SOFTFLOATX80_EXTENSIONS_H
+#define SOFTFLOATX80_EXTENSIONS_H
 
 #include "softfloat.h"
 #include "softfloat-specialize.h"
@@ -46,7 +46,7 @@ Bit16s floatx80_to_int16_round_to_zero(floatx80, float_status_t &status);
 | Software IEC/IEEE extended double-precision operations.
 *----------------------------------------------------------------------------*/
 
-Bit32s float80_extract(floatx80 &a, float_status_t &status);
+floatx80 float80_extract(floatx80 &a, float_status_t &status);
 float_class_t floatx80_class(floatx80);
 
 /*----------------------------------------------------------------------------
@@ -79,5 +79,9 @@ BX_CPP_INLINE floatx80& floatx80_chs(floatx80 &reg)
     reg.exp ^= 0x8000;
     return reg;   
 }
+
+/*-----------------------------------------------------------------------------
+| Commonly used extended double-precision floating-point constants.
+*----------------------------------------------------------------------------*/
 
 #endif

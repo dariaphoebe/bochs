@@ -300,6 +300,7 @@ extern const floatx80 Const_PI2;
 extern const floatx80 Const_PI4;
 extern const floatx80 Const_LG2;
 extern const floatx80 Const_LN2;
+extern const floatx80 Const_INF;
 
 #endif
 

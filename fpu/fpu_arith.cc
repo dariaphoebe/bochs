@@ -31,10 +31,9 @@
 /// TODO: Handle FPU last instruction and data pointers 
 ///////////////////////////////////////////////////////
 
+#include "softfloatx80.h"
 
 #if BX_SUPPORT_FPU
-
-#include "softfloat-specialize.h"
 
 /* Returns 1 if unmasked exception occured */
 int BX_CPU_C::FPU_exception(int exception)

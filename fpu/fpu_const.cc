@@ -27,11 +27,11 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-#if BX_SUPPORT_FPU
-#include "softfloat-specialize.h"
-#endif
 
 #if BX_SUPPORT_FPU
+
+#include "softfloatx80.h"
+
 const floatx80 Const_QNaN = packFloatx80(0, floatx80_default_nan_exp, floatx80_default_nan_fraction);
 const floatx80 Const_Z    = packFloatx80(0, 0x0000, 0);
 const floatx80 Const_1    = packFloatx80(0, 0x3fff, BX_CONST64(0x8000000000000000));
@@ -42,6 +42,7 @@ const floatx80 Const_PI2  = packFloatx80(0, 0x3fff, BX_CONST64(0xc90fdaa22168c23
 const floatx80 Const_PI4  = packFloatx80(0, 0x3ffe, BX_CONST64(0xc90fdaa22168c235));
 const floatx80 Const_LG2  = packFloatx80(0, 0x3ffd, BX_CONST64(0x9a209a84fbcff799));
 const floatx80 Const_LN2  = packFloatx80(0, 0x3ffe, BX_CONST64(0xb17217f7d1cf79ac));
+const floatx80 Const_INF  = packFloatx80(0, 0x7fff, BX_CONST64(0x8000000000000000));
 
 /* A fast way to find out whether x is one of RC_DOWN or RC_CHOP
    (and not one of RC_RND or RC_UP).
@@ -54,6 +55,7 @@ BX_CPP_INLINE floatx80 FPU_round_const(const floatx80 &a, int adj)
   result.fraction += adj;
   return result;
 }
+
 #endif
 
 void BX_CPU_C::FLDL2T(bxInstruction_c *i)
