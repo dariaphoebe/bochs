@@ -53,9 +53,8 @@ void BX_CPU_C::FCOMI_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
-
-  fpu_execute(i);
-//#else
+  BX_PANIC(("FCOMI_ST0_STj: instruction still not implemented"));
+#else
   BX_INFO(("FCOMI_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -64,9 +63,8 @@ void BX_CPU_C::FCOMIP_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
-
-  fpu_execute(i);
-//#else
+  BX_PANIC(("FCOMIP_ST0_STj: instruction still not implemented"));
+#else
   BX_INFO(("FCOMIP_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -75,9 +73,8 @@ void BX_CPU_C::FUCOMI_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
-
-  fpu_execute(i);
-//#else
+  BX_PANIC(("FUCOMI_ST0_STj: instruction still not implemented"));
+#else
   BX_INFO(("FUCOMI_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -86,9 +83,8 @@ void BX_CPU_C::FUCOMIP_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
-
-  fpu_execute(i);
-//#else
+  BX_PANIC(("FUCOMIP_ST0_STj: instruction still not implemented"));
+#else
   BX_INFO(("FUCOMIP_ST0_STj: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -225,97 +221,209 @@ void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
 #endif
 }
 
+/* DA C0 */
 void BX_CPU_C::FCMOVB_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
+  int sti_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(i->rm());
+
+  if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
+  {
+     FPU_stack_underflow(0);
+     return;
+  }
+
+  floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
+
+  if (get_CF()) {
+     BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
+  }
+#else
   BX_INFO(("FCMOVB_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* DA C8 */
 void BX_CPU_C::FCMOVE_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
+  int sti_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(i->rm());
+
+  if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
+  {
+     FPU_stack_underflow(0);
+     return;
+  }
+
+  floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
+
+  if (get_ZF()) {
+     BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
+  }
+#else
   BX_INFO(("FCMOVE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* DA D0 */
 void BX_CPU_C::FCMOVBE_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
+  int sti_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(i->rm());
+
+  if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
+  {
+     FPU_stack_underflow(0);
+     return;
+  }
+
+  floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
+
+  if (get_CF() || get_ZF()) {
+     BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
+  }
+#else
   BX_INFO(("FCMOVBE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* DA D8 */
 void BX_CPU_C::FCMOVU_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
+  int sti_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(i->rm());
+
+  if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
+  {
+     FPU_stack_underflow(0);
+     return;
+  }
+
+  floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
+
+  if (get_PF()) {
+     BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
+  }
+#else
   BX_INFO(("FCMOVU_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* DB C0 */
 void BX_CPU_C::FCMOVNB_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
+  int sti_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(i->rm());
+
+  if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
+  {
+     FPU_stack_underflow(0);
+     return;
+  }
+
+  floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
+
+  if (! get_CF()) {
+     BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
+  }
+#else
   BX_INFO(("FCMOVNB_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* DB C8 */
 void BX_CPU_C::FCMOVNE_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
+  int sti_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(i->rm());
+
+  if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
+  {
+     FPU_stack_underflow(0);
+     return;
+  }
+
+  floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
+
+  if (! get_ZF()) {
+     BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
+  }
+#else
   BX_INFO(("FCMOVNE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* DB D0 */
 void BX_CPU_C::FCMOVNBE_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
+  int sti_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(i->rm());
+
+  if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
+  {
+     FPU_stack_underflow(0);
+     return;
+  }
+
+  floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
+
+  if ((!get_CF()) && (!get_ZF())) {
+     BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
+  }
+#else
   BX_INFO(("FCMOVNBE_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* DB D8 */
 void BX_CPU_C::FCMOVNU_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
+  int sti_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(i->rm());
+
+  if (st0_tag == FPU_Tag_Empty || sti_tag == FPU_Tag_Empty)
+  {
+     FPU_stack_underflow(0);
+     return;
+  }
+
+  floatx80 sti_reg = BX_READ_FPU_REG(i->rm());
+
+  if (! get_PF()) {
+     BX_WRITE_FPU_REGISTER_AND_TAG(sti_reg, sti_tag, 0);
+  }
+#else
   BX_INFO(("FCMOVNU_ST0_STj: required P6 FPU, configure --enable-fpu, cpu-level=6"));
   UndefinedOpcode(i);
 #endif

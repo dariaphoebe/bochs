@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_entry.c                                                              |
- |  $Id: fpu_entry.c,v 1.18 2003/11/01 18:36:19 sshwarts Exp $
+ |  $Id: fpu_entry.c,v 1.18.6.1 2004/02/26 20:00:06 sshwarts Exp $
  |                                                                           |
  | The entry functions for wm-FPU-emu                                        |
  |                                                                           |
@@ -35,8 +35,6 @@
 
 #define __BAD__ FPU_illegal   /* Illegal on an 80486, causes SIGILL */
 
-#if BX_CPU_LEVEL < 6
-
 static FUNC const st_instr_table[64] = {
   fadd__,  fld_i_,    __BAD__, __BAD__, fadd_i,  ffree_,  faddp_,  __BAD__,
   fmul__,  fxch_i,    __BAD__, __BAD__, fmul_i,  __BAD__, fmulp_,  __BAD__,
@@ -47,21 +45,6 @@ static FUNC const st_instr_table[64] = {
   fdiv__,  FPU_triga, __BAD__, __BAD__, fdivri,  __BAD__, fdivrp,  __BAD__,
   fdivr_,  FPU_trigb, __BAD__, __BAD__, fdiv_i,  __BAD__, fdivp_,  __BAD__,
 };
-
-#else
-
-static FUNC const st_instr_table[64] = {
-  fadd__,  fld_i_,    FPU_fcmovb,  FPU_fcmovnb,  fadd_i,  ffree_,  faddp_,  __BAD__,
-  fmul__,  fxch_i,    FPU_fcmove,  FPU_fcmovne,  fmul_i,  __BAD__, fmulp_,  __BAD__,
-  fcom_st, fp_nop,    FPU_fcmovbe, FPU_fcmovnbe, __BAD__, fst_i_,  __BAD__, __BAD__,
-  fcompst, __BAD__,   FPU_fcmovu,  FPU_fcmovnu,  __BAD__, fstp_i,  fcompp,  __BAD__,
-  fsub__,  FPU_etc,   __BAD__,     finit_,       fsubri,  fucom_,  fsubrp,  fstsw_,
-  fsubr_,  fconst,    fucompp,     FPU_fucomi,   fsub_i,  fucomp,  fsubp_,  FPU_fucomip,
-  fdiv__,  FPU_triga, __BAD__,     FPU_fcomi,    fdivri,  __BAD__, fdivrp,  FPU_fcomip,
-  fdivr_,  FPU_trigb, __BAD__,     __BAD__,      fdiv_i,  __BAD__, fdivp_,  __BAD__,
-};
-
-#endif
 
 #define _NONE_ 0   /* Take no special action */
 #define _REG0_ 1   /* Need to check for not empty st(0) */
@@ -74,8 +57,6 @@ static FUNC const st_instr_table[64] = {
 #define _REGIc 0   /* Compare st(0) and st(rm) */
 #define _REGIn 0   /* Uses st(0) and st(rm), but handle checks later */
 
-#if BX_CPU_LEVEL < 6
-
 static u_char const type_table[64] = {
   _REGI_, _NONE_, _null_, _null_, _REGIi, _REGi_, _REGIp, _null_,
   _REGI_, _REGIn, _null_, _null_, _REGIi, _null_, _REGIp, _null_,
@@ -86,21 +67,6 @@ static u_char const type_table[64] = {
   _REGI_, _NONE_, _null_, _null_, _REGIi, _null_, _REGIp, _null_,
   _REGI_, _NONE_, _null_, _null_, _REGIi, _null_, _REGIp, _null_
 };
-
-#else
-
-static u_char const type_table[64] = {
-  _REGI_, _NONE_, _REGIn, _REGIn, _REGIi, _REGi_, _REGIp, _null_,
-  _REGI_, _REGIn, _REGIn, _REGIn, _REGIi, _null_, _REGIp, _null_,
-  _REGIc, _NONE_, _REGIn, _REGIn, _null_, _REG0_, _null_, _null_,
-  _REGIc, _null_, _REGIn, _REGIn, _null_, _REG0_, _REGIc, _null_,
-  _REGI_, _NONE_, _null_, _NONE_, _REGIi, _REGIc, _REGIp, _NONE_,
-  _REGI_, _NONE_, _REGIc, _REGIc, _REGIi, _REGIc, _REGIp, _REGIc,
-  _REGI_, _NONE_, _null_, _REGIc, _REGIi, _null_, _REGIp, _REGIc,
-  _REGI_, _NONE_, _null_, _null_, _REGIi, _null_, _REGIp, _null_
-};
-
-#endif
 
 /* Note, this is a version of fpu_entry.c, modified to interface
  * to a CPU simulator, rather than a kernel.

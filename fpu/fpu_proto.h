@@ -164,18 +164,4 @@ extern int FPU_div(int flags, FPU_REG *regrm, int control_w);
 /* reg_convert.c */
 extern int FPU_to_exp16(FPU_REG const *a, FPU_REG *x) BX_CPP_AttrRegparmN(2);
 
-/* fpu_compare.c */
-extern void FPU_fcmovb();
-extern void FPU_fcmove();
-extern void FPU_fcmovbe();
-extern void FPU_fcmovu();
-extern void FPU_fcmovnb();
-extern void FPU_fcmovne();
-extern void FPU_fcmovnbe();
-extern void FPU_fcmovnu();
-extern void FPU_fucomip();
-extern void FPU_fcomip();
-extern void FPU_fucomi();
-extern void FPU_fcomi();
-
 #endif /* _FPU_PROTO_H */
