@@ -1,4 +1,4 @@
-$Id: PARAM_TREE.txt,v 1.1.2.3 2003/03/24 01:06:45 bdenney Exp $
+$Id: PARAM_TREE.txt,v 1.1.2.4 2003/03/27 01:08:33 bdenney Exp $
 
 I'm trying to organize the parameters into a tree structure instead of
 a huge flat list.  Once the parameter code is improved, I hope to use
@@ -8,6 +8,8 @@ state from within the debugger.
 
 
 Notes:
+- Bryce will create empty save & restore functions in siminterface.cc,
+  and add menu choices on the runtime config menu that calls them.
 - get rid of bx_id enumerated type and parameter id numbers (e.g.
   BXP_FLOPPYA_PATH) These id numbers are ok for scalar parameters like
   "memory size in megabytes" but very bad for parameters of replicated 
@@ -66,13 +68,13 @@ Notes:
     handler again.  Significant danger of infinite loops if handler is
     broken.
 - BXP_* are enumerated id numbers.  These no longer work and will be
-  eliminated eventually.
+  eliminated soon.
 - BXPN_* are parameter names like "memory.rom.address" in the form of
   string constants
 - when we save a checkpoint, we need to save exact hard drive and floppy
-  contents (maybe option to skip some).  When we restore
+  contents (maybe option to skip some).  When we restore...hmmm.
 
-- what files will we produce when we save state?  Example if checkpoint
+- (brian) what files will we produce when we save state?  Example if checkpoint
   name is "march23":
   - march23/state
       ascii format, produced by something resembling print_tree().
@@ -88,7 +90,7 @@ Notes:
   - march23/floppy0
       complete copy of the disk image at time of save
 
-- ideas for checkpoint/state file format
+- (brian) ideas for checkpoint/state file format
     # any lines starting with # are comments
     memory {
      optional_rom {
@@ -102,7 +104,16 @@ Notes:
       }
      }
     }
-
+- (bryce) configuration parameters should be in
+  devicename.num.config.*
+  Move the creation of config parameters out of main and into the devices.
+  We can create the params at the same time as we register all the shadow
+  params.
+- (bryce) create param to represent an array of byte data.  For large arrays of
+  bytes such as RAM or hard disk buffers, it makes sense to treat these
+  as binary data.  During save/restore, the binary blocks will be stored
+  in a binary file, not in the ascii checkpoint file that shows the 
+  parameter tree.
 
 
 Proposed organizion of parameters into a tree
