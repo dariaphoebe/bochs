@@ -1,4 +1,4 @@
-$Id: PARAM_TREE.txt,v 1.1.2.10 2003/03/30 08:03:20 bdenney Exp $
+$Id: PARAM_TREE.txt,v 1.1.2.11 2003/04/04 03:14:13 bdenney Exp $
 
 I'm trying to organize the parameters into a tree structure instead of
 a huge flat list.  Once the parameter code is improved, I hope to use
@@ -45,6 +45,7 @@ Notes:
   instead.
   - (DONE) everything except for wxWindows compiles with bx_id and all BXP_*
     values removed.
+  - fix wxWindows
 - when we save a checkpoint, we need to save exact hard drive and floppy
   contents (maybe option to skip some).  When we restore...hmmm.
 - param handler functions are somewhat bizarre and can be improved.
@@ -56,11 +57,6 @@ Notes:
     change the value back by calling set() again, which will invoke the
     handler again.  Significant danger of infinite loops if handler is
     broken.
-- when adding a child to a parent, verify that there isn't already a 
-  child with the same name. Duplicate named children should not be permitted.
-- bx_param_c::clone should not automatically add the clone to the parent.
-  Maybe the clone method should allow you to specify the parent of the
-  new object.
 - (Brian) what files will we produce when we save state?  Example if 
   checkpoint name is "march23":
   - march23/state
@@ -121,6 +117,13 @@ Notes:
 - (MAYBE LATER) also I don't know if any form of relative pathname would be
   useful/needed.  If so, probably using slash notation and ".."'s would look
   the most familiar to people.
+- (DONE, Bryce) when adding a child to a parent, verify that there isn't
+  already a child with the same name. Duplicate named children should not be
+  permitted.
+- (DONE, Bryce) bx_param_c::clone should not automatically add the clone to
+  the parent.  Maybe the clone method should allow you to specify the parent
+  of the new object.  Solution: eliminate clone() entirely.  It was only
+  defined for bx_list_c, only used twice, and pretty poorly defined.
 - (DONE) separate parameter code from siminterface so that it can be
   used and tested separately from Bochs.
 - (DONE, Bryce) BXP_* are enumerated id numbers.  These no longer work and
