@@ -21,6 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
 
+#define BX_IN_CPU_METHOD 1
 #include "bochs.h"
 
 
@@ -32,9 +33,17 @@
 
 
 
-BX_CPU_C::BX_CPU_C(void)
+BX_CPU_C::BX_CPU_C(BX_MEM_C *addrspace)
+#if BX_APIC_SUPPORT
+   : local_apic (this)
+#endif
 {
   // BX_CPU_C constructor
+
+  BX_CPU_THIS_PTR set_INTR (0);
+#if BX_APIC_SUPPORT
+  local_apic.init ();
+#endif
 
   bx_printf("(%u)BX_CPU_C::BX_CPU_C(void) called\n", BX_SIM_ID);
 
@@ -164,6 +173,9 @@ fprintf(stderr, "&DTReadRMW8vShim is %x\n", (unsigned) &DTReadRMW8vShim);
   DTIndBrHandler = (BxDTShim_t) DTASIndBrHandler;
   DTDirBrHandler = (BxDTShim_t) DTASDirBrHandler;
 #endif
+
+  mem = addrspace;
+  sprintf (name, "CPU %p", this);
 
   BX_INSTR_INIT();
 }
@@ -472,8 +484,11 @@ BX_CPU_C::reset(unsigned source)
 #elif BX_CPU_LEVEL == 5
   BX_CPU_THIS_PTR dr6 = 0xFFFF0FF0;
   BX_CPU_THIS_PTR dr7 = 0x00000400;
+#elif BX_CPU_LEVEL == 6
+  BX_CPU_THIS_PTR dr6 = 0xFFFF0FF0;
+  BX_CPU_THIS_PTR dr7 = 0x00000400;
 #else
-#  error "DR6,7: CPU > 5"
+#  error "DR6,7: CPU > 6"
 #endif
 
 #if 0
@@ -530,7 +545,7 @@ BX_CPU_C::reset(unsigned source)
 
 
   BX_CPU_THIS_PTR EXT = 0;
-  BX_INTR = 0;
+  //BX_INTR = 0;
 
   TLB_init();
 
@@ -553,6 +568,22 @@ BX_CPU_C::reset(unsigned source)
 
 #if BX_DYNAMIC_TRANSLATION
   dynamic_init();
+#endif
+
+#if (BX_SMP_PROCESSORS > 1)
+  // notice if I'm the bootstrap processor.  If not, do the equivalent of
+  // a HALT instruction.
+  int apic_id = local_apic.get_id ();
+  if (BX_BOOTSTRAP_PROCESSOR == apic_id)
+  {
+    // boot normally
+    bx_printf ("CPU[%d] is the bootstrap processor\n", apic_id);
+  } else {
+    // it's an application processor, halt until IPI is heard.
+    bx_printf ("CPU[%d] is an application processor. Halting until IPI.\n", apic_id);
+    debug_trap |= 0x80000000;
+    async_event = 1;
+  }
 #endif
 }
 
@@ -638,5 +669,6 @@ BX_CPU_C::sanity_checks(void)
   void
 BX_CPU_C::set_INTR(Boolean value)
 {
+  this->INTR = value;
   BX_CPU_THIS_PTR async_event = 1;
 }
