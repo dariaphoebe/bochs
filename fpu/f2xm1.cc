@@ -143,7 +143,10 @@ floatx80 f2xm1(floatx80 a, float_status_t &status)
         if (aExp < 0x3FBB)
             goto tiny_argument;
 
+        /* ******************************** */
         /* using float128 for approximation */
+        /* ******************************** */
+
         float128 x = floatx80_to_float128(a, status);
         x = float128_mul(x, float128_ln2, status);
         x = poly_exp(x, status);

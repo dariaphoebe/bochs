@@ -32,27 +32,8 @@
 #include "softfloat-specialize.h"
 #endif
 
-extern "C"
-{
+extern "C" {
   void fpatan (FPU_REG *st0_ptr, Bit8u st0_tag);
-}
-
-extern void FPU_initalize_i387(struct i387_t *the_i387);
-
-void BX_CPU_C::FPATAN(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  clear_C1();
-
-  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
-
-  fpatan(&(BX_FPU_READ_ST0()), 
-	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
-#else
-  BX_INFO(("FPATAN: required FPU, configure --enable-fpu"));
-#endif
 }
 
 /* D9 F0 */
@@ -166,6 +147,25 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
   BX_WRITE_FPU_REGISTER_AND_TAG(Const_1, FPU_Tag_Valid, 0);
 #else
   BX_INFO(("FPTAN: required FPU, configure --enable-fpu"));
+#endif
+}
+
+/* D9 F3 */
+void BX_CPU_C::FPATAN(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+
+  extern void FPU_initalize_i387(struct i387_t *the_i387);
+
+  clear_C1();
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fpatan(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
+  BX_INFO(("FPATAN: required FPU, configure --enable-fpu"));
 #endif
 }
 

@@ -2873,17 +2873,15 @@ static float128 addFloat128Sigs(float128 a, float128 b, int zSign, float_status_
     bSig0 = extractFloat128Frac0(b);
     bExp = extractFloat128Exp(b);
     expDiff = aExp - bExp;
+
     if (0 < expDiff) {
         if (aExp == 0x7FFF) {
             if (aSig0 | aSig1) return propagateFloat128NaN(a, b, status);
             return a;
         }
         if (bExp == 0) --expDiff;
-        else {
-            bSig0 |= BX_CONST64(0x0001000000000000);
-        }
-        shift128ExtraRightJamming(
-            bSig0, bSig1, 0, expDiff, &bSig0, &bSig1, &zSig2);
+        else bSig0 |= BX_CONST64(0x0001000000000000);
+        shift128ExtraRightJamming(bSig0, bSig1, 0, expDiff, &bSig0, &bSig1, &zSig2);
         zExp = aExp;
     }
     else if (expDiff < 0) {
@@ -2893,8 +2891,7 @@ static float128 addFloat128Sigs(float128 a, float128 b, int zSign, float_status_
         }
         if (aExp == 0) ++expDiff;
         else aSig0 |= BX_CONST64(0x0001000000000000);
-        shift128ExtraRightJamming(
-            aSig0, aSig1, 0, - expDiff, &aSig0, &aSig1, &zSig2);
+        shift128ExtraRightJamming(aSig0, aSig1, 0, -expDiff, &aSig0, &aSig1, &zSig2);
         zExp = bExp;
     }
     else {
@@ -3061,8 +3058,8 @@ float128 float128_mul(float128 a, float128 b, float_status_t &status)
 
     zSign = aSign ^ bSign;
     if (aExp == 0x7FFF) {
-        if (   (aSig0 | aSig1)
-             || ((bExp == 0x7FFF) && (bSig0 | bSig1))) {
+        if ((aSig0 | aSig1) || ((bExp == 0x7FFF) && (bSig0 | bSig1)))
+        {
             return propagateFloat128NaN(a, b, status);
         }
         if ((bExp | bSig0 | bSig1) == 0) goto invalid;
@@ -3094,8 +3091,7 @@ float128 float128_mul(float128 a, float128 b, float_status_t &status)
     add128(zSig0, zSig1, aSig0, aSig1, &zSig0, &zSig1);
     zSig2 |= (zSig3 != 0);
     if (BX_CONST64(0x0002000000000000) <= zSig0) {
-        shift128ExtraRightJamming(
-            zSig0, zSig1, zSig2, 1, &zSig0, &zSig1, &zSig2);
+        shift128ExtraRightJamming(zSig0, zSig1, zSig2, 1, &zSig0, &zSig1, &zSig2);
         ++zExp;
     }
     return roundAndPackFloat128(zSign, zExp, zSig0, zSig1, zSig2, status);

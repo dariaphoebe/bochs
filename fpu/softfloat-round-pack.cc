@@ -621,8 +621,7 @@ float128 roundAndPackFloat128(
                 || ! increment
                 || lt128(zSig0, zSig1,
                        BX_CONST64(0x0001FFFFFFFFFFFF),
-                       BX_CONST64(0xFFFFFFFFFFFFFFFF)
-                  );
+                       BX_CONST64(0xFFFFFFFFFFFFFFFF));
             shift128ExtraRightJamming(
                 zSig0, zSig1, zSig2, -zExp, &zSig0, &zSig1, &zSig2);
             zExp = 0;

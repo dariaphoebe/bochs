@@ -1,13 +1,12 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10.10.9 2004/06/05 14:50:55 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.10.10 2004/06/06 20:57:27 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997,1999                                    |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
  |                       Australia.  E-mail   billm@melbpc.org.au            |
- |                                                                           |
  |                                                                           |
  +---------------------------------------------------------------------------*/
 
@@ -16,9 +15,6 @@
 #include "status_w.h"
 #include "control_w.h"
 
-/* bbd: make CONST_PI2 non-const so that you can write "&CONST_PI2" when
-   calling a function.  Otherwise you get const warnings.  Surely there's
-   a better way. */
 static FPU_REG const CONST_PI   = MAKE_REG(POS,  1, 0x2168c235, 0xc90fdaa2);
 static FPU_REG const CONST_PI2  = MAKE_REG(POS,  0, 0x2168c235, 0xc90fdaa2);
 static FPU_REG const CONST_PI4  = MAKE_REG(POS, -1, 0x2168c235, 0xc90fdaa2);
