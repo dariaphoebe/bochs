@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.cc,v 1.76.2.5 2003/04/04 03:46:05 slechta Exp $
+// $Id: cpu.cc,v 1.76.2.6 2003/04/04 06:08:25 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1279,7 +1279,7 @@ BX_CPU_C::register_state(bx_param_c *list_p)
     BXRS_NUM   (Bit8u, stop_reason);
     BXRS_NUM   (Bit8u, trace);
     BXRS_NUM   (Bit8u, trace_reg);
-    BXRS_NUM   (Bit8u, mode_break, "BW");
+    BXRS_NUM_D   (Bit8u, mode_break, "BW");
     BXRS_BOOL_D(bx_bool, debug_vm, "BW contains current mode");
     BXRS_NUM_D (Bit8u, show_eip,   "BW record eip at special instr f.ex eip");
     BXRS_NUM_D (Bit8u, show_flag,  "BW shows instr class executed");
