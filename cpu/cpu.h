@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.133 2003/03/17 00:40:58 cbothamy Exp $
+// $Id: cpu.h,v 1.133.2.1 2003/03/29 01:57:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -559,7 +559,9 @@ typedef struct {
   bx_bool em; // emulate math coprocessor
   bx_bool mp; // monitor coprocessor
   bx_bool pe; // protected mode enable
-  } bx_cr0_t;
+
+  void register_state(bx_param_c *list_p);
+} bx_cr0_t;
 #endif
 
 #if BX_CPU_LEVEL >= 4
@@ -607,7 +609,8 @@ typedef struct {
   Bit64u kernelgsbase;
 #endif
 
-  /* TODO finish of the others */
+  /* TODO: finish of the others */
+  void register_state(bx_param_c *list_p);
   } bx_regs_msr_t;
 #endif
 
@@ -625,6 +628,68 @@ typedef struct { /* bx_selector_t */
 
 
 typedef struct {
+
+  typedef struct {
+    bx_bool executable;    /* 1=code, 0=data or stack segment */
+    bx_bool c_ed;          /* for code: 1=conforming,
+                              for data/stack: 1=expand down */
+    bx_bool r_w;           /* for code: readable?, for data/stack: writeable? */
+    bx_bool a;             /* accessed? */
+    bx_address  base;      /* base address: 286=24bits, 386=32bits, long=64 */
+    Bit32u  limit;         /* limit: 286=16bits, 386=20bits */
+    Bit32u  limit_scaled;  /* for efficiency, this contrived field is set to
+                            * limit for byte granular, and
+                            * (limit << 12) | 0xfff for page granular seg's
+                            */
+#if BX_CPU_LEVEL >= 3
+    bx_bool g;             /* granularity: 0=byte, 1=4K (page) */
+    bx_bool d_b;           /* default size: 0=16bit, 1=32bit */
+#if BX_SUPPORT_X86_64
+    bx_bool l;             /* long mode: 0=compat, 1=64 bit */
+#endif
+    bx_bool avl;           /* available for use by system */
+#endif
+    } segment_t;
+
+  typedef struct {
+    Bit8u   word_count;    /* 5bits (0..31) #words to copy from caller's stack
+                            * to called procedure's stack.  (call gates only)*/
+    Bit16u  dest_selector;
+    Bit16u  dest_offset;
+  } gate286_t;
+
+  typedef struct {                 // type 5: Task Gate Descriptor
+    Bit16u  tss_selector;  // TSS segment selector
+  } taskgate_t;
+  
+#if BX_CPU_LEVEL >= 3
+  typedef struct {
+    Bit8u   dword_count;   /* 5bits (0..31) #dwords to copy from caller's stack
+                            * to called procedure's stack.  (call gates only)*/
+    Bit16u  dest_selector;
+    Bit32u  dest_offset;
+  } gate386_t;
+#endif
+
+  typedef struct {
+    Bit32u  base;          /* 24 bit 286 TSS base  */
+    Bit16u  limit;         /* 16 bit 286 TSS limit */
+  } tss286_t;
+
+#if BX_CPU_LEVEL >= 3
+  typedef struct {
+    bx_address  base;      /* 32/64 bit 386 TSS base */
+    Bit32u  limit;         /* 20 bit 386 TSS limit */
+    Bit32u  limit_scaled;  // Same notes as for 'segment' field
+    bx_bool g;             /* granularity: 0=byte, 1=4K (page) */
+    bx_bool avl;           /* available for use by system */
+  } tss386_t;
+#endif
+
+  typedef struct {
+    bx_address  base;  /* 286=24 386+ =32/64 bit LDT base */
+    Bit16u  limit; /* 286+ =16 bit LDT limit */
+  } ldt_t;
 
 #define SegValidCache 0x1
 #define SegAccessROK  0x2
@@ -652,70 +717,32 @@ typedef struct {
                           * 13 = (reserved)
                           * 14 = 386 interrupt gate
                           * 15 = 386 trap gate */
-  union {
-  struct {
-    bx_bool executable;    /* 1=code, 0=data or stack segment */
-    bx_bool c_ed;          /* for code: 1=conforming,
-                              for data/stack: 1=expand down */
-    bx_bool r_w;           /* for code: readable?, for data/stack: writeable? */
-    bx_bool a;             /* accessed? */
-    bx_address  base;      /* base address: 286=24bits, 386=32bits, long=64 */
-    Bit32u  limit;         /* limit: 286=16bits, 386=20bits */
-    Bit32u  limit_scaled;  /* for efficiency, this contrived field is set to
-                            * limit for byte granular, and
-                            * (limit << 12) | 0xfff for page granular seg's
-                            */
-#if BX_CPU_LEVEL >= 3
-    bx_bool g;             /* granularity: 0=byte, 1=4K (page) */
-    bx_bool d_b;           /* default size: 0=16bit, 1=32bit */
-#if BX_SUPPORT_X86_64
-    bx_bool l;             /* long mode: 0=compat, 1=64 bit */
-#endif
-    bx_bool avl;           /* available for use by system */
-#endif
-    } segment;
-  struct {
-    Bit8u   word_count;    /* 5bits (0..31) #words to copy from caller's stack
-                            * to called procedure's stack.  (call gates only)*/
-    Bit16u  dest_selector;
-    Bit16u  dest_offset;
-    } gate286;
-  struct {                 // type 5: Task Gate Descriptor
-    Bit16u  tss_selector;  // TSS segment selector
-    } taskgate;
-#if BX_CPU_LEVEL >= 3
-  struct {
-    Bit8u   dword_count;   /* 5bits (0..31) #dwords to copy from caller's stack
-                            * to called procedure's stack.  (call gates only)*/
-    Bit16u  dest_selector;
-    Bit32u  dest_offset;
-    } gate386;
-#endif
-  struct {
-    Bit32u  base;          /* 24 bit 286 TSS base  */
-    Bit16u  limit;         /* 16 bit 286 TSS limit */
-    } tss286;
-#if BX_CPU_LEVEL >= 3
-  struct {
-    bx_address  base;      /* 32/64 bit 386 TSS base */
-    Bit32u  limit;         /* 20 bit 386 TSS limit */
-    Bit32u  limit_scaled;  // Same notes as for 'segment' field
-    bx_bool g;             /* granularity: 0=byte, 1=4K (page) */
-    bx_bool avl;           /* available for use by system */
-    } tss386;
-#endif
-  struct {
-    bx_address  base;  /* 286=24 386+ =32/64 bit LDT base */
-    Bit16u  limit; /* 286+ =16 bit LDT limit */
-    } ldt;
-    } u;
+  
+  typedef struct {
+    union {
+      segment_t segment;
+      gate286_t gate286;
+      taskgate_t taskgate;
+#     if BX_CPU_LEVEL >= 3
+      gate386_t gate386;
+#     endif
+      tss286_t tss286;
+#     if BX_CPU_LEVEL >= 3
+      tss386_t tss386;
+#     endif
+      ldt_t ldt;
+    };
+  } u_t;
 
-  } bx_descriptor_t;
+  u_t u;
+
+} bx_descriptor_t;
 
 typedef struct {
-  bx_selector_t          selector;
-  bx_descriptor_t  cache;
-  } bx_segment_reg_t;
+  bx_selector_t   selector;
+  bx_descriptor_t cache;
+  void register_state(bx_param_c *list_p);
+} bx_segment_reg_t;
 
 typedef void * (*BxVoidFPtr_t)(void);
 class BX_CPU_C;
@@ -1060,12 +1087,12 @@ typedef struct {
 #if BX_USE_TLB
 typedef bx_ptr_equiv_t bx_hostpageaddr_t;
 
-  typedef struct {
-    bx_address lpf; // linear page frame
-    Bit32u ppf; // physical page frame
-    Bit32u accessBits; // Page Table Address for updating A & D bits
-    bx_hostpageaddr_t hostPageAddr;
-    } bx_TLB_entry;
+typedef struct {
+  bx_address lpf; // linear page frame
+  Bit32u ppf; // physical page frame
+  Bit32u accessBits; // Page Table Address for updating A & D bits
+  bx_hostpageaddr_t hostPageAddr;
+} bx_TLB_entry;
 #endif  // #if BX_USE_TLB
 
 
@@ -1073,47 +1100,62 @@ typedef bx_ptr_equiv_t bx_hostpageaddr_t;
 
 #ifdef BX_BIG_ENDIAN
  typedef struct {
-   union {
-     struct {
-       Bit32u dword_filler;
-       Bit16u word_filler;
-       union {
-         Bit16u rx;
-         struct {
-           Bit8u rh;
-           Bit8u rl;
-           } byte;
-         };
-       } word;
-     Bit64u rrx;
-     struct {
-       Bit32u hrx;  // hi 32 bits
-       Bit32u erx;  // low 32 bits
-       } dword;
+   typedef struct {
+     Bit32u dword_filler;
+     Bit16u word_filler;
+     typedef struct {
+       Bit8u rh;
+       Bit8u rl;
+     } byte_t;
+     union {
+       Bit16u rx;
+       byte_t byte;
      };
-   } bx_gen_reg_t;
+   } word_t;
+   Bit64u rrx;
+   typedef struct {
+     Bit32u hrx;  // hi 32 bits
+     Bit32u erx;  // low 32 bits
+   } dword_t;
+   
+   union {
+     word_t word;
+     Bit64u rrx;
+     dword_t dword;
+   };
+   
+   void register_state(bx_param_c *list_p);
+ } bx_gen_reg_t;
 #else
 
- typedef struct {
-   union {
-     struct {
-       union {
-         Bit16u rx;
-         struct {
-           Bit8u rl;
-           Bit8u rh;
-           } byte;
-         };
-       Bit16u word_filler;
-       Bit32u dword_filler;
-       } word;
-     Bit64u rrx;
-     struct {
-       Bit32u erx;  // low 32 bits
-       Bit32u hrx;  // hi 32 bits
-       } dword;
-     };
-   } bx_gen_reg_t;
+typedef struct {
+  typedef struct {
+    typedef struct {
+      Bit8u rl;
+      Bit8u rh;
+    } byte_t;
+    
+    union {
+      Bit16u rx;
+      byte_t byte;
+    };
+    
+    Bit16u word_filler;
+    Bit32u dword_filler;
+  } word_t;
+  
+  typedef struct {
+    Bit32u erx;  // low 32 bits
+    Bit32u hrx;  // hi 32 bits
+  } dword_t;
+
+  union {
+    word_t word;
+    Bit64u rrx;
+    dword_t dword;
+  };
+  void register_state(bx_param_c *list_p);
+ } bx_gen_reg_t;
 
 #endif
 
@@ -1121,42 +1163,51 @@ typedef bx_ptr_equiv_t bx_hostpageaddr_t;
 
 #ifdef BX_BIG_ENDIAN
 typedef struct {
-  union {
-    struct {
-      Bit32u erx;
-      } dword;
-    struct {
-      Bit16u word_filler;
-      union {
-        Bit16u rx;
-        struct {
-          Bit8u rh;
-          Bit8u rl;
-          } byte;
-        };
-      } word;
+  typedef struct {
+    Bit32u erx;
+  } dword_t;
+  typedef struct {
+    Bit16u word_filler;
+    typedef struct {
+      Bit8u rh;
+      Bit8u rl;
+    } byte_t;
+    union {
+      Bit16u rx;
+      byte_t byte;
     };
-  } bx_gen_reg_t;
+  } word_t;
+  union {
+    dword_t dword;
+    word_t word;
+  };
+   void register_state(bx_param_c *list_p);
+} bx_gen_reg_t;
 
 #else
 
 typedef struct {
-  union {
-    struct {
+  typedef struct{
       Bit32u erx;
-      } dword;
-    struct {
-      union {
-        Bit16u rx;
-        struct {
-          Bit8u rl;
-          Bit8u rh;
-          } byte;
-        };
-      Bit16u word_filler;
-      } word;
+  } dword_t;
+  typedef struct {
+    typedef struct {
+      Bit8u rl;
+      Bit8u rh;
+    } byte_t;
+    union {
+      Bit16u rx;
+      byte_t byte;
     };
-  } bx_gen_reg_t;
+    Bit16u word_filler;
+  } word_t;
+  union {
+    dword_t dword;
+    word_t word;
+  };
+  void register_state(bx_param_c *list_p);
+} bx_gen_reg_t;
+
 #endif
 
 #endif  // #if BX_SUPPORT_X86_64
@@ -1313,12 +1364,12 @@ public: // for now...
 
 union {
 #ifdef BX_BIG_ENDIAN
-  struct {
+  struct dword_t {
     Bit32u rip_upper;
     Bit32u eip;
     } dword;
 #else
-  struct {
+  struct dword_t {
     Bit32u eip;
     Bit32u rip_upper;
     } dword;
@@ -1330,7 +1381,7 @@ union {
 
   bx_gen_reg_t  gen_reg[8];
 
-  union {
+  union dword_t {
     Bit32u eip;    // instruction pointer
     } dword;
 #endif
@@ -1524,7 +1575,7 @@ union {
 
   // for paging
 #if BX_USE_TLB
-  struct {
+  struct TLB_t {
     bx_TLB_entry entry[BX_TLB_SIZE]  BX_CPP_AlignN(16);
 
 #if BX_USE_QUICK_TLB_INVALIDATE
@@ -1545,7 +1596,7 @@ union {
 #endif
 
 
-  struct {
+  struct address_xlation_t {
     bx_address  rm_addr; // The address offset after resolution.
     Bit32u  paddress1;  // physical address after translation of 1st len1 bytes of data
     Bit32u  paddress2;  // physical address after translation of 2nd len2 bytes of data
@@ -1602,6 +1653,7 @@ union {
   BX_CPU_C();
   ~BX_CPU_C(void);
   void init (BX_MEM_C *addrspace);
+  void register_state(bx_param_c *list_p);
 
   // prototypes for CPU instructions...
   BX_SMF void ADD_EbGb(bxInstruction_c *);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.6 2003/03/25 08:45:04 slechta Exp $
+// $Id: main.cc,v 1.223.4.7 2003/03/29 01:57:05 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -2303,6 +2303,10 @@ bx_init_hardware()
   BX_MEM(0)->load_ROM(bx_options.vgarom.Opath->getptr (), 0xc0000);
 
   BX_CPU(0)->init (BX_MEM(0));
+  bx_list_c *cpu_list_p = 
+    new bx_list_c (SIM->get_param("."), "cpu", "cpu", 100);
+  BX_CPU(0)->register_state(cpu_list_p);
+
   BX_CPU(0)->set_cpu_id(0);
 #if BX_SUPPORT_APIC
   BX_CPU(0)->local_apic.set_id (0);
@@ -2329,6 +2333,12 @@ bx_init_hardware()
   bx_mem_array[0]->load_ROM(bx_options.rom.Opath->getptr (), bx_options.rom.Oaddress->get ());
   bx_mem_array[0]->load_ROM(bx_options.vgarom.Opath->getptr (), 0xc0000);
 
+
+#warning SMP save/restore mechanisms have NOT been test
+  static char param_name_buf[BX_SMP_PROCESSORS][30];
+  bx_list_c *cpu_list_p = 
+    new bx_list_c (SIM->get_param("."), "cpu", "cpu", 100);
+
   for (int i=0; i<BX_SMP_PROCESSORS; i++) {
     BX_CPU(i) = new BX_CPU_C;
     BX_CPU(i)->init (bx_mem_array[0]);
@@ -2338,6 +2348,13 @@ bx_init_hardware()
     BX_CPU(i)->local_apic.set_id (i);
     BX_INSTR_INIT(i);
     BX_CPU(i)->reset(BX_RESET_HARDWARE);
+    
+    sprintf(param_name_buf[i], "%d\0", i);
+    bx_list_c *cpu_i_list_p = 
+      new bx_list_c (cpu_list_p, 
+                     param_name_buf[i], 
+                     param_name_buf[i], 100);
+    BX_CPU(i)->register_state(cpu_i_list_p);
   }
 #endif
 
@@ -2364,6 +2381,11 @@ bx_init_hardware()
 #endif
   alarm( 1 );
 #endif
+
+  bx_checkpoint_c chkpt;
+  chkpt.write("all_state", SIM->get_param("."));
+  chkpt.read("all_state", SIM->get_param("."));
+  chkpt.write("all_state_2", SIM->get_param("."));
 
   return(0);
 }

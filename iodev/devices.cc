@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.52.2.8 2003/03/28 09:26:02 slechta Exp $
+// $Id: devices.cc,v 1.52.2.9 2003/03/29 01:57:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -93,7 +93,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.8 2003/03/28 09:26:02 slechta Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.9 2003/03/29 01:57:09 slechta Exp $"));
   mem = newmem;
 
   /* no read / write handlers defined */
@@ -339,11 +339,6 @@ bx_devices_c::init(BX_MEM_C *newmem)
     pluginNE2kDevice->register_state(SIM->get_param("ne2k"));
   }
 #endif
-
-  bx_checkpoint_c chkpt;
-  chkpt.write("all_state", SIM->get_param("."));
-  chkpt.read("all_state", SIM->get_param("."));
-  chkpt.write("all_state_2", SIM->get_param("."));
 }
 
 

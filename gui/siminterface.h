@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.10 2003/03/28 09:26:00 slechta Exp $
+// $Id: siminterface.h,v 1.99.4.11 2003/03/29 01:57:09 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -1435,7 +1435,7 @@ void print_tree (bx_param_c *node, int level = 0);
 /*---------------------------------------------------------------------------*/
 // register an array of enum variables in the current bxrs scope
 #define BXRS_ARRAY_ENUM(_type, _var, _size)                                   \
-  BXRS_ARRAY_ENUM_D(_type, _var, _size, _desc)
+  BXRS_ARRAY_ENUM_D(_type, _var, _size, "")
 
 #define BXRS_ARRAY_ENUM_D(_type, _var, _size, _desc)                          \
 {                                                                             \
@@ -1449,11 +1449,25 @@ void print_tree (bx_param_c *node, int level = 0);
          (sprintf(foobar[_itr], "%d", _itr),                                  \
           _index_name = foobar[_itr],                                         \
           true);                                                              \
-       _itr++)                                                                \
-  new bx_shadow_num_c(_bxrs_cur_list_p, _index_name, "",                      \
-                     (Bit32u*)&((*((_bxrs_this_t*)_bxrs_this))._var[_itr]));  \
-}
-
+       _itr++) {                                                              \
+    if (sizeof(_type) == 1) {                                                 \
+      new bx_shadow_num_c(_bxrs_cur_list_p, _index_name, "",                  \
+                          (Bit8u*)&((*((_bxrs_this_t*)_bxrs_this))._var[_itr]));\
+    }                                                                         \
+    else if (sizeof(_type) == 2) {                                            \
+      new bx_shadow_num_c(_bxrs_cur_list_p, _index_name, "",                  \
+                          (Bit16u*)&((*((_bxrs_this_t*)_bxrs_this))._var[_itr]));\
+    }                                                                         \
+    else if (sizeof(_type) == 4) {                                            \
+      new bx_shadow_num_c(_bxrs_cur_list_p, _index_name, "",                  \
+                          (Bit32u*)&((*((_bxrs_this_t*)_bxrs_this))._var[_itr]));\
+    }                                                                         \
+    else if (sizeof(_type) == 8) {                                            \
+      new bx_shadow_num_c(_bxrs_cur_list_p, _index_name, "",                  \
+                          (Bit64u*)&((*((_bxrs_this_t*)_bxrs_this))._var[_itr]));\
+    }                                                                         \
+  }                                                                           \
+}  
 
 /*---------------------------------------------------------------------------*/
 // register an array of bx_bool variables in the current bxrs scope

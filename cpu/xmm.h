@@ -12,6 +12,18 @@ typedef union bx_xmm_reg_t {
    Bit16u  _u16[8];
    Bit32u  _u32[4];
    Bit64u  _u64[2];
+  
+  void register_state(bx_param_c *list_p)
+  {
+    BXRS_ARRAY_NUM(Bit8s ,  _sbyte, 16);
+    BXRS_ARRAY_NUM(Bit16s,  _s16, 8);
+    BXRS_ARRAY_NUM(Bit32s,  _s32, 4);
+    BXRS_ARRAY_NUM(Bit64s,  _s64, 2);
+    BXRS_ARRAY_NUM(Bit8u ,  _ubyte, 16);
+    BXRS_ARRAY_NUM(Bit16u,  _u16, 8);
+    BXRS_ARRAY_NUM(Bit32u,  _u32, 4);
+    BXRS_ARRAY_NUM(Bit64u,  _u64, 2);    
+  }
 } BxPackedXmmRegister;
 
 #ifdef BX_SUPPORT_X86_64
@@ -75,7 +87,14 @@ typedef union bx_xmm_reg_t {
  */
 
 struct bx_mxcsr_t {
-   Bit32u mxcsr;      /* define bitfields accessors later */
+  Bit32u mxcsr;      /* define bitfields accessors later */
+  
+  void register_state(bx_param_c *list_p)
+  {
+    BXRS_START(bx_mxcsr_t, this, "", list_p, 5);
+    BXRS_NUM_D(Bit32u, mxcsr, "define bitfields accessors later");
+    BXRS_END;
+  }
 };
 
 #define MXCSR_MASK  0x0000ffbf  /* reset reserved bits */

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: debug.h,v 1.16 2002/10/25 11:44:35 bdenney Exp $
+// $Id: debug.h,v 1.16.6.1 2003/03/29 01:57:08 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -310,13 +310,27 @@ typedef struct {
 typedef struct bx_guard_found_t {
   unsigned long guard_found;
   unsigned iaddr_index;
-  bx_dbg_icount_t icount; // number of completed instructions
-  Bit32u   cs;     // cs:eip and linear addr of instruction at guard point
-  Bit32u   eip;
-  Bit32u   laddr;
-  bx_bool  is_32bit_code; // CS seg size at guard point
-  bx_bool  ctrl_c; // simulator stopped due to Ctrl-C request
-  } bx_guard_found_t;
+  bx_dbg_icount_t icount; // "number of completed instructions
+  Bit32u cs; // cs:eip and linear addr of instruction at guard point
+  Bit32u eip;
+  Bit32u laddr;
+  bx_bool is_32bit_code; // CS seg size at guard point
+  bx_bool ctrl_c; // simulator stopped due to Ctrl-C request
+
+  void register_state(bx_param_c *list_p)
+  {
+    BXRS_START(struct bx_guard_found_t, this, "", list_p, 10);
+  BXRS_NUM   (unsigned long, guard_found);
+  BXRS_NUM   (unsigned, iaddr_index);
+  BXRS_NUM_D (bx_dbg_icount_t, icount, "number of completed instructions");
+  BXRS_NUM_D (Bit32u, cs, "cs:eip and linear addr of instruction at guard point");
+  BXRS_NUM   (Bit32u ,  eip);
+  BXRS_NUM   (Bit32u ,  laddr)
+  BXRS_BOOL_D(bx_bool, is_32bit_code, "CS seg size at guard point");
+  BXRS_BOOL_D(bx_bool, ctrl_c, "simulator stopped due to Ctrl-C request");
+    BXRS_END;
+  }
+} bx_guard_found_t;
 
 extern bx_guard_t        bx_guard;
 
