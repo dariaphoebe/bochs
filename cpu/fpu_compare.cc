@@ -245,7 +245,7 @@ void BX_CPU_C::FCOM_SINGLE_REAL(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
+  if (IS_TAG_EMPTY(0))
   {
       BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
@@ -289,7 +289,7 @@ void BX_CPU_C::FCOM_DOUBLE_REAL(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
+  if (IS_TAG_EMPTY(0))
   {
       BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
@@ -333,7 +333,7 @@ void BX_CPU_C::FICOM_WORD_INTEGER(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
+  if (IS_TAG_EMPTY(0))
   {
       BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
@@ -377,7 +377,7 @@ void BX_CPU_C::FICOM_DWORD_INTEGER(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
+  if (IS_TAG_EMPTY(0))
   {
       BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
