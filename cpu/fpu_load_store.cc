@@ -394,11 +394,12 @@ void BX_CPU_C::FIST_WORD_INTEGER(bxInstruction_c *i)
    
      if ((val32 > (Bit32s) BX_MAX_BIT16S) || (val32 < (Bit32s) BX_MIN_BIT16S))
      {
+         float_raise(status, float_flag_invalid);
+
          if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
          {
             save_reg = 0x8000; /* The masked response */
          }
-         else float_raise(status, float_flag_invalid);
      }
      else save_reg = (Bit16s) val32;
 
@@ -502,31 +503,126 @@ void BX_CPU_C::FBSTP_PACKED_BCD(bxInstruction_c *i)
 #endif
 }
 
+/* DF /1 */
 void BX_CPU_C::FISTTP16(bxInstruction_c *i)
 {
 #if BX_SUPPORT_PNI
-  BX_PANIC(("FISTTP16: instruction still not implemented"));
-//#else
+  Bit16s save_reg;
+
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
+
+     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
+     {
+        save_reg = 0x8000; /* The masked response */
+     }
+     else
+        return;
+  }
+  else
+  {
+     softfloat_status_word_t status = 
+        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+     Bit32s val32 = floatx80_to_int32_round_to_zero(BX_READ_FPU_REG(0), status);
+   
+     if ((val32 > (Bit32s) BX_MAX_BIT16S) || (val32 < (Bit32s) BX_MIN_BIT16S))
+     {
+         float_raise(status, float_flag_invalid);
+
+         if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
+         {
+            save_reg = 0x8000; /* The masked response */
+         }
+     }
+     else save_reg = (Bit16s) val32;
+
+     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+        return;
+  }
+
+  write_virtual_word(i->seg(), RMAddr(i), (Bit16u*)(&save_reg));
+  BX_CPU_THIS_PTR the_i387.FPU_pop();
+#else
   BX_INFO(("FISTTP16: required PNI, configure --enable-pni"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* DB /1 */
 void BX_CPU_C::FISTTP32(bxInstruction_c *i)
 {
 #if BX_SUPPORT_PNI
-  BX_PANIC(("FISTTP32: instruction still not implemented"));
-//#else
+  Bit32s save_reg;
+
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
+
+     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
+     {
+        save_reg = 0x80000000; /* The masked response */
+     }
+     else
+        return;
+  }
+  else
+  {
+     softfloat_status_word_t status = 
+        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+     save_reg = floatx80_to_int32_round_to_zero(BX_READ_FPU_REG(0), status);
+
+     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+        return;
+  }
+
+  write_virtual_dword(i->seg(), RMAddr(i), (Bit32u*)(&save_reg));
+  BX_CPU_THIS_PTR the_i387.FPU_pop();
+#else
   BX_INFO(("FISTTP32: required PNI, configure --enable-pni"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* DD /1 */
 void BX_CPU_C::FISTTP64(bxInstruction_c *i)
 {
 #if BX_SUPPORT_PNI
-  BX_PANIC(("FISTTP64: instruction still not implemented"));
-//#else
+  Bit64s save_reg;
+
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
+
+     if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
+     {
+        save_reg = BX_CONST64(0x8000000000000000); /* The masked response */
+     }
+     else
+        return;
+  }
+  else
+  {
+     softfloat_status_word_t status = 
+        FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
+
+     save_reg = floatx80_to_int64_round_to_zero(BX_READ_FPU_REG(0), status);
+
+     if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
+        return;
+  }
+
+  write_virtual_qword(i->seg(), RMAddr(i), (Bit64u*)(&save_reg));
+  BX_CPU_THIS_PTR the_i387.FPU_pop();
+#else
   BX_INFO(("FISTTP64: required PNI, configure --enable-pni"));
   UndefinedOpcode(i);
 #endif
