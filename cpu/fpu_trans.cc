@@ -27,14 +27,42 @@
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
+extern "C"
+{
+  void fsin   (FPU_REG *st0_ptr, Bit8u st0_tag);
+  void fcos   (FPU_REG *st0_ptr, Bit8u st0_tag);
+  void fsincos(FPU_REG *st0_ptr, Bit8u st0_tag);
+  void fptan  (FPU_REG *st0_ptr, Bit8u st0_tag);
+  void fpatan (FPU_REG *st0_ptr, Bit8u st0_tag);
+  void fprem  (FPU_REG *st0_ptr, Bit8u st0_tag);
+  void fprem1 (FPU_REG *st0_ptr, Bit8u st0_tag);
+  void fyl2xp1(FPU_REG *st0_ptr, Bit8u st0_tag);
+  void f2xm1  (FPU_REG *st0_ptr, Bit8u st0_tag);
+  void fyl2x  (FPU_REG *st0_ptr, Bit8u st0_tag);
+  void fscale (FPU_REG *st0_ptr, Bit8u st0_tag);
+  void fxtract(FPU_REG *st0_ptr, Bit8u st0_tag);
+}
+
+extern void FPU_initalize_i387(struct i387_t *the_i387);
 
 void BX_CPU_C::FSIN(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fsin(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("FSIN: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -44,8 +72,19 @@ void BX_CPU_C::FCOS(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fcos(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("FCOS: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -55,8 +94,19 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fsincos(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("FSINCOS: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -66,8 +116,19 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fptan(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("FPTAN: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -77,8 +138,19 @@ void BX_CPU_C::FPATAN(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fpatan(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("FPATAN: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -88,8 +160,19 @@ void BX_CPU_C::FYL2XP1(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fyl2xp1(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("FYL2XP1: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -99,8 +182,19 @@ void BX_CPU_C::F2XM1(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  f2xm1(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("F2XM1: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -110,8 +204,19 @@ void BX_CPU_C::FYL2X(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fyl2x(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("FYL2X: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -121,8 +226,19 @@ void BX_CPU_C::FSCALE(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fscale(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("FSCALE: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -132,8 +248,19 @@ void BX_CPU_C::FXTRACT(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fxtract(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("FXTRACT: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -143,8 +270,19 @@ void BX_CPU_C::FPREM1(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fprem1(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("FPREM1: required FPU, configure --enable-fpu"));
 #endif
 }
@@ -154,8 +292,19 @@ void BX_CPU_C::FPREM(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  fpu_execute(i);
-//#else
+  clear_C1();
+
+  if (IS_TAG_EMPTY(0))
+  {
+     BX_CPU_THIS_PTR FPU_stack_underflow(0);
+     return;
+  }
+
+  FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
+
+  fprem(&(BX_FPU_READ_ST0()), 
+	BX_CPU_THIS_PTR the_i387.FPU_gettagi(0));
+#else
   BX_INFO(("FPREM: required FPU, configure --enable-fpu"));
 #endif
 }

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig.c,v 1.10 2003/10/05 12:26:11 sshwarts Exp $
+ |  $Id: fpu_trig.c,v 1.10.8.1 2004/03/19 13:14:50 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -265,7 +265,7 @@ static void single_arg_2_error(FPU_REG *st0_ptr, u_char st0_tag)
 
 /*---------------------------------------------------------------------------*/
 
-static void f2xm1(FPU_REG *st0_ptr, u_char tag)
+void f2xm1(FPU_REG *st0_ptr, u_char tag)
 {
   FPU_REG a;
 
@@ -313,7 +313,7 @@ static void f2xm1(FPU_REG *st0_ptr, u_char tag)
 }
 
 
-static void fptan(FPU_REG *st0_ptr, u_char st0_tag)
+void fptan(FPU_REG *st0_ptr, u_char st0_tag)
 {
   FPU_REG *st_new_ptr;
   u32 q;
@@ -404,7 +404,7 @@ static void fptan(FPU_REG *st0_ptr, u_char st0_tag)
 }
 
 
-static void fxtract(FPU_REG *st0_ptr, u_char st0_tag)
+void fxtract(FPU_REG *st0_ptr, u_char st0_tag)
 {
   FPU_REG *st_new_ptr;
   u_char sign;
@@ -625,7 +625,7 @@ static void frndint_(FPU_REG *st0_ptr, u_char st0_tag)
 }
 
 
-static int fsin(FPU_REG *st0_ptr, u_char tag)
+int fsin(FPU_REG *st0_ptr, u_char tag)
 {
   u_char arg_sign = getsign(st0_ptr);
 
@@ -784,13 +784,13 @@ static int f_cos(FPU_REG *st0_ptr, u_char tag)
 }
 
 
-static void fcos(FPU_REG *st0_ptr, u_char st0_tag)
+void fcos(FPU_REG *st0_ptr, u_char st0_tag)
 {
   f_cos(st0_ptr, st0_tag);
 }
 
 
-static void fsincos(FPU_REG *st0_ptr, u_char st0_tag)
+void fsincos(FPU_REG *st0_ptr, u_char st0_tag)
 {
   FPU_REG *st_new_ptr;
   FPU_REG arg;
@@ -863,8 +863,6 @@ static void fsincos(FPU_REG *st0_ptr, u_char st0_tag)
 static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n)
 {
   u64 x;
-
-#ifdef NO_ASSEMBLER
   u64 work;
 
   x = st0 << n;
@@ -881,31 +879,6 @@ static void rem_kernel(u64 st0, u64 *y, u64 st1, u64 q, int n)
   work *= q >> 32;
   x -= work << 32;
   
-#else
-  int dummy;
-
-  x = st0 << n;
-
-  /* Do the required multiplication and subtraction in the one operation */
-
-  /* lsw x -= lsw st1 * lsw q */
-  asm volatile ("mull %4; subl %%eax,%0; sbbl %%edx,%1"
-		:"=m" (((u32 *)&x)[0]), "=m" (((u32 *)&x)[1]),
-		"=a" (dummy)
-		:"2" (((u32 *)&st1)[0]), "m" (((u32 *)&q)[0])
-		:"%dx");
-  /* msw x -= msw st1 * lsw q */
-  asm volatile ("mull %3; subl %%eax,%0"
-		:"=m" (((u32 *)&x)[1]), "=a" (dummy)
-		:"1" (((u32 *)&st1)[1]), "m" (((u32 *)&q)[0])
-		:"%dx");
-  /* msw x -= lsw st1 * msw q */
-  asm volatile ("mull %3; subl %%eax,%0"
-		:"=m" (((u32 *)&x)[1]), "=a" (dummy)
-		:"1" (((u32 *)&st1)[0]), "m" (((u32 *)&q)[1])
-		:"%dx");
-#endif
-
   *y = x;
 }
 
@@ -1175,7 +1148,7 @@ static void do_fprem(FPU_REG *st0_ptr, u_char st0_tag, int round)
 
 
 /* ST(1) <- ST(1) * log ST;  pop ST */
-static void fyl2x(FPU_REG *st0_ptr, u_char st0_tag)
+void fyl2x(FPU_REG *st0_ptr, u_char st0_tag)
 {
   FPU_REG *st1_ptr = &st(1), exponent;
   u_char st1_tag = FPU_gettagi(1);
@@ -1380,7 +1353,7 @@ static void fyl2x(FPU_REG *st0_ptr, u_char st0_tag)
 }
 
 
-static void fpatan(FPU_REG *st0_ptr, u_char st0_tag)
+void fpatan(FPU_REG *st0_ptr, u_char st0_tag)
 {
   FPU_REG *st1_ptr = &st(1);
   u_char st1_tag = FPU_gettagi(1);
@@ -1511,19 +1484,17 @@ static void fpatan(FPU_REG *st0_ptr, u_char st0_tag)
 }
 
 
-static void fprem(FPU_REG *st0_ptr, u_char st0_tag)
+void fprem(FPU_REG *st0_ptr, u_char st0_tag)
 {
   do_fprem(st0_ptr, st0_tag, RC_CHOP);
 }
 
-
-static void fprem1(FPU_REG *st0_ptr, u_char st0_tag)
+void fprem1(FPU_REG *st0_ptr, u_char st0_tag)
 {
   do_fprem(st0_ptr, st0_tag, RC_RND);
 }
 
-
-static void fyl2xp1(FPU_REG *st0_ptr, u_char st0_tag)
+void fyl2xp1(FPU_REG *st0_ptr, u_char st0_tag)
 {
   u_char sign, sign1;
   FPU_REG *st1_ptr = &st(1), a, b;
@@ -1715,7 +1686,7 @@ static void fyl2xp1(FPU_REG *st0_ptr, u_char st0_tag)
 }
 
 
-static void fscale(FPU_REG *st0_ptr, u_char st0_tag)
+void fscale(FPU_REG *st0_ptr, u_char st0_tag)
 {
   FPU_REG *st1_ptr = &st(1);
   u_char st1_tag = FPU_gettagi(1);
@@ -1869,29 +1840,4 @@ static void fscale(FPU_REG *st0_ptr, u_char st0_tag)
 
   /* At least one of st(0), st(1) must be empty */
   FPU_stack_underflow();
-
-}
-
-
-/*---------------------------------------------------------------------------*/
-
-static FUNC_ST0 const trig_table_a[] = {
-  f2xm1, fyl2x, fptan, fpatan,
-  fxtract, fprem1, (FUNC_ST0)fdecstp, (FUNC_ST0)fincstp
-};
-
-void FPU_triga(void)
-{
-  (trig_table_a[FPU_rm])(&st(0), FPU_gettag0());
-}
-
-
-static FUNC_ST0 const trig_table_b[] =
-  {
-    fprem, fyl2xp1, fsqrt_, fsincos, frndint_, fscale, (FUNC_ST0)fsin, fcos
-  };
-
-void FPU_trigb(void)
-{
-  (trig_table_b[FPU_rm])(&st(0), FPU_gettag0());
 }

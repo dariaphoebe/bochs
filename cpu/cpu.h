@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.161.2.2 2004/03/13 20:42:06 sshwarts Exp $
+// $Id: cpu.h,v 1.161.2.3 2004/03/19 13:14:50 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -2328,8 +2328,6 @@ union {
   /* PNI */
 
 #if BX_SUPPORT_FPU
-  BX_SMF void fpu_execute(bxInstruction_c *i);
-  BX_SMF void fpu_init(void);
   BX_SMF int  fpu_save_environment(bxInstruction_c *i);
   BX_SMF int  fpu_load_environment(bxInstruction_c *i);
 #endif

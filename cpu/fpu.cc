@@ -388,6 +388,8 @@ void BX_CPU_C::FRSTOR(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i, CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
   int offset = fpu_load_environment(i);
+
+  /* read all registers in stack order. */
   for(int n=0;n<8;n++)
   {
      floatx80 tmp;
@@ -411,6 +413,8 @@ void BX_CPU_C::FNSAVE(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i, !CHECK_PENDING_EXCEPTIONS, !UPDATE_LAST_OPCODE);
 
   int offset = fpu_save_environment(i);
+
+  /* save all registers in stack order. */
   for(int n=0;n<8;n++)
   {
      floatx80 stn = BX_READ_FPU_REG(n);

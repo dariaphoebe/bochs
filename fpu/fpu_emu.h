@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.23 2004/02/20 00:54:22 danielg4 Exp $
+ |  $Id: fpu_emu.h,v 1.23.6.1 2004/03/19 13:14:50 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -12,7 +12,7 @@
 #ifndef _FPU_EMU_H_
 #define _FPU_EMU_H_
 
-#include <linux/linkage.h>
+#include "linkage.h"
 
 /*
  * Define PECULIAR_486 to get a closer approximation to 80486 behaviour,

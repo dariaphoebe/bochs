@@ -66,6 +66,9 @@ typedef struct bx_fpu_reg_t FPU_REG;
 #define BX_FPU_REG(index) \
     (BX_CPU_THIS_PTR the_i387.st_space[index])
 
+#define BX_FPU_READ_ST0() \
+    (BX_CPU_THIS_PTR the_i387.st_space[BX_CPU_THIS_PTR the_i387.tos])
+
 #if defined(NEED_CPU_REG_SHORTCUTS)
 #define FPU_PARTIAL_STATUS     (BX_CPU_THIS_PTR the_i387.swd)
 #define FPU_CONTROL_WORD       (BX_CPU_THIS_PTR the_i387.cwd)

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  errors.c                                                                 |
- |  $Id: errors.c,v 1.18 2004/03/06 13:33:11 sshwarts Exp $
+ |  $Id: errors.c,v 1.18.2.1 2004/03/19 13:14:50 sshwarts Exp $
  |                                                                           |
  |  The error handling functions for wm-FPU-emu                              |
  |                                                                           |
@@ -32,15 +32,6 @@
 extern "C"
 #endif
 int printk(const char * fmt, ...);
-
-/*
-   Called for opcodes which are illegal and which are known to result in a
-   SIGILL with a real 80486.
-   */
-void FPU_illegal(void)
-{
-  math_abort(NULL, SIGILL);
-}
 
 static struct {
   int type;

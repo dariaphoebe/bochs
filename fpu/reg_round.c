@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_round.c                                                              |
- |  $Id: reg_round.c,v 1.8 2003/10/05 12:26:11 sshwarts Exp $
+ |  $Id: reg_round.c,v 1.8.8.1 2004/03/19 13:14:51 sshwarts Exp $
  |                                                                           |
  | Rounding/truncation/etc for FPU basic arithmetic functions.               |
  |                                                                           |
@@ -58,6 +58,7 @@
 
 
 #include "fpu_emu.h"
+#include "status_w.h"
 #include "exception.h"
 #include "control_w.h"
 
@@ -545,3 +546,76 @@ int FPU_round(FPU_REG *x, u32 extent, u16 control_w, u8 sign)
 
   return tag;
 }
+
+/*===========================================================================*/
+
+/* r gets mangled such that sig is int, sign: 
+   it is NOT normalized */
+/* The return value (in eax) is zero if the result is exact,
+   if bits are changed due to rounding, truncation, etc, then
+   a non-zero value is returned */
+/* Overflow is signalled by a non-zero return value (in eax).
+   In the case of overflow, the returned significand always has the
+   largest possible value */
+int  BX_CPP_AttrRegparmN(2)
+FPU_round_to_int(FPU_REG *r, u_char tag)
+{
+  u_char     very_big;
+  unsigned eax;
+
+  if (tag == TAG_Zero)
+    {
+      /* Make sure that zero is returned */
+      significand(r) = 0;
+      return 0;        /* o.k. */
+    }
+
+  if (exponent(r) > 63)
+    {
+      r->sigl = r->sigh = ~0;      /* The largest representable number */
+      return 1;        /* overflow */
+    }
+
+#ifndef EMU_BIG_ENDIAN
+  eax = FPU_shrxs(&r->sigl, 63 - exponent(r));
+#else
+  eax = FPU_shrxs(&r->sigh, 63 - exponent(r));
+#endif
+  very_big = !(~(r->sigh) | ~(r->sigl));  /* test for 0xfff...fff */
+#define	half_or_more	(eax & 0x80000000)
+#define	frac_part	(eax)
+#define more_than_half  (eax > 0x80000000)
+  switch (FPU_control_word & CW_RC)
+    {
+    case RC_RND:
+      if (more_than_half               	/* nearest */
+	  || (half_or_more && (r->sigl & 1)))	/* odd -> even */
+	{
+	  if (very_big) return 1;        /* overflow */
+	  significand(r) ++;
+	  return PRECISION_LOST_UP;
+	}
+      break;
+    case RC_DOWN:
+      if (frac_part && getsign(r))
+	{
+	  if (very_big) return 1;        /* overflow */
+	  significand(r) ++;
+	  return PRECISION_LOST_UP;
+	}
+      break;
+    case RC_UP:
+      if (frac_part && !getsign(r))
+	{
+	  if (very_big) return 1;        /* overflow */
+	  significand(r) ++;
+	  return PRECISION_LOST_UP;
+	}
+      break;
+    case RC_CHOP:
+      break;
+    }
+
+  return eax ? PRECISION_LOST_DOWN : 0;
+}
+

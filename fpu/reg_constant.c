@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_constant.c                                                           |
- |  $Id: reg_constant.c,v 1.7.2.1 2004/03/12 20:08:49 sshwarts Exp $
+ |  $Id: reg_constant.c,v 1.7.2.2 2004/03/19 13:14:50 sshwarts Exp $
  |                                                                           |
  | All of the constant FPU_REGs                                              |
  |                                                                           |
@@ -41,72 +41,3 @@ FPU_REG const CONST_QNaN = MAKE_REG(NEG, EXP_OVER, 0x00000000, 0xC0000000);
 
 /* Only the sign (and tag) is used in internal infinities */
 FPU_REG const CONST_INF  = MAKE_REG(POS, EXP_OVER, 0x00000000, 0x80000000);
-
-
-static void fld_const(FPU_REG const *c, int adj, u_char tag)
-{
-  FPU_REG *st_new_ptr;
-
-  if (FPU_stackoverflow(&st_new_ptr))
-    {
-      FPU_stack_overflow();
-      return;
-    }
-  FPU_push();
-  reg_copy(c, st_new_ptr);
-  st_new_ptr->sigl += adj;  /* For all our fldxxx constants, we don't need to
-			       borrow or carry. */
-  FPU_settag0(tag);
-  clear_C1();
-}
-
-/* A fast way to find out whether x is one of RC_DOWN or RC_CHOP
-   (and not one of RC_RND or RC_UP).
-   */
-#define DOWN_OR_CHOP(x)  (x & RC_DOWN)
-
-static void fld1(int rc)
-{
-  fld_const(&CONST_1, 0, TAG_Valid);
-}
-
-static void fldl2t(int rc)
-{
-  fld_const(&CONST_L2T, (rc == RC_UP) ? 1 : 0, TAG_Valid);
-}
-
-static void fldl2e(int rc)
-{
-  fld_const(&CONST_L2E, DOWN_OR_CHOP(rc) ? -1 : 0, TAG_Valid);
-}
-
-static void fldpi(int rc)
-{
-  fld_const(&CONST_PI, DOWN_OR_CHOP(rc) ? -1 : 0, TAG_Valid);
-}
-
-static void fldlg2(int rc)
-{
-  fld_const(&CONST_LG2, DOWN_OR_CHOP(rc) ? -1 : 0, TAG_Valid);
-}
-
-static void fldln2(int rc)
-{
-  fld_const(&CONST_LN2, DOWN_OR_CHOP(rc) ? -1 : 0, TAG_Valid);
-}
-
-static void fldz(int rc)
-{
-  fld_const(&CONST_Z, 0, TAG_Zero);
-}
-
-typedef void (*FUNC_RC)(int);
-
-static FUNC_RC constants_table[] = {
-  fld1, fldl2t, fldl2e, fldpi, fldlg2, fldln2, fldz, (FUNC_RC)FPU_illegal
-};
-
-void fconst(void)
-{
-  (constants_table[FPU_rm])(FPU_control_word & CW_RC);
-}
