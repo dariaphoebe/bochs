@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dbg_main.cc,v 1.41 2002/03/20 04:09:26 bdenney Exp $
+// $Id: dbg_main.cc,v 1.36.4.1 2002/03/25 08:02:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1523,7 +1523,6 @@ bx_dbg_continue_command(void)
 
 #if BX_NUM_SIMULATORS >= 2
   bx_guard.interrupt_requested = 0;
-  bx_guard.special_unwind_stack = 0;
   while (1) {
     if ( !bx_dbg_cosimulateN(bx_debugger.icount_quantum) )
       break;
@@ -1537,7 +1536,6 @@ bx_dbg_continue_command(void)
 
 
   bx_guard.interrupt_requested = 0;
-  bx_guard.special_unwind_stack = 0;
 	int stop = 0;
 	int which = -1;
 	while (!stop) {
@@ -1619,7 +1617,6 @@ bx_dbg_stepN_command(bx_dbg_icount_t count)
 
 #if BX_NUM_SIMULATORS >= 2
   bx_guard.interrupt_requested = 0;
-  bx_guard.special_unwind_stack = 0;
   bx_dbg_cosimulateN(count);
 #else
   // single CPU
@@ -2067,7 +2064,7 @@ void bx_dbg_disassemble_current (int which_cpu, int print_time)
 
   if (which_cpu < 0) {
     // iterate over all of them.
-    for (int i=0; i<BX_SMP_PROCESSORS; i++)
+    for (int i=0; i<BX_NUM_SIMULATORS; i++)
       bx_dbg_disassemble_current (i, print_time);
     return;
   }
@@ -2080,6 +2077,25 @@ void bx_dbg_disassemble_current (int which_cpu, int print_time)
     BX_CPU(which_cpu)->mem->dbg_fetch_mem(phy, 16, bx_disasm_ibuf);
     ilen = bx_disassemble.disasm(BX_CPU(which_cpu)->guard_found.is_32bit_code,
 				 bx_disasm_ibuf, bx_disasm_tbuf);
+
+    if (print_time)
+      fprintf (stderr, "(%u).[%lld] ", which_cpu, bx_pc_system.time_ticks());
+    else
+      fprintf (stderr, "(%u) ", which_cpu);
+    if (BX_CPU(which_cpu)->guard_found.is_32bit_code) {
+      fprintf(stderr, "%04x:%08x (%s): ", 
+	      (unsigned) BX_CPU(which_cpu)->guard_found.cs,
+	      (unsigned) BX_CPU(which_cpu)->guard_found.eip,
+	      bx_dbg_symbolic_address((BX_CPU(which_cpu)->cr3) >> 12, BX_CPU(which_cpu)->guard_found.eip, BX_CPU(which_cpu)->sregs[BX_SREG_CS].cache.u.segment.base));
+      }
+    else {
+      fprintf(stderr, "%04x:%04x: ", 
+	      (unsigned) BX_CPU(which_cpu)->guard_found.cs,
+	      (unsigned) BX_CPU(which_cpu)->guard_found.eip);
+      }
+    for (unsigned j=0; j<ilen; j++)
+      fprintf(stderr, "%02x", (unsigned) bx_disasm_ibuf[j]);
+    fprintf(stderr, ": %s\n", bx_disasm_tbuf);
 
     // Note: it would be nice to display only the modified registers here, the easy
     // way out I have thought of would be to keep a prev_eax, prev_ebx, etc copies
@@ -2110,26 +2126,6 @@ void bx_dbg_disassemble_current (int which_cpu, int print_time)
 		BX_CPU(which_cpu)->eflags.rf,
 		BX_CPU(which_cpu)->eflags.vm
 		);
-
-    if (print_time)
-      fprintf (stderr, "(%u).[%lld] ", which_cpu, bx_pc_system.time_ticks());
-    else
-      fprintf (stderr, "(%u) ", which_cpu);
-    if (BX_CPU(which_cpu)->guard_found.is_32bit_code) {
-      fprintf(stderr, "%04x:%08x (%s): ", 
-	      (unsigned) BX_CPU(which_cpu)->guard_found.cs,
-	      (unsigned) BX_CPU(which_cpu)->guard_found.eip,
-	      bx_dbg_symbolic_address((BX_CPU(which_cpu)->cr3) >> 12, BX_CPU(which_cpu)->guard_found.eip, BX_CPU(which_cpu)->sregs[BX_SREG_CS].cache.u.segment.base));
-      }
-    else {
-      fprintf(stderr, "%04x:%04x: ", 
-	      (unsigned) BX_CPU(which_cpu)->guard_found.cs,
-	      (unsigned) BX_CPU(which_cpu)->guard_found.eip);
-      }
-    for (unsigned j=0; j<ilen; j++)
-      fprintf(stderr, "%02x", (unsigned) bx_disasm_ibuf[j]);
-    fprintf(stderr, ": %s\n", bx_disasm_tbuf);
-
     
     }
   else {
@@ -2200,10 +2196,7 @@ for (sim=0; sim<BX_SMP_PROCESSORS; sim++) {
 
 #if BX_DISASM
   if (bx_debugger.auto_disassemble) {
-    if (sim==0) {
-      // print this only once
-      fprintf (stderr, "Next at t=%lld\n", bx_pc_system.time_ticks ());
-    }
+    fprintf (stderr, "Next at t=%lld\n", bx_pc_system.time_ticks ());
     bx_dbg_disassemble_current (sim, 0);  // one cpu, don't print time
   }
 #endif  // #if BX_DISASM

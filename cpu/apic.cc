@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: apic.cc,v 1.12 2002/03/25 01:58:34 bdenney Exp $
+// $Id: apic.cc,v 1.8.4.1 2002/03/25 08:02:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 #define NEED_CPU_REG_SHORTCUTS 1
@@ -32,6 +32,14 @@ bx_generic_apic_c::set_arb_id (int new_arb_id)
 // init is called during RESET and when an INIT message is delivered.
 void bx_generic_apic_c::init ()
 {
+}
+
+void bx_local_apic_c::update_msr_apicbase(Bit32u newbase)
+{
+  Bit64u val64;
+  val64 = newbase << 12;	/* push the APIC base address to bits 12:31 */
+  val64 += cpu->msr.apicbase & 0x0900;	/* don't modify other apicbase or reserved bits */
+  cpu->msr.apicbase = val64;
 }
 
 void bx_generic_apic_c::set_base (Bit32u newbase)
@@ -291,7 +299,8 @@ bx_local_apic_c::init ()
   BX_INFO(("local apic in %s initializing", 
       (cpu && cpu->name) ? cpu->name : "?"));
   // default address for a local APIC, can be moved
-  base_addr = 0xfee00000;
+  base_addr = APIC_BASE_ADDR;
+  update_msr_apicbase(base_addr);
   err_status = 0;
   log_dest = 0;
   dest_format = 0xf;
@@ -345,13 +354,15 @@ void bx_local_apic_c::set_divide_configuration (Bit32u value) {
   value = ((value & 8) >> 1) | (value & 3);
   BX_ASSERT (value >= 0 && value <= 7);
   timer_divide_factor = (value==7)? 1 : (2 << value);
-  BX_DEBUG(("%s: set timer divide factor to %d", cpu->name, timer_divide_factor));
+  if (bx_dbg.apic)
+    BX_INFO(("%s: set timer divide factor to %d", cpu->name, timer_divide_factor));
 }
 
 void bx_local_apic_c::write (Bit32u addr, Bit32u *data, unsigned len)
 {
   assert (len == 4);
-  BX_DEBUG(("%s: write %08x to APIC address %08x", cpu->name, *data, addr));
+  if (bx_dbg.apic)
+    BX_INFO(("%s: write %08x to APIC address %08x", cpu->name, *data, addr));
   //assert (!(addr & 0xf));
   addr &= 0xff0;
   switch (addr) {
@@ -363,12 +374,14 @@ void bx_local_apic_c::write (Bit32u addr, Bit32u *data, unsigned len)
       break;
     case 0xb0: // EOI
       {
-	BX_DEBUG(("%s: Wrote 0x%04x to EOI", cpu->name, *data));
+	if (bx_dbg.apic)
+	  BX_INFO(("%s: Wrote 0x%04x to EOI", cpu->name, *data));
 	int vec = highest_priority_int (isr);
 	if (vec < 0) {
 	  BX_INFO(("EOI written without any bit in ISR"));
 	} else {
-	  BX_DEBUG(("%s: local apic received EOI, hopefully for vector 0x%02x", cpu->name, vec));
+	  if (bx_dbg.apic)
+	    BX_INFO(("%s: local apic received EOI, hopefully for vector 0x%02x", cpu->name, vec));
 	  isr[vec] = 0; 
 	  service_local_apic ();
 	}
@@ -583,21 +596,24 @@ void bx_local_apic_c::service_local_apic ()
   // interrupt has appeared in irr.  raise INTR.  When the CPU
   // acknowledges, we will run highest_priority_int again and
   // return it.
-  BX_DEBUG(("service_local_apic(): setting INTR=1 for vector 0x%02x", first_irr));
+  if (bx_dbg.apic)
+    BX_INFO(("service_local_apic(): setting INTR=1 for vector 0x%02x", first_irr));
   cpu->set_INTR (1);
   cpu->int_from_local_apic = 1;
 }
 
 void bx_local_apic_c::trigger_irq (unsigned vector, unsigned from)
 {
-  BX_DEBUG(("Local apic on %s: trigger interrupt vector=0x%x", cpu->name, vector));
+  if (bx_dbg.apic)
+    BX_INFO(("Local apic on %s: trigger interrupt vector=0x%x", cpu->name, vector));
   irr[vector] = 1;
   service_local_apic ();
 }
 
 void bx_local_apic_c::untrigger_irq (unsigned vector, unsigned from)
 {
-  BX_DEBUG(("Local apic on %s: untrigger interrupt vector=0x%x", cpu->name, vector));
+  if (bx_dbg.apic)
+    BX_INFO(("Local apic on %s: untrigger interrupt vector=0x%x", cpu->name, vector));
   // hardware says "no more".  clear the bit.  If the CPU hasn't yet
   // acknowledged the interrupt, it will never be serviced.
   BX_ASSERT (irr[vector] == 1);
@@ -614,7 +630,8 @@ bx_local_apic_c::acknowledge_int ()
   BX_ASSERT (cpu->int_from_local_apic);
   int vector = highest_priority_int (irr);
   BX_ASSERT (irr[vector] == 1);
-  BX_DEBUG(("%s: acknowledge_int returning vector 0x%x", cpu->name, vector));
+  if (bx_dbg.apic)
+    BX_INFO(("%s: acknowledge_int returning vector 0x%x", cpu->name, vector));
   // currently isr never gets cleared, so no point
   //BX_ASSERT (isr[vector] == 0);
   irr[vector] = 0;
@@ -646,12 +663,14 @@ Boolean bx_local_apic_c::match_logical_addr (Bit8u address)
   }
   // if all address bits are 1, send to all local APICs. SDG3:7-27.
   if (address == 0xff) {
-    BX_DEBUG (("%s: MDA=0xff matches everybody", cpu->name));
+    if (bx_dbg.apic) BX_INFO(("%s: MDA=0xff matches everybody", cpu->name));
     return true;
   }
   Boolean match = ((address & log_dest) != 0);
-  BX_DEBUG (("%s: comparing MDA %02x to my LDR %02x -> %s", cpu->name,
-    address, log_dest, match? "Match" : "Not a match"));
+  if (bx_dbg.apic) {
+    BX_INFO(("%s: comparing MDA %02x to my LDR %02x -> %s", cpu->name,
+      address, log_dest, match? "Match" : "Not a match"));
+  }
   return match;
 }
 
@@ -677,13 +696,15 @@ bx_local_apic_c::get_delivery_bitmask (Bit8u dest, Bit8u dest_mode)
 	|| (apic_index[bit]->get_type () != APIC_TYPE_LOCAL_APIC))
       mask &= ~(1<<bit);
   }
-  BX_DEBUG (("local::get_delivery_bitmask returning 0x%04x", mask));
+  if (bx_dbg.apic)
+    BX_INFO(("local::get_delivery_bitmask returning 0x%04x", mask));
   return mask;
 }
 
 Bit8u bx_local_apic_c::get_ppr ()
 {
-  BX_ERROR(("WARNING: Local APIC Processor Priority not implemented, returning 0"));
+  if (bx_dbg.apic)
+		BX_INFO(("WARNING: Local APIC Processor Priority not implemented, returning 0"));
   // should look at TPR, vector of highest priority isr, etc.
   return 0;
 }
@@ -694,12 +715,15 @@ Bit8u bx_local_apic_c::get_apr ()
   return arb_id;
 }
 
+
+
 void
 bx_local_apic_c::periodic (Bit32u usec_delta)
 {
   if (!timer_active) return;
-  BX_DEBUG(("%s: bx_local_apic_c::periodic called with %d usec",
-    cpu->name, usec_delta));
+  if (bx_dbg.apic)
+    BX_INFO(("%s: bx_local_apic_c::periodic called with %d usec",
+      cpu->name, usec_delta));
   // unless usec_delta is guaranteed to be a multiple of 128, I can't
   // just divide usec_delta by the divide-down value.  Instead, it will
   // have a similar effect to implement the divide-down by ignoring
@@ -730,14 +754,16 @@ bx_local_apic_c::periodic (Bit32u usec_delta)
       // negative timer_current.
       BX_ASSERT ((timer_current + timer_initial) >= usec_delta);
     }
-    BX_DEBUG(("%s: local apic timer (periodic) triggered int, reset counter to 0x%08x", cpu->name, timer_current));
+    if (bx_dbg.apic)
+      BX_INFO(("%s: local apic timer (periodic) triggered int, reset counter to 0x%08x", cpu->name, timer_current));
   } else {
     // one-shot mode
     timer_current = 0;
     if (timer_active) {
       trigger_irq (timervec & 0xff, id);
       timer_active = false;
-      BX_DEBUG (("%s: local apic timer (one-shot) triggered int", cpu->name));
+      if (bx_dbg.apic)
+        BX_INFO(("%s: local apic timer (one-shot) triggered int", cpu->name));
     }
   }
 }
