@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.4 2003/03/20 10:14:31 slechta Exp $
+// $Id: siminterface.h,v 1.99.4.5 2003/03/21 20:49:00 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -1227,7 +1227,7 @@ void print_tree (bx_param_c *node, int level = 0);
 // NOTE: The following macros are the same as the above with the exception that they allow one extra
 // parameter for registering a handler function.  The will be filled in when the above macros have
 // been tested and considered stable.   --BJS
-// TODO: write these!
+// TODO: write these!  or find a better way to do this!
 #define BX_REGISTER_NUM_H(_variable_p, _name, _desc, _parent_p, _handler_p)
 
 #define BX_REGISTER_BOOL_H(_variable_p, _name, _desc, _parent_p, _handler_p)
@@ -1246,30 +1246,179 @@ void print_tree (bx_param_c *node, int level = 0);
 // BX_REGISTER functions require.  The goal is to make registering state in a
 // given class extremely systematic and automatic which is all that is
 // necessary for a large number of classes. --BJS
-#define BX_IREG_START(_type, _this, _name, _desc, _def_size, _parent_p)       \
+// TODO: provide examples and documentation.  These will become standard over
+// the above sets of macros.
+#define BXRS_START(_type, _this, _name, _desc, _parent_p, _def_size)          \
 {                                                                             \
   void *_ireg_this = _this;                                                   \
   void *_old_this;                                                            \
   Bit64u _ireg_def_size = _def_size;                                          \
-  bx_list_c *_ireg_cur_list_p = new bx_list_c (_parent_p, _name, _desc, _def_size);\
-  bx_list_c *_old_list_p;                                                     \
+  typedef _type _ireg_this_t;                                                 \
+  bx_list_c *_ireg_cur_list_p =                                               \
+    new bx_list_c (_parent_p, _name, _desc, _def_size);                       \
+  bx_list_c *_reg_old_list_p;
 
-#define BX_IREG_END                                                           \
+#define BXRS_END                                                              \
 }
 
-#define BX_IREG_LIST_START(_type, _var, _desc)                                \
+#define BXRS_STRUCT_START(_type, _var)                                        \
+  BXRS_STRUCT_START_D(_type, _var, "")
+
+#define BXRS_STRUCT_START_D(_type, _var, _desc)                               \
 {                                                                             \
-  void* _old_this = _ireg_this;                                               \
-  _old_list_p = _ireg_cur_list_p;                                             \
-  _ireg_cur_list_p = new bx_list_c (FIXME_FAKE_PARENT/*id*/, (*((IREG_TYPE *)_ireg_this)).##_var, _desc, _ireg_def_size);\
-  _old_list_p->add((bx_param_c*)_ireg_cur_list_p);
+  void *_ireg_old_this = (_ireg_this_t *)_ireg_this;                          \
+  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
+  bx_list_c *_ireg_cur_list_p = new bx_list_c (_ireg_old_list_p,              \
+                                               #_var,                         \
+                                               _desc,                         \
+                                    _ireg_def_size);                          \
+  void *_ireg_this = (&((*((_ireg_this_t *)_ireg_old_this))._var));           \
+  typedef _type _ireg_this_t;
 
-#define BX_IREG_LIST_END                                                      \
+#define BXRS_STRUCT_END                                                       \
 }
 
-// Testing my macro expansions!  Just ignore for now.  --BJS
-//BX_IREG_START(class foo,this,"foo","foo is bar",15,foo_parent);
-//BX_IREG_LIST_START(sub_test_t, my_sub_test, "");
+#define BXRS_ENUM(_type, _var)                                                \
+  BXRS_ENUM_D(_type, _var, "")
+
+#define BXRS_ENUM_D(_type, _var, _desc)                                       \
+  new bx_shadow_num_c(_ireg_cur_list_p,                                       \
+                     #_var,                                                   \
+                     _desc,                                                   \
+                     (Bit32u*)(&((*((_ireg_this_t*)_ireg_this))._var)));
+
+#define BXRS_NUM(_type, _var)                                                 \
+  BXRS_NUM_D(_type, _var, "")
+
+#define BXRS_NUM_D(_type, _var, _desc)                                        \
+  new bx_shadow_num_c(_ireg_cur_list_p,                                       \
+                     #_var,                                                   \
+                     _desc,                                                   \
+                     (_type*)(&((*((_ireg_this_t*)_ireg_this))._var)));
+
+#define BXRS_BOOL(_type, _var)                                                \
+  BXRS_BOOL_D(_type, _var, "")
+
+#define BXRS_BOOL_D(_type, _var, _desc)                                       \
+  new bx_shadow_bool_c(_ireg_cur_list_p,                                      \
+                     #_var,                                                   \
+                     _desc,                                                   \
+                     (_type*)(&((*((_ireg_this_t*)_ireg_this))._var)));
+
+#define BXRS_BITS(_type, _var, _highbit, _lowbit)                             \
+  BXRS_BITS_D(_type, _var, _highbit, _lowbit, "")
+
+#define BXRS_BITS_D(_type, _var, _highbit, _lowbit, _desc)                    \
+  new bx_shadow_num_c(_ireg_cur_list_p,                                       \
+                     #_var,                                                   \
+                     _desc,                                                   \
+                     (_type*)(&((*((_ireg_this_t*)_ireg_this))._var)),        \
+                     _highbit,                                                \
+                     _lowbit);
+
+#define BXRS_ARRAY_START(_type, _var, _size)                                  \
+  BXRS_ARRAY_START_D(_type, _var, _size, "")
+
+#define BXRS_ARRAY_START_D(_type, _var, _size, _desc)                         \
+{                                                                             \
+  static char foobar[_size][30];                                              \
+  char *_index_name = foobar[0];                                              \
+  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
+  bx_list_c *_ireg_cur_list_p =                                               \
+    new bx_list_c(_ireg_old_list_p, #_var, _desc,_size);                      \
+  void *_ireg_arr_this = &(((_ireg_this_t *)_ireg_this)->_var);               \
+  for (int _itr = 0;                                                          \
+       (_itr < _size) &&                                                      \
+         (sprintf(foobar[_itr], "%d", _itr),                                  \
+          _index_name = foobar[_itr],                                         \
+          true);                                                              \
+       _itr++)                                                                \
+{                                                                             \
+  typedef _type _ireg_this_t;                                                 \
+  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
+  bx_list_c *_ireg_cur_list_p = new bx_list_c (_ireg_old_list_p,              \
+                                    _index_name,                              \
+                                    "",                                       \
+                                    _ireg_def_size);                          \
+  void *_ireg_this = &(((_ireg_this_t *)_ireg_arr_this)[_itr]);
+
+#define BXRS_ARRAY_END                                                        \
+}}
+
+#define BXRS_ARRAY_NUM(_type, _var, _size)                                    \
+  BXRS_ARRAY_NUM_D(_type, _var, _size, "")                                    \
+
+#define BXRS_ARRAY_NUM_D(_type, _var, _size, _desc)                           \
+{                                                                             \
+  static char foobar[_size][30];                                              \
+  char *_index_name = foobar[0];                                              \
+  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
+  bx_list_c *_ireg_cur_list_p =                                               \
+    new bx_list_c(_ireg_old_list_p, #_var, _desc, _size);                     \
+  for (int _itr = 0;                                                          \
+       (_itr < _size) &&                                                      \
+         (sprintf(foobar[_itr], "%d", _itr),                                  \
+          _index_name = foobar[_itr],                                         \
+          true);                                                              \
+       _itr++)                                                                \
+  new bx_shadow_num_c(_ireg_cur_list_p, _index_name, "",                      \
+                      &((*((_ireg_this_t*)_ireg_this))._var[_itr])   );       \
+}
+
+#define BXRS_ARRAY_ENUM(_type, _var, _size)                                   \
+  BXRS_ARRAY_ENUM_D(_type, _var, _size, _desc)
+
+#define BXRS_ARRAY_ENUM_D(_type, _var, _size, _desc)                          \
+{                                                                             \
+  static char foobar[_size][30];                                              \
+  char *_index_name = foobar[0];                                              \
+  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
+  bx_list_c *_ireg_cur_list_p =                                               \
+    new bx_list_c(_ireg_old_list_p, #_var, _desc,_size);                      \
+  for (int _itr = 0;                                                          \
+       (_itr < _size) &&                                                      \
+         (sprintf(foobar[_itr], "%d", _itr),                                  \
+          _index_name = foobar[_itr],                                         \
+          true);                                                              \
+       _itr++)                                                                \
+  new bx_shadow_num_c(_ireg_cur_list_p, _index_name, "",                      \
+                     (Bit32u*)&((*((_ireg_this_t*)_ireg_this))._var[_itr]));  \
+}
+
+//                 (&((*((_ireg_this_t*)_ireg_this)).##_var))
+
+#define BXRS_ARRAY_BOOL(_type, _var, _size)                                   \
+  BXRS_ARRAY_BOOL_D(_type, _var, _size, "")
+
+#define BXRS_ARRAY_BOOL_D(_type, _var, _size, _desc)                          \
+{                                                                             \
+  static char foobar[_size][30];                                              \
+  char *_index_name = foobar[0];                                              \
+  bx_list_c *_ireg_old_list_p = _ireg_cur_list_p;                             \
+  bx_list_c *_ireg_cur_list_p = new bx_list_c(_ireg_old_list_p, #_var, _desc, _size);\
+  for (int _itr = 0;                                                          \
+       (_itr < _size) &&                                                      \
+         (sprintf(foobar[_itr], "%d", _itr),                                  \
+          _index_name = foobar[_itr],                                         \
+          true);                                                              \
+       _itr++)                                                                \
+  new bx_shadow_bool_c(_ireg_cur_list_p, _index_name, _desc,                  \
+                      &(((_ireg_this_t *)_ireg_arr_this)[_itr]));             \
+}
+
+#define BXRS_OBJ(_type, _var)                                                 \
+  BXRS_OBJ_D(_type, _var, "")                                                 \
+
+#define BXRS_OBJ_D(_type, _var, _desc)                                        \
+  ((_type*)&(((_ireg_this_t*)_ireg_this)->_var))->                            \
+    register_state(#_var, _desc, _ireg_cur_list_p);
+
+
+#define BXRS_UNION_START {
+#define BXRS_UNION_START_D {
+
+#define BXRS_UNION_END }
+
 
 ////////////////////////////////////////////////////////////////////
 // base class simulator interface, contains just virtual functions.

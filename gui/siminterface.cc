@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94.4.3 2003/03/20 10:14:31 slechta Exp $
+// $Id: siminterface.cc,v 1.94.4.4 2003/03/21 20:49:00 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1541,11 +1541,17 @@ void print_tree (bx_param_c *node, int level)
       {
 	printf ("%s = \n", node->get_name ());
 	bx_list_c *list = (bx_list_c*)node;
-	for (i=0; i < list->get_size (); i++) {
-	  // should distinguish between real children and 'links'
-	  // where the child's parent does not point to me.
-	  print_tree (list->get(i), level+1);
-	}
+#warning slechta added this suppression for debug... way wish to remove
+        if (list->get_size() <= 100) {
+          for (i=0; i < list->get_size (); i++) {
+            // should distinguish between real children and 'links'
+            // where the child's parent does not point to me.
+            print_tree (list->get(i), level+1);
+          }
+        }
+        else {
+          printf("        .. suppressed ..\n");
+        }
 	break;
       }
     case BXT_PARAM_ENUM:

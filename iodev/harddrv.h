@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.19 2003/03/02 23:59:11 cbothamy Exp $
+// $Id: harddrv.h,v 1.19.2.1 2003/03/21 20:49:02 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -171,7 +171,7 @@ class dll_image_t : public device_image_t
 
 
 typedef struct {
-  struct {
+  struct status_t {
     bx_bool busy;
     bx_bool drive_ready;
     bx_bool write_fault;
@@ -181,12 +181,12 @@ typedef struct {
     bx_bool index_pulse;
     unsigned index_pulse_count;
     bx_bool err;
-    } status;
+  } status;
   Bit8u    error_register;
   Bit8u    head_no;
   union {
     Bit8u    sector_count;
-    struct {
+    struct interrupt_reason_t {
 #ifdef BX_LITTLE_ENDIAN
       unsigned c_d : 1;
       unsigned i_o : 1;
@@ -211,34 +211,37 @@ typedef struct {
   Bit8u    current_command;
   Bit8u    sectors_per_block;
   Bit8u    lba_mode;
-  struct {
+  struct control_t {
     bx_bool reset;       // 0=normal, 1=reset controller
     bx_bool disable_irq; // 0=allow irq, 1=disable irq
-    } control;
+  } control;
   Bit8u    reset_in_progress;
   Bit8u    features;
-  } controller_t;
+  void register_state(char* name, char *desc, bx_list_c *parent_p);
+} controller_t;
+
 
 struct sense_info_t {
   sense_t sense_key;
-  struct {
+  struct information_t {
     Bit8u arr[4];
   } information;
-  struct {
+  struct specific_inf_t {
     Bit8u arr[4];
   } specific_inf;
-  struct {
+  struct key_spec_t {
     Bit8u arr[3];
   } key_spec;
   Bit8u fruc;
   Bit8u asc;
   Bit8u ascq;
+  void register_state(char* name, char *desc, bx_list_c *parent_p);
 };
 
 struct error_recovery_t {
   unsigned char data[8];
-
   error_recovery_t ();
+  void register_state(char* name, char *desc, bx_list_c *parent_p);  
 };
 
 uint16 read_16bit(const uint8* buf) BX_CPP_AttrRegparmN(1);
@@ -263,6 +266,7 @@ struct cdrom_t
   struct currentStruct {
     error_recovery_t error_recovery;
   } current;
+  void register_state(char* name, char *desc, bx_list_c *parent_p);
 };
 
 struct atapi_t
@@ -270,6 +274,7 @@ struct atapi_t
   uint8 command;
   int drq_bytes;
   int total_bytes_remaining;
+  void register_state(char* name, char *desc, bx_list_c *parent_p);
 };
 
 #if BX_USE_HD_SMF
@@ -291,6 +296,7 @@ public:
   virtual ~bx_hard_drive_c(void);
   virtual void   close_harddrive(void);
   virtual void   init();
+  virtual void   register_state(char* name, char *desc, bx_list_c *parent_p);
   virtual void   reset(unsigned type);
   virtual Bit32u   get_device_handle(Bit8u channel, Bit8u device);
   virtual Bit32u   get_first_cd_handle(void);
@@ -353,8 +359,7 @@ private:
     Bit16u ioaddr1;
     Bit16u ioaddr2;
     Bit8u  irq;
-
-    } channels[BX_MAX_ATA_CHANNEL];
+  } channels[BX_MAX_ATA_CHANNEL];
 
 #if BX_PDC20230C_VLBIDE_SUPPORT
 // pdc20630c is only available for 1st ata channel
@@ -363,7 +368,7 @@ private:
     Bit8u   prog_count;
     Bit32u  p1f3_value;
     Bit32u  p1f4_value;
-    } pdc20230c;
+  } pdc20230c;
 #endif
 
   };

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.52.2.3 2003/03/20 10:14:32 slechta Exp $
+// $Id: devices.cc,v 1.52.2.4 2003/03/21 20:49:01 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -93,7 +93,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.3 2003/03/20 10:14:32 slechta Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.4 2003/03/21 20:49:01 slechta Exp $"));
   mem = newmem;
 
   /* no read / write handlers defined */
@@ -191,7 +191,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
     BX_ERROR(("Bochs is not compiled with SB16 support"));
 #endif
   }
-
+ 
   /*--- VGA adapter ---*/
   pluginVgaDevice->init ();
 
