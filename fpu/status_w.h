@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  status_w.h                                                               |
- |  $Id: status_w.h,v 1.6.8.2 2004/03/19 17:43:31 sshwarts Exp $
+ |  $Id: status_w.h,v 1.6.8.3 2004/03/20 19:53:32 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993                                                   |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -10,8 +10,6 @@
 
 #ifndef _STATUS_H_
 #define _STATUS_H_
-
-#include "fpu_emu.h"    /* for definition of PECULIAR_486 */
 
 #define SW_Backward    	(0x8000)	/* backward compatibility */
 #define SW_C3		(0x4000)	/* condition bit 3 */
@@ -29,17 +27,6 @@
 #define SW_Invalid     	(0x0001)	/* invalid operation */
 
 #define SW_Exc_Mask     (0x27f)  /* Status word exception bit mask */
-
-#define COMP_A_gt_B	1
-#define COMP_A_eq_B	2
-#define COMP_A_lt_B	3
-#define COMP_No_Comp	4
-#define COMP_Denormal   0x20
-#define COMP_NaN	0x40
-#define COMP_SNaN	0x80
-
-#define status_word() \
-  ((FPU_partial_status & ~SW_Top & 0xffff) | ((FPU_tos << 11) & SW_Top))
 
 /*
  * bbd: use do {...} while (0) structure instead of using curly brackets

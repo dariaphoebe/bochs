@@ -52,12 +52,6 @@ void BX_CPU_C::FSIN(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
-
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 
   fsin(&(BX_FPU_READ_ST0()), 
@@ -73,12 +67,6 @@ void BX_CPU_C::FCOS(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
-
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
 
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 
@@ -96,12 +84,6 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
-
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 
   fsincos(&(BX_FPU_READ_ST0()), 
@@ -117,12 +99,6 @@ void BX_CPU_C::FPTAN(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
-
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
 
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 
@@ -140,12 +116,6 @@ void BX_CPU_C::FPATAN(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
-
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 
   fpatan(&(BX_FPU_READ_ST0()), 
@@ -161,12 +131,6 @@ void BX_CPU_C::FYL2XP1(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
-
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
 
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 
@@ -184,12 +148,6 @@ void BX_CPU_C::F2XM1(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
-
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 
   f2xm1(&(BX_FPU_READ_ST0()), 
@@ -205,12 +163,6 @@ void BX_CPU_C::FYL2X(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
-
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
 
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 
@@ -228,12 +180,6 @@ void BX_CPU_C::FSCALE(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
-
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 
   fscale(&(BX_FPU_READ_ST0()), 
@@ -249,12 +195,6 @@ void BX_CPU_C::FXTRACT(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
-
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
 
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 
@@ -272,12 +212,6 @@ void BX_CPU_C::FPREM1(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
-
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 
   fprem1(&(BX_FPU_READ_ST0()), 
@@ -293,12 +227,6 @@ void BX_CPU_C::FPREM(bxInstruction_c *i)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
-
-  if (IS_TAG_EMPTY(0))
-  {
-     BX_CPU_THIS_PTR FPU_stack_underflow(0);
-     return;
-  }
 
   FPU_initalize_i387((i387_t *)(&(BX_CPU_THIS_PTR the_i387)));
 

@@ -420,7 +420,7 @@ void BX_CPU_C::FCOMPP(bxInstruction_c *i)
 
   clear_C1();
 
-  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
+  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(1))
   {
       BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
@@ -438,7 +438,7 @@ void BX_CPU_C::FCOMPP(bxInstruction_c *i)
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  int rc = floatx80_compare(BX_READ_FPU_REG(0), BX_READ_FPU_REG(i->rm()), status);
+  int rc = floatx80_compare(BX_READ_FPU_REG(0), BX_READ_FPU_REG(1), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -458,7 +458,7 @@ void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
 #if BX_SUPPORT_FPU
   BX_CPU_THIS_PTR prepareFPU(i);
 
-  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(i->rm()))
+  if (IS_TAG_EMPTY(0) || IS_TAG_EMPTY(1))
   {
       BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 
@@ -476,7 +476,7 @@ void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
   softfloat_status_word_t status = 
       FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
-  int rc = floatx80_compare_quiet(BX_READ_FPU_REG(0), BX_READ_FPU_REG(i->rm()), status);
+  int rc = floatx80_compare_quiet(BX_READ_FPU_REG(0), BX_READ_FPU_REG(1), status);
 
   if (BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags))
       return;
@@ -757,8 +757,7 @@ void BX_CPU_C::FXAM(bxInstruction_c *i)
 
       switch(aClass)
       {
-        case float_negative_zero:
-        case float_positive_zero:
+        case float_zero:
            SETCC(FPU_SW_C3|FPU_SW_C1);
            break;
        
