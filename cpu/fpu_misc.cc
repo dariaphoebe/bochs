@@ -28,25 +28,10 @@
 #define LOG_THIS BX_CPU_THIS_PTR
 
 
-/* D9 D0 */
-void BX_CPU_C::FNOP(bxInstruction_c *i)
-{
-#if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
-  BX_CPU_THIS_PTR FPU_check_pending_exceptions();
-
-  // Perform no FPU operation. This instruction takes up space in the
-  // instruction stream but does not affect the FPU or machine
-  // context, except the EIP register.
-#else
-  BX_INFO(("FNOP: required FPU, configure --enable-fpu"));
-#endif
-}
-
 void BX_CPU_C::FXCH_STi(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -57,7 +42,7 @@ void BX_CPU_C::FXCH_STi(bxInstruction_c *i)
 void BX_CPU_C::FCHS(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -68,7 +53,7 @@ void BX_CPU_C::FCHS(bxInstruction_c *i)
 void BX_CPU_C::FABS(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -80,7 +65,7 @@ void BX_CPU_C::FABS(bxInstruction_c *i)
 void BX_CPU_C::FDECSTP(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
 
@@ -102,7 +87,7 @@ void BX_CPU_C::FDECSTP(bxInstruction_c *i)
 void BX_CPU_C::FINCSTP(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
 
@@ -110,5 +95,16 @@ void BX_CPU_C::FINCSTP(bxInstruction_c *i)
   BX_CPU_THIS_PTR the_i387.tos &= 0x07;
 #else
   BX_INFO(("FINCSTP: required FPU, configure --enable-fpu"));
+#endif
+}
+
+/* DD C0 */
+void BX_CPU_C::FFREE_STi(bxInstruction_c *i)
+{
+#if BX_SUPPORT_FPU
+  BX_CPU_THIS_PTR prepareFPU(i);
+  BX_CPU_THIS_PTR the_i387.FPU_settagi(FPU_Tag_Empty, i->rm());
+#else
+  BX_INFO(("FFREE_STi: required FPU, configure --enable-fpu"));
 #endif
 }

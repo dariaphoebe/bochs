@@ -30,7 +30,7 @@
 void BX_CPU_C::FCOM_STi(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -41,7 +41,7 @@ void BX_CPU_C::FCOM_STi(bxInstruction_c *i)
 void BX_CPU_C::FCOMP_STi(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -52,7 +52,7 @@ void BX_CPU_C::FCOMP_STi(bxInstruction_c *i)
 void BX_CPU_C::FCOMI_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -63,7 +63,7 @@ void BX_CPU_C::FCOMI_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FCOMIP_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -74,7 +74,7 @@ void BX_CPU_C::FCOMIP_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FUCOMI_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -85,7 +85,7 @@ void BX_CPU_C::FUCOMI_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FUCOMIP_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -96,7 +96,7 @@ void BX_CPU_C::FUCOMIP_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FUCOM_STi(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -107,7 +107,7 @@ void BX_CPU_C::FUCOM_STi(bxInstruction_c *i)
 void BX_CPU_C::FUCOMP_STi(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -118,7 +118,7 @@ void BX_CPU_C::FUCOMP_STi(bxInstruction_c *i)
 void BX_CPU_C::FCOM_SINGLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -129,7 +129,7 @@ void BX_CPU_C::FCOM_SINGLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FCOMP_SINGLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -140,7 +140,7 @@ void BX_CPU_C::FCOMP_SINGLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FCOM_DOUBLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -151,7 +151,7 @@ void BX_CPU_C::FCOM_DOUBLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FCOMP_DOUBLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -162,7 +162,7 @@ void BX_CPU_C::FCOMP_DOUBLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FICOM_WORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -173,7 +173,7 @@ void BX_CPU_C::FICOM_WORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FICOMP_WORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -184,7 +184,7 @@ void BX_CPU_C::FICOMP_WORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FICOM_DWORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -195,7 +195,7 @@ void BX_CPU_C::FICOM_DWORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FICOMP_DWORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -206,7 +206,7 @@ void BX_CPU_C::FICOMP_DWORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FCOMPP(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -217,7 +217,7 @@ void BX_CPU_C::FCOMPP(bxInstruction_c *i)
 void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -228,7 +228,7 @@ void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
 void BX_CPU_C::FCMOVB_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -240,7 +240,7 @@ void BX_CPU_C::FCMOVB_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FCMOVE_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -252,7 +252,7 @@ void BX_CPU_C::FCMOVE_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FCMOVBE_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -264,7 +264,7 @@ void BX_CPU_C::FCMOVBE_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FCMOVU_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -276,7 +276,7 @@ void BX_CPU_C::FCMOVU_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FCMOVNB_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -288,7 +288,7 @@ void BX_CPU_C::FCMOVNB_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FCMOVNE_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -300,7 +300,7 @@ void BX_CPU_C::FCMOVNE_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FCMOVNBE_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -312,7 +312,7 @@ void BX_CPU_C::FCMOVNBE_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FCMOVNU_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -324,7 +324,7 @@ void BX_CPU_C::FCMOVNU_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FTST(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -335,7 +335,7 @@ void BX_CPU_C::FTST(bxInstruction_c *i)
 void BX_CPU_C::FXAM(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else

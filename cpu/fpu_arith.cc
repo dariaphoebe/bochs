@@ -39,21 +39,6 @@
 
 static const floatx80 CONST_QNaN = { floatx80_default_nan_exp, floatx80_default_nan_fraction };
 
-void BX_CPU_C::FPU_check_pending_exceptions(void)
-{
-  if(BX_CPU_THIS_PTR the_i387.get_partial_status() & FPU_SW_Summary)
-  {
-    if (BX_CPU_THIS_PTR cr0.ne == 0)
-    {
-      // MSDOS compatibility external interrupt (IRQ13)
-      BX_INFO (("math_abort: MSDOS compatibility FPU exception"));
-      DEV_pic_raise_irq(13);
-    }
-    else
-      exception(BX_MF_EXCEPTION, 0, 0);
-  }
-}
-
 void BX_CPU_C::FPU_exception(int exception)
 {
   /* Extract only the bits which we use to set the status word */
@@ -85,11 +70,11 @@ void BX_CPU_C::FPU_stack_underflow(int stnr, int pop_stack)
   BX_CPU_THIS_PTR FPU_exception(FPU_EX_Stack_Underflow);
 }
 
-softfloat_status_word_t BX_CPU_C::FPU_pre_exception_handling()
+static softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word)
 {
   softfloat_status_word_t status;
 
-  int precision = BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_PC;
+  int precision = control_word & FPU_CW_PC;
 
 /* p 15-5: Precision control bits affect only the following:
    ADD, SUB(R), MUL, DIV(R), and SQRT */
@@ -113,23 +98,17 @@ softfloat_status_word_t BX_CPU_C::FPU_pre_exception_handling()
   status.float_detect_tininess = float_tininess_after_rounding;
   status.float_exception_flags = 0; // clear exceptions before execution
   status.float_nan_handling_mode = float_first_operand_nan;
-  status.float_rounding_mode = (BX_CPU_THIS_PTR the_i387.get_control_word() & FPU_CW_RC) >> 10;
+  status.float_rounding_mode = (control_word & FPU_CW_RC) >> 10;
   status.flush_underflow_to_zero = 0;
 
   return status;
 }
-
-void BX_CPU_C::FPU_post_exception_handling(const softfloat_status_word_t &status)
-{
-  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
-}
-
 #endif
 
 void BX_CPU_C::FADD_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
 
@@ -137,12 +116,12 @@ void BX_CPU_C::FADD_ST0_STj(bxInstruction_c *i)
     FPU_stack_underflow(0);
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_add(BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, 0);
 #else
   BX_INFO(("FADD_ST0_STj: required FPU, configure --enable-fpu"));
@@ -152,7 +131,7 @@ void BX_CPU_C::FADD_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FADD_STi_ST0(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   int pop_stack = (i->b1() & 0x10) >> 1;
 
@@ -164,13 +143,14 @@ void BX_CPU_C::FADD_STi_ST0(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_add(BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, i->rm());
+
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
 #else
@@ -181,7 +161,7 @@ void BX_CPU_C::FADD_STi_ST0(bxInstruction_c *i)
 void BX_CPU_C::FADD_SINGLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -192,7 +172,7 @@ void BX_CPU_C::FADD_SINGLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FADD_DOUBLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -203,7 +183,7 @@ void BX_CPU_C::FADD_DOUBLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FIADD_WORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -214,7 +194,7 @@ void BX_CPU_C::FIADD_WORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FIADD_DWORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -225,7 +205,7 @@ void BX_CPU_C::FIADD_DWORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FMUL_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
 
@@ -233,12 +213,12 @@ void BX_CPU_C::FMUL_ST0_STj(bxInstruction_c *i)
     FPU_stack_underflow(0);
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_mul(BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, 0);
 #else
   BX_INFO(("FMUL_ST0_STj: required FPU, configure --enable-fpu"));
@@ -248,7 +228,7 @@ void BX_CPU_C::FMUL_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FMUL_STi_ST0(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   int pop_stack = (i->b1() & 0x10) >> 1;
 
@@ -260,13 +240,14 @@ void BX_CPU_C::FMUL_STi_ST0(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_mul(BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, i->rm());
+
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
 #else
@@ -277,7 +258,7 @@ void BX_CPU_C::FMUL_STi_ST0(bxInstruction_c *i)
 void BX_CPU_C::FMUL_SINGLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -288,7 +269,7 @@ void BX_CPU_C::FMUL_SINGLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FMUL_DOUBLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -299,7 +280,7 @@ void BX_CPU_C::FMUL_DOUBLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FIMUL_WORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -310,7 +291,7 @@ void BX_CPU_C::FIMUL_WORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FIMUL_DWORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -321,7 +302,7 @@ void BX_CPU_C::FIMUL_DWORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FSUB_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
 
@@ -329,12 +310,12 @@ void BX_CPU_C::FSUB_ST0_STj(bxInstruction_c *i)
     FPU_stack_underflow(0);
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_sub(BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, 0);
 #else
   BX_INFO(("FSUB_ST0_STj: required FPU, configure --enable-fpu"));
@@ -344,7 +325,7 @@ void BX_CPU_C::FSUB_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FSUBR_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
 
@@ -352,12 +333,12 @@ void BX_CPU_C::FSUBR_ST0_STj(bxInstruction_c *i)
     FPU_stack_underflow(0);
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_sub(BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, 0);
 #else
   BX_INFO(("FSUBR_ST0_STj: required FPU, configure --enable-fpu"));
@@ -367,7 +348,7 @@ void BX_CPU_C::FSUBR_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FSUB_STi_ST0(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   int pop_stack = (i->b1() & 0x10) >> 1;
 
@@ -379,13 +360,14 @@ void BX_CPU_C::FSUB_STi_ST0(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_sub(BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, i->rm());
+
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
 #else
@@ -396,7 +378,7 @@ void BX_CPU_C::FSUB_STi_ST0(bxInstruction_c *i)
 void BX_CPU_C::FSUBR_STi_ST0(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   int pop_stack = (i->b1() & 0x10) >> 1;
 
@@ -408,13 +390,14 @@ void BX_CPU_C::FSUBR_STi_ST0(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_sub(BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, i->rm());
+
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
 #else
@@ -425,7 +408,7 @@ void BX_CPU_C::FSUBR_STi_ST0(bxInstruction_c *i)
 void BX_CPU_C::FSUB_SINGLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -436,7 +419,7 @@ void BX_CPU_C::FSUB_SINGLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FSUBR_SINGLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -447,7 +430,7 @@ void BX_CPU_C::FSUBR_SINGLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FSUB_DOUBLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -458,7 +441,7 @@ void BX_CPU_C::FSUB_DOUBLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FSUBR_DOUBLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -469,7 +452,7 @@ void BX_CPU_C::FSUBR_DOUBLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FISUB_WORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -480,7 +463,7 @@ void BX_CPU_C::FISUB_WORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FISUBR_WORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -491,7 +474,7 @@ void BX_CPU_C::FISUBR_WORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FISUB_DWORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -502,7 +485,7 @@ void BX_CPU_C::FISUB_DWORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FISUBR_DWORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -513,7 +496,7 @@ void BX_CPU_C::FISUBR_DWORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FDIV_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
 
@@ -521,12 +504,12 @@ void BX_CPU_C::FDIV_ST0_STj(bxInstruction_c *i)
     FPU_stack_underflow(0);
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_div(BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, 0);
 #else
   BX_INFO(("FDIV_ST0_STj: required FPU, configure --enable-fpu"));
@@ -536,7 +519,7 @@ void BX_CPU_C::FDIV_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FDIVR_ST0_STj(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   clear_C1();
 
@@ -544,12 +527,12 @@ void BX_CPU_C::FDIVR_ST0_STj(bxInstruction_c *i)
     FPU_stack_underflow(0);
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_div(BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, 0);
 #else
   BX_INFO(("FDIVR_ST0_STj: required FPU, configure --enable-fpu"));
@@ -559,7 +542,7 @@ void BX_CPU_C::FDIVR_ST0_STj(bxInstruction_c *i)
 void BX_CPU_C::FDIV_STi_ST0(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   int pop_stack = (i->b1() & 0x10) >> 1;
 
@@ -571,13 +554,14 @@ void BX_CPU_C::FDIV_STi_ST0(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_div(BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, i->rm());
+
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
 #else
@@ -588,7 +572,7 @@ void BX_CPU_C::FDIV_STi_ST0(bxInstruction_c *i)
 void BX_CPU_C::FDIVR_STi_ST0(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   int pop_stack = (i->b1() & 0x10) >> 1;
 
@@ -600,13 +584,14 @@ void BX_CPU_C::FDIVR_STi_ST0(bxInstruction_c *i)
   }
 
   softfloat_status_word_t status = 
-	BX_CPU_THIS_PTR FPU_pre_exception_handling();
+	FPU_pre_exception_handling(BX_CPU_THIS_PTR the_i387.get_control_word());
 
   floatx80 result = floatx80_div(BX_CPU_THIS_PTR the_i387.FPU_read_regi(0), 
 	BX_CPU_THIS_PTR the_i387.FPU_read_regi(i->rm()), status);
 
-  BX_CPU_THIS_PTR FPU_post_exception_handling(status);
+  BX_CPU_THIS_PTR FPU_exception(status.float_exception_flags);
   BX_CPU_THIS_PTR the_i387.FPU_save_regi(result, i->rm());
+
   if (pop_stack) 
      BX_CPU_THIS_PTR the_i387.FPU_pop();
 #else
@@ -617,7 +602,7 @@ void BX_CPU_C::FDIVR_STi_ST0(bxInstruction_c *i)
 void BX_CPU_C::FDIV_SINGLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -628,7 +613,7 @@ void BX_CPU_C::FDIV_SINGLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FDIVR_SINGLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -639,7 +624,7 @@ void BX_CPU_C::FDIVR_SINGLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FDIV_DOUBLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -650,7 +635,7 @@ void BX_CPU_C::FDIV_DOUBLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FDIVR_DOUBLE_REAL(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -661,7 +646,7 @@ void BX_CPU_C::FDIVR_DOUBLE_REAL(bxInstruction_c *i)
 void BX_CPU_C::FIDIV_WORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -672,7 +657,7 @@ void BX_CPU_C::FIDIV_WORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FIDIVR_WORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -683,7 +668,7 @@ void BX_CPU_C::FIDIVR_WORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FIDIV_DWORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -694,7 +679,7 @@ void BX_CPU_C::FIDIV_DWORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FIDIVR_DWORD_INTEGER(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -705,7 +690,7 @@ void BX_CPU_C::FIDIVR_DWORD_INTEGER(bxInstruction_c *i)
 void BX_CPU_C::FXTRACT(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -716,7 +701,7 @@ void BX_CPU_C::FXTRACT(bxInstruction_c *i)
 void BX_CPU_C::FPREM1(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -727,7 +712,7 @@ void BX_CPU_C::FPREM1(bxInstruction_c *i)
 void BX_CPU_C::FPREM(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -738,7 +723,7 @@ void BX_CPU_C::FPREM(bxInstruction_c *i)
 void BX_CPU_C::FSQRT(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -749,7 +734,7 @@ void BX_CPU_C::FSQRT(bxInstruction_c *i)
 void BX_CPU_C::FRNDINT(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -760,7 +745,7 @@ void BX_CPU_C::FRNDINT(bxInstruction_c *i)
 void BX_CPU_C::FSCALE(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else

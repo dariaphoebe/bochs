@@ -30,7 +30,7 @@
 void BX_CPU_C::FLDL2T(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -41,7 +41,7 @@ void BX_CPU_C::FLDL2T(bxInstruction_c *i)
 void BX_CPU_C::FLDL2E(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -52,7 +52,7 @@ void BX_CPU_C::FLDL2E(bxInstruction_c *i)
 void BX_CPU_C::FLDPI(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -63,7 +63,7 @@ void BX_CPU_C::FLDPI(bxInstruction_c *i)
 void BX_CPU_C::FLDLG2(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -74,7 +74,7 @@ void BX_CPU_C::FLDLG2(bxInstruction_c *i)
 void BX_CPU_C::FLDLN2(bxInstruction_c *i)
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -85,7 +85,7 @@ void BX_CPU_C::FLDLN2(bxInstruction_c *i)
 void BX_CPU_C::FLD1(bxInstruction_c *i) 
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
@@ -96,7 +96,7 @@ void BX_CPU_C::FLD1(bxInstruction_c *i)
 void BX_CPU_C::FLDZ(bxInstruction_c *i)                      
 {
 #if BX_SUPPORT_FPU
-  BX_CPU_THIS_PTR prepareFPU();
+  BX_CPU_THIS_PTR prepareFPU(i);
 
   fpu_execute(i);
 #else
