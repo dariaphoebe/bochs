@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.160.2.6 2004/03/04 21:07:20 sshwarts Exp $
+// $Id: cpu.h,v 1.160.2.7 2004/03/12 17:01:14 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1865,6 +1865,7 @@ union {
 
   BX_SMF void FWAIT(bxInstruction_c *);
 
+  // load/store
   BX_SMF void FLD_STi(bxInstruction_c *);  
   BX_SMF void FLD_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FLD_DOUBLE_REAL(bxInstruction_c *);
@@ -1874,18 +1875,6 @@ union {
   BX_SMF void FILD_QWORD_INTEGER(bxInstruction_c *);  
   BX_SMF void FBLD_PACKED_BCD(bxInstruction_c *);
 
-  BX_SMF void FLDENV(bxInstruction_c *);
-  BX_SMF void FLDCW(bxInstruction_c *);
-
-  BX_SMF void FLD1(bxInstruction_c *); 
-  BX_SMF void FLDL2T(bxInstruction_c *);
-  BX_SMF void FLDL2E(bxInstruction_c *);
-  BX_SMF void FLDPI(bxInstruction_c *);
-  BX_SMF void FLDLG2(bxInstruction_c *);
-  BX_SMF void FLDLN2(bxInstruction_c *);
-  BX_SMF void FLDZ(bxInstruction_c *);                        
-
-  // store
   BX_SMF void FST_STi(bxInstruction_c *);
   BX_SMF void FST_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FST_DOUBLE_REAL(bxInstruction_c *);
@@ -1894,19 +1883,33 @@ union {
   BX_SMF void FIST_DWORD_INTEGER(bxInstruction_c *);
   BX_SMF void FISTP_QWORD_INTEGER(bxInstruction_c *);
   BX_SMF void FBSTP_PACKED_BCD(bxInstruction_c *);
-  
-  BX_SMF void FNSTENV(bxInstruction_c *);
-  BX_SMF void FNSTCW(bxInstruction_c *);
-  BX_SMF void FNSTSW(bxInstruction_c *);
-  BX_SMF void FNSTSW_AX(bxInstruction_c *);
 
   BX_SMF void FISTTP16(bxInstruction_c *);
   BX_SMF void FISTTP32(bxInstruction_c *);
   BX_SMF void FISTTP64(bxInstruction_c *);
 
-  // save restore
+  // control
+  BX_SMF void FNINIT(bxInstruction_c *);
+  BX_SMF void FNCLEX(bxInstruction_c *);
+
   BX_SMF void FRSTOR(bxInstruction_c *);
   BX_SMF void FNSAVE(bxInstruction_c *);
+  BX_SMF void FLDENV(bxInstruction_c *);
+  BX_SMF void FNSTENV(bxInstruction_c *);
+
+  BX_SMF void FLDCW(bxInstruction_c *);
+  BX_SMF void FNSTCW(bxInstruction_c *);
+  BX_SMF void FNSTSW(bxInstruction_c *);
+  BX_SMF void FNSTSW_AX(bxInstruction_c *);
+
+  // const
+  BX_SMF void FLD1(bxInstruction_c *); 
+  BX_SMF void FLDL2T(bxInstruction_c *);
+  BX_SMF void FLDL2E(bxInstruction_c *);
+  BX_SMF void FLDPI(bxInstruction_c *);
+  BX_SMF void FLDLG2(bxInstruction_c *);
+  BX_SMF void FLDLN2(bxInstruction_c *);
+  BX_SMF void FLDZ(bxInstruction_c *);                        
 
   // add
   BX_SMF void FADD_ST0_STj(bxInstruction_c *);
@@ -1921,7 +1924,6 @@ union {
   BX_SMF void FMUL_STi_ST0(bxInstruction_c *);
   BX_SMF void FMUL_SINGLE_REAL(bxInstruction_c *);
   BX_SMF void FMUL_DOUBLE_REAL(bxInstruction_c *);
-
   BX_SMF void FIMUL_WORD_INTEGER (bxInstruction_c *);
   BX_SMF void FIMUL_DWORD_INTEGER(bxInstruction_c *);
 
@@ -1968,7 +1970,7 @@ union {
   BX_SMF void FCOMPP(bxInstruction_c *);  
   BX_SMF void FUCOMPP(bxInstruction_c *);
 
-  // mov
+  // conditional mov
   BX_SMF void FCMOVB_ST0_STj(bxInstruction_c *);
   BX_SMF void FCMOVE_ST0_STj(bxInstruction_c *);
   BX_SMF void FCMOVBE_ST0_STj(bxInstruction_c *);
@@ -1981,10 +1983,14 @@ union {
   // misc
   BX_SMF void FXCH_STi(bxInstruction_c *);
   BX_SMF void FNOP(bxInstruction_c *);
+  BX_SMF void FPLEGACY(bxInstruction_c *);
   BX_SMF void FCHS(bxInstruction_c *);
   BX_SMF void FABS(bxInstruction_c *);
   BX_SMF void FTST(bxInstruction_c *);
   BX_SMF void FXAM(bxInstruction_c *);
+  BX_SMF void FDECSTP(bxInstruction_c *);
+  BX_SMF void FINCSTP(bxInstruction_c *);
+  BX_SMF void FFREE_STi(bxInstruction_c *);
 
   BX_SMF void F2XM1(bxInstruction_c *);
   BX_SMF void FYL2X(bxInstruction_c *);
@@ -1992,8 +1998,6 @@ union {
   BX_SMF void FPATAN(bxInstruction_c *);
   BX_SMF void FXTRACT(bxInstruction_c *);
   BX_SMF void FPREM1(bxInstruction_c *);
-  BX_SMF void FDECSTP(bxInstruction_c *);
-  BX_SMF void FINCSTP(bxInstruction_c *);
   BX_SMF void FPREM(bxInstruction_c *);
   BX_SMF void FYL2XP1(bxInstruction_c *);
   BX_SMF void FSQRT(bxInstruction_c *);
@@ -2003,10 +2007,6 @@ union {
   BX_SMF void FSCALE(bxInstruction_c *);
   BX_SMF void FSIN(bxInstruction_c *);
   BX_SMF void FCOS(bxInstruction_c *);
-  BX_SMF void FNCLEX(bxInstruction_c *);
-  BX_SMF void FNINIT(bxInstruction_c *);
-  BX_SMF void FFREE_STi(bxInstruction_c *);
-  BX_SMF void FPLEGACY(bxInstruction_c *);
 
   /* MMX */
   BX_SMF void PUNPCKLBW_PqQd(bxInstruction_c *i);
@@ -2321,6 +2321,8 @@ union {
 #if BX_SUPPORT_FPU
   BX_SMF void fpu_execute(bxInstruction_c *i);
   BX_SMF void fpu_init(void);
+  BX_SMF int  fpu_save_environment(bxInstruction_c *i);
+  BX_SMF int  fpu_load_environment(bxInstruction_c *i);
 #endif
 
   BX_SMF void CMPXCHG_XBTS(bxInstruction_c *);

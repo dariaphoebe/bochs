@@ -139,7 +139,7 @@ struct i387_t
     bx_address fip_;
     Bit16u fcs_;
     Bit16u fds_;
-    bx_address fos_;
+    bx_address fdp_;
 
     unsigned char tos;
     unsigned char no_update;
@@ -288,7 +288,7 @@ BX_CPP_INLINE void i387_structure_t::init()
   tos = 0;
   twd = 0xFFFF;
 
-  fip_ = fcs_ = fds_ = fos_ = foo = 0;
+  fip_ = fcs_ = fds_ = fdp_ = foo = 0;
   fip  = fcs  = fos  = 0;
 }
 
