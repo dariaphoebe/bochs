@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94 2003/02/06 23:16:55 cbothamy Exp $
+// $Id: siminterface.cc,v 1.94.4.1 2003/03/20 05:24:24 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -10,6 +10,7 @@
 
 bx_simulator_interface_c *SIM = NULL;
 logfunctions *siminterface_log = NULL;
+bx_list_c *root_param = NULL;
 #define LOG_THIS siminterface_log->
 
 // bx_simulator_interface just defines the interface that the Bochs simulator
@@ -51,10 +52,11 @@ public:
   virtual int register_param (bx_id id, bx_param_c *it);
   virtual void reset_all_param ();
   virtual bx_param_c *get_param (bx_id id);
-  virtual bx_param_num_c *get_param_num (bx_id id);
-  virtual bx_param_string_c *get_param_string (bx_id id);
-  virtual bx_param_bool_c *get_param_bool (bx_id id);
-  virtual bx_param_enum_c *get_param_enum (bx_id id);
+  virtual bx_param_c *get_param (const char *pname, bx_param_c *base=NULL);
+  virtual bx_param_num_c *get_param_num (const char *pname);
+  virtual bx_param_string_c *get_param_string (const char *pname);
+  virtual bx_param_bool_c *get_param_bool (const char *pname);
+  virtual bx_param_enum_c *get_param_enum (const char *pname);
   virtual int get_n_log_modules ();
   virtual char *get_prefix (int mod);
   virtual int get_log_action (int mod, int level);
@@ -145,56 +147,106 @@ bx_real_sim_c::get_param (bx_id id)
   return retval;
 }
 
+// recursive function to find parameters from the path
+static
+bx_param_c *find_param (const char *full_pname, const char *rest_of_pname, bx_param_c *base)
+{
+  const char *from = rest_of_pname;
+  char component[BX_PATHNAME_LEN];
+  char *to = component;
+  // copy the first piece of pname into component, stopping at first separator
+  // or at the end of the string
+  while (*from != 0 && *from != '.') {
+    *to = *from;
+    to++;
+    from++;
+  }
+  *to = 0;
+  if (!component[0]) {
+    BX_PANIC (("find_param: found empty component in parameter name %s", full_pname));
+    // or does that mean that we're done?
+  }
+  if (base->get_type() != BXT_LIST) {
+    BX_PANIC (("find_param: base was not a list!"));
+  }
+  BX_INFO (("searching for component '%s' in list '%s'", component, base->get_name()));
+
+  // find the component in the list.
+  bx_list_c *list = (bx_list_c *)base;
+  bx_param_c *child = list->get_by_name (component);
+  // if child not found, there is nothing else that can be done. return NULL.
+  if (child == NULL) return NULL;
+  if (from[0] == 0) {
+    // that was the end of the path, we're done
+    return child;
+  }
+  // continue parsing the path
+  BX_ASSERT(from[0] == '.');
+  from++;  // skip over the separator
+  return find_param (full_pname, from, child);
+}
+
+bx_param_c *
+bx_real_sim_c::get_param (const char *pname, bx_param_c *base) 
+{
+  if (base == NULL)
+    base = root_param;
+  // to access top level object, look for parameter "."
+  if (pname[0] == '.' && pname[1] == 0)
+    return base;
+  return find_param (pname, pname, base);
+}
+
 bx_param_num_c *
-bx_real_sim_c::get_param_num (bx_id id) {
-  bx_param_c *generic = get_param(id);
+bx_real_sim_c::get_param_num (const char *pname) {
+  bx_param_c *generic = get_param(pname);
   if (generic==NULL) {
-    BX_PANIC (("get_param_num(%u) could not find a parameter", id));
+    BX_PANIC (("get_param_num(%s) could not find a parameter", pname));
     return NULL;
   }
   int type = generic->get_type ();
   if (type == BXT_PARAM_NUM || type == BXT_PARAM_BOOL || type == BXT_PARAM_ENUM)
     return (bx_param_num_c *)generic;
-  BX_PANIC (("get_param_num %u could not find an integer parameter with that id", id));
+  BX_PANIC (("get_param_num(%s) could not find an integer parameter with that name", pname));
   return NULL;
 }
 
 bx_param_string_c *
-bx_real_sim_c::get_param_string (bx_id id) {
-  bx_param_c *generic = get_param(id);
+bx_real_sim_c::get_param_string (const char *pname) {
+  bx_param_c *generic = get_param(pname);
   if (generic==NULL) {
-    BX_PANIC (("get_param_string(%u) could not find a parameter", id));
+    BX_PANIC (("get_param_string(%s) could not find a parameter", pname));
     return NULL;
   }
   if (generic->get_type () == BXT_PARAM_STRING)
     return (bx_param_string_c *)generic;
-  BX_PANIC (("get_param_string %u could not find an integer parameter with that id", id));
+  BX_PANIC (("get_param_string(%s) could not find an integer parameter with that name", pname));
   return NULL;
 }
 
 bx_param_bool_c *
-bx_real_sim_c::get_param_bool (bx_id id) {
-  bx_param_c *generic = get_param(id);
+bx_real_sim_c::get_param_bool (const char *pname) {
+  bx_param_c *generic = get_param(pname);
   if (generic==NULL) {
-    BX_PANIC (("get_param_bool(%u) could not find a parameter", id));
+    BX_PANIC (("get_param_bool(%s) could not find a parameter", pname));
     return NULL;
   }
   if (generic->get_type () == BXT_PARAM_BOOL)
     return (bx_param_bool_c *)generic;
-  BX_PANIC (("get_param_bool %u could not find a bool parameter with that id", id));
+  BX_PANIC (("get_param_bool(%s) could not find a bool parameter with that name", pname));
   return NULL;
 }
 
 bx_param_enum_c *
-bx_real_sim_c::get_param_enum (bx_id id) {
-  bx_param_c *generic = get_param(id);
+bx_real_sim_c::get_param_enum (const char *pname) {
+  bx_param_c *generic = get_param(pname);
   if (generic==NULL) {
-    BX_PANIC (("get_param_enum(%u) could not find a parameter", id));
+    BX_PANIC (("get_param_enum(%s) could not find a parameter", pname));
     return NULL;
   }
   if (generic->get_type () == BXT_PARAM_ENUM)
     return (bx_param_enum_c *)generic;
-  BX_PANIC (("get_param_enum %u could not find a enum parameter with that id", id));
+  BX_PANIC (("get_param_enum(%s) could not find a enum parameter with that name", pname));
   return NULL;
 }
 
@@ -205,6 +257,12 @@ void bx_init_siminterface ()
   siminterface_log->settype(CTRLLOG);
   if (SIM == NULL) 
     SIM = new bx_real_sim_c();
+  if (root_param == NULL) {
+    root_param = new bx_list_c (NULL, 
+	"bochs",
+	"list of top level bochs parameters", 
+	30);
+  }
 }
 
 bx_simulator_interface_c::bx_simulator_interface_c ()
@@ -530,7 +588,7 @@ bx_real_sim_c::ask_filename (char *filename, int maxlen, char *prompt, char *the
   // implement using ASK_PARAM on a newly created param.  I can't use
   // ask_param because I don't intend to register this param.
   BxEvent event;
-  bx_param_string_c param (BXP_NULL, "filename", prompt, the_default, maxlen);
+  bx_param_string_c param (NULL, "filename", prompt, the_default, maxlen);
   flags |= param.IS_FILENAME;
   param.get_options()->set (flags);
   event.type = BX_SYNC_EVT_ASK_PARAM;
@@ -785,8 +843,8 @@ bx_object_c::set_type (bx_objtype type)
 
 const char* bx_param_c::default_text_format = NULL;
 
-bx_param_c::bx_param_c (bx_id id, char *name, char *description)
-  : bx_object_c (id)
+bx_param_c::bx_param_c (bx_param_c *parent, char *name, char *description)
+  : bx_object_c (BXP_NULL)
 {
   set_type (BXT_PARAM);
   this->name = name;
@@ -795,7 +853,49 @@ bx_param_c::bx_param_c (bx_id id, char *name, char *description)
   this->ask_format = NULL;
   this->runtime_param = 0;
   this->enabled = 1;
-  SIM->register_param (id, this);
+  this->parent = NULL;
+  if (parent) {
+    BX_ASSERT (parent->is_type (BXT_LIST));
+    this->parent = (bx_list_c *)parent;
+    this->parent->add (this);
+  }
+}
+
+void bx_param_c::get_param_path (char *path_out, int maxlen)
+{
+  if (get_parent() == NULL) {
+    // set output string to my name
+    strncpy (path_out, name, maxlen);
+    return;
+  }
+  // build path of the parent, add a period, add path of this node
+  get_parent()->get_param_path (path_out, maxlen);
+  strncat (path_out, ".", maxlen);
+  strncat (path_out, name, maxlen);
+}
+
+bx_bool bx_param_c::child_of (bx_param_c *test_ancestor)
+{
+  bx_param_c *param;
+  for (param = this; param != NULL; param=param->get_parent ()) {
+    if (param == test_ancestor) return true;
+  }
+  return false;
+}
+
+void bx_param_c::set_parent (bx_param_c *newparent) {
+  if (parent) {
+    // if this object already had a parent, the correct thing
+    // to do would be to remove this object from the parent's
+    // list of children.  Deleting children is currently
+    // not supported.
+    BX_PANIC (("bx_list_c::set_parent: changing from one parent to another is not supported (object is '%s')", get_name()));
+  }
+  if (newparent) {
+    BX_ASSERT(newparent->is_type (BXT_LIST));
+    this->parent = (bx_list_c *)newparent;
+    this->parent->add (this);
+  }
 }
 
 const char* bx_param_c::set_default_format (const char *f) {
@@ -804,11 +904,11 @@ const char* bx_param_c::set_default_format (const char *f) {
   return old;
 }
 
-bx_param_num_c::bx_param_num_c (bx_id id,
+bx_param_num_c::bx_param_num_c (bx_param_c *parent,
     char *name,
     char *description,
     Bit64s min, Bit64s max, Bit64s initial_val)
-  : bx_param_c (id, name, description)
+  : bx_param_c (parent, name, description)
 {
   set_type (BXT_PARAM_NUM);
   this->min = min;
@@ -874,7 +974,7 @@ bx_param_num_c::set (Bit64s newval)
     val.number = newval;
   }
   if ((val.number < min || val.number > max) && max != BX_MAX_BIT64U)
-    BX_PANIC (("numerical parameter %s was set to %lld, which is out of range %lld to %lld", get_name (), val.number, min, max));
+    BX_PANIC (("numerical parameter '%s' was set to %lld, which is out of range %lld to %lld", get_name (), val.number, min, max));
   if (dependent_list != NULL) update_dependents ();
 }
 
@@ -908,13 +1008,13 @@ bx_param_num_c::set_enabled (int en)
 }
 
 // Signed 64 bit
-bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     char *name,
     char *description,
     Bit64s *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c (id, name, description, BX_MIN_BIT64S, BX_MAX_BIT64S, *ptr_to_real_val)
+: bx_param_num_c (parent, name, description, BX_MIN_BIT64S, BX_MAX_BIT64S, *ptr_to_real_val)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -923,13 +1023,13 @@ bx_shadow_num_c::bx_shadow_num_c (bx_id id,
 }
 
 // Unsigned 64 bit
-bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     char *name,
     char *description,
     Bit64u *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c (id, name, description, BX_MIN_BIT64U, BX_MAX_BIT64U, *ptr_to_real_val)
+: bx_param_num_c (parent, name, description, BX_MIN_BIT64U, BX_MAX_BIT64U, *ptr_to_real_val)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -938,13 +1038,13 @@ bx_shadow_num_c::bx_shadow_num_c (bx_id id,
 }
 
 // Signed 32 bit
-bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     char *name,
     char *description,
     Bit32s *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c (id, name, description, BX_MIN_BIT32S, BX_MAX_BIT32S, *ptr_to_real_val)
+: bx_param_num_c (parent, name, description, BX_MIN_BIT32S, BX_MAX_BIT32S, *ptr_to_real_val)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -953,13 +1053,13 @@ bx_shadow_num_c::bx_shadow_num_c (bx_id id,
 }
 
 // Unsigned 32 bit
-bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     char *name,
     char *description,
     Bit32u *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c (id, name, description, BX_MIN_BIT32U, BX_MAX_BIT32U, *ptr_to_real_val)
+: bx_param_num_c (parent, name, description, BX_MIN_BIT32U, BX_MAX_BIT32U, *ptr_to_real_val)
 {
   this->varsize = 32;
   this->lowbit = lowbit;
@@ -968,13 +1068,13 @@ bx_shadow_num_c::bx_shadow_num_c (bx_id id,
 }
 
 // Signed 16 bit
-bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     char *name,
     char *description,
     Bit16s *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c (id, name, description, BX_MIN_BIT16S, BX_MAX_BIT16S, *ptr_to_real_val)
+: bx_param_num_c (parent, name, description, BX_MIN_BIT16S, BX_MAX_BIT16S, *ptr_to_real_val)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -983,13 +1083,13 @@ bx_shadow_num_c::bx_shadow_num_c (bx_id id,
 }
 
 // Unsigned 16 bit
-bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     char *name,
     char *description,
     Bit16u *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c (id, name, description, BX_MIN_BIT16U, BX_MAX_BIT16U, *ptr_to_real_val)
+: bx_param_num_c (parent, name, description, BX_MIN_BIT16U, BX_MAX_BIT16U, *ptr_to_real_val)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -998,13 +1098,13 @@ bx_shadow_num_c::bx_shadow_num_c (bx_id id,
 }
 
 // Signed 8 bit
-bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     char *name,
     char *description,
     Bit8s *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c (id, name, description, BX_MIN_BIT8S, BX_MAX_BIT8S, *ptr_to_real_val)
+: bx_param_num_c (parent, name, description, BX_MIN_BIT8S, BX_MAX_BIT8S, *ptr_to_real_val)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -1013,13 +1113,13 @@ bx_shadow_num_c::bx_shadow_num_c (bx_id id,
 }
 
 // Unsigned 8 bit
-bx_shadow_num_c::bx_shadow_num_c (bx_id id,
+bx_shadow_num_c::bx_shadow_num_c (bx_param_c *parent,
     char *name,
     char *description,
     Bit8u *ptr_to_real_val,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c (id, name, description, BX_MIN_BIT8U, BX_MAX_BIT8U, *ptr_to_real_val)
+: bx_param_num_c (parent, name, description, BX_MIN_BIT8U, BX_MAX_BIT8U, *ptr_to_real_val)
 {
   this->varsize = 8;
   this->lowbit = lowbit;
@@ -1083,22 +1183,28 @@ bx_shadow_num_c::set (Bit64s newval)
   }
 }
 
-bx_param_bool_c::bx_param_bool_c (bx_id id,
+void 
+bx_shadow_num_c::reset ()
+{
+  BX_PANIC (("reset not supported on bx_shadow_num_c yet"));
+}
+
+bx_param_bool_c::bx_param_bool_c (bx_param_c *parent,
     char *name,
     char *description,
     Bit64s initial_val)
-  : bx_param_num_c (id, name, description, 0, 1, initial_val)
+  : bx_param_num_c (parent, name, description, 0, 1, initial_val)
 {
   set_type (BXT_PARAM_BOOL);
   set (initial_val);
 }
 
-bx_shadow_bool_c::bx_shadow_bool_c (bx_id id,
+bx_shadow_bool_c::bx_shadow_bool_c (bx_param_c *parent,
       char *name,
       char *description,
       bx_bool *ptr_to_real_val,
       Bit8u bitnum)
-  : bx_param_bool_c (id, name, description, (Bit64s) *ptr_to_real_val)
+  : bx_param_bool_c (parent, name, description, (Bit64s) *ptr_to_real_val)
 {
   val.pbool = ptr_to_real_val;
   this->bitnum = bitnum;
@@ -1129,13 +1235,13 @@ bx_shadow_bool_c::set (Bit64s newval)
   }
 }
 
-bx_param_enum_c::bx_param_enum_c (bx_id id, 
+bx_param_enum_c::bx_param_enum_c (bx_param_c *parent,
       char *name,
       char *description,
       char **choices,
       Bit64s initial_val,
       Bit64s value_base)
-  : bx_param_num_c (id, name, description, value_base, BX_MAX_BIT64S, initial_val)
+  : bx_param_num_c (parent, name, description, value_base, BX_MAX_BIT64S, initial_val)
 {
   set_type (BXT_PARAM_ENUM);
   this->choices = choices;
@@ -1169,12 +1275,12 @@ bx_param_enum_c::set_by_name (const char *string)
   return true;
 }
 
-bx_param_string_c::bx_param_string_c (bx_id id,
+bx_param_string_c::bx_param_string_c (bx_param_c *parent,
     char *name,
     char *description,
     char *initial_val,
     int maxsize)
-  : bx_param_c (id, name, description)
+  : bx_param_c (parent, name, description)
 {
   set_type (BXT_PARAM_STRING);
   if (maxsize < 0) 
@@ -1185,17 +1291,17 @@ bx_param_string_c::bx_param_string_c (bx_id id,
   this->maxsize = maxsize;
   strncpy (this->val, initial_val, maxsize);
   strncpy (this->initial_val, initial_val, maxsize);
-  this->options = new bx_param_num_c (BXP_NULL,
+  this->options = new bx_param_num_c (NULL,
       "stringoptions", NULL, 0, BX_MAX_BIT64S, 0);
   set (initial_val);
 }
 
-bx_param_filename_c::bx_param_filename_c (bx_id id,
+bx_param_filename_c::bx_param_filename_c (bx_param_c *parent,
     char *name,
     char *description,
     char *initial_val,
     int maxsize)
-  : bx_param_string_c (id, name, description, initial_val, maxsize)
+  : bx_param_string_c (parent, name, description, initial_val, maxsize)
 {
   get_options()->set (IS_FILENAME);
 }
@@ -1270,8 +1376,8 @@ bx_param_string_c::equals (const char *buf)
     return (strncmp (val, buf, maxsize) == 0);
 }
 
-bx_list_c::bx_list_c (bx_id id, int maxsize)
-  : bx_param_c (id, "list", "")
+bx_list_c::bx_list_c (bx_param_c *parent, int maxsize)
+  : bx_param_c (parent, "list", "")
 {
   set_type (BXT_LIST);
   this->size = 0;
@@ -1280,8 +1386,9 @@ bx_list_c::bx_list_c (bx_id id, int maxsize)
   init ();
 }
 
-bx_list_c::bx_list_c (bx_id id, char *name, char *description, int maxsize)
-  : bx_param_c (id, name, description)
+bx_list_c::bx_list_c (bx_param_c *parent, char *name, char *description, 
+    int maxsize)
+  : bx_param_c (parent, name, description)
 {
   set_type (BXT_LIST);
   this->size = 0;
@@ -1290,8 +1397,8 @@ bx_list_c::bx_list_c (bx_id id, char *name, char *description, int maxsize)
   init ();
 }
 
-bx_list_c::bx_list_c (bx_id id, char *name, char *description, bx_param_c **init_list)
-  : bx_param_c (id, name, description)
+bx_list_c::bx_list_c (bx_param_c *parent, char *name, char *description, bx_param_c **init_list)
+  : bx_param_c (parent, name, description)
 {
   set_type (BXT_LIST);
   this->size = 0;
@@ -1332,27 +1439,25 @@ void
 bx_list_c::init ()
 {
   // the title defaults to the name
-  this->title = new bx_param_string_c (BXP_NULL,
+  this->title = new bx_param_string_c (NULL,
       "title of list",
       "",
       get_name (), 80);
-  this->options = new bx_param_num_c (BXP_NULL,
+  this->options = new bx_param_num_c (NULL,
       "list_option", "", 0, BX_MAX_BIT64S,
       0);
-  this->choice = new bx_param_num_c (BXP_NULL,
+  this->choice = new bx_param_num_c (NULL,
       "list_choice", "", 0, BX_MAX_BIT64S,
       1);
-  this->parent = NULL;
 }
 
 bx_list_c *
 bx_list_c::clone ()
 {
-  bx_list_c *newlist = new bx_list_c (BXP_NULL, name, description, maxsize);
+  bx_list_c *newlist = new bx_list_c (NULL, name, description, maxsize);
   for (int i=0; i<get_size (); i++)
     newlist->add (get(i));
   newlist->set_options (get_options ());
-  newlist->set_parent (get_parent ());
   return newlist;
 }
 
@@ -1370,5 +1475,18 @@ bx_list_c::get (int index)
 {
   BX_ASSERT (index >= 0 && index < size);
   return list[index];
+}
+
+bx_param_c *
+bx_list_c::get_by_name (const char *name)
+{
+  int i, imax = get_size ();
+  for (i=0; i<imax; i++) {
+    bx_param_c *p = get(i);
+    if (0 == strcmp (name, p->get_name ())) {
+      return p;
+    }
+  }
+  return NULL;
 }
 

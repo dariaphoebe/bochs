@@ -1,6 +1,8 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.1 2003/03/20 04:52:53 slechta Exp $
+// $Id: siminterface.h,v 1.99.4.2 2003/03/20 05:24:24 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
+//
+// Intro to siminterface by Bryce Denney:
 //
 // Before I can describe what this file is for, I have to make the
 // distinction between a configuration interface (CI) and the VGA display
@@ -46,18 +48,18 @@
 // bx_floppy.s.media[2].heads = 17.  If such access is needed, then a
 // siminterface method should be written to make the change on the CI's behalf.
 // This separation is enforced by the fact that the CI does not even include
-// bochs.h.  You'll notice that control.cc include osdep.h, control.h, and
-// siminterface.h, so it doesn't know what bx_floppy or bx_cpu_c are.  I'm sure
-// some people will say is overly restrictive and/or annoying.  When I set it
-// up this way, we were still talking about making the CI in a seperate
+// bochs.h.  You'll notice that control.cc includes osdep.h, control.h, and
+// siminterface.h, but it doesn't know what bx_floppy or bx_cpu_c are.  I'm
+// sure some people will say is overly restrictive and/or annoying.  When I
+// set it up this way, we were still talking about making the CI in a seperate
 // process, where direct method calls would be impossible.  Also, we have been
-// considering turning devices into plugin modules which are dynamically 
+// considering turning devices into plugin modules which are dynamically
 // linked.  Any direct references to something like bx_floppy.s.media[2].heads
 // would have to be reworked before a plugin interface was possible as well.
 //
 // The siminterface is the glue between the CI and the simulator.  There is
 // just one global instance of the siminterface object, which can be referred
-// to by the global variable bx_simulator_interface_c *SIM; The base class
+// to by the global variable bx_simulator_interface_c *SIM.  The base class
 // bx_simulator_interface_c, contains only virtual functions and it defines the
 // interface that the CI is allowed to use.  In siminterface.cc, a class
 // called bx_real_sim_c is defined with bx_simulator_interface_c as its parent
@@ -772,11 +774,17 @@ public:
   bx_object_c (bx_id id);
   bx_id get_id () { return id; }
   Bit8u get_type () { return type; }
+  bx_bool is_type (Bit8u test_type) {
+    // for now, do simple type comparison.
+    // really should test for inherited types as well.
+    return (type == test_type);
+  }
 };
 
 class BOCHSAPI bx_param_c : public bx_object_c {
   BOCHSAPI_CYGONLY static const char *default_text_format;
 protected:
+  bx_list_c *parent;
   char *name;
   char *description;
   const char *text_format;  // printf format string. %d for ints, %s for strings, etc.
@@ -784,7 +792,11 @@ protected:
   int runtime_param;
   int enabled;
 public:
-  bx_param_c (bx_id id, char *name, char *description);
+  bx_param_c (bx_param_c *parent, char *name, char *description);
+  bx_param_c *get_parent () { return (bx_param_c *) parent; }
+  bx_bool child_of (bx_param_c *test_ancestor);
+  void get_param_path (char *path_out, int maxlen);
+  void set_parent (bx_param_c *newparent);
   void set_format (const char *format) {text_format = format;}
   const char *get_format () {return text_format;}
   void set_ask_format (char *format) {ask_format = format; }
@@ -794,7 +806,7 @@ public:
   char *get_description () { return description; }
   int get_enabled () { return enabled; }
   virtual void set_enabled (int enabled) { this->enabled = enabled; }
-  void reset () {}
+  virtual void reset () {}
   int getint () {return -1;}
   static const char* set_default_format (const char *f);
   static const char *get_default_format () { return default_text_format; }
@@ -828,11 +840,11 @@ protected:
   param_event_handler handler;
   int base;
 public:
-  bx_param_num_c (bx_id id,
+  bx_param_num_c (bx_param_c *parent,
       char *name,
       char *description,
       Bit64s min, Bit64s max, Bit64s initial_val);
-  void reset ();
+  virtual void reset ();
   void set_handler (param_event_handler handler);
   virtual bx_list_c *get_dependent_list () { return dependent_list; }
   void set_dependent_list (bx_list_c *l);
@@ -857,56 +869,56 @@ public:
 // a bx_shadow_num_c is like a bx_param_num_c except that it doesn't
 // store the actual value with its data. Instead, it uses val.p32bit
 // to keep a pointer to the actual data.  This is used to register
-// existing variables as parameters, without have to access it via
+// existing variables as parameters, without having to access it via
 // set/get methods.
 class BOCHSAPI bx_shadow_num_c : public bx_param_num_c {
   Bit8u varsize;   // must be 64, 32, 16, or 8
   Bit8u lowbit;   // range of bits associated with this param
   Bit64u mask;     // mask is ANDed with value before it is returned from get
 public:
-  bx_shadow_num_c (bx_id id,
+  bx_shadow_num_c (bx_param_c *parent,
       char *name,
       char *description,
       Bit64s *ptr_to_real_val,
       Bit8u highbit = 63,
       Bit8u lowbit = 0);
-  bx_shadow_num_c (bx_id id,
+  bx_shadow_num_c (bx_param_c *parent,
       char *name,
       char *description,
       Bit64u *ptr_to_real_val,
       Bit8u highbit = 63,
       Bit8u lowbit = 0);
-  bx_shadow_num_c (bx_id id,
+  bx_shadow_num_c (bx_param_c *parent,
       char *name,
       char *description,
       Bit32s *ptr_to_real_val,
       Bit8u highbit = 31,
       Bit8u lowbit = 0);
-  bx_shadow_num_c (bx_id id,
+  bx_shadow_num_c (bx_param_c *parent,
       char *name,
       char *description,
       Bit32u *ptr_to_real_val,
       Bit8u highbit = 31,
       Bit8u lowbit = 0);
-  bx_shadow_num_c (bx_id id,
+  bx_shadow_num_c (bx_param_c *parent,
       char *name,
       char *description,
       Bit16s *ptr_to_real_val,
       Bit8u highbit = 15,
       Bit8u lowbit = 0);
-  bx_shadow_num_c (bx_id id,
+  bx_shadow_num_c (bx_param_c *parent,
       char *name,
       char *description,
       Bit16u *ptr_to_real_val,
       Bit8u highbit = 15,
       Bit8u lowbit = 0);
-  bx_shadow_num_c (bx_id id,
+  bx_shadow_num_c (bx_param_c *parent,
       char *name,
       char *description,
       Bit8s *ptr_to_real_val,
       Bit8u highbit = 7,
       Bit8u lowbit = 0);
-  bx_shadow_num_c (bx_id id,
+  bx_shadow_num_c (bx_param_c *parent,
       char *name,
       char *description,
       Bit8u *ptr_to_real_val,
@@ -914,6 +926,7 @@ public:
       Bit8u lowbit = 0);
   virtual Bit64s get64 ();
   virtual void set (Bit64s val);
+  virtual void reset ();
 };
 
 class BOCHSAPI bx_param_bool_c : public bx_param_num_c {
@@ -921,7 +934,7 @@ class BOCHSAPI bx_param_bool_c : public bx_param_num_c {
   // user interface, the enable variable should enable/disable all the
   // other parameters associated with that module.
 public:
-  bx_param_bool_c (bx_id id, 
+  bx_param_bool_c (bx_param_c *parent,
       char *name,
       char *description,
       Bit64s initial_val);
@@ -937,7 +950,7 @@ class BOCHSAPI bx_shadow_bool_c : public bx_param_bool_c {
   // bit is used.  get/set will only modify that bit.
   Bit8u bitnum;
 public:
-  bx_shadow_bool_c (bx_id id,
+  bx_shadow_bool_c (bx_param_c *parent,
       char *name,
       char *description,
       bx_bool *ptr_to_real_val,
@@ -950,7 +963,7 @@ public:
 class BOCHSAPI bx_param_enum_c : public bx_param_num_c {
   char **choices;
 public:
-  bx_param_enum_c (bx_id id, 
+  bx_param_enum_c (bx_param_c *parent,
       char *name,
       char *description,
       char **choices,
@@ -981,13 +994,13 @@ public:
                            // bit suggests that they use it.
     SAVE_FILE_DIALOG = 4   // Use save dialog opposed to open file dialog
   } bx_string_opt_bits;
-  bx_param_string_c (bx_id id,
+  bx_param_string_c (bx_param_c *parent,
       char *name,
       char *description,
       char *initial_val,
       int maxsize=-1);
   virtual ~bx_param_string_c ();
-  void reset ();
+  virtual void reset ();
   void set_handler (param_string_event_handler handler);
   Bit32s get (char *buf, int len);
   char *getptr () {return val; }
@@ -1006,15 +1019,17 @@ public:
 // for declaring a string param and setting the options with IS_FILENAME.
 class BOCHSAPI bx_param_filename_c : public bx_param_string_c {
 public:
-  bx_param_filename_c (bx_id id,
+  bx_param_filename_c (bx_param_c *parent,
       char *name,
       char *description,
       char *initial_val,
       int maxsize=-1);
 };
 
+#define BX_DEFAULT_LIST_SIZE 6
+
 class BOCHSAPI bx_list_c : public bx_param_c {
-private:
+protected:
   // just a list of bx_param_c objects.  size tells current number of
   // objects in the list, and maxsize tells how many list items are
   // allocated in the constructor.
@@ -1031,8 +1046,7 @@ private:
   // title of the menu or series
   bx_param_string_c *title;
   // if the menu shows a "return to previous menu" type of choice,
-  // this controls where that choice will go.
-  bx_param_c *parent;
+  // "parent" controls where that choice will go.
   void init ();
 public:
   enum {
@@ -1049,19 +1063,19 @@ public:
     // of parameters.
     USE_TAB_WINDOW = (1<<2)
   } bx_listopt_bits;
-  bx_list_c (bx_id id, int maxsize);
-  bx_list_c (bx_id id, char *name, char *description, bx_param_c **init_list);
-  bx_list_c (bx_id id, char *name, char *description, int maxsize);
+  bx_list_c (bx_param_c *parent, int maxsize = BX_DEFAULT_LIST_SIZE);
+  bx_list_c (bx_param_c *parent, char *name, char *description, bx_param_c **init_list);
+  bx_list_c (bx_param_c *parent, char *name, char *description, int maxsize = BX_DEFAULT_LIST_SIZE);
   virtual ~bx_list_c();
   bx_list_c *clone ();
   void add (bx_param_c *param);
   bx_param_c *get (int index);
+  bx_param_c *get_by_name (const char *name);
   int get_size () { return size; }
   bx_param_num_c *get_options () { return options; }
   void set_options (bx_param_num_c *newopt) { options = newopt; }
   bx_param_num_c *get_choice () { return choice; }
   bx_param_string_c *get_title () { return title; }
-  void set_parent (bx_param_c *newparent) { parent = newparent; }
   bx_param_c *get_parent () { return parent; }
 #if BX_UI_TEXT
   virtual void text_print (FILE *);
@@ -1311,10 +1325,19 @@ public:
   virtual int register_param (bx_id id, bx_param_c *it) {return -1;}
   virtual void reset_all_param () {}
   virtual bx_param_c *get_param (bx_id id) {return NULL;}
+  virtual bx_param_c *get_param (const char *pname, bx_param_c *base=NULL) {return NULL;}
+  // deprecated
   virtual bx_param_num_c *get_param_num (bx_id id) {return NULL;}
+  // deprecated
   virtual bx_param_string_c *get_param_string (bx_id id) {return NULL;}
+  // deprecated
   virtual bx_param_bool_c *get_param_bool (bx_id id) {return NULL;}
+  // deprecated
   virtual bx_param_enum_c *get_param_enum (bx_id id) {return NULL;}
+  virtual bx_param_num_c *get_param_num (const char *pname) {return NULL;}
+  virtual bx_param_string_c *get_param_string (const char *pname) {return NULL;}
+  virtual bx_param_bool_c *get_param_bool (const char *pname) {return NULL;}
+  virtual bx_param_enum_c *get_param_enum (const char *pname) {return NULL;}
   virtual int get_n_log_modules () {return -1;}
   virtual char *get_prefix (int mod) {return 0;}
   virtual int get_log_action (int mod, int level) {return -1;}
