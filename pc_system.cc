@@ -239,7 +239,7 @@ bx_pc_system_c::ResetSignal( PCS_OP operation )
   UNUSED( operation );
   // Reset the processor.
 
-  fprintf(stderr, "# bx_pc_system_c::ResetSignal() called\n");
+  BX_ERROR(( "# bx_pc_system_c::ResetSignal() called\n" ));
   BX_CPU.reset(BX_RESET_SOFTWARE);
   return(0);
 }
@@ -273,7 +273,7 @@ bx_pc_system_c::timer_handler(void)
   unsigned i;
   Bit64u delta;
 
-  //  fprintf(stderr, "Time handler ptime = %d\n", bx_pc_system.time_ticks());
+  //  BX_ERROR(( "Time handler ptime = %d\n", bx_pc_system.time_ticks() ));
 
   delta = num_cpu_ticks_in_period - num_cpu_ticks_left;
 #if BX_TIMER_DEBUG
@@ -425,7 +425,7 @@ bx_pc_system_c::counter_timer_handler(void* this_ptr)
 bx_pc_system_c::timebp_handler(void* this_ptr)
 {
       BX_CPU_THIS_PTR break_point = BREAK_POINT_TIME;
-      fprintf(stderr, "Time breakpoint triggered\n");
+      BX_DEBUG(( "Time breakpoint triggered\n" ));
 
       if (timebp_queue_size > 1) {
 	    long long new_diff = timebp_queue[1] - bx_pc_system.time_ticks();

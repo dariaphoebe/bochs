@@ -262,12 +262,12 @@ bx_load_kernel_image(char *path, Bit32u paddr)
 #endif
            );
   if (fd < 0) {
-    fprintf(stderr, "load_kernel_image: couldn't open image file '%s'.\n", path);
+    BX_INFO(( "load_kernel_image: couldn't open image file '%s'.\n", path ));
     exit(1);
     }
   ret = fstat(fd, &stat_buf);
   if (ret) {
-    fprintf(stderr, "load_kernel_image: couldn't stat image file '%s'.\n", path);
+    BX_INFO(( "load_kernel_image: couldn't stat image file '%s'.\n", path ));
     exit(1);
     }
 
@@ -275,7 +275,7 @@ bx_load_kernel_image(char *path, Bit32u paddr)
   page_size = ((Bit32u)size + 0xfff) & ~0xfff;
 
   if ( (paddr + size) > BX_MEM_THIS len ) {
-    fprintf(stderr, "load_kernel_image: address range > physical memsize!\n");
+    BX_INFO(( "load_kernel_image: address range > physical memsize!\n" ));
     exit(1);
     }
 
@@ -283,17 +283,17 @@ bx_load_kernel_image(char *path, Bit32u paddr)
   while (size > 0) {
     ret = read(fd, (bx_ptr_t) &BX_MEM_THIS vector[paddr + offset], size);
     if (ret <= 0) {
-      fprintf(stderr, "load_kernel_image: read failed on image\n");
+      BX_INFO(( "load_kernel_image: read failed on image\n" ));
       exit(1);
       }
     size -= ret;
     offset += ret;
     }
   close(fd);
-  fprintf(stderr, "#(%u) load_kernel_image: '%s', size=%u read into memory at %08x\n",
+  BX_INFO(( "#(%u) load_kernel_image: '%s', size=%u read into memory at %08x\n",
           BX_SIM_ID, path,
           (unsigned) stat_buf.st_size,
-          (unsigned) paddr);
+          (unsigned) paddr ));
 
   return page_size;
 }
