@@ -21,6 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
 
+#define BX_IN_CPU_METHOD 1
 #include "bochs.h"
 
 
@@ -32,7 +33,8 @@
 
 
 
-BX_CPU_C::BX_CPU_C(void)
+BX_CPU_C::BX_CPU_C(BX_MEM_C *addrspace)
+   : local_apic (this)
 {
   // BX_CPU_C constructor
 
@@ -164,6 +166,9 @@ fprintf(stderr, "&DTReadRMW8vShim is %x\n", (unsigned) &DTReadRMW8vShim);
   DTIndBrHandler = (BxDTShim_t) DTASIndBrHandler;
   DTDirBrHandler = (BxDTShim_t) DTASDirBrHandler;
 #endif
+
+  mem = addrspace;
+  sprintf (name, "CPU %p", this);
 
   BX_INSTR_INIT();
 }
@@ -557,6 +562,20 @@ BX_CPU_C::reset(unsigned source)
 #if BX_DYNAMIC_TRANSLATION
   dynamic_init();
 #endif
+
+  // notice if I'm the bootstrap processor.  If not, do the equivalent of
+  // a HALT instruction.
+  int apic_id = local_apic.get_id ();
+  if (BX_BOOTSTRAP_PROCESSOR == apic_id)
+  {
+    // boot normally
+    bx_printf ("CPU[%d] is the bootstrap processor\n", apic_id);
+  } else {
+    // it's an application processor, halt until IPI is heard.
+    bx_printf ("CPU[%d] is an application processor. Halting until IPI.\n", apic_id);
+    debug_trap |= 0x80000000;
+    async_event = 1;
+  }
 }
 
 
