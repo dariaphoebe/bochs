@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: proc_ctrl.cc,v 1.68 2003/02/13 15:04:07 sshwarts Exp $
+// $Id: proc_ctrl.cc,v 1.68.2.1 2003/04/29 10:48:40 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -58,7 +58,7 @@ BX_CPU_C::NOP(bxInstruction_c *i)
 
 void BX_CPU_C::PREFETCH(bxInstruction_c *i)
 {
-#if BX_SUPPORT_SSE != 0
+#if BX_SUPPORT_3DNOW || BX_SUPPORT_SSE >= 1
   BX_INSTR_PREFETCH_HINT(BX_CPU_ID, i->nnn(), i->seg(), RMAddr(i));
 #else
   UndefinedOpcode(i);

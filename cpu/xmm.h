@@ -40,9 +40,43 @@ typedef union bx_xmm_reg_t {
 #define xmm64u(i)   _u64[(i)]
 #endif
 
+/* read XMM register */
 #define BX_READ_XMM_REG(index) (BX_CPU_THIS_PTR xmm[index])
-#define BX_WRITE_XMM_REG(index, reg) { BX_CPU_THIS_PTR xmm[index] = reg; }
+
+/* read only high 64 bit of the register */
+#define BX_READ_XMM_REG_HI_QWORD(index) \
+    ((BX_CPU_THIS_PTR xmm[index]).xmm64u(1))
+
+/* read only low 64 bit of the register */
+#define BX_READ_XMM_REG_LO_QWORD(index) \
+    ((BX_CPU_THIS_PTR xmm[index]).xmm64u(0))
+
+/* read only low 32 bit of the register */
+#define BX_READ_XMM_REG_LO_DWORD(index) \
+    ((BX_CPU_THIS_PTR xmm[index]).xmm32u(0))
+
+/* short names for above macroses */
+#define BX_XMM_REG_HI_QWORD BX_READ_XMM_REG_HI_QWORD
+#define BX_XMM_REG_LO_QWORD BX_READ_XMM_REG_LO_QWORD
+#define BX_XMM_REG_LO_DWORD BX_READ_XMM_REG_LO_DWORD
+
+/* store XMM register */
+#define BX_WRITE_XMM_REG(index, reg) \
+    { BX_CPU_THIS_PTR xmm[index] = reg; }
+
+/* store only high 64 bit of the register, rest of the register unchanged */
+#define BX_WRITE_XMM_REG_HI_QWORD(index, reg64) \
+    { (BX_CPU_THIS_PTR xmm[index]).xmm64u(1) = reg64; }
+
+/* store only low 64 bit of the register, rest of the register unchanged */
+#define BX_WRITE_XMM_REG_LO_QWORD(index, reg64) \
+    { (BX_CPU_THIS_PTR xmm[index]).xmm64u(0) = reg64; }
+
+/* store only low 32 bit of the register, rest of the register unchanged */
+#define BX_WRITE_XMM_REG_LO_DWORD(index, reg32) \
+    { (BX_CPU_THIS_PTR xmm[index]).xmm32u(0) = reg32; }
  
+
 /* MXCSR REGISTER */
 
 /* 31|30|29|28|27|26|25|24|23|22|21|20|19|18|17|16
@@ -89,7 +123,8 @@ struct bx_mxcsr_t {
   is  represented  by  the saturated value -128 (0x80). If it is greater
   than 127, it is represented by the saturated value 127 (0x7F).
 */
-Bit8s SaturateWordSToByteS(Bit16s value) BX_CPP_AttrRegparmN(1);
+Bit8s SaturateWordSToByteS(Bit16s value) 
+BX_CPP_AttrRegparmN(1);
 
 /*
   SaturateDwordSToWordS  converts  a  signed 32-bit value to a
@@ -98,7 +133,8 @@ Bit8s SaturateWordSToByteS(Bit16s value) BX_CPP_AttrRegparmN(1);
   greater  than  32767,  it  is represented by the saturated value 32767
   (0x7FFF).
 */
-Bit16s SaturateDwordSToWordS(Bit32s value) BX_CPP_AttrRegparmN(1);
+Bit16s SaturateDwordSToWordS(Bit32s value) 
+BX_CPP_AttrRegparmN(1);
 
 /*
   SaturateWordSToByteU  converts a signed 16-bit value to an
@@ -106,7 +142,8 @@ Bit16s SaturateDwordSToWordS(Bit32s value) BX_CPP_AttrRegparmN(1);
   is  represented  by  the  saturated value zero (0x00).If it is greater
   than 255 it is represented by the saturated value 255 (0xFF).
 */
-Bit8u SaturateWordSToByteU(Bit16s value) BX_CPP_AttrRegparmN(1);
+Bit8u SaturateWordSToByteU(Bit16s value) 
+BX_CPP_AttrRegparmN(1);
 
 /*
   SaturateDwordSToWordU  converts  a signed 32-bit value
@@ -115,6 +152,7 @@ Bit8u SaturateWordSToByteU(Bit16s value) BX_CPP_AttrRegparmN(1);
   (0x0000).  If  it  is greater  than  65535,  it  is represented by
   the saturated value 65535 (0xFFFF).
 */
-Bit16u SaturateDwordSToWordU(Bit32s value) BX_CPP_AttrRegparmN(1);
+Bit16u SaturateDwordSToWordU(Bit32s value) 
+BX_CPP_AttrRegparmN(1);
 
 #endif

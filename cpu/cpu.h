@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.137 2003/04/22 20:21:31 sshwarts Exp $
+// $Id: cpu.h,v 1.137.2.1 2003/04/29 10:48:39 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -2069,6 +2069,34 @@ union {
   BX_SMF void prepareSSE(void);
 #endif
 
+#if BX_SUPPORT_3DNOW
+  BX_SMF void FEMMS(bxInstruction_c *i);
+  BX_SMF void PFPNACC_PqQq(bxInstruction_c *i);
+  BX_SMF void PI2FD_PqQq(bxInstruction_c *i);
+  BX_SMF void PF2IW_PqQq(bxInstruction_c *i);
+  BX_SMF void PF2ID_PqQq(bxInstruction_c *i);
+  BX_SMF void PFNACC_PqQq(bxInstruction_c *i);
+  BX_SMF void PFPNACC_PqQq(bxInstruction_c *i);
+  BX_SMF void PFCMPGE_PqQq(bxInstruction_c *i);
+  BX_SMF void PFMIN_PqQq(bxInstruction_c *i);
+  BX_SMF void PFRCP_PqQq(bxInstruction_c *i);
+  BX_SMF void PFRSQRT_PqQq(bxInstruction_c *i);
+  BX_SMF void PFSUB_PqQq(bxInstruction_c *i);
+  BX_SMF void PFADD_PqQq(bxInstruction_c *i);
+  BX_SMF void PFCMPGT_PqQq(bxInstruction_c *i);
+  BX_SMF void PFMAX_PqQq(bxInstruction_c *i);
+  BX_SMF void PFRCPIT1_PqQq(bxInstruction_c *i);
+  BX_SMF void PFRSQIT1_PqQq(bxInstruction_c *i);
+  BX_SMF void PFSUBR_PqQq(bxInstruction_c *i);
+  BX_SMF void PFACC_PqQq(bxInstruction_c *i);
+  BX_SMF void PFCMPEQ_PqQq(bxInstruction_c *i);
+  BX_SMF void PFMUL_PqQq(bxInstruction_c *i);
+  BX_SMF void PFRCPIT2_PqQq(bxInstruction_c *i);
+  BX_SMF void PMULHRW_PqQq(bxInstruction_c *i);
+  BX_SMF void PSWAPD_PqQq(bxInstruction_c *i);
+  BX_SMF void PAVGUSB_PqQq(bxInstruction_c *i);
+#endif
+
   /* SSE */
   BX_SMF void FXSAVE(bxInstruction_c *i);
   BX_SMF void FXRSTOR(bxInstruction_c *i);
@@ -2730,7 +2758,6 @@ union {
   BX_SMF void writeVirtualDQword(unsigned s, bx_address off, Bit8u *data);
   BX_SMF void writeVirtualDQwordAligned(unsigned s, bx_address off, Bit8u *data);
 #endif
-
 
   BX_SMF void access_linear(bx_address address, unsigned length, unsigned pl,
                      unsigned rw, void *data) BX_CPP_AttrRegparmN(3);
