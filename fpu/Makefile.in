@@ -106,21 +106,21 @@ div_Xsig.o: div_Xsig.c fpu_emu.h linkage.h fpu_system.h ../config.h \
   ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h poly.h
 errors.o: errors.c fpu_emu.h linkage.h fpu_system.h ../config.h \
   ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h status_w.h \
-  control_w.h reg_constant.h
+  control_w.h
 fpu_tags.o: fpu_tags.c fpu_emu.h linkage.h fpu_system.h ../config.h \
   ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h
 fpu_trig_c.o: fpu_trig_c.c fpu_system.h ../config.h ../cpu/i387.h \
   ../fpu/tag_w.h ../fpu/control_w.h fpu_emu.h linkage.h fpu_proto.h \
-  status_w.h control_w.h reg_constant.h
+  status_w.h control_w.h
 mul_Xsig.o: mul_Xsig.c fpu_emu.h linkage.h fpu_system.h ../config.h \
   ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h poly.h
-poly_2xm1.o: poly_2xm1.c reg_constant.h fpu_emu.h linkage.h fpu_system.h \
+poly_2xm1.o: poly_2xm1.c fpu_emu.h linkage.h fpu_system.h \
   ../config.h ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h \
   control_w.h poly.h
-poly_atan.o: poly_atan.c reg_constant.h fpu_emu.h linkage.h fpu_system.h \
+poly_atan.o: poly_atan.c fpu_emu.h linkage.h fpu_system.h \
   ../config.h ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h \
   status_w.h control_w.h poly.h
-poly_l2.o: poly_l2.c reg_constant.h fpu_emu.h linkage.h fpu_system.h \
+poly_l2.o: poly_l2.c fpu_emu.h linkage.h fpu_system.h \
   ../config.h ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h \
   control_w.h status_w.h poly.h
 polynom_Xsig.o: polynom_Xsig.c fpu_emu.h linkage.h fpu_system.h \
@@ -128,7 +128,7 @@ polynom_Xsig.o: polynom_Xsig.c fpu_emu.h linkage.h fpu_system.h \
   poly.h
 reg_convert.o: reg_convert.c fpu_emu.h linkage.h fpu_system.h ../config.h \
   ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h
-reg_mul.o: reg_mul.c reg_constant.h fpu_emu.h linkage.h fpu_system.h \
+reg_mul.o: reg_mul.c fpu_emu.h linkage.h fpu_system.h \
   ../config.h ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h
 reg_norm.o: reg_norm.c fpu_emu.h linkage.h fpu_system.h ../config.h \
   ../cpu/i387.h ../fpu/tag_w.h ../fpu/control_w.h fpu_proto.h

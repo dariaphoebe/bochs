@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  poly_l2.c                                                                |
- |  $Id: poly_l2.c,v 1.5.10.1 2004/04/09 12:29:50 sshwarts Exp $
+ |  $Id: poly_l2.c,v 1.5.10.2 2004/05/25 18:38:34 sshwarts Exp $
  |                                                                           |
  | Compute the base 2 log of a FPU_REG, using a polynomial approximation.    |
  |                                                                           |
@@ -11,8 +11,6 @@
  |                                                                           |
  +---------------------------------------------------------------------------*/
 
-
-#include "reg_constant.h"
 #include "fpu_emu.h"
 #include "fpu_system.h"
 #include "control_w.h"
@@ -107,9 +105,6 @@ void	poly_l2(FPU_REG *st0_ptr, FPU_REG *st1_ptr, u_char st1_sign)
   FPU_settagi(1, tag);
 
   set_precision_flag_up();  /* 80486 appears to always do this */
-
-  return;
-
 }
 
 
@@ -172,7 +167,6 @@ int	poly_l2p1(u_char sign0, u_char sign1,
     EXCEPTION(EX_Underflow);
 
   return 0;
-
 }
 
 

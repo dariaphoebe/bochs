@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  poly_atan.c                                                              |
- |  $Id: poly_atan.c,v 1.6.10.1 2004/04/09 12:29:50 sshwarts Exp $
+ |  $Id: poly_atan.c,v 1.6.10.2 2004/05/25 18:38:34 sshwarts Exp $
  |                                                                           |
  | Compute the arctan of a FPU_REG, using a polynomial approximation.        |
  |                                                                           |
@@ -11,7 +11,6 @@
  |                                                                           |
  +---------------------------------------------------------------------------*/
 
-#include "reg_constant.h"
 #include "fpu_emu.h"
 #include "fpu_system.h"
 #include "status_w.h"

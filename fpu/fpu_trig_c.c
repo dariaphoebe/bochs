@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_trig.c                                                               |
- |  $Id: fpu_trig_c.c,v 1.1.2.2 2004/05/24 16:49:45 sshwarts Exp $
+ |  $Id: fpu_trig_c.c,v 1.1.2.3 2004/05/25 18:38:34 sshwarts Exp $
  |                                                                           |
  | Implementation of the FPU "transcendental" functions.                     |
  |                                                                           |
@@ -15,7 +15,6 @@
 #include "fpu_emu.h"
 #include "status_w.h"
 #include "control_w.h"
-#include "reg_constant.h"	
 
 /* bbd: make CONST_PI2 non-const so that you can write "&CONST_PI2" when
    calling a function.  Otherwise you get const warnings.  Surely there's

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_mul.c                                                                |
- |  $Id: reg_mul.c,v 1.4.10.2 2004/05/23 18:46:19 sshwarts Exp $
+ |  $Id: reg_mul.c,v 1.4.10.3 2004/05/25 18:38:34 sshwarts Exp $
  |                                                                           |
  | Multiply one FPU_REG by another, put the result in a destination FPU_REG. |
  |                                                                           |
@@ -16,9 +16,8 @@
  | The destination may be any FPU_REG, including one of the source FPU_REGs. |
  +---------------------------------------------------------------------------*/
 
-#include "reg_constant.h"
+#include "fpu_emu.h"
 #include "fpu_system.h"
-
 
 /*
   Multiply two registers to give a register result.
@@ -34,7 +33,6 @@ int FPU_mul(FPU_REG const *b, u_char tagb, int deststnr, int control_w)
   u_char saved_sign = getsign(dest);
   u_char sign = (getsign(a) ^ getsign(b));
   int tag;
-
 
   if ( !(taga | tagb) )
     {

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  errors.c                                                                 |
- |  $Id: errors.c,v 1.18.4.3 2004/05/25 18:31:58 sshwarts Exp $
+ |  $Id: errors.c,v 1.18.4.4 2004/05/25 18:38:33 sshwarts Exp $
  |                                                                           |
  |  The error handling functions for wm-FPU-emu                              |
  |                                                                           |
@@ -24,7 +24,6 @@
 #include "fpu_system.h"
 #include "status_w.h"
 #include "control_w.h"
-#include "reg_constant.h"
 
 /* This is the real indefinite QNaN */
 static FPU_REG const CONST_QNaN = MAKE_REG(NEG, EXP_OVER, 0x00000000, 0xC0000000);

@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.23.8.4 2004/05/24 16:49:45 sshwarts Exp $
+ |  $Id: fpu_emu.h,v 1.23.8.5 2004/05/25 18:38:34 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -106,5 +106,8 @@ asmlinkage int FPU_round(FPU_REG *arg, u32 extent,
 
 #define INTERNAL(x)     FPU_internal(x)
 #define EXCEPTION(x)    FPU_exception(x)
+
+extern FPU_REG const CONST_Z;
+extern FPU_REG const CONST_INF;
 
 #endif /* !defined _FPU_EMU_H_ */
