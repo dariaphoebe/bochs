@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: param.h,v 1.1.2.1 2003/03/30 07:53:53 bdenney Exp $
+// $Id: param.h,v 1.1.2.2 2003/04/04 03:19:16 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 
 // support for compiling param.cc without Bochs
@@ -19,11 +19,12 @@ typedef Bit32u bx_bool;
 class logfunctions {};
 #define BX_ASSERT(x) assert(x)
 #define BX_PANIC(x) {printf("PANIC: ");printf x; printf("\n");exit(0);}
-#define BX_INFO(x)  {printf("INFO: " );printf x; printf("\n");}
-#define BX_DEBUG(x) {printf("DEBUG: ");printf x; printf("\n");}
 #define BX_ERROR(x) {printf("ERROR: ");printf x; printf("\n");}
-#define BX_PATHNAME_LEN 512
+#define BX_INFO(x)  {printf("INFO: " );printf x; printf("\n");}
+#define BX_DEBUG(x) /* {printf("DEBUG: ");printf x; printf("\n");} */
 #endif
+
+#define BX_PARAM_PATH_MAX 512
 
 // technically, in an 8 bit signed the real minimum is -128, not -127.
 // But if you decide to negate -128 you tend to get -128 again, so it's
@@ -420,13 +421,17 @@ public:
     // to the CI that each item in the list should be shown as a separate
     // tab.  This would be most appropriate when each item is another list
     // of parameters.
-    USE_TAB_WINDOW = (1<<2)
+    USE_TAB_WINDOW = (1<<2),
+    // Normally, bx_list_c::add will not allow a child to be added if its
+    // name matches another child.  However, in some cases we don't care if
+    // names are unique.  When this option bit is set, children with nonunique
+    // names are allowed.
+    ALLOW_DUPS = (1<<3)
   } bx_listopt_bits;
   bx_list_c (bx_param_c *parent, int maxsize = BX_DEFAULT_LIST_SIZE);
   bx_list_c (bx_param_c *parent, char *name, char *description, bx_param_c **init_list);
   bx_list_c (bx_param_c *parent, char *name, char *description, int maxsize = BX_DEFAULT_LIST_SIZE);
   virtual ~bx_list_c();
-  bx_list_c *clone ();
   void add (bx_param_c *param);
   bx_param_c *get (int index);
   bx_param_c *get_by_name (const char *name);
