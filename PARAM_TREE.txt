@@ -1,17 +1,21 @@
-$Id: PARAM_TREE.txt,v 1.1.2.11 2003/04/04 03:14:13 bdenney Exp $
-
-I'm trying to organize the parameters into a tree structure instead of
-a huge flat list.  Once the parameter code is improved, I hope to use
-parameters to implement save/restore, and to give access to device
-state from within the debugger.  -Bryce
-
+$Id: PARAM_TREE.txt,v 1.1.2.12 2003/04/06 14:16:52 bdenney Exp $
 
 This file has become the to-do list for the save/restore branch.
 The CVS branch is called BRANCH_SAVE_RESTORE.
 Bryce Denney and Brian Slechta are working in it.
 
-
 Notes:
+- save and restore must be done at just the right moment.  When you
+  decide to save state, we should
+  1. break out of cpu_loop
+  2. call pre-save methods on all devices, to give them a chance to
+     close files, evaluate lazy flags, etc.
+  3. save state to a file
+  On restore, we do the opposite order:
+  1. restore state from a file
+  2. call post-restore methods on all devices, to give them a chance
+     to open files or devices
+  3. call cpu_loop
 - fix the large number of panics in CPU device registration, when it
   finds boolean parameters that are not 0 or 1.  It's possible that
   some things are called bx_bool which really shouldn't be bx_bool,
