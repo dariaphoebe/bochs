@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223 2003/02/13 15:51:12 sshwarts Exp $
+// $Id: main.cc,v 1.223.4.1 2003/03/20 05:15:28 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -52,6 +52,7 @@
 #ifndef BX_SHARE_PATH
 #define BX_SHARE_PATH NULL
 #endif
+void print_tree (bx_param_c *node, int level = 0);
 
 
 int bochsrc_include_count = 0;
@@ -107,6 +108,13 @@ static int parse_bochsrc(char *rcfile);
 static Bit64s
 bx_param_handler (bx_param_c *param, int set, Bit64s val)
 {
+  char pname[BX_PATHNAME_LEN];
+  param->get_param_path (pname, BX_PATHNAME_LEN);
+  BX_INFO (("num handler called for param '%s'", pname));
+  BX_INFO (("ignoring for now"));
+  return val;
+#warning num handler has been disabled
+
   bx_id id = param->get_id ();
   switch (id) {
     case BXP_VGA_UPDATE_INTERVAL:
@@ -227,8 +235,14 @@ bx_param_handler (bx_param_c *param, int set, Bit64s val)
 
 char *bx_param_string_handler (bx_param_string_c *param, int set, char *val, int maxlen)
 {
-  bx_id id = param->get_id ();
+  char pname[BX_PATHNAME_LEN];
+  param->get_param_path (pname, BX_PATHNAME_LEN);
+  BX_INFO (("string handler called for param '%s'", pname));
+  BX_INFO (("ignoring for now"));
+  return val;
+#warning string handler has been disabled
 
+  bx_id id = BXP_NULL;
   int empty = 0;
   if ((strlen(val) < 1) || !strcmp ("none", val)) {
     empty = 1;
@@ -330,7 +344,7 @@ char *bx_param_string_handler (bx_param_string_c *param, int set, char *val, int
       }
       break;
     default:
-        BX_PANIC (("bx_string_handler called with unexpected parameter %d", param->get_id()));
+        BX_PANIC (("bx_param_string_handler called with unexpected parameter %d", param->get_id()));
   }
   return val;
 }
@@ -338,23 +352,54 @@ char *bx_param_string_handler (bx_param_string_c *param, int set, char *val, int
 void bx_init_options ()
 {
   int i;
-  bx_list_c *menu;
+  bx_list_c *menu = NULL;
   bx_list_c *deplist;
   char name[1024], descr[1024];
 
   memset (&bx_options, 0, sizeof(bx_options));
 
+  bx_param_c *param_root = SIM->get_param(".");
+  bx_list_c *memory_root = new bx_list_c (param_root, "memory", "");
+    bx_list_c *ram = new bx_list_c (memory_root, "ram", "");
+    bx_list_c *rom = new bx_list_c (memory_root, "rom", "");
+    bx_list_c *optional_rom_root = new bx_list_c (memory_root, "optional_rom", "");
+  bx_list_c *cmos_root = new bx_list_c (param_root, "cmos", "");
+  bx_list_c *pit_root = new bx_list_c (param_root, "pit", "");
+  bx_list_c *floppy_root = new bx_list_c (param_root, "floppy", "");
+  bx_list_c *ata_root = new bx_list_c (param_root, "ata", "", 10);
+  bx_list_c *serial_root = new bx_list_c (param_root, "serial", "");
+  bx_list_c *parallel_root = new bx_list_c (param_root, "parallel", "");
+  bx_list_c *usb_root = new bx_list_c (param_root, "usb", "");
+  bx_list_c *ne2k_root = new bx_list_c (param_root, "ne2k", "", 10);
+  bx_list_c *sb16_root = new bx_list_c (param_root, "sb16", "", 10);
+  bx_list_c *pci_root = new bx_list_c (param_root, "pci", "");
+  bx_list_c *keyboard_root = new bx_list_c (param_root, "keyboard", "", 20);
+  bx_list_c *menu_root = new bx_list_c (param_root, "menu", "all menus", 20);
+  bx_list_c *boot_params_root = new bx_list_c (param_root, "boot_param", "", 20);
+  bx_list_c *time_root = new bx_list_c (param_root, "time", "");
+  bx_list_c *display_root = new bx_list_c (param_root, "display", "");
+  bx_list_c *misc_root = new bx_list_c (param_root, "misc", "misc options", 20);
+  bx_list_c *log_root = new bx_list_c (param_root, "log", "");
+  bx_list_c *debugger_root = new bx_list_c (param_root, "debugger", "");
+
   // quick start option, set by command line arg
-  new bx_param_enum_c (BXP_BOCHS_START,
-      "Bochs start types",
+  new bx_param_enum_c (misc_root,
+      "start_mode",
       "Bochs start types",
       bochs_start_names,
       BX_RUN_START,
       BX_QUICK_START);
 
+  // was BXP_MENU_DISK
+  bx_list_c *disk_menu = new bx_list_c (menu_root, "disk", "Bochs Disk Options", 20);
+  disk_menu->get_options ()->set (disk_menu->SHOW_PARENT);
+
   // floppya
-  bx_options.floppya.Opath = new bx_param_filename_c (BXP_FLOPPYA_PATH,
-      "Floppy A image",
+  bx_list_c *floppya_menu = new bx_list_c (disk_menu, "0", "Options for first floppy disk", 10);
+  floppya_menu->get_options ()->set (floppya_menu->SERIES_ASK);
+
+  bx_options.floppya.Opath = new bx_param_filename_c (floppya_menu,
+      "path",
       "Pathname of first floppy image file or device.  If you're booting from floppy, this should be a bootable floppy.",
       "", BX_PATHNAME_LEN);
 #if BX_WITH_WX
@@ -362,22 +407,22 @@ void bx_init_options ()
 #else
   bx_options.floppya.Opath->set_ask_format ("Enter new filename, or 'none' for no disk: [%s] ");
 #endif
-  bx_options.floppya.Odevtype = new bx_param_enum_c (BXP_FLOPPYA_DEVTYPE,
-      "floppya:devtype",
+  bx_options.floppya.Odevtype = new bx_param_enum_c (floppya_menu,
+      "devtype",
       "Type of floppy drive",
       floppy_type_names,
       BX_FLOPPY_NONE,
       BX_FLOPPY_NONE);
-  bx_options.floppya.Otype = new bx_param_enum_c (BXP_FLOPPYA_TYPE,
-      "floppya:type",
+  bx_options.floppya.Otype = new bx_param_enum_c (floppya_menu,
+      "type",
       "Type of floppy disk",
       floppy_type_names,
       BX_FLOPPY_NONE,
       BX_FLOPPY_NONE);
   bx_options.floppya.Otype->set_ask_format ("What type of floppy disk? [%s] ");
-  bx_options.floppya.Ostatus = new bx_param_enum_c (BXP_FLOPPYA_STATUS,
-      "Is floppya inserted",
-      "Inserted or ejected",
+  bx_options.floppya.Ostatus = new bx_param_enum_c (floppya_menu,
+      "status",
+      "Is floppy 0 inserted or ejected",
       floppy_status_names,
       BX_INSERTED,
       BX_EJECTED);
@@ -385,6 +430,11 @@ void bx_init_options ()
   bx_options.floppya.Opath->set_format ("%s");
   bx_options.floppya.Otype->set_format (", size=%s, ");
   bx_options.floppya.Ostatus->set_format ("%s");
+  bx_options.floppya.Opath->set_handler (bx_param_string_handler);
+  bx_options.floppya.Opath->set ("none");
+  bx_options.floppya.Otype->set_handler (bx_param_handler);
+  bx_options.floppya.Ostatus->set_handler (bx_param_handler);
+#if 0
   bx_param_c *floppya_init_list[] = {
     // if the order "path,type,status" changes, corresponding changes must
     // be made in gui/wxmain.cc, MyFrame::editFloppyConfig.
@@ -393,15 +443,13 @@ void bx_init_options ()
     bx_options.floppya.Ostatus,
     NULL
   };
-  menu = new bx_list_c (BXP_FLOPPYA, "Floppy Disk 0", "All options for first floppy disk", floppya_init_list);
-  menu->get_options ()->set (menu->SERIES_ASK);
-  bx_options.floppya.Opath->set_handler (bx_param_string_handler);
-  bx_options.floppya.Opath->set ("none");
-  bx_options.floppya.Otype->set_handler (bx_param_handler);
-  bx_options.floppya.Ostatus->set_handler (bx_param_handler);
+#endif
 
-  bx_options.floppyb.Opath = new bx_param_filename_c (BXP_FLOPPYB_PATH,
-      "floppyb:path",
+  bx_list_c *floppyb_menu = new bx_list_c (disk_menu, "1", "Options for second floppy disk", 10);
+  floppyb_menu->get_options ()->set (floppyb_menu->SERIES_ASK);
+
+  bx_options.floppyb.Opath = new bx_param_filename_c (floppyb_menu,
+      "path",
       "Pathname of second floppy image file or device.",
       "", BX_PATHNAME_LEN);
 #if BX_WITH_WX
@@ -409,52 +457,35 @@ void bx_init_options ()
 #else
   bx_options.floppyb.Opath->set_ask_format ("Enter new filename, or 'none' for no disk: [%s] ");
 #endif
-  bx_options.floppyb.Odevtype = new bx_param_enum_c (BXP_FLOPPYB_DEVTYPE,
-      "floppyb:devtype",
+  bx_options.floppyb.Odevtype = new bx_param_enum_c (floppyb_menu,
+      "devtype",
       "Type of floppy drive",
       floppy_type_names,
       BX_FLOPPY_NONE,
       BX_FLOPPY_NONE);
-  bx_options.floppyb.Otype = new bx_param_enum_c (BXP_FLOPPYB_TYPE,
-      "floppyb:type",
+  bx_options.floppyb.Otype = new bx_param_enum_c (floppyb_menu,
+      "type",
       "Type of floppy disk",
       floppy_type_names,
       BX_FLOPPY_NONE,
       BX_FLOPPY_NONE);
   bx_options.floppyb.Otype->set_ask_format ("What type of floppy disk? [%s] ");
-  bx_options.floppyb.Ostatus = new bx_param_enum_c (BXP_FLOPPYB_STATUS,
-      "Is floppyb inserted",
-      "Inserted or ejected",
+  bx_options.floppyb.Ostatus = new bx_param_enum_c (floppyb_menu,
+      "status",
+      "Is floppy 1 inserted or ejected",
       floppy_status_names,
       BX_INSERTED,
       BX_EJECTED);
   bx_options.floppyb.Ostatus->set_ask_format ("Is the floppy inserted or ejected? [%s] ");
   bx_options.floppyb.Ostatus->set_format ("%s");
   bx_options.floppyb.Opath->set_format ("%s");
-  bx_options.floppyb.Otype->set_format (", size=%s, ");
-  bx_options.floppyb.Ostatus->set_format ("%s");
-  bx_param_c *floppyb_init_list[] = {
-    bx_options.floppyb.Opath,
-    bx_options.floppyb.Otype,
-    bx_options.floppyb.Ostatus,
-    NULL
-  };
-  menu = new bx_list_c (BXP_FLOPPYB, "Floppy Disk 1", "All options for second floppy disk", floppyb_init_list);
-  menu->get_options ()->set (menu->SERIES_ASK);
   bx_options.floppyb.Opath->set_handler (bx_param_string_handler);
   bx_options.floppyb.Opath->set ("none");
+  bx_options.floppyb.Otype->set_format (", size=%s, ");
   bx_options.floppyb.Otype->set_handler (bx_param_handler);
+  bx_options.floppyb.Ostatus->set_format ("%s");
   bx_options.floppyb.Ostatus->set_handler (bx_param_handler);
 
-  // disk options
-
-  // FIXME use descr and name
-  char *s_atachannel[] = {
-    "ATA channel 0",
-    "ATA channel 1",
-    "ATA channel 2",
-    "ATA channel 3",
-    };
   char *s_atadevice[4][2] = {
     { "First HD/CD on channel 0",
       "Second HD/CD on channel 0" },
@@ -478,31 +509,33 @@ void bx_init_options ()
   Bit8u channel;
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel ++) {
 
-    ata[channel] = new bx_list_c ((bx_id)(BXP_ATA0+channel), s_atachannel[channel], s_atachannel[channel], 8);
+    sprintf (name, "%d", channel);
+    sprintf (descr, "ATA channel %d", channel);
+    ata[channel] = new bx_list_c (ata_root, strdup(name), strdup(descr), 10);
     ata[channel]->get_options ()->set (bx_list_c::SERIES_ASK);
 
-    ata[channel]->add (bx_options.ata[channel].Opresent = new bx_param_bool_c ((bx_id)(BXP_ATA0_PRESENT+channel),
-      "ata:present",                                
+    bx_options.ata[channel].Opresent = new bx_param_bool_c (ata[channel],
+      "present",                                
       "Controls whether ata channel is installed or not",
-      0));
+      0);
 
-    ata[channel]->add (bx_options.ata[channel].Oioaddr1 = new bx_param_num_c ((bx_id)(BXP_ATA0_IOADDR1+channel),
-      "ata:ioaddr1",
+    bx_options.ata[channel].Oioaddr1 = new bx_param_num_c (ata[channel],
+      "ioaddr1",
       "IO adress of ata command block",
       0, 0xffff,
-      ata_default_ioaddr1[channel]));
+      ata_default_ioaddr1[channel]);
 
-    ata[channel]->add (bx_options.ata[channel].Oioaddr2 = new bx_param_num_c ((bx_id)(BXP_ATA0_IOADDR2+channel),
-      "ata:ioaddr2",
+    bx_options.ata[channel].Oioaddr2 = new bx_param_num_c (ata[channel],
+      "ioaddr2",
       "IO adress of ata control block",
       0, 0xffff,
-      ata_default_ioaddr1[channel] + 0x200));
+      ata_default_ioaddr1[channel] + 0x200);
 
-    ata[channel]->add (bx_options.ata[channel].Oirq = new bx_param_num_c ((bx_id)(BXP_ATA0_IRQ+channel),
-      "ata:irq",
+    bx_options.ata[channel].Oirq = new bx_param_num_c (ata[channel],
+      "irq",
       "IRQ of ata ",
       0, 15,
-      ata_default_irq[channel]));
+      ata_default_irq[channel]);
 
     // all items in the ata[channel] menu depend on the present flag.
     // The menu list is complete, but a few dependent_list items will
@@ -512,71 +545,70 @@ void bx_init_options ()
         ata[channel]->clone());
 
     for (Bit8u slave=0; slave<2; slave++) {
-
-      menu = bx_options.atadevice[channel][slave].Omenu = new bx_list_c ((bx_id)(BXP_ATA0_MASTER+channel*2+slave),
-          s_atadevice[channel][slave], 
+      menu = bx_options.atadevice[channel][slave].Omenu = new bx_list_c (ata[channel],
+          strdup (slave==0? "master" : "slave"),
           s_atadevice[channel][slave],
-          12 /* list max size */);
+          16 /* list max size */);
       menu->get_options ()->set (menu->SERIES_ASK);
 
-      menu->add (bx_options.atadevice[channel][slave].Opresent = new bx_param_bool_c ((bx_id)(BXP_ATA0_MASTER_PRESENT+channel*2+slave),
-        "ata-device:present",                                
+      bx_options.atadevice[channel][slave].Opresent = new bx_param_bool_c (menu,
+        "present",                                
         "Controls whether ata device is installed or not",  
-        0));
+        0);
 
-      menu->add (bx_options.atadevice[channel][slave].Otype = new bx_param_enum_c ((bx_id)(BXP_ATA0_MASTER_TYPE+channel*2+slave),
-          "ata-device:type",
+      bx_options.atadevice[channel][slave].Otype = new bx_param_enum_c (menu,
+          "type",
           "Type of ATA device",
           atadevice_type_names,
           BX_ATA_DEVICE_DISK,
-          BX_ATA_DEVICE_DISK));
+          BX_ATA_DEVICE_DISK);
 
-      menu->add (bx_options.atadevice[channel][slave].Ostatus = new bx_param_enum_c ((bx_id)(BXP_ATA0_MASTER_STATUS+channel*2+slave),
-       "ata-device:status",
+      bx_options.atadevice[channel][slave].Ostatus = new bx_param_enum_c (menu,
+       "status",
        "Inserted or ejected",
        atadevice_status_names,
        BX_INSERTED,
-       BX_EJECTED));
+       BX_EJECTED);
 
-      menu->add (bx_options.atadevice[channel][slave].Opath = new bx_param_filename_c ((bx_id)(BXP_ATA0_MASTER_PATH+channel*2+slave),
-          "ata-device:path",
+      bx_options.atadevice[channel][slave].Opath = new bx_param_filename_c (menu,
+          "path",
           "Pathname of the image",
-          "", BX_PATHNAME_LEN));
+          "", BX_PATHNAME_LEN);
 
-      menu->add (bx_options.atadevice[channel][slave].Ocylinders = new bx_param_num_c ((bx_id)(BXP_ATA0_MASTER_CYLINDERS+channel*2+slave),
-          "ata-device:cylinders",
+      bx_options.atadevice[channel][slave].Ocylinders = new bx_param_num_c (menu,
+          "cylinders",
           "Number of cylinders",
           0, 65535,
-          0));
-      menu->add (bx_options.atadevice[channel][slave].Oheads = new bx_param_num_c ((bx_id)(BXP_ATA0_MASTER_HEADS+channel*2+slave),
-          "ata-device:heads",
+          0);
+      bx_options.atadevice[channel][slave].Oheads = new bx_param_num_c (menu,
+          "heads",
           "Number of heads",
           0, 65535,
-          0));
-      menu->add (bx_options.atadevice[channel][slave].Ospt = new bx_param_num_c ((bx_id)(BXP_ATA0_MASTER_SPT+channel*2+slave),
-          "ata-device:spt",
+          0);
+      bx_options.atadevice[channel][slave].Ospt = new bx_param_num_c (menu,
+          "spt",
           "Number of sectors per track",
           0, 65535,
-          0));
+          0);
       
-      menu->add (bx_options.atadevice[channel][slave].Omodel = new bx_param_string_c ((bx_id)(BXP_ATA0_MASTER_MODEL+channel*2+slave),
-       "ata-device:model",
+      bx_options.atadevice[channel][slave].Omodel = new bx_param_string_c (menu,
+       "model",
        "Model name",
-       "Generic 1234", 40));
+       "Generic 1234", 40);
 
-      menu->add (bx_options.atadevice[channel][slave].Obiosdetect = new bx_param_enum_c ((bx_id)(BXP_ATA0_MASTER_BIOSDETECT+channel*2+slave),
-       "ata-device:biosdetect",
+      bx_options.atadevice[channel][slave].Obiosdetect = new bx_param_enum_c (menu,
+       "biosdetect",
        "Type of bios detection",
        atadevice_biosdetect_names,
        BX_ATA_BIOSDETECT_AUTO,
-       BX_ATA_BIOSDETECT_NONE));
+       BX_ATA_BIOSDETECT_NONE);
 
-      menu->add (bx_options.atadevice[channel][slave].Otranslation = new bx_param_enum_c ((bx_id)(BXP_ATA0_MASTER_TRANSLATION+channel*2+slave),
+      bx_options.atadevice[channel][slave].Otranslation = new bx_param_enum_c (menu,
+       "translation",
        "How the ata-disk translation is done by the bios",
-       "Type of translation",
        atadevice_translation_names,
        BX_ATA_TRANSLATION_AUTO,
-       BX_ATA_TRANSLATION_NONE));
+       BX_ATA_TRANSLATION_NONE);
 
       bx_options.atadevice[channel][slave].Opresent->set_dependent_list (
           menu->clone ());
@@ -590,9 +622,8 @@ void bx_init_options ()
       // set up top level menu for ATA[i] controller configuration.  This list
       // controls what will appear on the ATA configure dialog.  It now
       // requests the USE_TAB_WINDOW display, which is implemented in wx.
-      char buffer[32];
-      sprintf (buffer, "Configure ATA%d", channel);
-      ata_menu[channel] = new bx_list_c ((bx_id)(BXP_ATA0_MENU+channel), strdup(buffer), "", 4);
+      sprintf (name, "Configure ATA%d", channel);
+      ata_menu[channel] = new bx_list_c (menu_root, strdup(name), "", 4);
       ata_menu[channel]->add (ata[channel]);
       ata_menu[channel]->add (bx_options.atadevice[channel][0].Omenu);
       ata_menu[channel]->add (bx_options.atadevice[channel][1].Omenu);
@@ -683,12 +714,12 @@ void bx_init_options ()
       }
     }
 
-  bx_options.OnewHardDriveSupport = new bx_param_bool_c (BXP_NEWHARDDRIVESUPPORT,
-      "New hard drive support",
+  bx_options.OnewHardDriveSupport = new bx_param_bool_c (ata_root,
+      "new_drive_support",
       "Enables new features found on newer hard drives.",
       1);
 
-  bx_options.Obootdrive = new bx_param_enum_c (BXP_BOOTDRIVE,
+  bx_options.Obootdrive = new bx_param_enum_c (boot_params_root,
       "bootdrive",
       "Boot A, C or CD",
       floppy_bootdisk_names,
@@ -697,11 +728,12 @@ void bx_init_options ()
   bx_options.Obootdrive->set_format ("Boot from: %s drive");
   bx_options.Obootdrive->set_ask_format ("Boot from floppy drive, hard drive or cdrom ? [%s] ");
 
-  bx_options.OfloppySigCheck = new bx_param_bool_c (BXP_FLOPPYSIGCHECK,
-      "Skip Floppy Boot Signature Check",
+  bx_options.OfloppySigCheck = new bx_param_bool_c (boot_params_root,
+      "floppy_sig_check",
       "Skips check for the 0xaa55 signature on floppy boot device.",
       0);
 
+#if 0
   // disk menu
   bx_param_c *disk_menu_init_list[] = {
     SIM->get_param (BXP_FLOPPYA),
@@ -732,11 +764,10 @@ void bx_init_options ()
     SIM->get_param (BXP_FLOPPYSIGCHECK),
     NULL
   };
-  menu = new bx_list_c (BXP_MENU_DISK, "Bochs Disk Options", "diskmenu", disk_menu_init_list);
-  menu->get_options ()->set (menu->SHOW_PARENT);
+#endif
 
   // memory options menu
-  bx_options.memory.Osize = new bx_param_num_c (BXP_MEM_SIZE,
+  bx_options.memory.Osize = new bx_param_num_c (ram,
       "megs",
       "Amount of RAM in megabytes",
       1, BX_MAX_BIT32U,
@@ -754,20 +785,20 @@ void bx_init_options ()
 
   // parallel ports
   for (i=0; i<BX_N_PARALLEL_PORTS; i++) {
-        sprintf (name, "Enable parallel port #%d", i+1);
-        bx_options.par[i].Oenabled = new bx_param_bool_c (
-                BXP_PARPORTx_ENABLED(i+1), 
-                strdup(name), 
-                "",
+	sprintf (name, "%d", i);
+	sprintf (descr, "parallel port %d", i);
+        bx_list_c *parallel_port = new bx_list_c (parallel_root, strdup(name), strdup(descr));
+        sprintf (descr, "Enable parallel port #%d", i+1);
+        bx_options.par[i].Oenabled = new bx_param_bool_c (parallel_port,
+                "enable",
+                strdup(descr), 
                 (i==0)? 1 : 0);  // only enable #1 by default
-        sprintf (name, "Parallel port #%d output file", i+1);
         sprintf (descr, "Data written to parport#%d by the guest OS is written to this file", i+1);
-        bx_options.par[i].Ooutfile = new bx_param_filename_c (
-                BXP_PARPORTx_OUTFILE(i+1), 
-                strdup(name), 
+        bx_options.par[i].Ooutfile = new bx_param_filename_c (parallel_port,
+                "path",
                 strdup(descr),
                 "", BX_PATHNAME_LEN);
-        deplist = new bx_list_c (BXP_NULL, 1);
+        deplist = new bx_list_c (NULL, 1);
         deplist->add (bx_options.par[i].Ooutfile);
         bx_options.par[i].Oenabled->set_dependent_list (deplist);
         // add to menu
@@ -777,21 +808,23 @@ void bx_init_options ()
 
   // serial ports
   for (i=0; i<BX_N_SERIAL_PORTS; i++) {
+	sprintf (name, "%d", i);
+	sprintf (descr, "serial port %d", i);
+        bx_list_c *ser_port = new bx_list_c (serial_root, strdup(name), strdup(descr));
         // options for COM port
-        sprintf (name, "Enable serial port #%d (COM%d)", i+1, i+1);
         sprintf (descr, "Controls whether COM%d is installed or not", i+1);
         bx_options.com[i].Oenabled = new bx_param_bool_c (
-                BXP_COMx_ENABLED(i+1),
-                strdup(name), 
+                ser_port,
+                "enable",
                 strdup(descr), 
                 (i==0)?1 : 0);  // only enable the first by default
-        sprintf (name, "Pathname of the serial device for COM%d", i+1);
+        sprintf (descr, "Pathname of the serial device for COM%d", i+1);
         bx_options.com[i].Odev = new bx_param_filename_c (
-                BXP_COMx_PATH(i+1),
-                strdup(name), 
-                "",
+                ser_port,
+                "path",
+                strdup(descr), 
                 "", BX_PATHNAME_LEN);
-        deplist = new bx_list_c (BXP_NULL, 1);
+        deplist = new bx_list_c (NULL, 1);
         deplist->add (bx_options.com[i].Odev);
         bx_options.com[i].Oenabled->set_dependent_list (deplist);
         // add to menu
@@ -801,27 +834,29 @@ void bx_init_options ()
 
   // usb hubs
   for (i=0; i<BX_N_USB_HUBS; i++) {
+	sprintf (name, "%d", i);
+	sprintf (descr, "serial port %d", i);
+        bx_list_c *usb_port = new bx_list_c (usb_root, strdup(name), strdup(descr));
         // options for USB hub
-        sprintf (name, "Enable usb hub #%d (USB%d)", i+1, i+1);
         sprintf (descr, "Controls whether USB%d is installed or not", i+1);
         bx_options.usb[i].Oenabled = new bx_param_bool_c (
-                BXP_USBx_ENABLED(i+1),
-                strdup(name), 
+                usb_port,
+                "enable",
                 strdup(descr), 
                 (i==0)?1 : 0);  // only enable the first by default
         bx_options.usb[i].Oioaddr = new bx_param_num_c (
-                BXP_USBx_IOADDR(i+1),
-                "USB ioaddr",
+                usb_port,
+                "ioaddr",
                 "IO base adress of USB hub",
                 0, 0xffe0,
                 (i==0)?0xff40 : 0);
         bx_options.usb[i].Oirq = new bx_param_num_c (
-                BXP_USBx_IRQ(i+1),
-                "USB irq",
+                usb_port,
+                "irq",
                 "IRQ of USB hub",
                 0, 15,
                 (i==0)?9 : 0);
-        deplist = new bx_list_c (BXP_NULL, 2);
+        deplist = new bx_list_c (NULL, 2);
         deplist->add (bx_options.usb[i].Oioaddr);
         deplist->add (bx_options.usb[i].Oirq);
         bx_options.usb[i].Oenabled->set_dependent_list (deplist);
@@ -837,79 +872,48 @@ void bx_init_options ()
   }
   // add final NULL at the end, and build the menu
   *par_ser_ptr = NULL;
-  menu = new bx_list_c (BXP_MENU_SERIAL_PARALLEL,
+  // was BXP_MENU_SERIAL_PARALLEL
+  menu = new bx_list_c (menu_root,
+          "serial_parallel",
           "Serial and Parallel Port Options",
-          "serial_parallel_menu",
           par_ser_init_list);
   menu->get_options ()->set (menu->SHOW_PARENT);
 
-  bx_options.rom.Opath = new bx_param_filename_c (BXP_ROM_PATH,
+  bx_options.rom.Opath = new bx_param_filename_c (memory_root,
       "romimage",
       "Pathname of ROM image to load",
       "", BX_PATHNAME_LEN);
   bx_options.rom.Opath->set_format ("Name of ROM BIOS image: %s");
-  bx_options.rom.Oaddress = new bx_param_num_c (BXP_ROM_ADDRESS,
-      "romaddr",
+  bx_options.rom.Oaddress = new bx_param_num_c (memory_root,
+      "address",
       "The address at which the ROM image should be loaded",
       0, BX_MAX_BIT32U, 
       0xf0000);
   bx_options.rom.Oaddress->set_format ("ROM BIOS address: 0x%05x");
   bx_options.rom.Oaddress->set_base (16);
 
-  bx_options.optrom[0].Opath = new bx_param_filename_c (BXP_OPTROM1_PATH,
-      "optional romimage #1",
-      "Pathname of optional ROM image #1 to load",
-      "", BX_PATHNAME_LEN);
-  bx_options.optrom[0].Opath->set_format ("Name of optional ROM image #1 : %s");
-  bx_options.optrom[0].Oaddress = new bx_param_num_c (BXP_OPTROM1_ADDRESS,
-      "optional romaddr #1",
-      "The address at which the optional ROM image #1 should be loaded",
-      0, BX_MAX_BIT32U, 
-      0);
-  bx_options.optrom[0].Oaddress->set_format ("optional ROM #1 address: 0x%05x");
-  bx_options.optrom[0].Oaddress->set_base (16);
+  for (i=0; i<4; i++) {
+    sprintf (name, "%d", i);
+    sprintf (descr, "optional rom %d", i);
+    bx_list_c *optional_rom = new bx_list_c (optional_rom_root,
+	strdup(name), strdup(descr));
+    sprintf (descr, "Pathname of optional ROM image #%d to load", i);
+    bx_options.optrom[i].Opath = new bx_param_filename_c (optional_rom,
+	"path", strdup(descr),
+	"", BX_PATHNAME_LEN);
+    bx_options.optrom[i].Opath->set_format ("Name of optional ROM image #1 : %s");
+    sprintf (descr, "The address at which the optional ROM image #%d should be loaded", i);
+    bx_options.optrom[i].Oaddress = new bx_param_num_c (optional_rom,
+	"addr", strdup(descr),
+	0, BX_MAX_BIT32U, 
+	0);
+    bx_options.optrom[i].Oaddress->set_format ("optional ROM #1 address: 0x%05x");
+    bx_options.optrom[i].Oaddress->set_base (16);
+  }
 
-  bx_options.optrom[1].Opath = new bx_param_filename_c (BXP_OPTROM2_PATH,
-      "optional romimage #2",
-      "Pathname of optional ROM image #2 to load",
-      "", BX_PATHNAME_LEN);
-  bx_options.optrom[1].Opath->set_format ("Name of optional ROM image #2 : %s");
-  bx_options.optrom[1].Oaddress = new bx_param_num_c (BXP_OPTROM2_ADDRESS,
-      "optional romaddr #2",
-      "The address at which the optional ROM image #2 should be loaded",
-      0, BX_MAX_BIT32U, 
-      0);
-  bx_options.optrom[1].Oaddress->set_format ("optional ROM #2 address: 0x%05x");
-  bx_options.optrom[1].Oaddress->set_base (16);
-
-  bx_options.optrom[2].Opath = new bx_param_filename_c (BXP_OPTROM3_PATH,
-      "optional romimage #3",
-      "Pathname of optional ROM image #3 to load",
-      "", BX_PATHNAME_LEN);
-  bx_options.optrom[2].Opath->set_format ("Name of optional ROM image #3 : %s");
-  bx_options.optrom[2].Oaddress = new bx_param_num_c (BXP_OPTROM3_ADDRESS,
-      "optional romaddr #3",
-      "The address at which the optional ROM image #3 should be loaded",
-      0, BX_MAX_BIT32U, 
-      0);
-  bx_options.optrom[2].Oaddress->set_format ("optional ROM #3 address: 0x%05x");
-  bx_options.optrom[2].Oaddress->set_base (16);
-
-  bx_options.optrom[3].Opath = new bx_param_filename_c (BXP_OPTROM4_PATH,
-      "optional romimage #4",
-      "Pathname of optional ROM image #4 to load",
-      "", BX_PATHNAME_LEN);
-  bx_options.optrom[3].Opath->set_format ("Name of optional ROM image #4 : %s");
-  bx_options.optrom[3].Oaddress = new bx_param_num_c (BXP_OPTROM4_ADDRESS,
-      "optional romaddr #4",
-      "The address at which the optional ROM image #4 should be loaded",
-      0, BX_MAX_BIT32U, 
-      0);
-  bx_options.optrom[3].Oaddress->set_format ("optional ROM #4 address: 0x%05x");
-  bx_options.optrom[3].Oaddress->set_base (16);
-
-  bx_options.vgarom.Opath = new bx_param_filename_c (BXP_VGA_ROM_PATH,
-      "vgaromimage",
+  bx_list_c *vgarom = new bx_list_c (rom, "vgarom", "");
+  bx_options.vgarom.Opath = new bx_param_filename_c (vgarom,
+      "path",
       "Pathname of VGA ROM image to load",
       "", BX_PATHNAME_LEN);
   bx_options.vgarom.Opath->set_format ("Name of VGA BIOS image: %s");
@@ -928,45 +932,46 @@ void bx_init_options ()
     bx_options.optrom[3].Oaddress,
     NULL
   };
-  menu = new bx_list_c (BXP_MENU_MEMORY, "Bochs Memory Options", "memmenu", memory_init_list);
+  // was BXP_MENU_MEMORY
+  menu = new bx_list_c (menu_root, "memory", "Bochs Memory Options", memory_init_list);
   menu->get_options ()->set (menu->SHOW_PARENT);
 
   // interface
-  bx_options.Ovga_update_interval = new bx_param_num_c (BXP_VGA_UPDATE_INTERVAL,
-      "VGA Update Interval",
+  bx_options.Ovga_update_interval = new bx_param_num_c (time_root,
+      "vga_update_interval",
       "Number of microseconds between VGA updates",
       1, BX_MAX_BIT32U,
       30000);
   bx_options.Ovga_update_interval->set_handler (bx_param_handler);
   bx_options.Ovga_update_interval->set_ask_format ("Type a new value for VGA update interval: [%d] ");
-  bx_options.Omouse_enabled = new bx_param_bool_c (BXP_MOUSE_ENABLED,
-      "Enable the mouse",
+  bx_options.Omouse_enabled = new bx_param_bool_c (keyboard_root,
+      "enable_mouse",
       "Controls whether the mouse sends events to bochs",
       0);
   bx_options.Omouse_enabled->set_handler (bx_param_handler);
-  bx_options.Oips = new bx_param_num_c (BXP_IPS, 
-      "Emulated instructions per second (IPS)",
+  bx_options.Oips = new bx_param_num_c (time_root,
+      "ips",
       "Emulated instructions per second, used to calibrate bochs emulated\ntime with wall clock time.",
       1, BX_MAX_BIT32U,
       500000);
-  bx_options.Orealtime_pit = new bx_param_bool_c (BXP_REALTIME_PIT,
-      "Enable the realtime PIT",
-      "Keeps bochs in sync with real time, but sacrifices reproducibility",
+  bx_options.Orealtime_pit = new bx_param_bool_c (pit_root,
+      "realtime",
+      "Realtime pit option: keeps bochs in sync with real time, but sacrifices reproducibility",
       0);
-  bx_options.Otext_snapshot_check = new bx_param_bool_c (BXP_TEXT_SNAPSHOT_CHECK,
-      "Enable panic for use in bochs testing",
+  bx_options.Otext_snapshot_check = new bx_param_bool_c (misc_root,
+      "text_snapshot_check",
       "Enable panic when text on screen matches snapchk.txt.\nUseful for regression testing.\nIn win32, turns off CR/LF in snapshots and cuts.",
       0);
-  bx_options.Oprivate_colormap = new bx_param_bool_c (BXP_PRIVATE_COLORMAP,
-      "Use a private colormap",
+  bx_options.Oprivate_colormap = new bx_param_bool_c (display_root,
+      "private_colormap",
       "Request that the GUI create and use it's own non-shared colormap.  This colormap will be used when in the bochs window.  If not enabled, a shared colormap scheme may be used.  Not implemented on all GUI's.",
       0);
 #if BX_WITH_AMIGAOS
-  bx_options.Ofullscreen = new bx_param_bool_c (BXP_FULLSCREEN,
+  bx_options.Ofullscreen = new bx_param_bool_c (display_root,
       "Use full screen mode",
       "When enabled, bochs occupies the whole screen instead of just a window.",
       0);
-  bx_options.Oscreenmode = new bx_param_string_c (BXP_SCREENMODE,
+  bx_options.Oscreenmode = new bx_param_string_c (display_root,
       "Screen mode name",
       "Screen mode name",
       "", BX_PATHNAME_LEN);
@@ -980,8 +985,8 @@ void bx_init_options ()
     NULL
   };
   bx_options.Osel_config = new bx_param_enum_c (
-    BXP_SEL_CONFIG_INTERFACE,
-    "Configuration interface",
+    display_root,
+    "config_interface",
     "Select configuration interface",
     config_interface_list,
     0,
@@ -1032,8 +1037,8 @@ void bx_init_options ()
 #endif
     NULL
   };
-  bx_options.Osel_displaylib = new bx_param_enum_c (BXP_SEL_DISPLAY_LIBRARY,
-    "VGA Display Library",
+  bx_options.Osel_displaylib = new bx_param_enum_c (display_root,
+    "display_library",
     "Select VGA Display Library",
     display_library_list,
     0,
@@ -1055,42 +1060,43 @@ void bx_init_options ()
 #endif
     NULL
   };
-  menu = new bx_list_c (BXP_MENU_INTERFACE, "Bochs Interface Menu", "intfmenu", interface_init_list);
+  // was BXP_MENU_INTERFACE
+  menu = new bx_list_c (menu_root, "interface", "Bochs Interface Menu", interface_init_list);
   menu->get_options ()->set (menu->SHOW_PARENT);
 
   // NE2K options
-  bx_options.ne2k.Opresent = new bx_param_bool_c (BXP_NE2K_PRESENT,
+  bx_options.ne2k.Opresent = new bx_param_bool_c (ne2k_root,
+      "present",
       "NE2K is present",
-      "to be written",
       0);
-  bx_options.ne2k.Oioaddr = new bx_param_num_c (BXP_NE2K_IOADDR,
-      "NE2K I/O Address",
-      "to be written",
+  bx_options.ne2k.Oioaddr = new bx_param_num_c (ne2k_root,
+      "ioaddr",
+      "NE2K I/O address",
       0, 0xffff,
       0);
   bx_options.ne2k.Oioaddr->set_base (16);
-  bx_options.ne2k.Oirq = new bx_param_num_c (BXP_NE2K_IRQ,
-      "NE2K Interrupt",
-      "to be written",
+  bx_options.ne2k.Oirq = new bx_param_num_c (ne2k_root,
+      "irq",
+      "NE2K interrupt",
       0, 15,
       0);
-  bx_options.ne2k.Omacaddr = new bx_param_string_c (BXP_NE2K_MACADDR,
-      "MAC Address",
-      "to be written",
+  bx_options.ne2k.Omacaddr = new bx_param_string_c (ne2k_root,
+      "macaddr",
+      "NE2K Mac Address",
       "", 6);
   bx_options.ne2k.Omacaddr->get_options ()->set (bx_options.ne2k.Omacaddr->RAW_BYTES);
   bx_options.ne2k.Omacaddr->set_separator (':');
-  bx_options.ne2k.Oethmod = new bx_param_string_c (BXP_NE2K_ETHMOD,
-      "Ethernet module",
-      "to be written",
+  bx_options.ne2k.Oethmod = new bx_param_string_c (ne2k_root,
+      "ethmod",
+      "NE2K ethernet module",
       "null", 16);
-  bx_options.ne2k.Oethdev = new bx_param_string_c (BXP_NE2K_ETHDEV,
-      "Ethernet device",
+  bx_options.ne2k.Oethdev = new bx_param_string_c (ne2k_root,
+      "ethdev",
       "to be written",
       "xl0", BX_PATHNAME_LEN);
-  bx_options.ne2k.Oscript = new bx_param_string_c (BXP_NE2K_SCRIPT,
+  bx_options.ne2k.Oscript = new bx_param_string_c (ne2k_root,
+      "script",
       "Device configuration script",
-      "to be written",
       "none", BX_PATHNAME_LEN);
   bx_options.ne2k.Oscript->set_ask_format ("Enter new script name, or 'none': [%s] ");
   bx_param_c *ne2k_init_list[] = {
@@ -1103,46 +1109,47 @@ void bx_init_options ()
     bx_options.ne2k.Oscript,
     NULL
   };
-  menu = new bx_list_c (BXP_NE2K, "NE2K Configuration", "", ne2k_init_list);
+  // was BXP_NE2K
+  menu = new bx_list_c (menu_root, "ne2k", "NE2K Configuration", ne2k_init_list);
   menu->get_options ()->set (menu->SHOW_PARENT);
   bx_options.ne2k.Opresent->set_handler (bx_param_handler);
   bx_options.ne2k.Opresent->set (0);
 
   // SB16 options
-  bx_options.sb16.Opresent = new bx_param_bool_c (BXP_SB16_PRESENT,
+  bx_options.sb16.Opresent = new bx_param_bool_c (sb16_root,
+      "present",
       "SB16 is present",
-      "to be written",
       0);
-  bx_options.sb16.Omidifile = new bx_param_filename_c (BXP_SB16_MIDIFILE,
+  bx_options.sb16.Omidifile = new bx_param_filename_c (sb16_root,
+      "midi_file",
       "Midi file",
-      "to be written",
       "", BX_PATHNAME_LEN);
-  bx_options.sb16.Owavefile = new bx_param_filename_c (BXP_SB16_WAVEFILE,
+  bx_options.sb16.Owavefile = new bx_param_filename_c (sb16_root,
+      "wave_file",
       "Wave file",
-      "to be written",
       "", BX_PATHNAME_LEN);
-  bx_options.sb16.Ologfile = new bx_param_filename_c (BXP_SB16_LOGFILE,
+  bx_options.sb16.Ologfile = new bx_param_filename_c (sb16_root,
+      "log_file",
       "Log file",
-      "to be written",
       "", BX_PATHNAME_LEN);
-  bx_options.sb16.Omidimode = new bx_param_num_c (BXP_SB16_MIDIMODE,
+  bx_options.sb16.Omidimode = new bx_param_num_c (sb16_root,
+      "midi_mode",
       "Midi mode",
-      "to be written",
       0, BX_MAX_BIT32U,
       0);
-  bx_options.sb16.Owavemode = new bx_param_num_c (BXP_SB16_WAVEMODE,
+  bx_options.sb16.Owavemode = new bx_param_num_c (sb16_root,
+      "wave_mode",
       "Wave mode",
-      "to be written",
       0, BX_MAX_BIT32U,
       0);
-  bx_options.sb16.Ologlevel = new bx_param_num_c (BXP_SB16_LOGLEVEL,
+  bx_options.sb16.Ologlevel = new bx_param_num_c (sb16_root,
+      "log_mode",
       "Log mode",
-      "to be written",
       0, BX_MAX_BIT32U,
       0);
-  bx_options.sb16.Odmatimer = new bx_param_num_c (BXP_SB16_DMATIMER,
+  bx_options.sb16.Odmatimer = new bx_param_num_c (sb16_root,
+      "dma_timer",
       "DMA timer",
-      "to be written",
       0, BX_MAX_BIT32U,
       0);
   bx_param_c *sb16_init_list[] = {
@@ -1156,51 +1163,53 @@ void bx_init_options ()
     bx_options.sb16.Odmatimer,
     NULL
   };
-  menu = new bx_list_c (BXP_SB16, "SB16 Configuration", "", sb16_init_list);
+  // was BXP_SB16
+  menu = new bx_list_c (menu_root, "sb16", "SB16 Configuration", sb16_init_list);
   menu->get_options ()->set (menu->SHOW_PARENT);
   // sb16_dependent_list is a null-terminated list including all the
   // sb16 fields except for the "present" field.  These will all be enabled/
   // disabled according to the value of the present field.
   bx_param_c **sb16_dependent_list = &sb16_init_list[1];
   bx_options.sb16.Opresent->set_dependent_list (
-      new bx_list_c (BXP_NULL, "", "", sb16_dependent_list));
+      new bx_list_c (NULL, "", "", sb16_dependent_list));
 
-  bx_options.log.Ofilename = new bx_param_filename_c (BXP_LOG_FILENAME,
-      "Log filename",
+  bx_options.log.Ofilename = new bx_param_filename_c (log_root,
+      "path",
       "Pathname of bochs log file",
       "-", BX_PATHNAME_LEN);
   bx_options.log.Ofilename->set_ask_format ("Enter log filename: [%s] ");
 
-  bx_options.log.Oprefix = new bx_param_string_c (BXP_LOG_PREFIX,
-      "Log output prefix",
+  bx_options.log.Oprefix = new bx_param_string_c (log_root,
+      "prefix",
       "Prefix prepended to log output",
       "%t%e%d", BX_PATHNAME_LEN);
   bx_options.log.Oprefix->set_ask_format ("Enter log prefix: [%s] ");
 
-  bx_options.log.Odebugger_filename = new bx_param_filename_c (BXP_DEBUGGER_LOG_FILENAME,
-      "Debugger Log filename",
+  bx_options.log.Odebugger_filename = new bx_param_filename_c (debugger_root,
+      "log_path",
       "Pathname of debugger log file",
       "-", BX_PATHNAME_LEN);
   bx_options.log.Odebugger_filename->set_ask_format ("Enter debugger log filename: [%s] ");
 
   // loader
-  bx_options.load32bitOSImage.OwhichOS = new bx_param_enum_c (BXP_LOAD32BITOS_WHICH,
-      "Which operating system?",
+  bx_list_c *load32bitos_root = new bx_list_c (boot_params_root, "load32bitos", "32-bit OS Loader");
+  bx_options.load32bitOSImage.OwhichOS = new bx_param_enum_c (load32bitos_root,
+      "which_os",
       "Which OS to boot",
       loader_os_names,
       Load32bitOSNone,
       Load32bitOSNone);
-  bx_options.load32bitOSImage.Opath = new bx_param_filename_c (BXP_LOAD32BITOS_PATH,
+  bx_options.load32bitOSImage.Opath = new bx_param_filename_c (load32bitos_root,
+      "path",
       "Pathname of OS to load",
-      NULL,
       "", BX_PATHNAME_LEN);
-  bx_options.load32bitOSImage.Oiolog = new bx_param_filename_c (BXP_LOAD32BITOS_IOLOG,
+  bx_options.load32bitOSImage.Oiolog = new bx_param_filename_c (load32bitos_root,
+      "io_log",
       "Pathname of I/O log file",
-      NULL,
       "", BX_PATHNAME_LEN);
-  bx_options.load32bitOSImage.Oinitrd = new bx_param_filename_c (BXP_LOAD32BITOS_INITRD,
+  bx_options.load32bitOSImage.Oinitrd = new bx_param_filename_c (load32bitos_root,
+      "initrd",
       "Pathname of initrd",
-      NULL,
       "", BX_PATHNAME_LEN);
   bx_param_c *loader_init_list[] = {
     bx_options.load32bitOSImage.OwhichOS,
@@ -1217,66 +1226,67 @@ void bx_init_options ()
   bx_options.load32bitOSImage.Opath->set_ask_format ("Enter pathname of OS: [%s]");
   bx_options.load32bitOSImage.Oiolog->set_ask_format ("Enter pathname of I/O log: [%s] ");
   bx_options.load32bitOSImage.Oinitrd->set_ask_format ("Enter pathname of initrd: [%s] ");
-  menu = new bx_list_c (BXP_LOAD32BITOS, "32-bit OS Loader", "", loader_init_list);
+  // was BXP_LOAD32BITOS
+  menu = new bx_list_c (menu_root, "load32bitos", "32-bit OS Loader", loader_init_list);
   menu->get_options ()->set (menu->SERIES_ASK);
   bx_options.load32bitOSImage.OwhichOS->set_handler (bx_param_handler);
   bx_options.load32bitOSImage.OwhichOS->set (Load32bitOSNone);
 
   // other
-  bx_options.Okeyboard_serial_delay = new bx_param_num_c (BXP_KBD_SERIAL_DELAY,
-      "Keyboard serial delay",
+  bx_options.Okeyboard_serial_delay = new bx_param_num_c (keyboard_root,
+      "serial_delay",
       "Approximate time in microseconds that it takes one character to be transfered from the keyboard to controller over the serial path.",
       1, BX_MAX_BIT32U,
       20000);
-  bx_options.Okeyboard_paste_delay = new bx_param_num_c (BXP_KBD_PASTE_DELAY,
-      "Keyboard paste delay",
+  bx_options.Okeyboard_paste_delay = new bx_param_num_c (keyboard_root,
+      "paste_delay",
       "Approximate time in microseconds between attemps to paste characters to the keyboard controller.",
       1000, BX_MAX_BIT32U,
       100000);
   bx_options.Okeyboard_paste_delay->set_handler (bx_param_handler);
-  bx_options.Ofloppy_command_delay = new bx_param_num_c (BXP_FLOPPY_CMD_DELAY,
-      "Floppy command delay",
-      "Time in microseconds to wait before completing some floppy commands such as read/write/seek/etc, which normally have a delay associated.  This used to be hardwired to 50,000 before.",
+  bx_options.Ofloppy_command_delay = new bx_param_num_c (floppy_root,
+      "cmd_delay",
+      "Floppy command delay: Time in microseconds to wait before completing some floppy commands such as read/write/seek/etc, which normally have a delay associated.  This used to be hardwired to 50,000 before.",
       1, BX_MAX_BIT32U,
       50000);
-  bx_options.Oi440FXSupport = new bx_param_bool_c (BXP_I440FX_SUPPORT,
-      "PCI i440FX Support",
+  bx_options.Oi440FXSupport = new bx_param_bool_c (pci_root,
+      "enable",
       "Controls whether to emulate PCI I440FX",
       0);
-  bx_options.cmos.OcmosImage = new bx_param_bool_c (BXP_CMOS_IMAGE,
+  bx_options.cmos.OcmosImage = new bx_param_bool_c (cmos_root,
+      "use_image",
       "Use a CMOS image",
-      NULL,
       0);
-  bx_options.cmos.Opath = new bx_param_filename_c (BXP_CMOS_PATH,
+  bx_options.cmos.Opath = new bx_param_filename_c (cmos_root,
+      "path",
       "Pathname of CMOS image",
-      NULL,
       "", BX_PATHNAME_LEN);
-  deplist = new bx_list_c (BXP_NULL, 1);
+  deplist = new bx_list_c (NULL, 1);
   deplist->add (bx_options.cmos.Opath);
   bx_options.cmos.OcmosImage->set_dependent_list (deplist);
 
-  bx_options.cmos.Otime0 = new bx_param_num_c (BXP_CMOS_TIME0,
-      "Initial CMOS time for Bochs",
-      "Start time for Bochs CMOS clock, used if you really want two runs to be identical (cosimulation)",
+  bx_options.cmos.Otime0 = new bx_param_num_c (cmos_root,
+      "time0",
+      "Initial CMOS time for Bochs CMOS clock, used if you really want two runs to be identical (cosimulation)",
       0, BX_MAX_BIT32U,
       0);
 
   // Keyboard mapping
-  bx_options.keyboard.OuseMapping = new bx_param_bool_c(BXP_KEYBOARD_USEMAPPING,
+  bx_options.keyboard.OuseMapping = new bx_param_bool_c(keyboard_root,
+      "use_mapping",
       "Use keyboard mapping",
-      NULL,
       0);
-  bx_options.keyboard.Okeymap = new bx_param_filename_c (BXP_KEYBOARD_MAP,
+  bx_options.keyboard.Okeymap = new bx_param_filename_c (keyboard_root,
+      "map",
       "Keymap filename",
-      NULL,
       "", BX_PATHNAME_LEN);
-  deplist = new bx_list_c (BXP_NULL, 1);
+  deplist = new bx_list_c (NULL, 1);
   deplist->add (bx_options.keyboard.Okeymap);
   bx_options.keyboard.OuseMapping->set_dependent_list (deplist);
 
  // Keyboard type
-  bx_options.Okeyboard_type = new bx_param_enum_c (BXP_KBD_TYPE,
-      "Keyboard type",
+  bx_options.Okeyboard_type = new bx_param_enum_c (keyboard_root,
+      "type",
       "Keyboard type",
       keyboard_type_names,
       BX_KBD_MF_TYPE,
@@ -1285,8 +1295,8 @@ void bx_init_options ()
   bx_options.Okeyboard_type->set_ask_format ("Enter keyboard type: [%s] ");
 
   // Userbutton shortcut
-  bx_options.Ouser_shortcut = new bx_param_string_c (BXP_USER_SHORTCUT,
-      "Userbutton shortcut",
+  bx_options.Ouser_shortcut = new bx_param_string_c (keyboard_root,
+      "user_shortcut",
       "Userbutton shortcut",
       "none", 16);
 
@@ -1304,15 +1314,19 @@ void bx_init_options ()
       bx_options.cmos.OcmosImage,
       bx_options.cmos.Opath,
       bx_options.cmos.Otime0,
-      SIM->get_param (BXP_LOAD32BITOS),
+      SIM->get_param ("menu.load32bitOSImage"),
       bx_options.keyboard.OuseMapping,
       bx_options.keyboard.Okeymap,
       bx_options.Okeyboard_type,
       bx_options.Ouser_shortcut,
       NULL
   };
-  menu = new bx_list_c (BXP_MENU_MISC, "Configure Everything Else", "", other_init_list);
+  // was BXP_MENU_MISC
+  menu = new bx_list_c (menu_root, "other", "Configure Everything Else", other_init_list);
   menu->get_options ()->set (menu->SHOW_PARENT);
+
+  printf ("parameter tree:\n");
+  print_tree (param_root, 0);
 }
 
 void bx_reset_options ()
@@ -1351,7 +1365,7 @@ void bx_reset_options ()
   // boot & memory
   bx_options.Obootdrive->reset();
   bx_options.OfloppySigCheck->reset();
-  bx_options.memory.Osize->reset();
+  SIM->get_param("memory.ram.megs")->reset ();
 
   // standard ports
   bx_options.com[0].Oenabled->reset();
@@ -1509,8 +1523,129 @@ static void carbonFatalDialog(const char *error, const char *exposition)
 }
 #endif
 
+void bx_test_params () {
+  printf ("Begin\n");
+
+  // create numeric parameter a
+  bx_param_num_c *ap = new bx_param_num_c (NULL,
+    "parameter a",
+    "description of a",
+    0,    // minimum value
+    10,   // maximum value
+    1);   // default value
+  printf ("%s is %d\n", ap->get_name(), ap->get ());
+  ap->set(10);
+  printf ("%s is %d\n", ap->get_name(), ap->get ());
+  //ap->set(11);   // causes assert because 11 is out of range
+  printf ("Resetting a to initial value.\n");
+  ap->reset ();
+  printf ("%s is %d\n", ap->get_name(), ap->get ());
+  Bit32u b = 77;
+  bx_param_num_c *bp = new bx_shadow_num_c (NULL,
+    "shadow parameter b", 
+    "description of b",
+    &b);
+  printf ("%s is %d\n", bp->get_name(), bp->get ());
+  b = 32;
+  printf ("%s is %d\n", bp->get_name(), bp->get ());
+  bp->set (45);
+  printf ("%s is %d\n", bp->get_name(), bp->get ());
+  //printf ("Resetting b to initial value.\n");
+  //bp->reset ();  // not supported on shadow params
+  printf ("%s is %d\n", bp->get_name(), bp->get ());
+  printf ("End\n");
+}
+
+void print_tree (bx_param_c *node, int level)
+{
+  int i;
+  for (i=0; i<level; i++)
+    printf ("  ");
+  if (node == NULL) {
+      printf ("NULL pointer\n");
+      return;
+  }
+  switch (node->get_type()) {
+    case BXT_PARAM_NUM:
+      {
+	bx_param_num_c *num = (bx_param_num_c *) node;
+	int base = num->get_base ();
+	BX_ASSERT (base==10 || base==16);
+	printf ("%s = ", node->get_name ());
+	if (base==10)
+	  printf ("%d  (number)\n", num->get ());
+	else
+	  printf ("0x%x  (number)\n", num->get ());
+      }
+      break;
+    case BXT_PARAM_BOOL:
+      printf ("%s = %s  (boolean)\n", node->get_name(), ((bx_param_bool_c*)node)->get()?"true":"false");
+      break;
+    case BXT_PARAM_STRING:
+      printf ("%s = '%s'  (string)\n", node->get_name(), ((bx_param_string_c*)node)->getptr());
+      break;
+    case BXT_LIST:
+      {
+	printf ("%s = \n", node->get_name ());
+	bx_list_c *list = (bx_list_c*)node;
+	for (i=0; i < list->get_size (); i++) {
+	  // should distinguish between real children and 'links'
+	  // where the child's parent does not point to me.
+	  print_tree (list->get(i), level+1);
+	}
+	break;
+      }
+    case BXT_PARAM_ENUM:
+      {
+	bx_param_enum_c *e = (bx_param_enum_c*) node;
+	int val = e->get ();
+	char *choice = e->get_choice(val);
+	printf ("%s = '%s'  (enum)\n", node->get_name (), choice);
+      }
+      break;
+    case BXT_PARAM:
+    default:
+      printf ("%s = <PRINTING TYPE %d NOT SUPPORTED>\n", node->get_name (), node->get_type ());
+  }
+}
+
+void test_lookup (const char *pname) 
+{
+  printf ("looking up parameter '%s'\n", pname);
+  bx_param_c *param = SIM->get_param (pname);
+  print_tree (param);
+}
+
+void bx_test_param_tree () {
+  printf ("bx_test_param_tree\n");
+  bx_list_c *top = new bx_list_c (NULL, 
+      "bochs", "top level object",
+      20);
+  bx_list_c *memory_root = new bx_list_c (top, "memory", "", 5);
+  bx_list_c *ram = new bx_list_c (memory_root, "ram", "", 5);
+  new bx_param_num_c (ram, "size", "Size of RAM in megabytes",
+      1, BX_MAX_BIT32U, BX_DEFAULT_MEM_MEGS);
+  bx_list_c *rom = new bx_list_c (memory_root, "rom", "", 5);
+  new bx_param_num_c (rom, "address", "ROM Address",
+      0, 0xffff, 0xf000);
+  print_tree (top);
+  printf ("Finding memory size: \n");
+  test_lookup (".");
+  test_lookup ("memory.ram.size");
+  test_lookup ("memory.ram");
+  //test_lookup ("memory.ram.");  // illegal
+  //test_lookup ("memory.ram..size");  // illegal
+  printf ("bx_test_param_tree done\n");
+}
+
 int bxmain () {
   bx_init_siminterface ();   // create the SIM object
+  //bx_test_params ();
+  //bx_test_param_tree ();
+  //exit(0);
+
+
+
   static jmp_buf context;
   if (setjmp (context) == 0) {
     SIM->set_quit_context (&context);
@@ -1518,7 +1653,7 @@ int bxmain () {
       return 0;
     // read a param to decide which config interface to start.
     // If one exists, start it.  If not, just begin.
-    bx_param_enum_c *ci_param = SIM->get_param_enum (BXP_SEL_CONFIG_INTERFACE);
+    bx_param_enum_c *ci_param = SIM->get_param_enum ("display.config_interface");
     char *ci_name = ci_param->get_choice (ci_param->get ());
     if (!strcmp(ci_name, "textconfig")) {
       init_text_config_interface ();   // in textconfig.h
@@ -1750,7 +1885,7 @@ bx_init_main (int argc, char *argv[])
 
   bx_print_header ();
 
-  SIM->get_param_enum(BXP_BOCHS_START)->set (BX_RUN_START);
+  SIM->get_param_enum("misc.start_mode")->set (BX_RUN_START);
 
   // interpret the args that start with -, like -q, -f, etc.
   int arg = 1, load_rcfile=1;
@@ -1764,14 +1899,14 @@ bx_init_main (int argc, char *argv[])
       load_rcfile = 0;
     }
     else if (!strcmp ("-q", argv[arg])) {
-      SIM->get_param_enum(BXP_BOCHS_START)->set (BX_QUICK_START);
+      SIM->get_param_enum("misc.start_mode")->set (BX_QUICK_START);
     }
     else if (!strcmp ("-f", argv[arg])) {
       if (++arg >= argc) BX_PANIC(("-f must be followed by a filename"));
       else bochsrc_filename = argv[arg];
     }
     else if (!strcmp ("-qf", argv[arg])) {
-      SIM->get_param_enum(BXP_BOCHS_START)->set (BX_QUICK_START);
+      SIM->get_param_enum("misc.start_mode")->set (BX_QUICK_START);
       if (++arg >= argc) BX_PANIC(("-qf must be followed by a filename"));
       else bochsrc_filename = argv[arg];
     }
@@ -1785,7 +1920,7 @@ bx_init_main (int argc, char *argv[])
       arg = argc; // ignore all other args.
       setupWorkingDirectory (argv[0]);
       // there is no stdin/stdout so disable the text-based config interface.
-      SIM->get_param_enum(BXP_BOCHS_START)->set (BX_QUICK_START);
+      SIM->get_param_enum("misc.start_mode")->set (BX_QUICK_START);
       char cwd[MAXPATHLEN];
       getwd (cwd);
       BX_INFO (("Now my working directory is %s", cwd));
@@ -1850,7 +1985,7 @@ bx_init_main (int argc, char *argv[])
     if(!isatty(STDIN_FILENO))
     {
       // there is no stdin/stdout so disable the text-based config interface.
-      SIM->get_param_enum(BXP_BOCHS_START)->set (BX_QUICK_START);
+      SIM->get_param_enum("misc.start_mode")->set (BX_QUICK_START);
     }
     BX_INFO (("fixing default lib location ..."));
     // locate the lib directory within the application bundle.
@@ -1893,7 +2028,7 @@ bx_init_main (int argc, char *argv[])
 
 #if !BX_USE_CONFIG_INTERFACE
   // this allows people to get quick start behavior by default
-  SIM->get_param_enum(BXP_BOCHS_START)->set (BX_QUICK_START);
+  SIM->get_param_enum("misc.start_mode")->set (BX_QUICK_START);
 #endif
 
   int norcfile = 1;
@@ -1909,13 +2044,13 @@ bx_init_main (int argc, char *argv[])
     // No configuration was loaded, so the current settings are unusable.
     // Switch off quick start so that we will drop into the configuration
     // interface.
-    if (SIM->get_param_enum(BXP_BOCHS_START)->get() == BX_QUICK_START) {
+    if (SIM->get_param_enum("misc.start_mode")->get() == BX_QUICK_START) {
       if (!SIM->test_for_text_console ())
         BX_PANIC(("Unable to start Bochs without a bochsrc.txt and without a text console"));
       else 
         BX_ERROR (("Switching off quick start, because no configuration file was found."));
     }
-    SIM->get_param_enum(BXP_BOCHS_START)->set (BX_LOAD_START);
+    SIM->get_param_enum("misc.start_mode")->set (BX_LOAD_START);
   }
 
   // parse the rest of the command line.  This is done after reading the
@@ -2123,7 +2258,7 @@ bx_init_hardware()
 {
   // all configuration has been read, now initialize everything.
 
-  if (SIM->get_param_enum(BXP_BOCHS_START)->get ()==BX_QUICK_START) {
+  if (SIM->get_param_enum("misc.start_mode")->get ()==BX_QUICK_START) {
     for (int level=0; level<N_LOGLEV; level++) {
       int action = SIM->get_default_log_action (level);
 #if !BX_USE_CONFIG_INTERFACE
@@ -2179,7 +2314,8 @@ bx_init_hardware()
   }
 
 #if BX_SMP_PROCESSORS==1
-  BX_MEM(0)->init_memory(bx_options.memory.Osize->get () * 1024*1024);
+  bx_param_num_c *memsize = SIM->get_param_num("memory.ram.megs");
+  BX_MEM(0)->init_memory(memsize->get() * 1024*1024);
 
   // First load the optional ROM images
   if (strcmp(bx_options.optrom[0].Opath->getptr (),"") !=0 )
@@ -3286,7 +3422,7 @@ parse_line_formatted(char *context, int num_params, char *params[])
     if (num_params != 2) {
       PARSE_ERR(("%s: megs directive: wrong # args.", context));
       }
-    bx_options.memory.Osize->set (atol(params[1]));
+    SIM->get_param_num("memory.ram.megs")->set (atol(params[1]));
     }
   else if (!strcmp(params[0], "floppy_command_delay")) {
     if (num_params != 2) {
