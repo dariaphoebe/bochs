@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: textconfig.cc,v 1.8 2002/12/17 05:58:45 bdenney Exp $
+// $Id: textconfig.cc,v 1.8.6.1 2003/03/20 05:18:07 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // This is code for a text-mode configuration interfac.  Note that this file
@@ -373,8 +373,7 @@ void build_runtime_options_prompt (char *format, char *buf, int size)
       SIM->get_param_string (BXP_USER_SHORTCUT)->getptr ());
 }
 
-int do_menu (bx_id id) {
-  bx_list_c *menu = (bx_list_c *)SIM->get_param (id);
+int do_menu (bx_list_c *menu) {
   while (1) {
     menu->get_choice()->set (0);
     int status = menu->text_ask (stdin, stderr);
@@ -390,6 +389,21 @@ int do_menu (bx_id id) {
     }
   }
 }
+
+int do_menu (const char *pname) {
+  bx_param_c *menu = SIM->get_param (pname);
+  assert (menu != NULL);
+  assert (menu->is_type (BXT_LIST));
+  return do_menu ((bx_list_c *)menu);
+}
+
+int do_menu (bx_id id) {
+  bx_param_c *menu = SIM->get_param (id);
+  assert (menu != NULL);
+  assert (menu->is_type (BXT_LIST));
+  return do_menu ((bx_list_c *)menu);
+}
+
 
 void askparam (bx_id id)
 {
