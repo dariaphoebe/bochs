@@ -481,12 +481,14 @@ void BX_CPU_C::FPLEGACY(bxInstruction_c *i)
 #endif
 }
 
+
 #if BX_SUPPORT_FPU
 
 #include <math.h>
 
 void BX_CPU_C::print_state_FPU()
 {
+/*
   static double sigh_scale_factor = pow(2.0, -31.0);
   static double sigl_scale_factor = pow(2.0, -63.0);
 
@@ -518,5 +520,6 @@ void BX_CPU_C::print_state_FPU()
     double f = f1*(f2+f3);
     fprintf(stderr, "st%d            %.10f (raw 0x%04x%08x%08x)\n", i, f, 0xffff & fpr->exp, fpr->sigh, fpr->sigl);
   }
+*/
 }
 #endif

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.51.8.2 2004/04/10 22:22:33 sshwarts Exp $
+// $Id: init.cc,v 1.51.8.3 2004/06/09 20:57:42 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -168,7 +168,7 @@ cpu_param_handler (bx_param_c *param, int set, Bit64s val)
 
 void BX_CPU_C::init(BX_MEM_C *addrspace)
 {
-  BX_DEBUG(( "Init $Id: init.cc,v 1.51.8.2 2004/04/10 22:22:33 sshwarts Exp $"));
+  BX_DEBUG(( "Init $Id: init.cc,v 1.51.8.3 2004/06/09 20:57:42 sshwarts Exp $"));
   // BX_CPU_C constructor
   BX_CPU_THIS_PTR set_INTR (0);
 #if BX_SUPPORT_APIC
@@ -973,11 +973,6 @@ BX_CPU_C::sanity_checks(void)
     BX_PANIC(("data type Bit32u or Bit32s is not of length 4 bytes!"));
   if (sizeof(Bit64u) != 8  ||  sizeof(Bit64s) != 8)
     BX_PANIC(("data type Bit64u or Bit64u is not of length 8 bytes!"));
-
-#if BX_SUPPORT_FPU
-  if (sizeof(floatx80) != 10)
-    BX_PANIC(("extended precision floating point is not of length 10 bytes!"));
-#endif
 
   BX_DEBUG(( "#(%u)all sanity checks passed!", BX_SIM_ID ));
 }

@@ -19,52 +19,18 @@
 //
 
 
-#ifndef BX_I387_RELATED_EXTENSIONS_H
-#define BX_I387_RELATED_EXTENSIONS_H
+#ifndef _BX_I387_RELATED_EXTENSIONS_H_
+#define _BX_I387_RELATED_EXTENSIONS_H_
 
 #if BX_SUPPORT_FPU
 
-// Endian  Host byte order         Guest (x86) byte order
-// ======================================================
-// Little  FFFFFFFFEEAAAAAA        FFFFFFFFEEAAAAAA
-// Big     AAAAAAEEFFFFFFFF        FFFFFFFFEEAAAAAA
-//
-// Legend: F - fraction/mmx
-//         E - exponent
-//         A - alignment
-
-#ifdef BX_BIG_ENDIAN
-#if defined(__MWERKS__) && defined(macintosh)
-#pragma options align=mac68k
-#endif
-struct bx_fpu_reg_t {
-  Bit16u alignment1, alignment2, alignment3;
-  Bit16s exp;   /* Signed quantity used in internal arithmetic. */
-  Bit32u sigh;
-  Bit32u sigl;
-} GCC_ATTRIBUTE((aligned(16), packed));
-#if defined(__MWERKS__) && defined(macintosh)
-#pragma options align=reset
-#endif
-#else
-struct bx_fpu_reg_t {
-  Bit32u sigl;
-  Bit32u sigh;
-  Bit16s exp;   /* Signed quantity used in internal arithmetic. */
-  Bit16u alignment1, alignment2, alignment3;
-} GCC_ATTRIBUTE((aligned(16), packed));
-#endif
-
-typedef struct bx_fpu_reg_t FPU_REG;
+#include "fpu/softfloat.h"
 
 #define BX_FPU_REG(index) \
     (BX_CPU_THIS_PTR the_i387.st_space[index])
 
 #define BX_FPU_READ_ST0() \
     (BX_CPU_THIS_PTR the_i387.st_space[BX_CPU_THIS_PTR the_i387.tos & 0x07])
-
-#define BX_FPU_READ_RAW_FPU_REG(i) \
-    (BX_CPU_THIS_PTR the_i387.st_space[(BX_CPU_THIS_PTR the_i387.tos + i) & 0x07])
 
 #if defined(NEED_CPU_REG_SHORTCUTS)
 #define FPU_PARTIAL_STATUS     (BX_CPU_THIS_PTR the_i387.swd)
@@ -77,11 +43,45 @@ typedef struct bx_fpu_reg_t FPU_REG;
 #include "fpu/status_w.h"
 #include "fpu/control_w.h"
 
+extern int FPU_tagof(const floatx80 &reg);
+
 //
 // Minimal i387 structure
 //
 struct i387_t 
 {
+    i387_t() {}
+
+public:
+    void	init();		// used by FINIT/FNINIT instructions
+    void	reset();	// called on CPU reset
+
+    int    	get_tos() const { return tos; }
+
+    int 	is_IA_masked() const { return (cwd & FPU_CW_Invalid); }
+
+    Bit16u 	get_control_word() const { return cwd; }
+    Bit16u 	get_tag_word() const { return twd; }
+    Bit16u 	get_status_word() const { return (swd & ~FPU_SW_Top & 0xFFFF) | ((tos << 11) & FPU_SW_Top); }
+    Bit16u 	get_partial_status() const { return swd; }
+
+    void   	FPU_pop ();
+    void   	FPU_push();
+
+    void   	FPU_settag (int tag, int regnr);
+    int    	FPU_gettag (int regnr);
+
+    void   	FPU_settagi(int tag, int stnr) { FPU_settag(tag, tos+stnr); }
+    int    	FPU_gettagi(int stnr) { return FPU_gettag(tos+stnr); }
+
+    void	FPU_save_reg (floatx80 reg, int regnr);
+    void	FPU_save_reg (floatx80 reg, int tag, int regnr);
+
+    void  	FPU_save_regi(floatx80 reg, int stnr) { FPU_save_reg(reg, (tos+stnr) & 0x07); }
+    floatx80 	FPU_read_regi(int stnr) { return st_space[(tos+stnr) & 0x07]; }
+    void  	FPU_save_regi(floatx80 reg, int tag, int stnr) { FPU_save_reg(reg, tag, (tos+stnr) & 0x07); }
+
+public:
     Bit16u cwd; 	// control word
     Bit16u swd; 	// status word
     Bit16u twd;		// tag word
@@ -92,10 +92,12 @@ struct i387_t
     Bit16u fcs;
     Bit16u fds;
 
-    FPU_REG st_space[8];
+    floatx80 st_space[8];
 
     unsigned char tos;
-    unsigned char align1, align, align3;
+    unsigned char align1;
+    unsigned char align2;
+    unsigned char align3;
 };
 
 // for now solution, will be merged with i387_t when FPU 
@@ -116,41 +118,6 @@ struct i387_t
 
 extern softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word);
 
-struct i387_structure_t : public i387_t
-{
-    i387_structure_t() {}
-
-    void	init();		// used by FINIT/FNINIT instructions
-    void	reset();	// called on CPU reset
-
-public:
-    int    	get_tos() const { return tos; }
-
-    int 	is_IA_masked() const { return (cwd & FPU_CW_Invalid); }
-
-    Bit16u 	get_control_word() const { return cwd; }
-    Bit16u 	get_tag_word() const { return twd; }
-    Bit16u 	get_status_word() const { return (swd & ~FPU_SW_Top & 0xFFFF) | ((tos << 11) & FPU_SW_Top); }
-    Bit16u 	get_partial_status() const { return swd; }
-
-    void   	FPU_pop ();
-    void   	FPU_push();
-
-    void   	FPU_settag (int tag, int regnr);
-    int    	FPU_gettag (int regnr);
-
-    void   	FPU_settagi(int tag, int stnr) { FPU_settag(tag, tos+stnr); }
-    int    	FPU_gettagi(int stnr) { return FPU_gettag(tos+stnr); }
-
-    void	FPU_save_reg (floatx80 reg, int regnr);
-    floatx80 	FPU_read_reg (int regnr);
-    void	FPU_save_reg (floatx80 reg, int tag, int regnr);
-
-    void  	FPU_save_regi(floatx80 reg, int stnr) { FPU_save_reg(reg, (tos+stnr) & 0x07); }
-    floatx80 	FPU_read_regi(int stnr) { return FPU_read_reg((tos+stnr) & 0x07); }
-    void  	FPU_save_regi(floatx80 reg, int tag, int stnr) { FPU_save_reg(reg, tag, (tos+stnr) & 0x07); }
-};
-
 #define IS_TAG_EMPTY(i) 		\
   ((BX_CPU_THIS_PTR the_i387.FPU_gettagi(i)) == FPU_Tag_Empty)
 
@@ -170,66 +137,43 @@ public:
     BX_CPU_THIS_PTR the_i387.FPU_save_regi((value), (i));      		\
 }                                                               	
 
-BX_CPP_INLINE int i387_structure_t::FPU_gettag(int regnr)
+BX_CPP_INLINE int i387_t::FPU_gettag(int regnr)
 {
   return (get_tag_word() >> ((regnr & 7)*2)) & 3;
 }
 
-BX_CPP_INLINE void i387_structure_t::FPU_settag (int tag, int regnr)
+BX_CPP_INLINE void i387_t::FPU_settag (int tag, int regnr)
 {
   regnr &= 7;
   twd &= ~(3 << (regnr*2));
   twd |= (tag & 3) << (regnr*2);
 }
 
-BX_CPP_INLINE void i387_structure_t::FPU_push(void)
+BX_CPP_INLINE void i387_t::FPU_push(void)
 {
   tos--;
 }
 
-BX_CPP_INLINE void i387_structure_t::FPU_pop(void)
+BX_CPP_INLINE void i387_t::FPU_pop(void)
 {
   twd |= 3 << ((tos & 7)*2);
   tos++;
 }
 
-BX_CPP_INLINE floatx80 i387_structure_t::FPU_read_reg(int regnr)
+BX_CPP_INLINE void i387_t::FPU_save_reg (floatx80 reg, int regnr)
 {
-  FPU_REG reg;
-  memcpy(&reg, &st_space[regnr], sizeof(FPU_REG));
-
-  floatx80 result;
-  result.exp = reg.exp;
-  result.fraction = (((Bit64u)(reg.sigh)) << 32) | ((Bit64u)(reg.sigl));
-
-  return result;
+  FPU_save_reg(reg, FPU_tagof(reg), regnr);
 }
 
-BX_CPP_INLINE void i387_structure_t::FPU_save_reg (floatx80 reg, int regnr)
+BX_CPP_INLINE void i387_t::FPU_save_reg (floatx80 reg, int tag, int regnr)
 {
-  FPU_REG result;
-
-  result.exp  = reg.exp;
-  result.sigl = reg.fraction & 0xFFFFFFFF;
-  result.sigh = reg.fraction >> 32;
-
-  memcpy(&st_space[regnr], &result, sizeof(FPU_REG));
-  FPU_settag(FPU_tagof(&result), regnr);
-}
-
-BX_CPP_INLINE void i387_structure_t::FPU_save_reg (floatx80 reg, int tag, int regnr)
-{
-  FPU_REG result;
-
-  result.exp  = reg.exp;
-  result.sigl = reg.fraction & 0xFFFFFFFF;
-  result.sigh = reg.fraction >> 32;
-
-  memcpy(&st_space[regnr], &result, sizeof(FPU_REG));
+  st_space[regnr] = reg;
   FPU_settag(tag, regnr);
 }
 
-BX_CPP_INLINE void i387_structure_t::init()
+#include <string.h>
+
+BX_CPP_INLINE void i387_t::init()
 {
   cwd = 0x037F;
   swd = 0;
@@ -242,7 +186,7 @@ BX_CPP_INLINE void i387_structure_t::init()
   fdp = 0;
 }
 
-BX_CPP_INLINE void i387_structure_t::reset()
+BX_CPP_INLINE void i387_t::reset()
 {
   cwd = 0x0040;
   swd = 0;
@@ -254,8 +198,7 @@ BX_CPP_INLINE void i387_structure_t::reset()
   fds = 0;
   fdp = 0;
 
-  for(int i=0;i<8;i++)
-     memset(st_space, 0, sizeof(FPU_REG)*10);
+  memset(st_space, 0, sizeof(floatx80)*8);
 }
 
 extern const floatx80 Const_Z;

@@ -489,8 +489,7 @@ floatx80 roundAndPackFloatx80(int roundingPrecision,
             else {
                 if (zSign) {
                     increment = (roundingMode == float_round_down) && zSig1;
-                }
-                else {
+                } else {
                     increment = (roundingMode == float_round_up) && zSig1;
                 }
             }

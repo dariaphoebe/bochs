@@ -27,9 +27,4 @@
 #define FPU_Tag_Special 0x02
 #define FPU_Tag_Empty   0x03
 
-#ifdef __cplusplus
-extern "C" 
-#endif
-int FPU_tagof(FPU_REG *reg) BX_CPP_AttrRegparmN(1);
-
 #endif

@@ -242,16 +242,38 @@ int float64_is_signaling_nan(float64);
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE floating-point types.
 *----------------------------------------------------------------------------*/
+
+// Endian  Host byte order         Guest (x86) byte order
+// ======================================================
+// Little  FFFFFFFFEEAAAAAA        FFFFFFFFEEAAAAAA
+// Big     AAAAAAEEFFFFFFFF        FFFFFFFFEEAAAAAA
+//
+// Legend: F - fraction/mmx
+//         E - exponent
+//         A - alignment
+
 #ifdef BX_BIG_ENDIAN
-struct floatx80 {	// do not allow 16-byte extension of the structure
+#if defined(__MWERKS__) && defined(macintosh)
+#pragma options align=mac68k
+#endif
+struct floatx80 {
+    Bit16u align1;
+    Bit16u align2;
+    Bit16u align3;
     Bit16u exp;
     Bit64u fraction;
-} GCC_ATTRIBUTE((aligned(1), packed));
+} GCC_ATTRIBUTE((aligned(16), packed));
+#if defined(__MWERKS__) && defined(macintosh)
+#pragma options align=reset
+#endif
 #else
-struct floatx80 {	// do not allow 16-byte extension of the structure
+struct floatx80 {
     Bit64u fraction;
     Bit16u exp;
-} GCC_ATTRIBUTE((aligned(1), packed));
+    Bit16u align1;
+    Bit16u align2;
+    Bit16u align3;
+} GCC_ATTRIBUTE((aligned(16), packed));
 #endif
 
 /*----------------------------------------------------------------------------
