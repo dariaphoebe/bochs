@@ -59,7 +59,7 @@ FPU_GLUE_OBJ = wmFPUemu_glue.o
 C_OBJS = errors.o fpu_tags.o fpu_trig.o \
 	poly_atan.o poly_l2.o poly_2xm1.o poly_sin.o poly_tan.o \
 	reg_add_sub.o reg_constant.o reg_convert.o \
-	reg_divide.o reg_mul.o reg_u_add.o \
+	reg_mul.o reg_u_add.o \
         reg_u_div.o reg_u_mul.o reg_u_sub.o reg_norm.o reg_round.o \
 	wm_shrx.o div_Xsig.o polynom_Xsig.o round_Xsig.o \
 	shr_Xsig.o mul_Xsig.o
@@ -137,8 +137,6 @@ reg_constant.o: reg_constant.c fpu_system.h ../config.h ../cpu/i387.h \
   control_w.h
 reg_convert.o: reg_convert.c exception.h fpu_emu.h linkage.h \
   fpu_system.h ../config.h ../cpu/i387.h fpu_proto.h
-reg_divide.o: reg_divide.c exception.h fpu_emu.h linkage.h \
-  fpu_system.h ../config.h ../cpu/i387.h fpu_proto.h reg_constant.h
 reg_mul.o: reg_mul.c fpu_emu.h linkage.h fpu_system.h \
   ../config.h ../cpu/i387.h fpu_proto.h exception.h reg_constant.h
 reg_norm.o: reg_norm.c fpu_emu.h linkage.h fpu_system.h \

@@ -60,19 +60,22 @@ void BX_CPU_C::print_state_FPU()
 
   Bit32u reg;
   reg = i387.cwd;
-  fprintf(stderr, "cwd            0x%-8x\t%d\n", (unsigned) reg, (int) reg);
+  fprintf(stderr, "cwd            0x%04x\n", reg);
   reg = i387.swd;
-  fprintf(stderr, "swd            0x%-8x\t%d\n", (unsigned) reg, (int) reg);
+  fprintf(stderr, "swd            0x%04x\n", reg);
   reg = i387.twd;
-  fprintf(stderr, "twd            0x%-8x\t%d\n", (unsigned) reg, (int) reg);
-  reg = i387.fip;
-  fprintf(stderr, "fip            0x%-8x\t%d\n", (unsigned) reg, (int) reg);
-  reg = i387.fcs;
-  fprintf(stderr, "fcs            0x%-8x\t%d\n", (unsigned) reg, (int) reg);
+  fprintf(stderr, "twd            0x%04x\n", reg);
   reg = i387.foo;
-  fprintf(stderr, "foo            0x%-8x\t%d\n", (unsigned) reg, (int) reg);
-  reg = i387.fos;
-  fprintf(stderr, "fos            0x%-8x\t%d\n", (unsigned) reg, (int) reg);
+  fprintf(stderr, "foo            0x%04x\n", reg);
+  reg = i387.fip & 0xffffffff;
+  fprintf(stderr, "fip            0x%08x\n", reg);
+  reg = i387.fcs;
+  fprintf(stderr, "fcs            0x%04x\n", reg);
+  reg = i387.fdp & 0xffffffff;
+  fprintf(stderr, "fip            0x%08x\n", reg);
+  reg = i387.fds;
+  fprintf(stderr, "fcs            0x%04x\n", reg);
+
   // print stack too
   for (int i=0; i<8; i++) {
     FPU_REG *fpr = &st(i);

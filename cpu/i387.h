@@ -57,17 +57,13 @@ struct bx_fpu_reg_t {
 
 typedef struct bx_fpu_reg_t FPU_REG;
 
-/* Tag Word */
-#define FPU_Tag_Valid   0x00
-#define FPU_Tag_Zero    0x01
-#define FPU_Tag_Special 0x02
-#define FPU_Tag_Empty   0x03
-
 #define BX_FPU_REG(index) \
     (BX_CPU_THIS_PTR the_i387.st_space[index])
 
 #define BX_FPU_READ_ST0() \
     (BX_CPU_THIS_PTR the_i387.st_space[BX_CPU_THIS_PTR the_i387.tos])
+
+#include "fpu/tag_w.h"
 
 #if defined(NEED_CPU_REG_SHORTCUTS)
 #define FPU_PARTIAL_STATUS     (BX_CPU_THIS_PTR the_i387.swd)
@@ -131,25 +127,20 @@ typedef struct bx_fpu_reg_t FPU_REG;
 //
 struct i387_t 
 {
-    Bit32u cwd; 	// control word
-    Bit32u swd; 	// status word
-    Bit32u twd;		// tag word
-    Bit32u fip;
-    Bit32u fcs;
-    Bit32u foo; 	// last instruction opcode
-    Bit32u fos;
+    Bit16u cwd; 	// control word
+    Bit16u swd; 	// status word
+    Bit16u twd;		// tag word
+    Bit16u foo; 	// last instruction opcode
 
-    bx_address fip_;
-    Bit16u fcs_;
-    Bit16u fds_;
-    bx_address fdp_;
-
-    unsigned char tos;
-    unsigned char no_update;
-    unsigned char rm;
-    unsigned char align8;
+    bx_address fip;
+    bx_address fdp;
+    Bit16u fcs;
+    Bit16u fds;
 
     FPU_REG st_space[8];
+
+    unsigned char tos;
+    unsigned char align1, align, align3;
 };
 
 // for now solution, will be merged with i387_t when FPU 
@@ -163,7 +154,6 @@ struct i387_t
   FPU_PARTIAL_STATUS |= (cc) & FPU_SW_CC; 	\
 } while(0);
 
-extern "C" int FPU_tagof(FPU_REG *reg) BX_CPP_AttrRegparmN(1);
 extern softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word);
 
 struct i387_structure_t : public i387_t
@@ -177,10 +167,10 @@ public:
 
     int 	is_IA_masked() const { return (cwd & FPU_CW_Invalid); }
 
-    Bit16u 	get_control_word() const { return cwd & 0xFFFF; }
-    Bit16u 	get_tag_word() const { return twd & 0xFFFF; }
+    Bit16u 	get_control_word() const { return cwd; }
+    Bit16u 	get_tag_word() const { return twd; }
     Bit16u 	get_status_word() const { return (swd & ~FPU_SW_Top & 0xFFFF) | ((tos << 11) & FPU_SW_Top); }
-    Bit16u 	get_partial_status() const { return swd & 0xFFFF; }
+    Bit16u 	get_partial_status() const { return swd; }
 
     void   	FPU_pop ();
     void   	FPU_push();
@@ -290,9 +280,11 @@ BX_CPP_INLINE void i387_structure_t::init()
   swd = 0;
   tos = 0;
   twd = 0xFFFF;
-
-  fip_ = fcs_ = fds_ = fdp_ = foo = 0;
-  fip  = fcs  = fos  = 0;
+  foo = 0;
+  fip = 0;
+  fcs = 0;
+  fds = 0;
+  fdp = 0;
 }
 
 extern const floatx80 Const_QNaN;

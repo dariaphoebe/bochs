@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  status_w.h                                                               |
- |  $Id: status_w.h,v 1.6 2003/07/31 21:07:38 sshwarts Exp $
+ |  $Id: status_w.h,v 1.6.8.1 2004/03/19 17:00:25 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993                                                   |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -50,12 +50,6 @@
   FPU_partial_status &= ~(SW_C0|SW_C1|SW_C2|SW_C3); \
   FPU_partial_status |= (cc) & (SW_C0|SW_C1|SW_C2|SW_C3); } while(0)
 
-#ifdef PECULIAR_486
-   /* Default, this conveys no information, but an 80486 does it. */
-   /* Clear the SW_C1 bit, "other bits undefined". */
-#  define clear_C1()  { FPU_partial_status &= ~SW_C1; }
-# else
-#  define clear_C1()
-#endif /* PECULIAR_486 */
+#define clear_C1()  { FPU_partial_status &= ~SW_C1; }
 
 #endif /* _STATUS_H_ */

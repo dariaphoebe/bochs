@@ -107,8 +107,14 @@ softfloat_status_word_t FPU_pre_exception_handling(Bit16u control_word)
      case FPU_PR_64_BITS:
        status.float_rounding_precision = 64;
        break;
-     default:
+     case FPU_PR_80_BITS:
        status.float_rounding_precision = 80;
+       break;
+     default:
+    /* With the precision control bits set to 01 "(reserved)", a 
+       real CPU behaves as if the precision control bits were 
+       set to 11 "64 bits" */
+       status.float_rounding_precision = 64;
   }
 
   status.float_detect_tininess = float_tininess_after_rounding;

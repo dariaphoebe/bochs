@@ -88,8 +88,6 @@ extern int FPU_add(FPU_REG const *b, u_char tagb, int destrnr, u16 control_w);
 extern int FPU_sub(int flags, FPU_REG *rm, u16 control_w);
 /* reg_mul.c */
 extern int FPU_mul(FPU_REG const *b, u_char tagb, int deststnr, int control_w);
-
-extern int FPU_div(int flags, FPU_REG *regrm, int control_w);
 /* reg_convert.c */
 extern int FPU_to_exp16(FPU_REG const *a, FPU_REG *x) BX_CPP_AttrRegparmN(2);
 

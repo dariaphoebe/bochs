@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.23.6.2 2004/03/19 13:26:48 sshwarts Exp $
+ |  $Id: fpu_emu.h,v 1.23.6.3 2004/03/19 17:00:25 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -131,11 +131,11 @@ asmlinkage int FPU_normalize_nuo(FPU_REG *x, int bias);
 asmlinkage int FPU_u_sub(FPU_REG const *arg1, FPU_REG const *arg2,
 			 FPU_REG *answ, u16 control_w, u_char sign,
 			 s32 expa, s32 expb);
+asmlinkage int FPU_u_div(FPU_REG const *arg1, FPU_REG const *arg2,
+			 FPU_REG *answ, u16 control_w, u_char sign);
 asmlinkage int FPU_u_mul(FPU_REG const *arg1, FPU_REG const *arg2,
 			 FPU_REG *answ, u16 control_w, u_char sign,
 			 s32 expon);
-asmlinkage int FPU_u_div(FPU_REG const *arg1, FPU_REG const *arg2,
-			 FPU_REG *answ, u16 control_w, u_char sign);
 asmlinkage int FPU_u_add(FPU_REG const *arg1, FPU_REG const *arg2,
 			 FPU_REG *answ, u16 control_w, u_char sign,
 			 s32 expa, s32 expb);

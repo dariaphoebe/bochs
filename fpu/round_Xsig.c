@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  round_Xsig.c                                                             |
- |  $Id: round_Xsig.c,v 1.2 2001/10/06 03:53:46 bdenney Exp $
+ |  $Id: round_Xsig.c,v 1.2.32.1 2004/03/19 17:00:25 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1995,1999                                    |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -89,8 +89,3 @@ int norm_Xsig(Xsig *x)
 
   return -n;
 }
-
-
-
-
-
