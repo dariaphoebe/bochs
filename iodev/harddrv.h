@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.25.10.1 2004/04/30 17:14:27 cbothamy Exp $
+// $Id: harddrv.h,v 1.25.10.2 2004/05/18 20:35:14 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -25,10 +25,10 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
 // SPARSE IMAGES HEADER
-#define SPARSE_HEADER_MAGIC  (0x02468ace)
-#define SPARSE_HEADER_VERSION  1
-#define SPARSE_HEADER_SIZE        (256) // Plenty of room for later
-#define SPARSE_PAGE_NOT_ALLOCATED (0xffffffff)
+#define BX_HD_SPARSE_HEADER_MAGIC  (0x02468ace)
+#define BX_HD_SPARSE_HEADER_VERSION  1
+#define BX_HD_SPARSE_HEADER_SIZE        (256) // Plenty of room for later
+#define BX_HD_SPARSE_PAGE_NOT_ALLOCATED (0xffffffff)
 
  typedef struct
  {
@@ -40,9 +40,9 @@
    uint32  padding[60];
  } sparse_header_t;
 
-#define STANDARD_HEADER_MAGIC     "Bochs Virtual HD Image"
-#define STANDARD_HEADER_VERSION   (0x00010000)
-#define STANDARD_HEADER_SIZE      (512)
+#define BX_HD_STANDARD_HEADER_MAGIC     "Bochs Virtual HD Image"
+#define BX_HD_STANDARD_HEADER_VERSION   (0x00010000)
+#define BX_HD_STANDARD_HEADER_SIZE      (512)
 
 
  // WARNING : headers are kept in x86 (little) endianness
@@ -55,19 +55,19 @@
    Bit32u  header;
  } generic_header_t;
 
-#define REDOLOG_TYPE "Redolog"
-#define REDOLOG_SUBTYPE_UNDOABLE "Undoable"
-#define REDOLOG_SUBTYPE_VOLATILE "Volatile"
-#define REDOLOG_SUBTYPE_GROWING  "Growing"
-// #define REDOLOG_SUBTYPE_Z_UNDOABLE "z-Undoable"
-// #define REDOLOG_SUBTYPE_Z_VOLATILE "z-Volatile"
+#define BX_HD_REDOLOG_TYPE "Redolog"
+#define BX_HD_REDOLOG_SUBTYPE_UNDOABLE "Undoable"
+#define BX_HD_REDOLOG_SUBTYPE_VOLATILE "Volatile"
+#define BX_HD_REDOLOG_SUBTYPE_GROWING  "Growing"
+// #define BX_HD_REDOLOG_SUBTYPE_Z_UNDOABLE "z-Undoable"
+// #define BX_HD_REDOLOG_SUBTYPE_Z_VOLATILE "z-Volatile"
 
-#define REDOLOG_EXTENT_NOT_ALLOCATED (0xffffffff)
+#define BX_HD_REDOLOG_EXTENT_NOT_ALLOCATED (0xffffffff)
 
-#define UNDOABLE_REDOLOG_EXTENSION ".redolog"
-#define UNDOABLE_REDOLOG_EXTENSION_LENGTH (strlen(UNDOABLE_REDOLOG_EXTENSION))
-#define VOLATILE_REDOLOG_EXTENSION ".XXXXXX"
-#define VOLATILE_REDOLOG_EXTENSION_LENGTH (strlen(VOLATILE_REDOLOG_EXTENSION))
+#define BX_HD_UNDOABLE_REDOLOG_EXTENSION ".redolog"
+#define BX_HD_UNDOABLE_REDOLOG_EXTENSION_LENGTH (strlen(BX_HD_UNDOABLE_REDOLOG_EXTENSION))
+#define BX_HD_VOLATILE_REDOLOG_EXTENSION ".XXXXXX"
+#define BX_HD_VOLATILE_REDOLOG_EXTENSION_LENGTH (strlen(BX_HD_VOLATILE_REDOLOG_EXTENSION))
 
  typedef struct
  {
@@ -83,22 +83,22 @@
    generic_header_t generic;
    redolog_specific_header_t specific;
 
-   Bit8u padding[STANDARD_HEADER_SIZE - (sizeof (generic_header_t) + sizeof (redolog_specific_header_t))];
+   Bit8u padding[BX_HD_STANDARD_HEADER_SIZE - (sizeof (generic_header_t) + sizeof (redolog_specific_header_t))];
  } redolog_header_t;
 
 
-#define COMPRESSED_TYPE "Compressed"
-#define COMPRESSED_SUBTYPE_ZLIB "zlib"
+#define BX_HD_COMPRESSED_TYPE "Compressed"
+#define BX_HD_COMPRESSED_SUBTYPE_ZLIB "zlib"
 
-#define COMPRESSED_EXTENT_MAX BX_CONST64(0xffffffffffff)
-#define COMPRESSED_EXTENT_NOT_ALLOCATED BX_CONST64(0xffffffffffff0000)
-#define COMPRESSED_EXTENT_POSITION(x) (((x)&BX_CONST64(0xffffffffffff0000))>>16)
-#define COMPRESSED_EXTENT_IS_ALLOCATED(x) (((x)&BX_CONST64(0xffffffffffff0000))!=(BX_CONST64(0xffffffffffff0000)))
-#define COMPRESSED_EXTENT_SIZE(x) (((x)&0xffff)+1)
-#define COMPRESSED_EXTENT_CATALOG(x,y) (((x)<<16)+((y)-1))
+#define BX_HD_COMPRESSED_EXTENT_MAX BX_CONST64(0xffffffffffff)
+#define BX_HD_COMPRESSED_EXTENT_NOT_ALLOCATED BX_CONST64(0xffffffffffff0000)
+#define BX_HD_COMPRESSED_EXTENT_POSITION(x) (((x)&BX_CONST64(0xffffffffffff0000))>>16)
+#define BX_HD_COMPRESSED_EXTENT_IS_ALLOCATED(x) (((x)&BX_CONST64(0xffffffffffff0000))!=(BX_CONST64(0xffffffffffff0000)))
+#define BX_HD_COMPRESSED_EXTENT_SIZE(x) (((x)&0xffff)+1)
+#define BX_HD_COMPRESSED_EXTENT_CATALOG(x,y) (((x)<<16)+((y)-1))
 
-#define COMPRESSED_CATALOG_START (dtoh32(header.generic.header))
-#define COMPRESSED_DATA_START (COMPRESSED_CATALOG_START + (dtoh32(header.specific.catalog) * sizeof(Bit64u)))
+#define BX_HD_COMPRESSED_CATALOG_START (dtoh32(header.generic.header))
+#define BX_HD_COMPRESSED_DATA_START (BX_HD_COMPRESSED_CATALOG_START + (dtoh32(header.specific.catalog) * sizeof(Bit64u)))
 
  typedef struct
  {
@@ -113,7 +113,7 @@
    generic_header_t generic;
    compressed_specific_header_t specific;
 
-   Bit8u padding[STANDARD_HEADER_SIZE - (sizeof (generic_header_t) + sizeof (compressed_specific_header_t))];
+   Bit8u padding[BX_HD_STANDARD_HEADER_SIZE - (sizeof (generic_header_t) + sizeof (compressed_specific_header_t))];
  } compressed_header_t;
 
 // htod : convert host to disk (little) endianness
@@ -516,22 +516,25 @@ class fat_vdisk_t : public device_image_t
 };
 #endif
 
+#define BX_HD_CACHES 2              // max BX_MAX_BIT16U - 1
 
-#if BX_COMPRESSED_HD_SUPPORT
+#define BX_HD_CACHE_FLAG_EMPTY    0
+#define BX_HD_CACHE_FLAG_READ     1
+#define BX_HD_CACHE_FLAG_MODIFIED 2
 
-#include <zlib.h>
+#define BX_HD_CACHE_WRITE_BACK    0
+#define BX_HD_CACHE_WRITE_THROUGH 1
 
-#define COMPRESSED_CACHES 2
-
-// z_compressed image class
-class z_compressed_image_t : public device_image_t
+class cached_image_t : public device_image_t
 {
   public:
-      // Contructor
-      z_compressed_image_t(Bit64u size);
+      // constructor & destructor
+      cached_image_t();
+      virtual ~cached_image_t();
 
       // Open a image. Returns non-negative if successful.
-      int open (const char* pathname);
+      int open (Bit32u cache_size);
+      int open (Bit8u strategy, Bit32u cache_size, Bit32u block_size, Bit16u min_blocks, Bit16u max_blocks);
 
       // Close the image.
       void close ();
@@ -548,6 +551,56 @@ class z_compressed_image_t : public device_image_t
       // written (count).
       ssize_t write (const void* buf, size_t count);
 
+      // Physical read
+      virtual ssize_t physical_read(off_t offset, void* buf, size_t count) = 0;
+
+      // Physical write
+      virtual ssize_t physical_write(off_t offset, const void* buf, size_t count) = 0;
+
+      // cache lookup
+      Bit16u lookup_cache(void);
+      
+      // cache flush
+      void flush_cache(void);
+      void flush_cache(Bit16u index);
+
+  private:
+      Bit8u  *cache_buffers[BX_HD_CACHES];
+      Bit64u  cache_position[BX_HD_CACHES];
+      Bit8u   cache_flag[BX_HD_CACHES];
+      Bit16u  cache_index[BX_HD_CACHES];
+      Bit8u   strategy;
+      Bit32u  block_size;
+      Bit32u  cache_size;
+      Bit16u  min_blocks;
+      Bit16u  max_blocks;
+      off_t   offset;
+};
+
+#if BX_HD_COMPRESSED_HD_SUPPORT
+
+#include <zlib.h>
+
+
+// z_compressed image class
+class z_compressed_image_t : public cached_image_t
+{
+  public:
+      // Contructor
+      z_compressed_image_t(Bit64u size);
+
+      // Open a image. Returns non-negative if successful.
+      int open (const char* pathname);
+
+      // Close the image.
+      void close ();
+
+      // Physical read
+      ssize_t physical_read (off_t offset, void* buf, size_t count);
+
+      // Physical write
+      ssize_t physical_write (off_t offset, const void* buf, size_t count);
+
   private:
       void    print_header();
       void    flush();
@@ -556,15 +609,9 @@ class z_compressed_image_t : public device_image_t
       compressed_header_t header; // header is kept in little-endian format
       Bit64u  *catalog;
       Bit64u  extent_next;
-      off_t   offset;
       Bit8u  *z_buffer;
-      Bit8u  *cache_buffers[COMPRESSED_CACHES];
-      Bit64u  cache_extents[COMPRESSED_CACHES];
-      Bit8u   cache_flag[COMPRESSED_CACHES];
+      Bit32u  z_buffer_len;
 };
-#define CACHE_FLAG_EMPTY    0
-#define CACHE_FLAG_READ     1
-#define CACHE_FLAG_MODIFIED 2
 
 // Default compressed READ-ONLY image class
 class z_ro_image_t : public device_image_t
@@ -783,8 +830,8 @@ typedef enum {
 class bx_hard_drive_c : public bx_hard_drive_stub_c {
 public:
 
-  bx_hard_drive_c(void);
-  virtual ~bx_hard_drive_c(void);
+  bx_hard_drive_c();
+  virtual ~bx_hard_drive_c();
   virtual void   close_harddrive(void);
   virtual void   init();
   virtual void   reset(unsigned type);
@@ -870,5 +917,5 @@ private:
 #endif
 
   };
-#endif // INCLUDE_ONLY_SPARSE_HEADER
+#endif // INCLUDE_ONLY_HD_HEADER
 

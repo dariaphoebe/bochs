@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.120.10.1 2004/04/30 17:14:27 cbothamy Exp $
+// $Id: harddrv.cc,v 1.120.10.2 2004/05/18 20:35:14 cbothamy Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -118,7 +118,7 @@ libharddrv_LTX_plugin_fini(void)
 {
 }
 
-bx_hard_drive_c::bx_hard_drive_c(void)
+bx_hard_drive_c::bx_hard_drive_c()
 {
     for (Bit8u channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
       channels[channel].drives[0].hard_drive =  NULL;
@@ -130,7 +130,7 @@ bx_hard_drive_c::bx_hard_drive_c(void)
 }
 
 
-bx_hard_drive_c::~bx_hard_drive_c(void)
+bx_hard_drive_c::~bx_hard_drive_c()
 {
 	BX_DEBUG(("Exit."));
   for (Bit8u channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
@@ -157,7 +157,7 @@ bx_hard_drive_c::init(void)
   char  string[5];
   char  sbtext[8];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.120.10.1 2004/04/30 17:14:27 cbothamy Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.120.10.2 2004/05/18 20:35:14 cbothamy Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
@@ -353,9 +353,9 @@ bx_hard_drive_c::init(void)
             break;
 #endif //BX_FAT_VIRTUAL_HD_SUPPORT==1
 
-#if BX_COMPRESSED_HD_SUPPORT
+#if BX_HD_COMPRESSED_HD_SUPPORT
           case BX_ATA_MODE_Z_COMPRESSED:
-            BX_INFO(("HD on ata%d-%d: '%s' 'z-undoable' mode ", channel, device, 
+            BX_INFO(("HD on ata%d-%d: '%s' 'z-compressed' mode ", channel, device, 
                                     bx_options.atadevice[channel][device].Opath->getptr ()));
             channels[channel].drives[device].hard_drive = new z_compressed_image_t(disk_size);
             break;
@@ -375,7 +375,7 @@ bx_hard_drive_c::init(void)
             channels[channel].drives[device].hard_drive = new z_volatile_image_t(disk_size,
                             bx_options.atadevice[channel][device].Ojournal->getptr());
             break;
-#endif //BX_COMPRESSED_HD_SUPPORT
+#endif //BX_HD_COMPRESSED_HD_SUPPORT
 
           default:
             BX_PANIC(("HD on ata%d-%d: '%s' unsupported HD mode : %s", channel, device, 
@@ -3528,7 +3528,7 @@ void showpagetable(uint32 * pagetable, size_t numpages)
 
 void sparse_image_t::read_header()
 {
- BX_ASSERT(sizeof(header) == SPARSE_HEADER_SIZE);
+ BX_ASSERT(sizeof(header) == BX_HD_SPARSE_HEADER_SIZE);
 
  int ret = ::read(fd, &header, sizeof(header));
 
@@ -3542,7 +3542,7 @@ void sparse_image_t::read_header()
    panic("could not read entire header");
  }
 
- if (dtoh32(header.magic) != SPARSE_HEADER_MAGIC)
+ if (dtoh32(header.magic) != BX_HD_SPARSE_HEADER_MAGIC)
  {
    panic("failed header magic check");
  }
@@ -3755,7 +3755,7 @@ ssize_t sparse_image_t::read_page_fragment(uint32 read_virtual_page, uint32 read
 
  position_page_offset = read_page_offset;
 
- if (position_physical_page == SPARSE_PAGE_NOT_ALLOCATED)
+ if (position_physical_page == BX_HD_SPARSE_PAGE_NOT_ALLOCATED)
  {
    if (parent_image != NULL)
    {
@@ -3867,7 +3867,7 @@ ssize_t sparse_image_t::write (const void* buf, size_t count)
 
    BX_ASSERT (can_write != 0);
 
-   if (position_physical_page == SPARSE_PAGE_NOT_ALLOCATED)
+   if (position_physical_page == BX_HD_SPARSE_PAGE_NOT_ALLOCATED)
    {
      // We just add on another page at the end of the file
      // Reclamation, compaction etc should currently be done off-line
@@ -3945,7 +3945,7 @@ ssize_t sparse_image_t::write (const void* buf, size_t count)
      underlying_filesize = underlying_current_filepos = page_file_start + pagesize;
    }
 
-   BX_ASSERT(position_physical_page != SPARSE_PAGE_NOT_ALLOCATED);
+   BX_ASSERT(position_physical_page != BX_HD_SPARSE_PAGE_NOT_ALLOCATED);
 
    off_t physical_offset = get_physical_offset();
 
@@ -4159,11 +4159,11 @@ redolog_t::make_header (const char* type, Bit64u size)
         Bit32u flip=0;
 
         // Set standard header values
-        strcpy((char*)header.generic.magic, STANDARD_HEADER_MAGIC);
-        strcpy((char*)header.generic.type, REDOLOG_TYPE);
+        strcpy((char*)header.generic.magic, BX_HD_STANDARD_HEADER_MAGIC);
+        strcpy((char*)header.generic.type, BX_HD_REDOLOG_TYPE);
         strcpy((char*)header.generic.subtype, type);
-        header.generic.version = htod32(STANDARD_HEADER_VERSION);
-        header.generic.header = htod32(STANDARD_HEADER_SIZE);
+        header.generic.version = htod32(BX_HD_STANDARD_HEADER_VERSION);
+        header.generic.header = htod32(BX_HD_STANDARD_HEADER_SIZE);
 
         entries = 512;
         bitmap_size = 1;
@@ -4195,7 +4195,7 @@ redolog_t::make_header (const char* type, Bit64u size)
                 BX_PANIC(("redolog : could not malloc catalog or bitmap"));
 
         for (Bit32u i=0; i<dtoh32(header.specific.catalog); i++)
-                catalog[i] = htod32(REDOLOG_EXTENT_NOT_ALLOCATED);
+                catalog[i] = htod32(BX_HD_REDOLOG_EXTENT_NOT_ALLOCATED);
 
         bitmap_blocs = 1 + (dtoh32(header.specific.bitmap) - 1) / 512;
         extent_blocs = 1 + (dtoh32(header.specific.extent) - 1) / 512;
@@ -4267,7 +4267,7 @@ redolog_t::open (const char* filename, const char *type, Bit64u size)
         BX_INFO(("redolog : open image %s", filename));
       
         res = ::read(fd, &header, sizeof(header));
-        if (res != STANDARD_HEADER_SIZE)
+        if (res != BX_HD_STANDARD_HEADER_SIZE)
         {
                BX_PANIC(("redolog : could not read header")); 
                return -1;
@@ -4275,13 +4275,13 @@ redolog_t::open (const char* filename, const char *type, Bit64u size)
 
         print_header();
 
-        if (strcmp((char*)header.generic.magic, STANDARD_HEADER_MAGIC) != 0)
+        if (strcmp((char*)header.generic.magic, BX_HD_STANDARD_HEADER_MAGIC) != 0)
         {
                BX_PANIC(("redolog : Bad header magic")); 
                return -1;
         }
 
-        if (strcmp((char*)header.generic.type, REDOLOG_TYPE) != 0)
+        if (strcmp((char*)header.generic.type, BX_HD_REDOLOG_TYPE) != 0)
         {
                BX_PANIC(("redolog : Bad header type")); 
                return -1;
@@ -4292,7 +4292,7 @@ redolog_t::open (const char* filename, const char *type, Bit64u size)
                return -1;
         }
 
-        if (dtoh32(header.generic.version) != STANDARD_HEADER_VERSION)
+        if (dtoh32(header.generic.version) != BX_HD_STANDARD_HEADER_VERSION)
         {
                BX_PANIC(("redolog : Bad header version")); 
                return -1;
@@ -4314,7 +4314,7 @@ redolog_t::open (const char* filename, const char *type, Bit64u size)
         extent_next = 0;
         for (Bit32u i=0; i < dtoh32(header.specific.catalog); i++)
         {
-                if (dtoh32(catalog[i]) != REDOLOG_EXTENT_NOT_ALLOCATED)
+                if (dtoh32(catalog[i]) != BX_HD_REDOLOG_EXTENT_NOT_ALLOCATED)
                 {
                         if (dtoh32(catalog[i]) >= extent_next)
                                 extent_next = dtoh32(catalog[i]) + 1;
@@ -4382,13 +4382,13 @@ redolog_t::read (void* buf, size_t count)
 
         BX_DEBUG(("redolog : reading index %d, mapping to %d", extent_index, dtoh32(catalog[extent_index])));
 
-        if (dtoh32(catalog[extent_index]) == REDOLOG_EXTENT_NOT_ALLOCATED)
+        if (dtoh32(catalog[extent_index]) == BX_HD_REDOLOG_EXTENT_NOT_ALLOCATED)
         {
                 // page not allocated
                 return 0;
         }
 
-        bitmap_offset  = (off_t)STANDARD_HEADER_SIZE + (dtoh32(header.specific.catalog) * sizeof(Bit32u));
+        bitmap_offset  = (off_t)BX_HD_STANDARD_HEADER_SIZE + (dtoh32(header.specific.catalog) * sizeof(Bit32u));
         bitmap_offset += (off_t)512 * dtoh32(catalog[extent_index]) * (extent_blocs + bitmap_blocs); 
         bloc_offset    = bitmap_offset + ((off_t)512 * (bitmap_blocs + extent_offset));
 
@@ -4431,7 +4431,7 @@ redolog_t::write (const void* buf, size_t count)
                 BX_PANIC( ("redolog : write HD with count not 512"));
 
         BX_DEBUG(("redolog : writing index %d, mapping to %d", extent_index, dtoh32(catalog[extent_index])));
-        if (dtoh32(catalog[extent_index]) == REDOLOG_EXTENT_NOT_ALLOCATED)
+        if (dtoh32(catalog[extent_index]) == BX_HD_REDOLOG_EXTENT_NOT_ALLOCATED)
         {
                 if(extent_next >= dtoh32(header.specific.catalog))
                 {
@@ -4450,7 +4450,7 @@ redolog_t::write (const void* buf, size_t count)
                 memset(zerobuffer, 0, 512);
 
                 // Write bitmap
-                bitmap_offset  = (off_t)STANDARD_HEADER_SIZE + (dtoh32(header.specific.catalog) * sizeof(Bit32u));
+                bitmap_offset  = (off_t)BX_HD_STANDARD_HEADER_SIZE + (dtoh32(header.specific.catalog) * sizeof(Bit32u));
                 bitmap_offset += (off_t)512 * dtoh32(catalog[extent_index]) * (extent_blocs + bitmap_blocs); 
                 ::lseek(fd, bitmap_offset, SEEK_SET);
                 for(i=0; i<bitmap_blocs; i++)
@@ -4468,7 +4468,7 @@ redolog_t::write (const void* buf, size_t count)
                 update_catalog = 1;
         }
 
-        bitmap_offset  = (off_t)STANDARD_HEADER_SIZE + (dtoh32(header.specific.catalog) * sizeof(Bit32u));
+        bitmap_offset  = (off_t)BX_HD_STANDARD_HEADER_SIZE + (dtoh32(header.specific.catalog) * sizeof(Bit32u));
         bitmap_offset += (off_t)512 * dtoh32(catalog[extent_index]) * (extent_blocs + bitmap_blocs); 
         bloc_offset    = bitmap_offset + ((off_t)512 * (bitmap_blocs + extent_offset));
 
@@ -4500,7 +4500,7 @@ redolog_t::write (const void* buf, size_t count)
         if (update_catalog)
         {
                 // FIXME if mmap
-                catalog_offset  = (off_t)STANDARD_HEADER_SIZE + (extent_index * sizeof(Bit32u));
+                catalog_offset  = (off_t)BX_HD_STANDARD_HEADER_SIZE + (extent_index * sizeof(Bit32u));
 
                 BX_DEBUG(("redolog : writing catalog at offset %x", (Bit32u)catalog_offset));
 
@@ -4522,7 +4522,7 @@ growing_image_t::growing_image_t(Bit64u _size)
 
 int growing_image_t::open (const char* pathname)
 {
-        int filedes = redolog->open(pathname,REDOLOG_SUBTYPE_GROWING,size);
+        int filedes = redolog->open(pathname,BX_HD_REDOLOG_SUBTYPE_GROWING,size);
         BX_INFO(("'growing' disk opened, growing file is '%s'", pathname));
         return filedes;
 }
@@ -4582,13 +4582,13 @@ int undoable_image_t::open (const char* pathname)
 
         // Otherwise we make up the redolog filename from the pathname
         if ( logname == NULL) {
-                logname = (char*)malloc(strlen(pathname) + UNDOABLE_REDOLOG_EXTENSION_LENGTH + 1);
-                sprintf (logname, "%s%s", pathname, UNDOABLE_REDOLOG_EXTENSION);
+                logname = (char*)malloc(strlen(pathname) + BX_HD_UNDOABLE_REDOLOG_EXTENSION_LENGTH + 1);
+                sprintf (logname, "%s%s", pathname, BX_HD_UNDOABLE_REDOLOG_EXTENSION);
         }
 
-        if (redolog->open(logname,REDOLOG_SUBTYPE_UNDOABLE,size) < 0)
+        if (redolog->open(logname,BX_HD_REDOLOG_SUBTYPE_UNDOABLE,size) < 0)
         {
-                if (redolog->create(logname, REDOLOG_SUBTYPE_UNDOABLE, size) < 0)
+                if (redolog->create(logname, BX_HD_REDOLOG_SUBTYPE_UNDOABLE, size) < 0)
                 {
                         BX_PANIC(("Can't open or create redolog '%s'",logname));
                         return -1;
@@ -4667,8 +4667,8 @@ int volatile_image_t::open (const char* pathname)
                 logname = pathname;
         }
 
-        redolog_temp = (char*)malloc(strlen(logname) + VOLATILE_REDOLOG_EXTENSION_LENGTH + 1);
-        sprintf (redolog_temp, "%s%s", logname, VOLATILE_REDOLOG_EXTENSION);
+        redolog_temp = (char*)malloc(strlen(logname) + BX_HD_VOLATILE_REDOLOG_EXTENSION_LENGTH + 1);
+        sprintf (redolog_temp, "%s%s", logname, BX_HD_VOLATILE_REDOLOG_EXTENSION);
 
         filedes = mkstemp (redolog_temp);
 
@@ -4677,7 +4677,7 @@ int volatile_image_t::open (const char* pathname)
                 BX_PANIC(("Can't create volatile redolog '%s'", redolog_temp));
                 return -1;
         }
-        if (redolog->create(filedes, REDOLOG_SUBTYPE_VOLATILE, size) < 0)
+        if (redolog->create(filedes, BX_HD_REDOLOG_SUBTYPE_VOLATILE, size) < 0)
         {
                 BX_PANIC(("Can't create volatile redolog '%s'", redolog_temp));
                 return -1;
@@ -4729,7 +4729,214 @@ ssize_t volatile_image_t::write (const void* buf, size_t count)
       return redolog->write((char*) buf, count);
 }
 
-#if BX_COMPRESSED_HD_SUPPORT
+
+// HD images classes can easily get a cache buffer optimization
+// by inheriting this technical class.
+// It is useful for compressed_hd implementation that only
+// accept "bigger" sized block writes
+// FIXME
+// - handle strategy, for now only write back
+// - handle transfert min and max blocks
+//
+// Constructor
+cached_image_t::cached_image_t()
+{
+    for (Bit16u i=0; i < BX_HD_CACHES; i++) {
+        cache_buffers[i] = NULL;
+        cache_position[i] = 0;
+        cache_flag[i] = BX_HD_CACHE_FLAG_EMPTY;
+        cache_index[i] = i;
+    }
+}
+
+// Destructor
+cached_image_t::~cached_image_t()
+{
+}
+
+// Open a image. Returns non-negative if successful.
+int cached_image_t::open(Bit32u _cache_size)
+{
+        return open(BX_HD_CACHE_WRITE_BACK, _cache_size, 512, 1, 1);
+}
+
+// Open a image. Returns non-negative if successful.
+int cached_image_t::open (Bit8u _strategy, Bit32u _cache_size, Bit32u _block_size, Bit16u _min_blocks, Bit16u _max_blocks)
+{
+        strategy = _strategy;
+        cache_size = _cache_size;
+        block_size = _block_size;
+        min_blocks = _min_blocks;
+        max_blocks = _max_blocks;
+
+        if (strategy != BX_HD_CACHE_WRITE_BACK)
+                BX_PANIC(("cached : strategy != BX_HD_CACHE_WRITE_BACK not handled yet"));
+
+        if (cache_size == 0)
+                BX_PANIC(("cached : cache_size must not be 0"));
+
+        if (block_size == 0)
+                BX_PANIC(("cached : block_size must not be 0"));
+
+        if ((block_size % 512) != 0)
+                BX_PANIC(("cached : block_size must a multiple of 512"));
+
+        if ((cache_size % block_size) != 0)
+                BX_PANIC(("cached : cache_size must be a multiple of block_size"));
+
+        // FIXME add consistency checks of min_blocks and max_blocks
+        
+        // allocate buffer memory
+        for (Bit16u i=0; i < BX_HD_CACHES; i++) 
+        {
+            if (cache_buffers[i]!=NULL) free(cache_buffers[i]);
+
+            cache_buffers[i] = (Bit8u*) malloc(cache_size);
+            cache_position[i] = 0;
+            cache_flag[i] = BX_HD_CACHE_FLAG_EMPTY;
+            cache_index[i] = i;
+
+            if (cache_buffers[i]==NULL)
+                BX_PANIC(("cached : could not allocate cache buffer"));
+        }
+        BX_INFO(("cached : allocated %d %d-bytes cache buffers",BX_HD_CACHES,cache_size));
+        BX_INFO(("cached : 'Write-%s' strategy (%d/%d/%d)",strategy==BX_HD_CACHE_WRITE_BACK?"Back":"Through",block_size,min_blocks,max_blocks));
+}
+
+// Close the image.
+void cached_image_t::close ()
+{
+        // flush caches
+        flush_cache();
+
+        // free caches
+        for (Bit16u i=0; i < BX_HD_CACHES; i++) 
+        {
+            if (cache_buffers[i]!=NULL) free(cache_buffers[i]);
+            cache_buffers[i] = NULL;
+            cache_position[i] = 0;
+            cache_flag[i] = BX_HD_CACHE_FLAG_EMPTY;
+        }
+
+}
+
+// Position ourselves. Return the resulting offset from the
+// beginning of the file.
+off_t cached_image_t::lseek (off_t _offset, int whence)
+{
+        // Only SEEK_SET supported
+        if (whence != SEEK_SET) {
+              BX_PANIC(("cached : lseek : only SEEK_SET supported"));
+        }
+
+        if ((offset % 512) != 0)
+                BX_PANIC(("cached : offset is not a multiple of 512"));
+
+        offset = _offset;
+        return(offset);
+}
+
+// Read count bytes to the buffer buf. Return the number of
+// bytes read (count).
+ssize_t cached_image_t::read (void* buf, size_t count)
+{
+        Bit16u entry;
+        off_t block_index = offset % cache_size;
+
+        if (count != 512) 
+                BX_PANIC(("cached : read of %d bytes not supported for now",count));
+
+        entry = lookup_cache();
+        memcpy(buf, cache_buffers[entry] + block_index, count);
+
+        return count;
+}
+
+// Write count bytes from buf. Return the number of bytes
+// written (count).
+ssize_t cached_image_t::write (const void* buf, size_t count)
+{
+        Bit16u entry;
+        off_t block_index = offset % cache_size;
+
+        if (count != 512) 
+                BX_PANIC(("cached : write of %d bytes not supported for now",count));
+
+        entry = lookup_cache();
+        memcpy(cache_buffers[entry] + block_index, buf, count);
+        cache_flag[entry] = BX_HD_CACHE_FLAG_MODIFIED;
+
+        return count;
+}
+
+// lookup disk blocks, flush and fill the cache if necessary
+Bit16u cached_image_t::lookup_cache(void)
+{
+        Bit16u i, entry;
+        Bit16u index = BX_MAX_BIT16U;
+        off_t block_position = (offset / cache_size)*cache_size;
+
+        // Look for entry in cache
+        for (Bit16u i=0; i < BX_HD_CACHES; i++) {
+                if (cache_flag[cache_index[i]] != BX_HD_CACHE_FLAG_EMPTY) {
+                        if (cache_position[cache_index[i]] == block_position) index=i;
+                }
+        }
+
+        BX_INFO(("cached : lookup index is %d", index));
+
+        // if not in cache
+        if (index == BX_MAX_BIT16U) {
+                // flush last entry
+                index = BX_HD_CACHES - 1;
+                entry = cache_index[index];
+                flush_cache(entry);
+
+                cache_position[entry] = block_position;
+                if (physical_read(cache_position[entry], cache_buffers[entry], cache_size) != cache_size)
+                        BX_PANIC(("cached : physical_read read short block"));
+                cache_flag[entry] = BX_HD_CACHE_FLAG_READ;
+
+                BX_INFO(("cached : reading entry %d from position %lld", entry, cache_position[entry]));
+        }
+        else entry = cache_index[index];
+
+        for (i = index; i>0; i--) {
+                cache_index[i] = cache_index[i - 1];
+        }
+        cache_index[0] = entry;
+
+        BX_INFO(("cached : lookup entry is %d", entry));
+
+        return entry;
+}
+
+// Flush all cache
+void cached_image_t::flush_cache()
+{
+        for (Bit16u i=0; i < BX_HD_CACHES; i++) {
+                flush_cache(i);
+        }
+}
+
+// Flush a cache entry
+void cached_image_t::flush_cache(Bit16u index)
+{
+        if (index >= BX_HD_CACHES) 
+                BX_PANIC(("cached : index %d in not consistent",index));
+
+        if (cache_flag[index] == BX_HD_CACHE_FLAG_MODIFIED) {
+                if (physical_write(cache_position[index], cache_buffers[index], cache_size) != cache_size)
+                        BX_PANIC(("cached : physical_write wrote short block"));
+                cache_flag[index] = BX_HD_CACHE_FLAG_READ;
+
+                BX_INFO(("cached : writing entry %d from position %ld", index, cache_position[index]));
+        }
+}
+
+
+
+#if BX_HD_COMPRESSED_HD_SUPPORT
 
 /*** z_compressed_image_t class definitions ***/
 
@@ -4738,11 +4945,6 @@ z_compressed_image_t::z_compressed_image_t(Bit64u _size)
         size = _size;
         extent_next = 0;
         fd = -1;
-        for (Bit32u i=0; i<COMPRESSED_CACHES; i++) {
-            cache_buffers[i] = NULL;
-            cache_extents[i] = 0;
-            cache_flag[i] = CACHE_FLAG_EMPTY;
-        }
         z_buffer = NULL;
 }
 
@@ -4763,7 +4965,7 @@ int z_compressed_image_t::open (const char* pathname)
 {
         Bit32u res, i;
 
-        fd = ::open(pathname, O_RDONLY
+        fd = ::open(pathname, O_RDWR
 #ifdef O_BINARY
 		  | O_BINARY
 #endif
@@ -4777,7 +4979,7 @@ int z_compressed_image_t::open (const char* pathname)
         BX_INFO(("compressed : open image %s", pathname));
       
         res = ::read(fd, &header, sizeof(header));
-        if (res != STANDARD_HEADER_SIZE)
+        if (res != BX_HD_STANDARD_HEADER_SIZE)
         {
                BX_PANIC(("compressed : could not read header")); 
                return -1;
@@ -4785,24 +4987,24 @@ int z_compressed_image_t::open (const char* pathname)
 
         print_header();
 
-        if (strcmp((char*)header.generic.magic, STANDARD_HEADER_MAGIC) != 0)
+        if (strcmp((char*)header.generic.magic, BX_HD_STANDARD_HEADER_MAGIC) != 0)
         {
                BX_PANIC(("compressed : Bad header magic")); 
                return -1;
         }
 
-        if (strcmp((char*)header.generic.type, COMPRESSED_TYPE) != 0)
+        if (strcmp((char*)header.generic.type, BX_HD_COMPRESSED_TYPE) != 0)
         {
                BX_PANIC(("compressed : Bad header type")); 
                return -1;
         }
-        if (strcmp((char*)header.generic.subtype, COMPRESSED_SUBTYPE_ZLIB) != 0)
+        if (strcmp((char*)header.generic.subtype, BX_HD_COMPRESSED_SUBTYPE_ZLIB) != 0)
         {
                BX_PANIC(("compressed : Bad header subtype")); 
                return -1;
         }
 
-        if (dtoh32(header.generic.version) != STANDARD_HEADER_VERSION)
+        if (dtoh32(header.generic.version) != BX_HD_STANDARD_HEADER_VERSION)
         {
                BX_PANIC(("compressed : Bad header version")); 
                return -1;
@@ -4811,7 +5013,7 @@ int z_compressed_image_t::open (const char* pathname)
         catalog = (Bit64u*)malloc(dtoh32(header.specific.catalog) * sizeof(Bit64u));
         
         // FIXME could mmap
-        ::lseek(fd,COMPRESSED_CATALOG_START,SEEK_SET);
+        ::lseek(fd,BX_HD_COMPRESSED_CATALOG_START,SEEK_SET);
         res = ::read(fd, catalog, dtoh32(header.specific.catalog) * sizeof(Bit64u)) ;
 
         if (res !=  (ssize_t)(dtoh32(header.specific.catalog) * sizeof(Bit64u)))
@@ -4824,29 +5026,20 @@ int z_compressed_image_t::open (const char* pathname)
         extent_next = 0;
         for (i=0; i < dtoh32(header.specific.catalog); i++)
         {
-            if (COMPRESSED_EXTENT_IS_ALLOCATED(dtoh64(catalog[i])))
+            if (BX_HD_COMPRESSED_EXTENT_IS_ALLOCATED(dtoh64(catalog[i])))
             {
-                if (COMPRESSED_EXTENT_POSITION(dtoh64(catalog[i])) >= extent_next)
-                    extent_next = COMPRESSED_EXTENT_POSITION(dtoh64(catalog[i]))+COMPRESSED_EXTENT_SIZE(dtoh64(catalog[i]));
+                if (BX_HD_COMPRESSED_EXTENT_POSITION(dtoh64(catalog[i])) >= extent_next)
+                    extent_next = BX_HD_COMPRESSED_EXTENT_POSITION(dtoh64(catalog[i]))+BX_HD_COMPRESSED_EXTENT_SIZE(dtoh64(catalog[i]));
              }
         }
         BX_INFO(("compressed : next extent will be at index %lld",extent_next));
       
-        // allocate buffer memory
-        for (i=0; i < COMPRESSED_CACHES; i++) 
-        {
-            cache_buffers[i] = (Bit8u*) malloc(dtoh32(header.specific.extent));
-            cache_extents[i] = 0;
-            cache_flag[i] = CACHE_FLAG_EMPTY;
-
-            if (cache_buffers[i]==NULL)
-                BX_PANIC(("compressed : could not allocate cache buffer"));
-        }
-        BX_INFO(("compressed : allocated %d %d-bytes cache buffers",COMPRESSED_CACHES,dtoh32(header.specific.extent)));
-
-        Bit32u z_buffer_len = (Bit32u)(dtoh32(header.specific.extent)*1.001) + 13;
+        z_buffer_len = (Bit32u)(dtoh32(header.specific.extent)*1.001) + 13;
         z_buffer = (Bit8u*) malloc(z_buffer_len);
         BX_INFO(("compressed : allocated a %d-bytes compressed buffer",z_buffer_len));
+
+        // init parent through the open method, set the cache parameters
+        cached_image_t::open(dtoh32(header.specific.extent));
 
         return 0;
 }
@@ -4854,6 +5047,8 @@ int z_compressed_image_t::open (const char* pathname)
 void 
 z_compressed_image_t::close ()
 {
+        cached_image_t::close();
+
         if (fd >= 0)
         {
                 ::close(fd);
@@ -4866,13 +5061,6 @@ z_compressed_image_t::close ()
                 catalog = NULL;
         }
 
-        for (Bit32u i=0; i < COMPRESSED_CACHES; i++) 
-        {
-            free(cache_buffers[i]);
-            cache_extents[i] = 0;
-            cache_flag[i] = CACHE_FLAG_EMPTY;
-        }
-
         if (z_buffer != NULL) 
         {
                 free(z_buffer);
@@ -4881,20 +5069,57 @@ z_compressed_image_t::close ()
 
 }
 
-void  z_compressed_image_t::flush() {}
-
-off_t z_compressed_image_t::lseek (off_t _offset, int whence) 
+ssize_t z_compressed_image_t::physical_read (off_t offset, void* buf, size_t count) 
 {
-        if ((offset % 512) != 0)
-                BX_PANIC(("compressed : offset is not a muliple of 512"));
+        if (count != dtoh32(header.specific.extent))
+                BX_PANIC(("compressed : count of %d is not supported", count));
+                
+        Bit32u extent_index = (offset / dtoh32(header.specific.extent));
+        Bit32u extent_offset = (offset % dtoh32(header.specific.extent));
+        Bit64u catalog_entry = dtoh64(catalog[extent_index]);
 
-        offset = _offset; 
-        return offset;
+        BX_INFO(("compressed : offset is %lld, extent_index is %d, extent_offset is %d, entry is 0x%llx",
+                offset,extent_index,extent_offset,catalog_entry));
+
+        if (!BX_HD_COMPRESSED_EXTENT_IS_ALLOCATED(catalog_entry)) {
+                memset(buf, 0, count);
+                return count;
+        }
+
+        Bit64u position = BX_HD_COMPRESSED_EXTENT_POSITION(catalog_entry);
+        Bit32u zBlocks = BX_HD_COMPRESSED_EXTENT_SIZE(catalog_entry);
+        Bit32u fBlocks = dtoh32(header.specific.extent) / 512;
+
+        BX_INFO(("compressed : reading block, position is %lld, "
+                 "compressed size is %d blocks, uncompressed size is %d blocks",
+                position, zBlocks, fBlocks));
+
+        ::lseek(fd, BX_HD_COMPRESSED_DATA_START + (position * 512), SEEK_SET);
+        if (::read(fd, z_buffer, 512 * zBlocks) != (zBlocks * 512)) {
+                BX_PANIC(("compressed : could not read %d blocks", zBlocks));
+        }
+        
+        // uncompress to a cache buffer
+        if (zBlocks < fBlocks) {
+                // Data is compressed
+                unsigned long fLen = fBlocks * 512;
+                unsigned long zLen = zBlocks * 512;
+                int result = uncompress ((Bit8u*)buf, &fLen, (const Bit8u*) z_buffer, zLen);
+                if (result != Z_OK) {
+                        BX_PANIC(("compressed : error %d while decompressing... this is bad...", result));
+                }
+        }
+        else {
+                // Data is stored uncompressed
+                memcpy(buf, z_buffer, fBlocks * 512);
+        }
+
+        return count;
 }
 
-ssize_t z_compressed_image_t::read (void* buf, size_t count) 
+ssize_t z_compressed_image_t::physical_write (off_t offset, const void* buf, size_t count) 
 {
-        if (count != 512)
+        if (count != dtoh32(header.specific.extent))
                 BX_PANIC(("compressed : count of %d is not supported yet", count));
                 
         Bit32u extent_index = (offset / dtoh32(header.specific.extent));
@@ -4904,44 +5129,97 @@ ssize_t z_compressed_image_t::read (void* buf, size_t count)
         BX_INFO(("compressed : offset is %lld, extent_index is %d, extent_offset is %d, entry is 0x%llx",
                 offset,extent_index,extent_offset,catalog_entry));
 
-        if (!COMPRESSED_EXTENT_IS_ALLOCATED(catalog_entry)) {
-                memset(buf, 0, count);
+        // Test buffer against a 0 filled buffer
+        memset(z_buffer, 0, dtoh32(header.specific.extent));
+        if (memcmp(z_buffer, buf, dtoh32(header.specific.extent)) == 0) {
+                BX_INFO(("compressed : buffer is full of 0"));
+
+                // if catalog entry was previously allocated, dump it
+                if (BX_HD_COMPRESSED_EXTENT_IS_ALLOCATED(catalog_entry)) {
+                        BX_INFO(("compressed : dumping catalog entry"));
+                        catalog[extent_index]=htod64(BX_HD_COMPRESSED_EXTENT_NOT_ALLOCATED);
+                        ::lseek(fd, BX_HD_COMPRESSED_CATALOG_START + (extent_index * sizeof(Bit64u)), SEEK_SET);
+                        ::write(fd, &(catalog[extent_index]), sizeof(Bit64u));
+                }
                 return count;
         }
 
-        Bit64u position = COMPRESSED_EXTENT_POSITION(catalog_entry);
-        Bit32u zBlocks = COMPRESSED_EXTENT_SIZE(catalog_entry);
-        Bit32u fBlocks = dtoh32(header.specific.extent) / 512;
-
-        BX_INFO(("compressed : position is %lld, compressed size is %d blocks, uncompressed size is %d blocks",
-                position, zBlocks, fBlocks));
-
-        ::lseek(fd, COMPRESSED_DATA_START + (extent_offset * 512), SEEK_SET);
-        if (::read(fd, z_buffer, 512 * zBlocks) != (zBlocks * 512)) {
-                BX_PANIC(("compressed : could not read %d blocks", zBlocks));
+        // Compress buffer
+        unsigned long fLen = dtoh32(header.specific.extent);
+        unsigned long zLen = z_buffer_len;
+        int result = compress2((Bit8u*)z_buffer, &zLen, (const Bit8u*)buf, fLen, 6);
+        if (result != Z_OK) {
+                BX_PANIC(("compressed : error %d while compressing... this is bad...", result));
         }
+
+        // Compute flat and compressed sizes in 512-bytes blocks
+        Bit32u zBlocks = (((zLen==0?1:zLen)-1) / 512)+1;
+        Bit32u fBlocks = fLen / 512;
         
-        // uncompress to a cache buffer
-        // FIXME cache handling here
-        if (zBlocks < fBlocks) {
-                // Data is compressed
-                unsigned long fLen = fBlocks * 512;
-                unsigned long zLen = zBlocks * 512;
-                int result = uncompress (cache_buffers[0], &fLen, z_buffer, zLen);
-                if (result != Z_OK) {
-                        BX_PANIC(("compressed : error %d while decompressing... this is bad...", result));
-                }
+        // Limit to uncompressed size, will be detected when writing
+        Bit32u aBlocks=zBlocks<fBlocks?zBlocks:fBlocks;
+
+        Bit64u position = BX_HD_COMPRESSED_EXTENT_POSITION(catalog_entry);
+        bx_bool update_catalog = false;
+
+        // if extent was not previously allocated
+        // or new block does not fit in previous space
+        if ( (aBlocks > BX_HD_COMPRESSED_EXTENT_SIZE(catalog_entry)) ||
+             (!BX_HD_COMPRESSED_EXTENT_IS_ALLOCATED(catalog_entry)) ) {
+                // Add data at end of disk image
+
+                // Set entry in catalog
+                position = extent_next;
+                catalog[extent_index]=htod64(BX_HD_COMPRESSED_EXTENT_CATALOG(position, aBlocks));
+                catalog_entry = dtoh64(catalog[extent_index]);
+
+                // Write catalog entry
+                update_catalog = true;
+
+                // Set new next extent
+                extent_next += aBlocks;
         }
         else {
-                // Data is stored uncompressed
-                memcpy(cache_buffers[0], z_buffer, fBlocks * 512);
-        }
-        memcpy(buf, cache_buffers[0] + offset, count);
+                // extent was previously allocated
+                // and new block fits in previous space
+                // we can update in place, position does not change
 
+                // If new block size is strictly equals, no need to write new catalog
+                if (aBlocks != BX_HD_COMPRESSED_EXTENT_SIZE(catalog_entry)) {
+                        catalog[extent_index]=htod64(BX_HD_COMPRESSED_EXTENT_CATALOG(position, aBlocks));
+                        catalog_entry = dtoh64(catalog[extent_index]);
+                
+                        // Write catalog entry
+                        update_catalog = true;
+                }
+        }
+
+        // If catalog was modified
+        if (update_catalog) {
+                ::lseek(fd, BX_HD_COMPRESSED_CATALOG_START + (extent_index * sizeof(Bit64u)), SEEK_SET);
+                ::write(fd, &(catalog[extent_index]), sizeof(Bit64u));
+        }
+
+        BX_INFO(("compressed : writing block, position is %lld, "
+                 "compressed size is %d blocks, uncompressed size is %d blocks",
+                 position, zBlocks, fBlocks));
+
+        // Write data
+        ::lseek(fd, BX_HD_COMPRESSED_DATA_START + (position * 512), SEEK_SET);
+        if (aBlocks < fBlocks) {
+                // Store compressed data
+                if (::write(fd, z_buffer, 512 * aBlocks) != (aBlocks * 512)) {
+                         BX_PANIC(("compressed : could not write %d blocks (compressed)", aBlocks));
+                }
+        } else {
+                // Store uncompressed data
+                if (::write(fd, buf, 512 * aBlocks) != (aBlocks * 512)) {
+                         BX_PANIC(("compressed : could not write %d blocks (uncompressed)", aBlocks));
+                }
+        }
+        
         return count;
 }
-
-ssize_t z_compressed_image_t::write (const void* buf, size_t count) {return 0;}
 
 /*** z_ro_image_t function definitions ***/
 
@@ -4978,8 +5256,7 @@ void z_ro_image_t::close ()
 off_t z_ro_image_t::lseek (off_t _offset, int whence)
 {
         // Only SEEK_SET supported
-        if (whence != SEEK_SET)
-        {
+        if (whence != SEEK_SET) {
               BX_PANIC(("lseek on compressed images : only SEEK_SET supported"));
         }
 
@@ -5036,13 +5313,13 @@ int z_undoable_image_t::open (const char* pathname)
 
         // Otherwise we make up the redolog filename from the pathname
         if ( logname == NULL) {
-                logname = (char*)malloc(strlen(pathname) + UNDOABLE_REDOLOG_EXTENSION_LENGTH + 1);
-                sprintf (logname, "%s%s", pathname, UNDOABLE_REDOLOG_EXTENSION);
+                logname = (char*)malloc(strlen(pathname) + BX_HD_UNDOABLE_REDOLOG_EXTENSION_LENGTH + 1);
+                sprintf (logname, "%s%s", pathname, BX_HD_UNDOABLE_REDOLOG_EXTENSION);
         }
 
-        if (redolog->open(logname,REDOLOG_SUBTYPE_UNDOABLE,size) < 0)
+        if (redolog->open(logname,BX_HD_REDOLOG_SUBTYPE_UNDOABLE,size) < 0)
         {
-                if (redolog->create(logname, REDOLOG_SUBTYPE_UNDOABLE, size) < 0)
+                if (redolog->create(logname, BX_HD_REDOLOG_SUBTYPE_UNDOABLE, size) < 0)
                 {
                         BX_PANIC(("Can't open or create redolog '%s'",logname));
                         return -1;
@@ -5122,8 +5399,8 @@ int z_volatile_image_t::open (const char* pathname)
                 logname = pathname;
         }
 
-        redolog_temp = (char*)malloc(strlen(logname) + VOLATILE_REDOLOG_EXTENSION_LENGTH + 1);
-        sprintf (redolog_temp, "%s%s", logname, VOLATILE_REDOLOG_EXTENSION);
+        redolog_temp = (char*)malloc(strlen(logname) + BX_HD_VOLATILE_REDOLOG_EXTENSION_LENGTH + 1);
+        sprintf (redolog_temp, "%s%s", logname, BX_HD_VOLATILE_REDOLOG_EXTENSION);
 
         filedes = mkstemp (redolog_temp);
 
@@ -5132,7 +5409,7 @@ int z_volatile_image_t::open (const char* pathname)
                 BX_PANIC(("Can't create volatile redolog '%s'", redolog_temp));
                 return -1;
         }
-        if (redolog->create(filedes, REDOLOG_SUBTYPE_VOLATILE, size) < 0)
+        if (redolog->create(filedes, BX_HD_REDOLOG_SUBTYPE_VOLATILE, size) < 0)
         {
                 BX_PANIC(("Can't create volatile redolog '%s'", redolog_temp));
                 return -1;

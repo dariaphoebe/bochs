@@ -1,6 +1,6 @@
 /*
  * misc/bximage.c
- * $Id: bxcompress.c,v 1.1.2.1 2004/04/30 17:14:27 cbothamy Exp $
+ * $Id: bxcompress.c,v 1.1.2.2 2004/05/18 20:35:15 cbothamy Exp $
  *
  * Compresses a flat disk image to a compressed disk image for bochs
  * Also reclaims space unused in a compressed disk image for bochs
@@ -42,7 +42,7 @@
 #include "../iodev/harddrv.h"
 
 char *EOF_ERR = "ERROR: End of input";
-char *rcsid = "$Id: bxcompress.c,v 1.1.2.1 2004/04/30 17:14:27 cbothamy Exp $";
+char *rcsid = "$Id: bxcompress.c,v 1.1.2.2 2004/05/18 20:35:15 cbothamy Exp $";
 char *divider = "========================================================================";
 
 void myexit (int code)
@@ -406,7 +406,7 @@ int compress_flat_image (char *flat_filename, char *compressed_filename)
 
                 // Here we must compress fLen bytes, so the last extent 
                 // will be decompressed to a "fLen" length buffer.
-                if (compress (zbuffer, &zLen, fbuffer, fLen) != Z_OK)
+                if (compress2 (zbuffer, &zLen, fbuffer, fLen, 6) != Z_OK)
                         fatal ("ERROR: while compressing!\n");
 
                 // Compute flat and compressed sizes in 512-bytes blocks
