@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.13 2003/04/02 08:54:11 slechta Exp $
+// $Id: main.cc,v 1.223.4.14 2003/04/04 03:15:36 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -137,8 +137,8 @@ Bit32s strtol_or_die (
 static Bit64s
 bx_param_handler (bx_param_c *param, int set, Bit64s val)
 {
-  char pname[BX_PATHNAME_LEN];
-  param->get_param_path (pname, BX_PATHNAME_LEN);
+  char pname[BX_PARAM_PATH_MAX];
+  param->get_param_path (pname, sizeof(pname));
   BX_INFO (("bx_param_handler called with param '%s', set=%d, new value %lld", pname, set, val));
   if (!strcmp (pname, BXPN_VGA_UPDATE_INTERVAL)) {
     // if after init, notify the vga device to change its timer.
@@ -250,8 +250,8 @@ bx_param_handler (bx_param_c *param, int set, Bit64s val)
 
 char *bx_param_string_handler (bx_param_string_c *param, int set, char *val, int maxlen)
 {
-  char pname[BX_PATHNAME_LEN];
-  param->get_param_path (pname, BX_PATHNAME_LEN);
+  char pname[BX_PARAM_PATH_MAX];
+  param->get_param_path (pname, sizeof(pname));
   BX_INFO (("bx_param_handler called with param '%s', set=%d, new value '%s'", pname, set, val));
   int empty = 0;
   if ((strlen(val) < 1) || !strcmp ("none", val)) {
@@ -539,10 +539,13 @@ void bx_init_options ()
 
     // all items in the ata[channel] menu depend on the present flag.
     // The menu list is complete, but a few dependent_list items will
-    // be added later.  Use clone() to make a copy of the dependent_list
-    // so that it can be changed without affecting the menu.
-    bx_options.ata[channel].Opresent->set_dependent_list (
-        ata[channel]->clone());
+    // be added later.  Copy the menu into the dependent list, so that
+    // it can be changed later without affecting the menu.
+    deplist = new bx_list_c (NULL, "dep", "", 10);
+    deplist->get_options()->set (deplist->ALLOW_DUPS);
+    bx_options.ata[channel].Opresent->set_dependent_list (deplist);
+    for (i=0; i < ata[channel]->get_size (); i++)
+      deplist->add (ata[channel]->get (i));
 
     for (Bit8u slave=0; slave<2; slave++) {
       menu = bx_options.atadevice[channel][slave].Omenu = new bx_list_c (ata[channel],
@@ -610,8 +613,12 @@ void bx_init_options ()
        BX_ATA_TRANSLATION_AUTO,
        BX_ATA_TRANSLATION_NONE);
 
+      deplist = new bx_list_c (NULL, "dep", "", 20);
+      deplist->get_options()->set (deplist->ALLOW_DUPS);
       bx_options.atadevice[channel][slave].Opresent->set_dependent_list (
-          menu->clone ());
+	  deplist);
+      for (i=0; i < menu->get_size(); i++)
+	deplist->add (menu->get (i));
       // the menu and all items on it depend on the Opresent flag
       bx_options.atadevice[channel][slave].Opresent->get_dependent_list()->add(menu);
       // the present flag depends on the ATA channel's present flag
