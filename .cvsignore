@@ -1,6 +1,7 @@
 Makefile
 bochs
 bximage
+bxcommit
 bxversion.h
 config.h
 config.log
