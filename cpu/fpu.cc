@@ -370,8 +370,13 @@ void BX_CPU_C::FRSTOR(bxInstruction_c *i)
   for(int n=0;n<8;n++)
   {
      floatx80 tmp;
-     write_virtual_tword(i->seg(), RMAddr(i) + offset, &tmp);
-     BX_WRITE_FPU_REGISTER_AND_TAG(tmp, BX_CPU_THIS_PTR the_i387.FPU_gettagi(n), n);
+
+     // read register only if its tag is not empty
+     if (! IS_TAG_EMPTY(n))
+     {
+         read_virtual_tword(i->seg(), RMAddr(i) + offset, &tmp);
+         BX_WRITE_FPU_REG(tmp, n);
+     }
   }
 #else
   BX_INFO(("FRSTOR: required FPU, configure --enable-fpu"));
