@@ -1,4 +1,4 @@
-$Id: PARAM_TREE.txt,v 1.1.2.2 2003/03/20 06:58:56 bdenney Exp $
+$Id: PARAM_TREE.txt,v 1.1.2.3 2003/03/24 01:06:45 bdenney Exp $
 
 I'm trying to organize the parameters into a tree structure instead of
 a huge flat list.  Once the parameter code is improved, I hope to use
@@ -15,21 +15,18 @@ Notes:
   reason that we have id numbers at all is to be able to find the pointer to a
   parameter.  In a tree structure, the parameters will be found by name
   instead.
-- when creating a bx_param_c object, specify the parent object.  The
-  parent must be bx_list_c type.  In the constructor, the child is
-  added to the parent's list of children, and (optionally) the child
-  keeps a pointer to the parent.
-- parameters can then be located by their position in the tree, for
+- (DONE) when creating a bx_param_c object, specify the parent object.  The
+  parent must be bx_list_c type or descendent.  In the constructor, the child
+  is added to the parent's list of children, and (optionally) the child keeps
+  a pointer to the parent.
+- (DONE) parameters can then be located by their position in the tree, for
   example: memory.rom.address.  That means to find the bx_list_c called
   "memory" in the list of top level objects, then get the bx_list_c called
-  "rom" in memory's list of children, then get the child called "address"
-  in rom's list of children.
-- alternative notation: memory/rom/address, ata>1>slave>cylinders,
-  memory'optional_rom'path
-- parameters have additional information inside them, like the name,
-  description, min, max, initial value.  Do we need a way to name
-  this stuff?  Invent syntax.... PARAM'FIELD means field FIELD of parameter
-  PARAM. 
+  "rom" in memory's list of children, then get the child called "address" in
+  rom's list of children.
+- (MAYBE LATER) parameters have additional information inside them, like the
+  name, description, min, max, initial value.  Do we need a way to name this
+  stuff?  Invent syntax.... PARAM'FIELD means field FIELD of parameter PARAM. 
     memory.ram.size = 32
     memory.ram.size'type = BXT_PARAM_NUM
     memory.ram.size'max = 4
@@ -39,9 +36,9 @@ Notes:
     memory.ram'parent refers to parameter memory
     etc.
   I'm not sure if this will ever be needed.
-- also I don't know if any form of relative pathname would be useful/needed.
-  If so, probably using slash notation and ".."'s would look the most
-  familiar to people.
+- (MAYBE LATER) also I don't know if any form of relative pathname would be
+  useful/needed.  If so, probably using slash notation and ".."'s would look
+  the most familiar to people.
 - we need to be able to handle arrays of objects, but I think it can be
   done with just another list with names 0, 1, 2, 3, etc.
     floppy
@@ -50,21 +47,74 @@ Notes:
     floppy.0.path=/dev/fd0
     floppy.1.devtype=1
     floppy.1.path=/dev/fd1
+  This is fine for small array sizes.  It would be very inconveninent for
+  20 or more.  Any lookup by number would have to sprintf the number 
+  into a string, then search through the array using string comparison.
 - I have written all the parameter names in "C variable name" style, 
-  lowercase with underscores instead of spaces.  But for display purposes
-  it may be k
+  lowercase with underscores instead of spaces.  For display we should
+  use more readable text.
 - when adding a child to a parent, verify that there isn't already a 
   child with the same name. Duplicate named children should not be permitted.
 - bx_param_c::clone should not automatically add the clone to the parent.
+- param handler functions are somewhat bizarre and can be improved.
+  - set and get use the same handler.  Is there any benefit to this?
+    I think the only benefit is that we waste fewer bytes per param
+    on the extra handler pointer.
+  - old value not accessible in the handler
+  - the value is changed before the handler is called. the handler can
+    change the value back by calling set() again, which will invoke the
+    handler again.  Significant danger of infinite loops if handler is
+    broken.
+- BXP_* are enumerated id numbers.  These no longer work and will be
+  eliminated eventually.
+- BXPN_* are parameter names like "memory.rom.address" in the form of
+  string constants
+- when we save a checkpoint, we need to save exact hard drive and floppy
+  contents (maybe option to skip some).  When we restore
+
+- what files will we produce when we save state?  Example if checkpoint
+  name is "march23":
+  - march23/state
+      ascii format, produced by something resembling print_tree().
+      for binary data, output a reference to a section of the binary data
+      file.  Refer to blocks by byte offset and length.
+  - march23/data
+      raw blocks binary data.  Each block is referenced in the state file.
+      For example
+  - march23/ata0master
+      complete copy of the disk image at time of save
+  - march23/ata0slave
+      complete copy of the disk image at time of save
+  - march23/floppy0
+      complete copy of the disk image at time of save
+
+- ideas for checkpoint/state file format
+    # any lines starting with # are comments
+    memory {
+     optional_rom {
+      0 {
+       path = "rom1.img"
+       addr = 0xe0000
+      }
+      1 {
+       path = "rom2.img"
+       addr = 0xd0000
+      }
+     }
+    }
+
+
 
 Proposed organizion of parameters into a tree
 
 memory
   ram
     size              BXP_MEM_SIZE,
+    data              represents the binary data in memory
   rom                 
     addr              BXP_ROM_ADDRESS,
     path              BXP_ROM_PATH,
+    data              represents the binary rom data
   vgarom
     path              BXP_VGA_ROM_PATH,
   optional_rom
@@ -185,14 +235,15 @@ pci
 # the variables in the device itself.  Try putting the configurable
 # parameters into keyboard.conf.*
 keyboard              BXP_KEYBOARD,
-  conf
-    type                BXP_KBD_TYPE,
-    serial_delay        BXP_KBD_SERIAL_DELAY,
-    paste_delay         BXP_KBD_PASTE_DELAY,
-    use_mapping         BXP_KEYBOARD_USEMAPPING,
-    map                 BXP_KEYBOARD_MAP,
-    enable_mouse        BXP_MOUSE_ENABLED,
-    user_shortcut       BXP_USER_SHORTCUT,
+  # configuration
+  type                BXP_KBD_TYPE,
+  serial_delay        BXP_KBD_SERIAL_DELAY,
+  paste_delay         BXP_KBD_PASTE_DELAY,
+  use_mapping         BXP_KEYBOARD_USEMAPPING,
+  map                 BXP_KEYBOARD_MAP,
+  enable_mouse        BXP_MOUSE_ENABLED,
+  user_shortcut       BXP_USER_SHORTCUT,
+  # device model
   pare                BXP_KBD_PARE,
   tim                 BXP_KBD_TIM,
   auxb                BXP_KBD_AUXB,
