@@ -148,7 +148,7 @@ BX_CPU_C::task_switch(bx_selector_t *tss_selector,
   unsigned exception_no;
   Bit16u error_code;
 
-//fprintf(stderr, "TASKING: ENTER\n");
+//BX_DEBUG(( "TASKING: ENTER\n" ));
 
   invalidate_prefetch_q();
 
@@ -294,7 +294,7 @@ BX_CPU_C::task_switch(bx_selector_t *tss_selector,
 
 #if 0
 if (ss_descriptor.u.segment.d_b && (tss_descriptor->type<9)) {
-  fprintf(stderr, "++++++++++++++++++++++++++\n");
+  BX_DEBUG(( "++++++++++++++++++++++++++\n" ));
   BX_CPU_THIS_PTR sregs[BX_SEG_REG_SS].cache.valid = 0;
   exception(BX_SS_EXCEPTION, raw_ss_selector & 0xfffc, 0);
   //exception(BX_TS_EXCEPTION, tss_selector->value & 0xfffc, 0);
@@ -675,7 +675,7 @@ BX_CPU_THIS_PTR ldtr.cache.u.ldt.limit = 0;
 #if 0
     // +++
     else if (ss_descriptor.u.segment.d_b && (tss_descriptor->type<9)) {
-      fprintf(stderr, "++++++++++++++++++++++++++\n");
+      BX_DEBUG(( "++++++++++++++++++++++++++\n" ));
       exception_no = BX_TS_EXCEPTION;
       error_code   = raw_ss_selector & 0xfffc;
       goto post_exception;
@@ -888,7 +888,7 @@ BX_CPU_THIS_PTR ldtr.cache.u.ldt.limit = 0;
   //
   // Step 14: Begin execution of new task.
   //
-//fprintf(stderr, "TASKING: LEAVE\n");
+//BX_DEBUG(( "TASKING: LEAVE\n" ));
   return;
 
 post_exception:

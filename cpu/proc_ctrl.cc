@@ -62,7 +62,6 @@ BX_CPU_C::HLT(BxInstruction_t *i)
     }
 
   if ( ! BX_CPU_THIS_PTR eflags.if_ ) {
-    fprintf(stderr, "WARNING: HLT instruction with IF=0!\n");
     BX_INFO(("WARNING: HLT instruction with IF=0!\n"));
     }
 

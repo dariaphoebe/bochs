@@ -3136,8 +3136,8 @@ void bx_sb16_c::writelog(int loglevel, const char *str, ...)
     {
 	time_t timep = time(NULL);
 	tm *t = localtime(&timep);
-	fprintf(LOGFILE, "SB16 %02d:%02d:%02d (%i): ",
-		t->tm_hour, t->tm_min, t->tm_sec, loglevel);
+	BX_INFO(( "SB16 %02d:%02d:%02d (%i): ",
+		t->tm_hour, t->tm_min, t->tm_sec, loglevel ));
 	va_list ap;
 	va_start(ap, str);
 	vfprintf(LOGFILE, str, ap);

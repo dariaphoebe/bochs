@@ -261,8 +261,8 @@ bx_dbg_main(int argc, char *argv[])
   i = 1;
   if ( (argc >= 2) && !strcmp(argv[1], "-rc") ) {
     if ( argc == 2 ) {
-      fprintf(stderr, "%s: -rc option used, but no path specified.\n",
-        argv[0]);
+      BX_ERROR(( "%s: -rc option used, but no path specified.\n",
+        argv[0] ));
       bx_dbg_usage();
       exit(1);
       }

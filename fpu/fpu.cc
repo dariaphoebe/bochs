@@ -84,8 +84,8 @@ BX_CPU_C::ESC3(BxInstruction_t *i)
     exception(BX_NM_EXCEPTION, 0, 0);
     }
 
-//fprintf(stderr, "CS:EIP = %04x:%08x\n",
-//  BX_CPU.sregs[BX_SEG_REG_CS].selector.value, BX_CPU.prev_eip);
+//BX_DEBUG(( "CS:EIP = %04x:%08x\n",
+//  BX_CPU.sregs[BX_SEG_REG_CS].selector.value, BX_CPU.prev_eip));
 
 #if BX_SUPPORT_FPU
   fpu_execute(i);

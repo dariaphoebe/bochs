@@ -283,7 +283,7 @@ bx_gui_c::specific_init(bx_gui_c *th, int argc, char **argv, unsigned tilewidth,
   UNUSED(th);
 
 if (bx_options.private_colormap) {
-  fprintf(stderr, "# WARNING: X11: private_colormap option not handled yet.\n");
+  BX_ERROR(( "private_colormap option not handled yet.\n" ));
   }
 
   x_tilesize = tilewidth;
@@ -523,7 +523,6 @@ load_font(void)
 
   /* Load font and get font information structure. */
   if ((font_info = XLoadQueryFont(bx_x_display,"vga")) == NULL) {
-    fprintf(stderr, "# %s: Cannot open vga font\n", progname);
     BX_PANIC(("Could not open vga font\n"));
     }
 }
@@ -682,14 +681,12 @@ bx_gui_c::handle_events(void)
     case KeyPress:
       key_event = (XKeyEvent *) &report;
       charcount = XLookupString(key_event, buffer, bufsize, &keysym, &compose);
-/*fprintf(stderr, "# >>> %s\n", XKeysymToString(keysym));*/
       xkeypress(keysym, 0);
       break;
 
     case KeyRelease:
       key_event = (XKeyEvent *) &report;
       charcount = XLookupString(key_event, buffer, bufsize, &keysym, &compose);
-/*fprintf(stderr, "# <<< %s\n", XKeysymToString(keysym));*/
       xkeypress(keysym, 1);
       break;
 
@@ -911,7 +908,7 @@ xkeypress(KeySym keysym, int press_release)
     case XK_Page_Down:   key_event = BX_KEY_PAGE_DOWN; break;
 
     default:
-      fprintf(stderr, "# xkeypress(): keysym %x unhandled!\n", (unsigned) keysym);
+      BX_ERROR(( "xkeypress(): keysym %x unhandled!\n", (unsigned) keysym ));
       return;
       break;
     }

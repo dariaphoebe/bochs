@@ -323,7 +323,7 @@ void bx_gui_c::specific_init(bx_gui_c *th, int argc, char **argv, unsigned
   SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
 
   if (bx_options.private_colormap)
-    fprintf(stderr, "# WARNING: WIN32: private_colormap option ignored.\n");
+    BX_WARN(( "private_colormap option ignored.\n"));
 }
 
 
@@ -515,7 +515,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 
 void enq_key_event(Bit32u key, Bit32u press_release) {	
   if (((tail+1) % SCANCODE_BUFSIZE) == head) {
-    fprintf(stderr, "# enq_scancode: buffer full\n");
+    BX_ERROR(( "enq_scancode: buffer full\n"));
     return;
   }
   keyevents[tail].key_event = key | press_release;
@@ -528,7 +528,7 @@ void enq_mouse_event(void)
   if ( ms_xdelta || ms_ydelta)
   {
     if (((tail+1) % SCANCODE_BUFSIZE) == head) {
-      fprintf(stderr, "# enq_scancode: buffer full\n");
+      BX_ERROR(( "enq_scancode: buffer full\n" ));
       return;
     }
     QueueEvent& current=keyevents[tail];
@@ -546,7 +546,7 @@ QueueEvent* deq_key_event(void) {
   QueueEvent* key;
 
   if ( head == tail ) {
-    fprintf(stderr, "# deq_scancode: buffer empty\n");
+    BX_ERROR(("deq_scancode: buffer empty\n")));
     return((QueueEvent*)0);
   }
   key = &keyevents[head];

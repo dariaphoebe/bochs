@@ -133,7 +133,7 @@ bx_hard_drive_c::init(bx_devices_c *d, bx_cmos_c *cmos)
 
   if (bx_options.cdromd.present) {
 	bx_options.diskd.present = 1;
-	fprintf(stderr, "disk: Experimental CDROM on target 1\n");
+	BX_INFO(( "disk: Experimental CDROM on target 1\n" ));
 	BX_HD_THIS s[1].device_type = IDE_CDROM;
 	BX_HD_THIS s[1].cdrom.locked = 0;
 	BX_HD_THIS s[1].sense.sense_key = SENSE_NONE;
@@ -169,16 +169,16 @@ bx_hard_drive_c::init(bx_devices_c *d, bx_cmos_c *cmos)
 #ifdef LOWLEVEL_CDROM
 	if (bx_options.cdromd.inserted) {
 	      if (BX_HD_THIS s[1].cdrom.cd->insert_cdrom()) {
-		    fprintf(stderr, "disk: Media present in CD-ROM drive\n");
+		    BX_INFO(( "Media present in CD-ROM drive\n"));
 		    BX_HD_THIS s[1].cdrom.ready = 1;
 		    BX_HD_THIS s[1].cdrom.capacity = BX_HD_THIS s[1].cdrom.cd->capacity();
 	      } else {		    
-		    fprintf(stderr, "disk: Could not locate CD-ROM, continuing with media not present\n");
+		    BX_INFO(( "Could not locate CD-ROM, continuing with media not present\n"));
 		    BX_HD_THIS s[1].cdrom.ready = 0;
 	      }
 	} else {
 #endif
-	      fprintf(stderr, "disk: Media not present in CD-ROM drive\n");
+	      BX_INFO(( "Media not present in CD-ROM drive\n" ));
 	      BX_HD_THIS s[1].cdrom.ready = 0;
 #ifdef LOWLEVEL_CDROM
 	}
@@ -1631,10 +1631,10 @@ bx_hard_drive_c::write(Bit32u address, Bit32u value, unsigned io_len)
 	  BX_HD_THIS s[0].controller.control.reset         = value & 0x04;
 	  BX_HD_THIS s[1].controller.control.reset         = value & 0x04;
 	  BX_SELECTED_CONTROLLER.control.disable_irq    = value & 0x02;
-      //fprintf(stderr, "# hard drive: adpater control reg: reset controller = %d\n",
-      //  (unsigned) (BX_SELECTED_CONTROLLER.control.reset) ? 1 : 0);
-      //fprintf(stderr, "# hard drive: adpater control reg: disable_irq(14) = %d\n",
-      //  (unsigned) (BX_SELECTED_CONTROLLER.control.disable_irq) ? 1 : 0);
+      //BX_DEBUG(( "adpater control reg: reset controller = %d\n",
+      //  (unsigned) (BX_SELECTED_CONTROLLER.control.reset) ? 1 : 0 ));
+      //BX_DEBUG(( "adpater control reg: disable_irq(14) = %d\n",
+      //  (unsigned) (BX_SELECTED_CONTROLLER.control.disable_irq) ? 1 : 0 ));
 	  if (!prev_control_reset && BX_SELECTED_CONTROLLER.control.reset) {
 		// transition from 0 to 1 causes all drives to reset
 		BX_INFO(("hard drive: RESET\n"));

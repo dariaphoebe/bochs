@@ -132,8 +132,6 @@ BX_CPU_C::INT_Ib(BxInstruction_t *i)
 
 #ifdef SHOW_EXIT_STATUS
 if ( (imm8 == 0x21) && (AH == 0x4c) ) {
-  fprintf(stderr, "#(%u) INT 21/4C called AL=0x%02x, BX=0x%04x\n", BX_SIM_ID,
-          (unsigned) AL, (unsigned) BX);
   BX_INFO(("INT 21/4C called AL=0x%02x, BX=0x%04x\n", (unsigned) AL, (unsigned) BX));
   }
 #endif

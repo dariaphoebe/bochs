@@ -135,19 +135,19 @@ BX_MEM_C::load_ROM(const char *path, Bit32u romaddress)
 #endif
            );
   if (fd < 0) {
-    fprintf(stderr, "load_ROM: couldn't open ROM image file '%s'.\n", path);
+    BX_INFO(( "load_ROM: couldn't open ROM image file '%s'.\n", path));
     exit(1);
     }
   ret = fstat(fd, &stat_buf);
   if (ret) {
-    fprintf(stderr, "load_ROM: couldn't stat ROM image file '%s'.\n", path);
+    BX_INFO(( "load_ROM: couldn't stat ROM image file '%s'.\n", path));
     exit(1);
     }
 
   size = stat_buf.st_size;
 
   if ( (romaddress + size) > BX_MEM_THIS len ) {
-    fprintf(stderr, "load_ROM: ROM address range > physical memsize!\n");
+    BX_INFO(( "load_ROM: ROM address range > physical memsize!\n"));
     exit(1);
     }
 
@@ -163,8 +163,7 @@ BX_MEM_C::load_ROM(const char *path, Bit32u romaddress)
     ret = read(fd, (bx_ptr_t) &BX_MEM_THIS vector[romaddress + offset], size);
 #endif
     if (ret <= 0) {
-      fprintf(stderr, "load_ROM: read failed on ROM BIOS image\n");
-      exit(1);
+      BX_PANIC(( "load_ROM: read failed on ROM BIOS image\n"));
       }
     size -= ret;
     offset += ret;

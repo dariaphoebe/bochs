@@ -134,7 +134,7 @@ fpu_get_ds(void)
 fpu_set_ax(unsigned short val16)
 {
   AX = val16;
-//fprintf(stderr, "fpu_set_ax(0x%04x)\n", (unsigned) val16);
+//BX_DEBUG(( "fpu_set_ax(0x%04x)\n", (unsigned) val16));
 }
 
   void
@@ -150,7 +150,7 @@ fpu_verify_area(unsigned what, void *ptr, unsigned n)
   else {  // VERIFY_WRITE
     BX_CPU.write_virtual_checks(seg, PTR2INT(ptr), n);
     }
-//fprintf(stderr, "verify_area: 0x%x\n", PTR2INT(ptr));
+//BX_DEBUG(( "verify_area: 0x%x\n", PTR2INT(ptr)));
 }
 
 

@@ -120,7 +120,7 @@ cdrom_interface::insert_cdrom()
     fd = open(path, O_RDONLY);
 #endif  
     if (fd < 0) {
-       fprintf(stderr, "#::cdrom_interface: open failed on dev '%s'.\n", path);
+       BX_INFO(( "::cdrom_interface: open failed on dev '%s'.\n", path));
        return(false);
     }
   
@@ -131,7 +131,7 @@ cdrom_interface::insert_cdrom()
     if (ret < 0) {
        CloseHandle(hFile);
 	   fd = -1;
-       fprintf(stderr, "#insert_cdrom: read returns error.\n");
+       BX_DEBUG(( "insert_cdrom: read returns error.\n" ));
 	   return(false);
 	}
 #else
@@ -139,7 +139,7 @@ cdrom_interface::insert_cdrom()
     if (ret < 0) {
        close(fd);
        fd = -1;
-       fprintf(stderr, "#insert_cdrom: read returns error.\n");
+       BX_DEBUG(( "insert_cdrom: read returns error.\n" ));
        return(false);
 	}
 #endif
@@ -157,7 +157,7 @@ cdrom_interface::eject_cdrom()
 #ifdef __OpenBSD__
     (void) ioctl (fd, CDIOCALLOW);
     if (ioctl (fd, CDIOCEJECT) < 0)
-	fprintf(stderr, "#eject_cdrom: eject returns error.\n");
+	  BX_DEBUG(( "eject_cdrom: eject returns error.\n" ));
 #endif
 
 #ifdef WIN32
@@ -347,7 +347,7 @@ cdrom_interface::read_toc(uint8* buf, int* length, bool msf, int start_track)
   return true;
   }
 #else
-  fprintf(stderr, "#cdrom: read_toc: your OS is not supported yet.\n");
+  BX_INFO(("read_toc: your OS is not supported yet.\n"));
   return(false); // OS not supported yet, return false always.
 #endif
 }
@@ -386,7 +386,7 @@ cdrom_interface::capacity()
     }
   nr_sects /= (CD_FRAMESIZE / 512);
 
-  fprintf(stderr, "#cdrom: capacity: %u\n", nr_sects);
+  BX_DEBUG(( "capacity: %u\n", nr_sects));
   return(nr_sects);
   }
 #elif defined(__OpenBSD__)
@@ -400,7 +400,7 @@ cdrom_interface::capacity()
   if (ioctl(fd, DIOCGDINFO, &lp) < 0)
     BX_PANIC(("cdrom: ioctl(DIOCGDINFO) failed\n"));
 
-  fprintf(stderr, "#cdrom: capacity: %u\n", lp.d_secperunit);
+  BX_DEBUG(( "capacity: %u\n", lp.d_secperunit ));
   return(lp.d_secperunit);
   }
 #elif defined WIN32
@@ -411,7 +411,7 @@ cdrom_interface::capacity()
  
   }
 #else
-  fprintf(stderr, "#cdrom: capacity: your OS is not supported yet.\n");
+  BX_WARN(( "capacity: your OS is not supported yet.\n" ));
   return(0);
 #endif
 }

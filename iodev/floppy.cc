@@ -1291,7 +1291,6 @@ bx_floppy_ctrl_c::evaluate_media(unsigned type, char *path, floppy_t *media)
     }
   else {
     // unknown file type
-    fprintf(stderr, "# floppy: unknown mode type\n");
     BX_INFO(("unknown mode type\n"));
     return(0);
     }
