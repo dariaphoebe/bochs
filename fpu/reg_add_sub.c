@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  reg_add_sub.c                                                            |
- |  $Id: reg_add_sub.c,v 1.9.8.1 2004/03/26 21:36:09 sshwarts Exp $
+ |  $Id: reg_add_sub.c,v 1.9.8.2 2004/03/28 20:26:53 sshwarts Exp $
  |                                                                           |
  | Functions to add or subtract two registers and put the result in a third. |
  |                                                                           |
@@ -162,9 +162,6 @@ int FPU_sub(int flags, FPU_REG *rm, u16 control_w)
       int rmint = PTR2INT(rm);
       b = &st(rmint);
       tagb = FPU_gettagi(rmint);
-
-      if (flags & DEST_RM)
-	deststnr = rmint;
     }
 
   signa = getsign(a);
@@ -284,8 +281,6 @@ int FPU_sub(int flags, FPU_REG *rm, u16 control_w)
 	}
       if (flags & LOADED)
 	return real_2op_NaN(b, tagb, deststnr, d1);
-      if (flags & DEST_RM)
-	return real_2op_NaN(a, taga, deststnr, d2);
       else
 	return real_2op_NaN(b, tagb, deststnr, d2);
     }

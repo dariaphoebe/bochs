@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  fpu_emu.h                                                                |
- |  $Id: fpu_emu.h,v 1.23.6.5 2004/03/27 20:09:52 sshwarts Exp $
+ |  $Id: fpu_emu.h,v 1.23.6.6 2004/03/28 20:26:53 sshwarts Exp $
  |                                                                           |
  | Copyright (C) 1992,1993,1994,1997                                         |
  |                       W. Metzenthen, 22 Parker St, Ormond, Vic 3163,      |
@@ -28,11 +28,7 @@
 #define	EXP_UNDER	(-0x3fff)   /* largest invalid small exponent */
 #define EXP_WAY_UNDER   (-0x6000)   /* Below the smallest denormal, but still a 16 bit nr */
 
-#define EXP_Infinity    EXP_OVER
-#define EXP_NaN         EXP_OVER
-
 #define EXTENDED_Ebias (0x3fff)
-#define EXTENDED_Emin (-0x3ffe)  /* smallest valid exponent */
 
 #define SIGN_POS	(0)
 #define SIGN_NEG	(0x80)
@@ -57,14 +53,12 @@
 
 /* A few flags (must be >= 0x10). */
 #define REV             0x10
-#define DEST_RM         0x20
 #define LOADED          0x40
 
 #define FPU_Exception   (0x80000000)   /* Added to tag returns. */
 
 #include "fpu_system.h"
 
-#define fpu_register(x)  ( *((FPU_REG *)(FPU_register_base + sizeof(FPU_REG) * (x & 7) )))
 #define	st(x)      ( *((FPU_REG *)(FPU_register_base + sizeof(FPU_REG) * ((FPU_tos+x) & 7) )))
 
 /* FPU_push() does not affect the tags */
