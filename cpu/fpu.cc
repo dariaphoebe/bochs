@@ -295,6 +295,8 @@ int BX_CPU_C::fpu_load_environment(bxInstruction_c *i)
         /* clear the B and ES bits in the status-word */
         FPU_PARTIAL_STATUS &= ~(FPU_SW_Summary | FPU_SW_Backward);
     }
+
+    return offset;
 }
 #endif
 
