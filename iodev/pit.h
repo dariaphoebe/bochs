@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit.h,v 1.10.6.3 2003/04/02 08:54:34 slechta Exp $
+// $Id: pit.h,v 1.10.6.4 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -65,12 +65,14 @@ typedef struct {
 
 
 
-class bx_pit_c : public logfunctions {
+class bx_pit_c : public bx_devmodel_c {
 public:
   bx_pit_c( void );
   ~bx_pit_c( void );
   BX_PIT_SMF int init(void);
   BX_PIT_SMF void register_state(char *name, char *desc, bx_param_c *parent_p);
+  BX_PIT_SMF void before_save_state ();
+  BX_PIT_SMF void after_restore_state ();
   BX_PIT_SMF void reset( unsigned type);
   BX_PIT_SMF bx_bool periodic( Bit32u   usec_delta );
 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.cc,v 1.48.2.2 2003/04/04 03:46:08 slechta Exp $
+// $Id: ne2k.cc,v 1.48.2.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -1262,7 +1262,7 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
 void
 bx_ne2k_c::init(void)
 {
-  BX_DEBUG(("Init $Id: ne2k.cc,v 1.48.2.2 2003/04/04 03:46:08 slechta Exp $"));
+  BX_DEBUG(("Init $Id: ne2k.cc,v 1.48.2.3 2003/04/06 17:29:49 bdenney Exp $"));
 
 
   // Bring the register state into power-up state
@@ -1348,6 +1348,19 @@ bx_ne2k_c::register_state(bx_param_c *list_p)
   }
   BXRS_END;
 }
+
+void
+bx_ne2k_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_ne2k_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
 
 #if BX_DEBUGGER

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.cc,v 1.21.2.6 2003/03/28 09:26:09 slechta Exp $
+// $Id: pit82c54.cc,v 1.21.2.7 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -257,6 +257,19 @@ pit_82C54::register_state(bx_param_c *list_p)
 //  BX_REGISTER_NUM (&(controlword  ), "controlword"  , "", counter_list_p);
 //  BX_REGISTER_NUM (&(seen_problems), "seen_problems", "", counter_list_p);
 }
+
+void
+pit_82C54::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+pit_82C54::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
 pit_82C54::pit_82C54 (void) {
   init();

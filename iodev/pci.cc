@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.cc,v 1.28.4.2 2003/04/04 03:46:08 slechta Exp $
+// $Id: pci.cc,v 1.28.4.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -146,6 +146,19 @@ bx_pci_c::register_state(bx_param_c *list_p)
   }
   BXRS_END;
 }
+
+void
+bx_pci_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_pci_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
 
   void

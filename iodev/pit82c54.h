@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.h,v 1.12.2.4 2003/03/28 09:26:09 slechta Exp $
+// $Id: pit82c54.h,v 1.12.2.5 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -16,7 +16,7 @@
 #include "bochs.h"
 
 
-class pit_82C54 : public logfunctions {
+class pit_82C54 : public bx_devmodel_c {
 
 public:
   //Please do not use these.  They are public because they have to be
@@ -111,6 +111,8 @@ private:
 public:
   void init (void);
   void register_state(bx_param_c *list_p);
+  void before_save_state ();
+  void after_restore_state ();
   void reset (unsigned type);
   pit_82C54 (void);
 

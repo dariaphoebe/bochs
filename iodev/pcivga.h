@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.h,v 1.3.4.2 2003/04/04 03:46:08 slechta Exp $
+// $Id: pcivga.h,v 1.3.4.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003  Mike Nordell
@@ -34,6 +34,8 @@ public:
   ~bx_pcivga_c(void);
   virtual void   init(void);
   virtual void   register_state(bx_param_c *list_p);
+  virtual void   before_save_state ();
+  virtual void   after_restore_state ();
   virtual void   reset(unsigned type);
 
 private:

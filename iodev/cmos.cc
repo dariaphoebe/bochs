@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cmos.cc,v 1.36.4.3 2003/04/04 03:46:06 slechta Exp $
+// $Id: cmos.cc,v 1.36.4.4 2003/04/06 17:29:48 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -109,7 +109,7 @@ bx_cmos_c::~bx_cmos_c(void)
   void
 bx_cmos_c::init(void)
 {
-  BX_DEBUG(("Init $Id: cmos.cc,v 1.36.4.3 2003/04/04 03:46:06 slechta Exp $"));
+  BX_DEBUG(("Init $Id: cmos.cc,v 1.36.4.4 2003/04/06 17:29:48 bdenney Exp $"));
   // CMOS RAM & RTC
 
   DEV_register_ioread_handler (BX_CMOS_THIS, read_handler, 0x0070, "CMOS RAM", 7);
@@ -220,6 +220,19 @@ void bx_cmos_c::register_state(bx_param_c *list_p)
   }
   BXRS_END;
 }
+
+void
+bx_cmos_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_cmos_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
   void
 bx_cmos_c::reset(unsigned type)

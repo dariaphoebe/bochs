@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.h,v 1.19.2.4 2003/04/04 03:46:07 slechta Exp $
+// $Id: harddrv.h,v 1.19.2.5 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -299,6 +299,8 @@ public:
   virtual void   close_harddrive(void);
   virtual void   init();
   virtual void   register_state(bx_param_c *list_p);
+  virtual void   before_save_state ();
+  virtual void   after_restore_state ();
   virtual void   reset(unsigned type);
   virtual Bit32u   get_device_handle(Bit8u channel, Bit8u device);
   virtual Bit32u   get_first_cd_handle(void);

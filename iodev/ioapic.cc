@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.cc,v 1.11.6.1 2003/03/28 09:26:06 slechta Exp $
+// $Id: ioapic.cc,v 1.11.6.2 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 #include <stdio.h>
@@ -67,6 +67,19 @@ bx_ioapic_c::register_state(bx_param_c *list_p)
   }
   BXRS_END;
 }
+
+void
+bx_ioapic_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_ioapic_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
 void
 bx_io_redirect_entry_t::register_state(bx_param_c *list_p) 

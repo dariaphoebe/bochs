@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit.cc,v 1.14.6.2 2003/04/02 08:54:31 slechta Exp $
+// $Id: pit.cc,v 1.14.6.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -253,6 +253,17 @@ bx_pit_c::register_state(char *name, char *desc, bx_list_c *parent_p)
   }
 }
 
+void
+bx_pit_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_pit_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
 
 void bx_pit_c::reset(unsigned type) {
 }

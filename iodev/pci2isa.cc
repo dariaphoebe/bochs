@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.cc,v 1.9.4.2 2003/04/04 03:46:08 slechta Exp $
+// $Id: pci2isa.cc,v 1.9.4.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -150,6 +150,19 @@ bx_pci2isa_c::register_state(bx_param_c *list_p)
   }
   BXRS_END;
 }
+
+void
+bx_pci2isa_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_pci2isa_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
   // static IO port read callback handler
   // redirects to non-static class handler to avoid virtual functions

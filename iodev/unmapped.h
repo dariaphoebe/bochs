@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: unmapped.h,v 1.10.6.2 2003/04/04 03:46:09 slechta Exp $
+// $Id: unmapped.h,v 1.10.6.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -47,6 +47,8 @@ public:
   virtual void init(void);
   virtual void reset (unsigned type);
   virtual void register_state(bx_param_c *list_p);
+  virtual void before_save_state ();
+  virtual void after_restore_state ();
 
 private:
 

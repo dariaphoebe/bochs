@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: floppy.cc,v 1.61.4.2 2003/04/04 03:46:07 slechta Exp $
+// $Id: floppy.cc,v 1.61.4.3 2003/04/06 17:29:48 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -101,7 +101,7 @@ bx_floppy_ctrl_c::init(void)
 {
   Bit8u i;
 
-  BX_DEBUG(("Init $Id: floppy.cc,v 1.61.4.2 2003/04/04 03:46:07 slechta Exp $"));
+  BX_DEBUG(("Init $Id: floppy.cc,v 1.61.4.3 2003/04/06 17:29:48 bdenney Exp $"));
   DEV_dma_register_8bit_channel(2, dma_read, dma_write, "Floppy Drive");
   DEV_register_irq(6, "Floppy Drive");
   for (unsigned addr=0x03F2; addr<=0x03F7; addr++) {
@@ -349,6 +349,19 @@ bx_floppy_ctrl_c::register_state(bx_param_c *list_p)
   BXRS_STRUCT_END;
   BXRS_END;
 }
+
+void
+bx_floppy_ctrl_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_floppy_ctrl_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
 
   void

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.h,v 1.5.6.1 2003/03/28 09:26:06 slechta Exp $
+// $Id: ioapic.h,v 1.5.6.2 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 extern class bx_ioapic_c bx_ioapic;
@@ -44,6 +44,8 @@ public:
   ~bx_ioapic_c ();
   virtual void init ();
   vurtual void register_state(bx_param_c *list_p);
+  virtual void before_save_state ();
+  virtual void after_restore_state ();
   virtual void reset (unsigned type);
   virtual void read_aligned(Bit32u address, Bit32u *data, unsigned len);
   virtual void write(Bit32u address, Bit32u *value, unsigned len);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.133.2.3 2003/04/04 03:46:05 slechta Exp $
+// $Id: cpu.h,v 1.133.2.4 2003/04/06 17:29:48 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1344,7 +1344,7 @@ class BX_MEM_C;
 #include "cpu/xmm.h"
 #endif
 
-class BOCHSAPI BX_CPU_C : public logfunctions {
+class BOCHSAPI BX_CPU_C : public bx_devmodel_c {
 
 public: // for now...
 
@@ -1661,6 +1661,8 @@ union {
   ~BX_CPU_C(void);
   void init (BX_MEM_C *addrspace);
   void register_state(bx_param_c *list_p);
+  void before_save_state ();
+  void after_restore_state ();
 
   // prototypes for CPU instructions...
   BX_SMF void ADD_EbGb(bxInstruction_c *);
@@ -2806,7 +2808,7 @@ union {
   BX_SMF void pagingCR4Changed(Bit32u oldCR4, Bit32u newCR4) BX_CPP_AttrRegparmN(2);
   BX_SMF void pagingA20Changed(void);
 
-  BX_SMF void reset(unsigned source);
+  virtual void reset(unsigned source);
 
   BX_SMF void jump_protected(bxInstruction_c *, Bit16u cs, bx_address disp) BX_CPP_AttrRegparmN(3);
   BX_SMF void call_protected(bxInstruction_c *, Bit16u cs, bx_address disp) BX_CPP_AttrRegparmN(3);

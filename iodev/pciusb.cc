@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.cc,v 1.3.4.2 2003/04/04 03:46:08 slechta Exp $
+// $Id: pciusb.cc,v 1.3.4.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -200,6 +200,19 @@ bx_pciusb_c::register_state(bx_param_c *list_p)
   }
   BXRS_END;
 }
+
+void
+bx_pciusb_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_pciusb_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
   void
 bx_pciusb_c::reset(unsigned type)

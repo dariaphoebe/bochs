@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.cc,v 1.28.2.3 2003/04/04 03:46:06 slechta Exp $
+// $Id: dma.cc,v 1.28.2.4 2003/04/06 17:29:48 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -134,7 +134,7 @@ bx_dma_c::get_TC(void)
 bx_dma_c::init(void)
 {
   unsigned c, i, j;
-  BX_DEBUG(("Init $Id: dma.cc,v 1.28.2.3 2003/04/04 03:46:06 slechta Exp $"));
+  BX_DEBUG(("Init $Id: dma.cc,v 1.28.2.4 2003/04/06 17:29:48 bdenney Exp $"));
 
   /* 8237 DMA controller */
 
@@ -237,6 +237,19 @@ bx_dma_c::register_state(bx_param_c *list_p)
   BXRS_END;
 
 }
+
+void
+bx_dma_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_dma_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
   void
 bx_dma_c::reset(unsigned type)

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.52.2.11 2003/04/04 03:46:06 slechta Exp $
+// $Id: devices.cc,v 1.52.2.12 2003/04/06 17:29:48 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -93,7 +93,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.11 2003/04/04 03:46:06 slechta Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.52.2.12 2003/04/06 17:29:48 bdenney Exp $"));
   mem = newmem;
 
   /* no read / write handlers defined */
@@ -289,7 +289,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
   bx_list_c *dma_list_p = new bx_list_c (SIM->get_param("."), "dma", "dma",10);
   pluginDmaDevice->register_state(dma_list_p);                                   
 
-  pluginFloppyDevice->register_state(SIM->get_param("floppy"));;
+  pluginFloppyDevice->register_state(SIM->get_param("floppy"));
 
   bx_list_c *unmapped_list_p = 
     new bx_list_c (SIM->get_param("."), "unmapped", "unmapped",10);
@@ -307,7 +307,7 @@ bx_devices_c::init(BX_MEM_C *newmem)
 
 #if BX_SUPPORT_SB16
     PLUG_load_plugin(sb16, PLUGTYPE_OPTIONAL);
-    pluginSB16Device->register_state(SIM->get_param("sb16"));;
+    pluginSB16Device->register_state(SIM->get_param("sb16"));
     // BJS TODO: implement sb16 state registration
 #warning sb16 registration not implemented.  cant save restore sb16 yet!
 #endif

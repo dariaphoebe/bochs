@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.cc,v 1.2.4.2 2003/04/04 03:46:08 slechta Exp $
+// $Id: pcivga.cc,v 1.2.4.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003 Mike Nordell
@@ -115,6 +115,19 @@ bx_pcivga_c::register_state(bx_param_c *list_p)
   }
   BXRS_END;
 }
+
+void
+bx_pcivga_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_pcivga_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
   void
 bx_pcivga_c::reset(unsigned type)

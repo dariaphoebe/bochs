@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: unmapped.cc,v 1.20.4.2 2003/04/04 03:46:09 slechta Exp $
+// $Id: unmapped.cc,v 1.20.4.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -88,6 +88,19 @@ bx_unmapped_c::register_state(bx_param_c *list_p)
   }
   BXRS_END;
 }
+
+void
+bx_unmapped_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_unmapped_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
   void
 bx_unmapped_c::reset(unsigned type)

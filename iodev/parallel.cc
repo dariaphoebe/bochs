@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parallel.cc,v 1.22.6.2 2003/04/04 03:46:08 slechta Exp $
+// $Id: parallel.cc,v 1.22.6.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -69,7 +69,7 @@ bx_parallel_c::~bx_parallel_c(void)
   void
 bx_parallel_c::init(void)
 {
-  BX_DEBUG(("Init $Id: parallel.cc,v 1.22.6.2 2003/04/04 03:46:08 slechta Exp $"));
+  BX_DEBUG(("Init $Id: parallel.cc,v 1.22.6.3 2003/04/06 17:29:49 bdenney Exp $"));
 
   if (bx_options.par[0].Oenabled->get ()) {
 
@@ -117,6 +117,19 @@ bx_parallel_c::register_state(bx_param_c *list_p)
   }
   BXRS_END;
 }
+
+void
+bx_parallel_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_parallel_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
 
 void

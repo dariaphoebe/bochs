@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: biosdev.cc,v 1.5.6.4 2003/04/06 15:32:59 bdenney Exp $
+// $Id: biosdev.cc,v 1.5.6.5 2003/04/06 17:29:48 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -46,6 +46,7 @@
 
 #include "bochs.h"
 
+#define LOG_THIS theBiosDevice->
 bx_biosdev_c *theBiosDevice;
 
   int
@@ -126,6 +127,19 @@ bx_biosdev_c::register_state(bx_param_c *list_p)
   }
   BXRS_END;
 }
+
+void
+bx_biosdev_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_biosdev_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
   void
 bx_biosdev_c::reset(unsigned type)

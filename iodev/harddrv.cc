@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.97.2.6 2003/04/04 03:46:07 slechta Exp $
+// $Id: harddrv.cc,v 1.97.2.7 2003/04/06 17:29:48 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -176,7 +176,7 @@ bx_hard_drive_c::init(void)
   Bit8u channel;
   char  string[5];
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.6 2003/04/04 03:46:07 slechta Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.97.2.7 2003/04/06 17:29:48 bdenney Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     if (bx_options.ata[channel].Opresent->get() == 1) {
@@ -502,16 +502,6 @@ bx_hard_drive_c::init(void)
     DEV_cmos_set_reg(0x38, bx_options.OfloppySigCheck->get());
     BX_INFO(("Floppy boot signature check is %sabled", bx_options.OfloppySigCheck->get() ? "dis" : "en"));
     }
-
-  // FIXME:
-  //#warning slechta debug.  remove at some point
-  //BX_REGISTER_LIST(list_p, "root2", "slechta's fancy root2", (bx_list_c*)0,5);
-  //this->register_state ("hrddrv", "the hard drive", list_p);
-  //print_tree(list_p,0);
-
-  //BBD code
-  //bx_param_c *list_p = SIM->get_param (".");
-  //this->register_state ("ata", "the hard drive", list_p);
 }
 
   void
@@ -3607,9 +3597,22 @@ bx_hard_drive_c::register_state(bx_param_c *list_p)
     BXRS_BOOL( bx_bool, prog_mode);
     BXRS_NUM ( Bit8u  , prog_count);
     BXRS_NUM ( Bit32u , p1f3_value);
-    BXRS_NUM ( Bit32u , p1f4_value};
+    BXRS_NUM ( Bit32u , p1f4_value);
   } 
   BXRS_STRUCT_END;
 #endif
   BXRS_END;
 }
+
+void
+bx_hard_drive_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_hard_drive_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.h,v 1.11.2.2 2003/04/04 03:46:08 slechta Exp $
+// $Id: ne2k.h,v 1.11.2.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -203,6 +203,8 @@ public:
   ~bx_ne2k_c(void);
   virtual void init(void);
   virtual void register_state(bx_param_c *list_p);
+  virtual void before_save_state ();
+  virtual void after_restore_state ();
   virtual void reset(unsigned type);
   virtual void print_info (FILE *file, int page, int reg, int nodups);
 

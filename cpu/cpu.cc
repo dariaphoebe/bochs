@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.cc,v 1.76.2.6 2003/04/04 06:08:25 bdenney Exp $
+// $Id: cpu.cc,v 1.76.2.7 2003/04/06 17:29:47 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1355,6 +1355,19 @@ BX_CPU_C::register_state(bx_param_c *list_p)
   }
   BXRS_END;
 }
+
+void
+BX_CPU_C::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+BX_CPU_C::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
 #if BX_CPU_LEVEL >= 2
 void

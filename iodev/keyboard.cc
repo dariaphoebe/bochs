@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: keyboard.cc,v 1.75.2.4 2003/04/04 03:46:08 slechta Exp $
+// $Id: keyboard.cc,v 1.75.2.5 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -125,7 +125,7 @@ bx_keyb_c::resetinternals(bx_bool powerup)
   void
 bx_keyb_c::init(void)
 {
-  BX_DEBUG(("Init $Id: keyboard.cc,v 1.75.2.4 2003/04/04 03:46:08 slechta Exp $"));
+  BX_DEBUG(("Init $Id: keyboard.cc,v 1.75.2.5 2003/04/06 17:29:49 bdenney Exp $"));
   Bit32u   i;
 
   DEV_register_irq(1, "8042 Keyboard controller");
@@ -202,48 +202,6 @@ bx_keyb_c::init(void)
 
   // mouse port installed on system board
   DEV_cmos_set_reg(0x14, DEV_cmos_get_reg(0x14) | 0x04);
-
-#if BX_WITH_WX
-  static bx_bool first_time = 1;
-  if (first_time) {
-    first_time = 0;
-    // register shadow params (Experimental, not a complete list by far)
-    bx_param_c *kbd_root = SIM->get_param("keyboard");
-    new bx_shadow_bool_c (kbd_root, 
-	  "irq1_req", "",
-	  &BX_KEY_THIS_PTR s.kbd_controller.irq1_requested);
-    new bx_shadow_bool_c (kbd_root,
-	  "irq12_req", "",
-	  &BX_KEY_THIS_PTR s.kbd_controller.irq12_requested);
-    new bx_shadow_num_c (kbd_root,
-	"timer_pending", "",
-	&BX_KEY_THIS_PTR s.kbd_controller.timer_pending);
-    new bx_shadow_bool_c (kbd_root,
-	"pare", "",
-	&BX_KEY_THIS_PTR s.kbd_controller.pare);
-    new bx_shadow_bool_c (kbd_root,
-	"tim", "",
-	&BX_KEY_THIS_PTR s.kbd_controller.tim);
-    new bx_shadow_bool_c (kbd_root,
-	"auxb", "",
-	&BX_KEY_THIS_PTR s.kbd_controller.auxb);
-    new bx_shadow_bool_c (kbd_root,
-	"keyl", "",
-	&BX_KEY_THIS_PTR s.kbd_controller.keyl);
-    new bx_shadow_bool_c (kbd_root,
-	"c_d", "",
-	&BX_KEY_THIS_PTR s.kbd_controller.c_d);
-    new bx_shadow_bool_c (kbd_root,
-	"sysf", "",
-	&BX_KEY_THIS_PTR s.kbd_controller.sysf);
-    new bx_shadow_bool_c (kbd_root,
-	"inpb", "",
-	&BX_KEY_THIS_PTR s.kbd_controller.inpb);
-    new bx_shadow_bool_c (kbd_root,
-	"outp", "",
-	&BX_KEY_THIS_PTR s.kbd_controller.outb);
-  }
-#endif
 }
 
 void
@@ -361,8 +319,17 @@ bx_keyb_c::register_state(bx_param_c* list_p)
   BXRS_END;
 }
 
+void
+bx_keyb_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
 
-
+void
+bx_keyb_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
 
   void
 bx_keyb_c::reset(unsigned type)

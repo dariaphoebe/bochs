@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: iodev.h,v 1.31.2.2 2003/04/04 03:46:07 slechta Exp $
+// $Id: iodev.h,v 1.31.2.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -64,25 +64,6 @@ typedef void   (*bx_write_handler_t)(void *, Bit32u, Bit32u, unsigned);
 #  define BX_DEV_THIS_PTR this->
 #  define BX_DEV_THIS this
 #endif
-
-//////////////////////////////////////////////////////////////////////
-// bx_devmodel_c declaration
-//////////////////////////////////////////////////////////////////////
-
-// This class defines virtual methods that are common to all devices. 
-// Child classes do not need to implement all of them, because in this 
-// definition they are defined as empty, as opposed to being pure 
-// virtual (= 0).
-class BOCHSAPI bx_devmodel_c : public logfunctions {
-  public:
-  virtual ~bx_devmodel_c () {}
-  virtual void init_mem(BX_MEM_C *) {}
-  virtual void init(void) {}
-  virtual void register_state(bx_param_c *list_p) {}
-  virtual void reset(unsigned type) {}
-  virtual void device_load_state () {}
-  virtual void device_save_state () {}
-};
 
 //////////////////////////////////////////////////////////////////////
 // declare stubs for devices

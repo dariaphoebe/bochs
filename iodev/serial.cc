@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: serial.cc,v 1.32.6.2 2003/04/04 03:46:09 slechta Exp $
+// $Id: serial.cc,v 1.32.6.3 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -269,6 +269,19 @@ bx_serial_c::register_state(bx_param_c *list_p)
   BXRS_ARRAY_OBJ(bx_serial_t, s, BX_SERIAL_MAXDEV); 
   BXRS_END;
 }  
+
+void
+bx_serial_c::before_save_state()
+{
+  BX_INFO (("before_save_state"));
+}
+
+void
+bx_serial_c::after_restore_state()
+{
+  BX_INFO (("after_restore_state"));
+}
+
 
   void
 bx_serial_c::reset(unsigned type)

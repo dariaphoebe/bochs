@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.h,v 1.24.2.1 2003/04/04 03:46:09 slechta Exp $
+// $Id: vga.h,v 1.24.2.2 2003/04/06 17:29:49 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -102,6 +102,8 @@ public:
   ~bx_vga_c(void);
   virtual void   init(void);
   virtual void   register_state(bx_param_c *list_p);
+  virtual void   before_save_state ();
+  virtual void   after_restore_state ();
   virtual void   reset(unsigned type);
   virtual Bit8u  mem_read(Bit32u addr);
   // Note: either leave value of type Bit8u, or mask it when
