@@ -169,6 +169,7 @@ void BX_CPU_C::FSIN(bxInstruction_c *i)
   floatx80 y = BX_READ_FPU_REG(0);
 
   /* reduce trigonometric function argument */
+  int sign = floatx80_sign(y);
   Bit64u quotient = trig_arg_reduction(y, F_SIN, status);
   if (quotient == -1)
   {
@@ -185,6 +186,9 @@ void BX_CPU_C::FSIN(bxInstruction_c *i)
 
       return;
   }
+
+  if (sign) 
+      quotient = (Bit64u)(-quotient);
 
   if (handle_small_argument(y, quotient))
   {   
@@ -225,7 +229,7 @@ void BX_CPU_C::FCOS(bxInstruction_c *i)
   floatx80 y = BX_READ_FPU_REG(0);
 
   /* reduce trigonometric function argument */
-  Bit64u quotient = trig_arg_reduction(y, F_COS, status);
+  Bit64u quotient = trig_arg_reduction(floatx80_abs(y), F_COS, status);
   if (quotient == -1)
   {
       FPU_PARTIAL_STATUS |= FPU_SW_C2;
@@ -291,6 +295,7 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
   floatx80 y = BX_READ_FPU_REG(0);
 
   /* reduce trigonometric function argument */
+  int sign = floatx80_sign(y);
   Bit64u quotient = trig_arg_reduction(y, F_SIN, status);
   if (quotient == -1)
   {
@@ -311,6 +316,9 @@ void BX_CPU_C::FSINCOS(bxInstruction_c *i)
 
       return;
   }
+
+  if (sign) 
+      quotient = (Bit64u)(-quotient);
 
   floatx80 siny = y, cosy = y;
 
