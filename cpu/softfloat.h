@@ -138,10 +138,10 @@ int float32_is_signaling_nan(float32);
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE double-precision conversion routines.
 *----------------------------------------------------------------------------*/
-int float64_to_int32(float64, float_status_t &status);
-int float64_to_int32_round_to_zero(float64, float_status_t &status);
-long long float64_to_int64(float64, float_status_t &status);
-long long float64_to_int64_round_to_zero(float64, float_status_t &status);
+Bit32s float64_to_int32(float64, float_status_t &status);
+Bit32s float64_to_int32_round_to_zero(float64, float_status_t &status);
+Bit64s float64_to_int64(float64, float_status_t &status);
+Bit64s float64_to_int64_round_to_zero(float64, float_status_t &status);
 float32 float64_to_float32(float64, float_status_t &status);
 
 /*----------------------------------------------------------------------------

@@ -56,14 +56,37 @@ static void MXCSR_to_softfloat_status_word(softfloat_status_word_t &status, bx_m
 
 /* 
  * Opcode: 0F 2A
+ * Convert two 32bit signed integers from MMX/MEM to two single precision FP
+ * When a conversion is inexact, the value returned is rounded according
+ * to rounding control bits in MXCSR register.
  * Possible floating point exceptions: #P
  */
 void BX_CPU_C::CVTPI2PS_VpsQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
+  BX_CPU_THIS_PTR prepareFPU2MMX();
 
-  BX_PANIC(("CVTPI2PS_VpsQq: SSE instruction still not implemented"));
+  BxPackedMmxRegister op;
+  BxPackedXmmRegister result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_MMX_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  result.xmm32u(0) = int32_to_float32(MMXUD0(op), status_word);
+  result.xmm32u(1) = int32_to_float32(MMXUD1(op), status_word);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), result.xmm64u(0));
 #else
   BX_INFO(("CVTPI2PS_VpsQq: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -108,24 +131,50 @@ void BX_CPU_C::CVTPI2PD_VpdQd(bxInstruction_c *i)
  * Convert one 32bit signed integer to one double precision FP
  * Possible floating point exceptions: -
  */
-
-/* FixMe: There is 64 bit version of the instruction. */
 void BX_CPU_C::CVTSI2SD_VsdEd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
-  Bit32u op;
 
-  /* op is a register or memory reference */
-  if (i->modC0()) {
-    op = BX_READ_32BIT_REG(i->rm());
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  Float32 result;
+
+#if BX_SUPPORT_X86_64 
+  if (i->os64L())   /* 64 bit operand size mode */
+  {
+    Bit64u op;
+
+    /* op is a register or memory reference */
+    if (i->modC0()) {
+      op = BX_READ_64BIT_REG(i->rm());
+    }
+    else {
+      /* pointer, segment address pair */
+      read_virtual_qword(i->seg(), RMAddr(i), &op);
+    }
+
+    result = int64_to_float64(op, status_word);
   }
-  else {
-    /* pointer, segment address pair */
-    read_virtual_dword(i->seg(), RMAddr(i), &op);
+  else 
+#endif
+  {
+    Bit32u op;
+
+    /* op is a register or memory reference */
+    if (i->modC0()) {
+      op = BX_READ_32BIT_REG(i->rm());
+    }
+    else {
+      /* pointer, segment address pair */
+      read_virtual_dword(i->seg(), RMAddr(i), &op);
+    }
+
+    result = int32_to_float64(op);
   }
 
-  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), int32_to_float64(op));
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), result);
 #else
   BX_INFO(("CVTSI2SD_VsdEd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -134,15 +183,55 @@ void BX_CPU_C::CVTSI2SD_VsdEd(bxInstruction_c *i)
 
 /* 
  * Opcode: F3 0F 2A
+ * Convert one 32bit signed integer to one single precision FP
+ * When a conversion is inexact, the value returned is rounded according
+ * to rounding control bits in MXCSR register.
  * Possible floating point exceptions: #P
  */
-/* FixMe: There is 64 bit version of the instruction. */
 void BX_CPU_C::CVTSI2SS_VssEd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTSI2SS_VssEd: SSE instruction still not implemented"));
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  Float32 result;
+
+#if BX_SUPPORT_X86_64 
+  if (i->os64L())   /* 64 bit operand size mode */
+  {
+    Bit64u op;
+
+    /* op is a register or memory reference */
+    if (i->modC0()) {
+      op = BX_READ_64BIT_REG(i->rm());
+    }
+    else {
+      /* pointer, segment address pair */
+      read_virtual_qword(i->seg(), RMAddr(i), &op);
+    }
+
+    result = int64_to_float32(op, status_word);
+  }
+  else 
+#endif
+  {
+    Bit32u op;
+
+    /* op is a register or memory reference */
+    if (i->modC0()) {
+      op = BX_READ_32BIT_REG(i->rm());
+    }
+    else {
+      /* pointer, segment address pair */
+      read_virtual_dword(i->seg(), RMAddr(i), &op);
+    }
+
+    result = int32_to_float32(op, status_word);
+  }
+ 
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG_LO_DWORD(i->nnn(), result);
 #else
   BX_INFO(("CVTSI2SS_VssEd: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -150,15 +239,78 @@ void BX_CPU_C::CVTSI2SS_VssEd(bxInstruction_c *i)
 }
 
 /* 
+ * Opcode: 0F 2C
+ * Convert two single precision FP numbers to two signed doubleword integers 
+ * in MMX using truncation if the conversion is inexact
+ * Possible floating point exceptions: #I, #P
+ */
+void BX_CPU_C::CVTTPS2PI_PqWps(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 1
+  BX_CPU_THIS_PTR prepareSSE();
+  BX_CPU_THIS_PTR prepareFPU2MMX();
+
+  Bit64u op;
+  BxPackedMmxRegister result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  Float32 r0 = (Float32)(op & 0xFFFFFFFF);
+  Float32 r1 = (Float32)(op >> 32);
+
+  MMXUD0(result) = float32_to_int32_round_to_zero(r0, status_word);
+  MMXUD1(result) = float32_to_int32_round_to_zero(r1, status_word);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_MMX_REG(i->nnn(), result);
+#else
+  BX_INFO(("CVTTPS2PI_PqWps: required SSE, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
  * Opcode: 66 0F 2C
+ * Convert two double precision FP numbers to two signed doubleword integers 
+ * in MMX using truncation if the conversion is inexact
  * Possible floating point exceptions: #I, #P
  */
 void BX_CPU_C::CVTTPD2PI_PqWpd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
+  BX_CPU_THIS_PTR prepareFPU2MMX();
 
-  BX_PANIC(("CVTTPD2PI_PqWpd: SSE2 instruction still not implemented"));
+  BxPackedXmmRegister op;
+  BxPackedMmxRegister result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  MMXUD0(result) = float64_to_int32_round_to_zero(op.xmm64u(0), status_word);
+  MMXUD1(result) = float64_to_int32_round_to_zero(op.xmm64u(1), status_word);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_MMX_REG(i->nnn(), result);
 #else
   BX_INFO(("CVTTPD2PI_PqWpd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -167,15 +319,45 @@ void BX_CPU_C::CVTTPD2PI_PqWpd(bxInstruction_c *i)
 
 /* 
  * Opcode: F2 0F 2C
+ * Convert one double precision FP number to doubleword integer using 
+ * truncation if the conversion is inexact
  * Possible floating point exceptions: #I, #P
  */
-/* FixMe: There is 64 bit version of the instruction. */
 void BX_CPU_C::CVTTSD2SI_GdWsd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTTSD2SI_GdWsd: SSE2 instruction still not implemented"));
+  Float64 op;
+  Bit32u result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+#if BX_SUPPORT_X86_64 
+  if (i->os64L())   /* 64 bit operand size mode */
+  {
+    Bit64u result = float64_to_int64_round_to_zero(op, status_word);
+    BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+    BX_WRITE_64BIT_REG(i->nnn(), result);
+  }
+  else 
+#endif
+  {
+    Bit32u result = float64_to_int32_round_to_zero(op, status_word);
+    BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+    BX_WRITE_32BIT_REG(i->nnn(), result);
+  }
+
 #else
   BX_INFO(("CVTTSD2SI_GdWsd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -184,47 +366,126 @@ void BX_CPU_C::CVTTSD2SI_GdWsd(bxInstruction_c *i)
 
 /* 
  * Opcode: F3 0F 2C
+ * Convert one single precision FP number to doubleword integer using 
+ * truncation if the conversion is inexact
  * Possible floating point exceptions: #I, #P
  */
-/* FixMe: There is 64 bit version of the instruction. */
 void BX_CPU_C::CVTTSS2SI_GdWss(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTTSS2SI_GdWss: SSE instruction still not implemented"));
+  Float32 op;
+  Bit32u result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+#if BX_SUPPORT_X86_64 
+  if (i->os64L())   /* 64 bit operand size mode */
+  {
+    Bit64u result = float32_to_int64_round_to_zero(op, status_word);
+    BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+    BX_WRITE_64BIT_REG(i->nnn(), result);
+  }
+  else 
+#endif
+  {
+    Bit32u result = float32_to_int32_round_to_zero(op, status_word);
+    BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+    BX_WRITE_32BIT_REG(i->nnn(), result);
+  }
+
 #else
   BX_INFO(("CVTTSS2SI_GdWss: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
-/* 
+/*
  * Opcode: 0F 2D
+ * Convert two single precision FP numbers to two signed doubleword integers 
+ * in MMX register. When a conversion is inexact, the value returned is 
+ * rounded according to rounding control bits in MXCSR register.
  * Possible floating point exceptions: #I, #P
  */
-void BX_CPU_C::CVTTPS2PI_PqWps(bxInstruction_c *i)
+void BX_CPU_C::CVTPS2PI_PqWps(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 1
   BX_CPU_THIS_PTR prepareSSE();
+  BX_CPU_THIS_PTR prepareFPU2MMX();
 
-  BX_PANIC(("CVTTPS2PI_PqWps: SSE instruction still not implemented"));
+  Bit64u op;
+  BxPackedMmxRegister result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  Float32 r0 = (Float32)(op & 0xFFFFFFFF);
+  Float32 r1 = (Float32)(op >> 32);
+
+  MMXUD0(result) = float32_to_int32(r0, status_word);
+  MMXUD1(result) = float32_to_int32(r1, status_word);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_MMX_REG(i->nnn(), result);
 #else
-  BX_INFO(("CVTTPS2PI_PqWps: required SSE, use --enable-sse option"));
+  BX_INFO(("CVTPS2PI_PqWps: required SSE, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
 /* 
  * Opcode: 66 0F 2D
+ * Convert two double precision FP numbers to two signed doubleword integers 
+ * in MMX register. When a conversion is inexact, the value returned is 
+ * rounded according to rounding control bits in MXCSR register.
  * Possible floating point exceptions: #I, #P
  */
 void BX_CPU_C::CVTPD2PI_PqWpd(bxInstruction_c *i)
 {                      
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
+  BX_CPU_THIS_PTR prepareFPU2MMX();
 
-  BX_PANIC(("CVTPD2PI_PqWpd: SSE2 instruction still not implemented"));
+  BxPackedXmmRegister op;
+  BxPackedMmxRegister result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  MMXUD0(result) = float64_to_int32(op.xmm64u(0), status_word);
+  MMXUD1(result) = float64_to_int32(op.xmm64u(1), status_word);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_MMX_REG(i->nnn(), result);
 #else
   BX_INFO(("CVTPD2PI_PqWpd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -233,23 +494,102 @@ void BX_CPU_C::CVTPD2PI_PqWpd(bxInstruction_c *i)
 
 /* 
  * Opcode: F2 0F 2D
+ * Convert one double precision FP number to doubleword integer
+ * When a conversion is inexact, the value returned is rounded according
+ * to rounding control bits in MXCSR register.
  * Possible floating point exceptions: #I, #P
  */
-/* FixMe: There is 64 bit version of the instruction. */
 void BX_CPU_C::CVTSD2SI_GdWsd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTSD2SI_GdWsd: SSE2 instruction still not implemented"));
+  Float64 op;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+#if BX_SUPPORT_X86_64 
+  if (i->os64L())   /* 64 bit operand size mode */
+  {
+    Bit64u result = float64_to_int64(op, status_word);
+    BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+    BX_WRITE_64BIT_REG(i->nnn(), result);
+  }
+  else 
+#endif
+  {
+    Bit32u result = float64_to_int32(op, status_word);
+    BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+    BX_WRITE_32BIT_REG(i->nnn(), result);
+  }
+
 #else
   BX_INFO(("CVTSD2SI_GdWsd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/*
+ * Opcode: F3 0F 2D
+ * Convert one single precision FP number to doubleword integer.
+ * When a conversion is inexact, the value returned is rounded according
+ * to rounding control bits in MXCSR register.
+ * Possible floating point exceptions: #I, #P
+ */
+void BX_CPU_C::CVTSS2SI_GdWss(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 1
+  BX_CPU_THIS_PTR prepareSSE();
+
+  Float32 op;
+  Bit32u result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+#if BX_SUPPORT_X86_64 
+  if (i->os64L())   /* 64 bit operand size mode */
+  {
+    Bit64u result = float32_to_int64(op, status_word);
+    BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+    BX_WRITE_64BIT_REG(i->nnn(), result);
+  }
+  else 
+#endif
+  {
+    Bit32u result = float32_to_int32(op, status_word);
+    BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+    BX_WRITE_32BIT_REG(i->nnn(), result);
+  }
+
+#else
+  BX_INFO(("CVTSS2SI_GdWss: required SSE, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
 /* 
  * Opcode: 0F 5A
+ * Convert two single precision FP numbers to two double precision FP numbers
  * Possible floating point exceptions: #I, #D
  */
 void BX_CPU_C::CVTPS2PD_VpsWps(bxInstruction_c *i)
@@ -257,7 +597,32 @@ void BX_CPU_C::CVTPS2PD_VpsWps(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTPS2PD_VpsWps: SSE2 instruction still not implemented"));
+  Bit64u op;
+  BxPackedXmmRegister result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  Float32 r0 = (Float32)(op & 0xFFFFFFFF);
+  Float32 r1 = (Float32)(op >> 32);
+
+  result.xmm32u(0) = 
+     float32_to_float64(r0, status_word);
+  result.xmm32u(1) = 
+     float32_to_float64(r1, status_word);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
+
 #else
   BX_INFO(("CVTPS2PD_VpsWps: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -343,6 +708,7 @@ void BX_CPU_C::CVTSD2SS_VsdWsd(bxInstruction_c *i)
 
 /* 
  * Opcode: F3 0F 5A
+ * Convert one single precision FP number to one double precision FP. 
  * Possible floating point exceptions: #I, #D
  */
 void BX_CPU_C::CVTSS2SD_VssWss(bxInstruction_c *i)
@@ -350,7 +716,24 @@ void BX_CPU_C::CVTSS2SD_VssWss(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTSS2SD_VssWss: SSE2 instruction still not implemented"));
+  Float32 op;
+  Float64 result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG_LO_DWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+  result = float32_to_float64(op, status_word);
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), result);
+
 #else
   BX_INFO(("CVTSS2SD_VssWss: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -359,6 +742,9 @@ void BX_CPU_C::CVTSS2SD_VssWss(bxInstruction_c *i)
 
 /* 
  * Opcode: 0F 5B
+ * Convert four signed integers to four single precision FP numbers.
+ * When a conversion is inexact, the value returned is rounded according
+ * to rounding control bits in MXCSR register.
  * Possible floating point exceptions: #P
  */
 void BX_CPU_C::CVTDQ2PS_VpsWdq(bxInstruction_c *i)
@@ -366,7 +752,31 @@ void BX_CPU_C::CVTDQ2PS_VpsWdq(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTDQ2PS_VpsWdq: SSE2 instruction still not implemented"));
+  BxPackedXmmRegister op, result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  result.xmm32u(0) = 
+      int32_to_float32(op.xmm32u(0), status_word);
+  result.xmm32u(1) = 
+      int32_to_float32(op.xmm32u(1), status_word);
+  result.xmm32u(2) = 
+      int32_to_float32(op.xmm32u(2), status_word);
+  result.xmm32u(3) = 
+      int32_to_float32(op.xmm32u(3), status_word);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
 #else
   BX_INFO(("CVTDQ2PS_VpsWdq: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -375,6 +785,9 @@ void BX_CPU_C::CVTDQ2PS_VpsWdq(bxInstruction_c *i)
 
 /* 
  * Opcode: 66 0F 5B
+ * Convert four single precision FP to four doubleword integers.
+ * When a conversion is inexact, the value returned is rounded according
+ * to rounding control bits in MXCSR register.
  * Possible floating point exceptions: #I, #P
  */
 void BX_CPU_C::CVTPS2DQ_VdqWps(bxInstruction_c *i)
@@ -382,7 +795,31 @@ void BX_CPU_C::CVTPS2DQ_VdqWps(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTPS2DQ_VdqWps: SSE2 instruction still not implemented"));
+  BxPackedXmmRegister op, result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  result.xmm32u(0) = 
+      float32_to_int32(op.xmm32u(0), status_word);
+  result.xmm32u(1) = 
+      float32_to_int32(op.xmm32u(1), status_word);
+  result.xmm32u(2) = 
+      float32_to_int32(op.xmm32u(2), status_word);
+  result.xmm32u(3) = 
+      float32_to_int32(op.xmm32u(3), status_word);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
 #else
   BX_INFO(("CVTPS2DQ_VdqWps: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -391,6 +828,8 @@ void BX_CPU_C::CVTPS2DQ_VdqWps(bxInstruction_c *i)
 
 /* 
  * Opcode: F3 0F 5B
+ * Convert four single precision FP to four doubleword integers using 
+ * truncation if the conversion is inexact.
  * Possible floating point exceptions: #I, #P
  */
 void BX_CPU_C::CVTTPS2DQ_VdqWps(bxInstruction_c *i)
@@ -398,56 +837,110 @@ void BX_CPU_C::CVTTPS2DQ_VdqWps(bxInstruction_c *i)
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTTPS2DQ_VdqWps: SSE2 instruction still not implemented"));
+  BxPackedXmmRegister op, result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  result.xmm32u(0) = 
+      float32_to_int32_round_to_zero(op.xmm32u(0), status_word);
+  result.xmm32u(1) = 
+      float32_to_int32_round_to_zero(op.xmm32u(1), status_word);
+  result.xmm32u(2) = 
+      float32_to_int32_round_to_zero(op.xmm32u(2), status_word);
+  result.xmm32u(3) = 
+      float32_to_int32_round_to_zero(op.xmm32u(3), status_word);
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
 #else
   BX_INFO(("CVTTPS2DQ_VdqWps: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
-void BX_CPU_C::CVTPS2PI_PqWps(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 1
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTPS2PI_PqWps: SSE instruction still not implemented"));
-#else
-  BX_INFO(("CVTPS2PI_PqWps: required SSE, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
-/* FixMe: There is 64 bit version of the instruction. */
-void BX_CPU_C::CVTSS2SI_GdWss(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 1
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTSS2SI_GdWss: SSE instruction still not implemented"));
-#else
-  BX_INFO(("CVTSS2SI_GdWss: required SSE, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
+/* 
+ * Opcode: 66 0F E6
+ * Convert two double precision FP to two signed doubleword integers using 
+ * truncation if the conversion is inexact.
+ * Possible floating point exceptions: #I, #P
+ */
 void BX_CPU_C::CVTTPD2DQ_VqWpd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTTPD2DQ_VqWpd: SSE2 instruction still not implemented"));
+  BxPackedXmmRegister op, result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  result.xmm32u(0) = 
+      float64_to_int32_round_to_zero(op.xmm64u(0), status_word);
+  result.xmm32u(1) = 
+      float64_to_int32_round_to_zero(op.xmm64u(1), status_word);
+  result.xmm64u(1) = 0;
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
 #else
   BX_INFO(("CVTTPD2DQ_VqWpd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
 
+/* 
+ * Opcode: F2 0F E6
+ * Convert two double precision FP to two signed doubleword integers.
+ * When a conversion is inexact, the value returned is rounded according
+ * to rounding control bits in MXCSR register.
+ * Possible floating point exceptions: #I, #P
+ */
 void BX_CPU_C::CVTPD2DQ_VqWpd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTPD2DQ_VqWpd: SSE2 instruction still not implemented"));
+  BxPackedXmmRegister op, result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    readVirtualDQwordAligned(i->seg(), RMAddr(i), (Bit8u *) &op);
+  }
+
+  softfloat_status_word_t status_word;
+  MXCSR_to_softfloat_status_word(status_word, MXCSR);
+
+  result.xmm32u(0) = 
+      float64_to_int32(op.xmm64u(0), status_word);
+  result.xmm32u(1) = 
+      float64_to_int32(op.xmm64u(1), status_word);
+  result.xmm64u(1) = 0;
+
+  BX_CPU_THIS_PTR check_exceptionsSSE(status_word.float_exception_flags);
+  BX_WRITE_XMM_REG(i->nnn(), result);
 #else
   BX_INFO(("CVTPD2DQ_VqWpd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -476,8 +969,8 @@ void BX_CPU_C::CVTDQ2PD_VpdWq(bxInstruction_c *i)
     read_virtual_qword(i->seg(), RMAddr(i), &op);
   }
 
-  Bit32u r0 = Bit32u(op & 0xFFFFFFFF);
-  Bit32u r1 = Bit32u(op >> 32);
+  Bit32u r0 = (Bit32u)(op & 0xFFFFFFFF);
+  Bit32u r1 = (Bit32u)(op >> 32);
 
   result.xmm64u(0) = int32_to_float64(r0);
   result.xmm64u(1) = int32_to_float64(r1);

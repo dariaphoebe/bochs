@@ -607,7 +607,7 @@ Bit32s float32_to_int32_round_to_zero(float32 a, float_status_t &status)
 | largest integer with the same sign as `a' is returned.
 *----------------------------------------------------------------------------*/
 
-Bit64s float32_to_Bit64s(float32 a, float_status_t &status)
+Bit64s float32_to_int64(float32 a, float_status_t &status)
 {
     flag aSign;
     Bit16s aExp, shiftCount;
@@ -642,7 +642,7 @@ Bit64s float32_to_Bit64s(float32 a, float_status_t &status)
 | returned.
 *----------------------------------------------------------------------------*/
 
-Bit64s float32_to_Bit64s_round_to_zero(float32 a, float_status_t &status)
+Bit64s float32_to_int64_round_to_zero(float32 a, float_status_t &status)
 {
     flag aSign;
     Bit16s aExp, shiftCount;
@@ -1442,7 +1442,7 @@ Bit32s float64_to_int32_round_to_zero(float64 a, float_status_t &status)
 | largest integer with the same sign as `a' is returned.
 *----------------------------------------------------------------------------*/
 
-Bit64s float64_to_Bit64s(float64 a, float_status_t &status)
+Bit64s float64_to_int64(float64 a, float_status_t &status)
 {
     flag aSign;
     Bit16s aExp, shiftCount;
@@ -1482,7 +1482,7 @@ Bit64s float64_to_Bit64s(float64 a, float_status_t &status)
 | returned.
 *----------------------------------------------------------------------------*/
 
-Bit64s float64_to_Bit64s_round_to_zero(float64 a, float_status_t &status)
+Bit64s float64_to_int64_round_to_zero(float64 a, float_status_t &status)
 {
     flag aSign;
     Bit16s aExp, shiftCount;

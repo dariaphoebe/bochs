@@ -61,6 +61,16 @@ BX_CPP_INLINE int get_float_nan_handling_mode(float_status_t &status)
 }
 
 /*----------------------------------------------------------------------------
+| Returns 1 if the <denormals-are-zeroes> feature is supported;
+| otherwise returns 0.
+*----------------------------------------------------------------------------*/
+
+BX_CPP_INLINE int get_DAZ(float_status_t &status)
+{
+    return status.denormals_are_zeroes;
+}
+
+/*----------------------------------------------------------------------------
 | Internal canonical NaN format.
 *----------------------------------------------------------------------------*/
 typedef struct {
