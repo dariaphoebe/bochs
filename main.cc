@@ -1,5 +1,6 @@
+k
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.223.4.7 2003/03/29 01:57:05 slechta Exp $
+// $Id: main.cc,v 1.223.4.8 2003/03/29 19:57:16 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -2287,6 +2288,9 @@ bx_init_hardware()
 #if BX_SMP_PROCESSORS==1
   bx_param_num_c *memsize = SIM->get_param_num("memory.ram.megs");
   BX_MEM(0)->init_memory(memsize->get() * 1024*1024);
+  bx_list_c *mem_list_p = 
+    new bx_list_c (SIM->get_param("."), "mem", "mem", 100);
+  BX_MEM(0)->register_state(mem_list_p);
 
   // First load the optional ROM images
   if (strcmp(bx_options.optrom[0].Opath->getptr (),"") !=0 )
@@ -2334,10 +2338,13 @@ bx_init_hardware()
   bx_mem_array[0]->load_ROM(bx_options.vgarom.Opath->getptr (), 0xc0000);
 
 
-#warning SMP save/restore mechanisms have NOT been test
-  static char param_name_buf[BX_SMP_PROCESSORS][30];
+#warning SMP save/restore mechanisms have NOT been tested
+  static char param_cpu_buf[BX_SMP_PROCESSORS][30];
   bx_list_c *cpu_list_p = 
     new bx_list_c (SIM->get_param("."), "cpu", "cpu", 100);
+  static char param_mem_buf[BX_SMP_PROCESSORS][30];
+  bx_list_c *mem_list_p = 
+    new bx_list_c (SIM->get_param("."), "mem", "mem", 100);
 
   for (int i=0; i<BX_SMP_PROCESSORS; i++) {
     BX_CPU(i) = new BX_CPU_C;
@@ -2349,12 +2356,19 @@ bx_init_hardware()
     BX_INSTR_INIT(i);
     BX_CPU(i)->reset(BX_RESET_HARDWARE);
     
-    sprintf(param_name_buf[i], "%d\0", i);
+    // BJS TODO: TESTME
+    sprintf(param_cpu_buf[i], "%d\0", i);
     bx_list_c *cpu_i_list_p = 
       new bx_list_c (cpu_list_p, 
-                     param_name_buf[i], 
-                     param_name_buf[i], 100);
+                     param_cpu_buf[i], 
+                     param_cpu_buf[i], 100);
     BX_CPU(i)->register_state(cpu_i_list_p);
+    sprintf(param_mem_buf[i], "%d\0", i);
+    bx_list_c *mam_i_list_p = 
+      new bx_list_c (mem_list_p, 
+                     param_mem_buf[i], 
+                     param_mem_buf[i], 100);
+    BX_MEM(i)->register_state(mem_i_list_p);
   }
 #endif
 
@@ -2382,10 +2396,10 @@ bx_init_hardware()
   alarm( 1 );
 #endif
 
-  bx_checkpoint_c chkpt;
-  chkpt.write("all_state", SIM->get_param("."));
-  chkpt.read("all_state", SIM->get_param("."));
-  chkpt.write("all_state_2", SIM->get_param("."));
+  //bx_checkpoint_c chkpt;
+  //chkpt.write("all_state", SIM->get_param("."));
+  //chkpt.read("all_state", SIM->get_param("."));
+  //chkpt.write("all_state_2", SIM->get_param("."));
 
   return(0);
 }

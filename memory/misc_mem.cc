@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: misc_mem.cc,v 1.36 2003/03/02 23:59:12 cbothamy Exp $
+// $Id: misc_mem.cc,v 1.36.2.1 2003/03/29 19:57:20 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -120,7 +120,7 @@ BX_MEM_C::~BX_MEM_C(void)
   void
 BX_MEM_C::init_memory(int memsize)
 {
-	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.36 2003/03/02 23:59:12 cbothamy Exp $"));
+	BX_DEBUG(("Init $Id: misc_mem.cc,v 1.36.2.1 2003/03/29 19:57:20 slechta Exp $"));
   // you can pass 0 if memory has been allocated already through
   // the constructor, or the desired size of memory if it hasn't
   BX_INFO(("%.2fMB", (float)(BX_MEM_THIS megabytes) ));
@@ -141,6 +141,47 @@ BX_MEM_C::init_memory(int memsize)
 #endif
 
 }
+
+Bit64s mem_vector_restore(bx_param_c *param_p, int set, Bit64s val)
+{
+  if (set) 
+    {
+      // find the bx_shadow_num_c labeled "vector" with the same parent
+      bx_param_c *vector_param_p = param_p->get_parent()->
+        get_by_name("vector");
+      BX_ASSERT((vector_param_p != NULL));
+      bx_param_c *actual_vector_param_p = param_p->get_parent()->
+        get_by_name("actual_vector");
+      BX_ASSERT((actual_vector_param_p != NULL));
+      
+      
+
+    }
+  
+  return 0;
+}
+
+
+void
+BX_MEM_C::register_state(bx_param_c *list_p)
+{
+  BXRS_START(BX_MEM_C, this, "", list_p, 10);
+  {
+    BXRS_DARRAY(actual_vector, BXRS_THIS->len);
+    BXRS_DARRAY(vector, BXRS_THIS->len);
+    BXRS_NUM_H(size_t, len, mem_vector_restore);
+    BXRS_ENUM_D(size_t, megabytes, "(len in Megabytes)");
+#if BX_PCI_SUPPORT
+    BXRS_ARRAY_NUM_D(Bit8u, shadow, (4*16*4096), "256k of memory");
+#endif
+#if BX_DEBUGGER
+    BXRS_ARRAY_NUM(unsigned char, dbg_dirty_pages,
+                   ((BX_MAX_DIRTY_PAGE_TABLE_MEGS * 1024 * 1024) / 4096));
+#endif
+  }
+  BXRS_END;
+}
+
 #endif // #if BX_PROVIDE_CPU_MEMORY
 
 

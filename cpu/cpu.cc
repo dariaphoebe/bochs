@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.cc,v 1.76.2.2 2003/03/29 15:56:55 bdenney Exp $
+// $Id: cpu.cc,v 1.76.2.3 2003/03/29 19:57:17 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -29,6 +29,13 @@
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
 #define LOG_THIS BX_CPU_THIS_PTR
+
+#if BX_USE_CPU_SMF
+#define BX_CPU_THIS (BX_CPU(0))
+#else
+#define BX_CPU_THIS this
+#endif
+
 
 #if BX_SIM_ID == 0   // only need to define once
 // This array defines a look-up table for the even parity-ness
@@ -1078,14 +1085,14 @@ BX_CPU_C::register_state(bx_param_c *list_p)
       BXRS_UNION_START;
       {
 #       ifdef BX_BIG_ENDIAN
-        BXRS_STRUCT_START(struct dword_t, dword);
+        BXRS_STRUCT_START(ip_dword_t, dword);
         {
           BXRS_NUM(Bit32u, rip_upper);
           BXRS_NUM(Bit32u, eip);
         }
         BXRS_STRUCT_END;
 #       else // #ifdef BX_BIG_ENDIAN
-        BXRS_STRUCT_START(struct dword_t, dword);
+        BXRS_STRUCT_START(ip_dword_t, dword);
         {
           BXRS_NUM(Bit32u, eip);
           BXRS_NUM(Bit32u, rip_upper);
@@ -1100,7 +1107,7 @@ BX_CPU_C::register_state(bx_param_c *list_p)
     {
       BXRS_ARRAY_OBJ(bx_gen_reg_t, gen_reg, 8);
 
-      BXRS_STRUCT_START(union dword_t, dword);
+      BXRS_STRUCT_START(ip_dword_t, dword);
       {
         BXRS_NUM_D(Bit32u, eip, "instruction pointer");
       }
@@ -1244,8 +1251,8 @@ BX_CPU_C::register_state(bx_param_c *list_p)
     BXRS_NUM(Bit32u, save_esp);
 
     // Boundaries of current page, based on EIP
-    bx_address eipPageBias;
-    bx_address eipPageWindowSize;
+    BXRS_NUM(bx_address, eipPageBias);
+    BXRS_NUM(bx_address, eipPageWindowSize);
 
     // BJS TODO: invalidate prefetch_q
     //Bit8u     *eipFetchPtr;
@@ -1464,19 +1471,19 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
       {
         BXRS_UNION_START;
         {
-          BXRS_STRUCT_START(struct bx_gen_reg_t::dword_t, dword);
+          BXRS_STRUCT_START(bx_gen_reg_t::dword_t, dword);
           {
             BXRS_NUM(Bit32u, erx);
           }
           BXRS_STRUCT_END;
           
-          BXRS_STRUCT_START(struct bx_gen_reg_t::word_t, word);
+          BXRS_STRUCT_START(bx_gen_reg_t::word_t, word);
           {
             BXRS_NUM(Bit16u, word_filler);
             BXRS_UNION_START;
             {
               BXRS_NUM(Bit16u, rx);
-              BXRS_STRUCT_START(struct bx_gen_reg_t::word_t::byte_t, byte);
+              BXRS_STRUCT_START(bx_gen_reg_t::word_t::byte_t, byte);
               {
                 BXRS_NUM(Bit8u, rh);
                 BXRS_NUM(Bit8u, rl);
@@ -1497,18 +1504,18 @@ bx_gen_reg_t::register_state(bx_param_c *list_p)
       {
         BXRS_UNION_START;
         {
-          BXRS_STRUCT_START(struct bx_gen_reg_t::dword_t, dword);
+          BXRS_STRUCT_START(bx_gen_reg_t::gr_dword_t, dword);
           {
             BXRS_NUM(Bit32u, erx);
           }
           BXRS_STRUCT_END;
           
-          BXRS_STRUCT_START(struct bx_gen_reg_t::word_t, word);
+          BXRS_STRUCT_START(bx_gen_reg_t::gr_word_t, word);
           {
             BXRS_UNION_START;
             {
               BXRS_NUM(Bit16u, rx);
-              BXRS_STRUCT_START(struct bx_gen_reg_t::word_t::byte_t, byte);
+              BXRS_STRUCT_START(bx_gen_reg_t::gr_word_t::gr_byte_t, byte);
               {
                 BXRS_NUM(Bit8u, rl);
                 BXRS_NUM(Bit8u, rh);
@@ -1555,7 +1562,7 @@ bx_segment_reg_t::register_state(bx_param_c *list_p)
       BXRS_NUM_D (Bit8u  , dpl    , "/* descriptor privilege level 0..3");
       BXRS_BOOL_D(bx_bool, segment, "/* 0 = system/gate, 1 = data/code segment");
       BXRS_NUM_D (Bit8u  , type   , "/* For system & gate descriptors, only");
-      BXRS_STRUCT_START(bx_descriptor_t::u_t, u);
+      BXRS_STRUCT_START(bx_descriptor_t::desc_u_t, u);
       {
         BXRS_STRUCT_START(bx_descriptor_t::segment_t, segment);
         {
@@ -1563,7 +1570,7 @@ bx_segment_reg_t::register_state(bx_param_c *list_p)
           BXRS_BOOL_D(bx_bool, c_ed,        "code: 1=conforming, data/stack: 1=expand down");
           BXRS_BOOL_D(bx_bool, r_w,         "code: readable?, data/stack: writeable?");
           BXRS_BOOL_D(bx_bool, a,           "accessed?");
-          BXRS_BOOL_D(bx_address,  base,    "base address: 286=24bits, 386=32bits, long=64");
+          BXRS_NUM_D (bx_address,  base,    "base address: 286=24bits, 386=32bits, long=64");
           BXRS_NUM_D (Bit32u,  limit,       "limit: 286=16bits, 386=20bits");
           BXRS_NUM_D (Bit32u,  limit_scaled,"for efficiency");
 #         if BX_CPU_LEVEL >= 3                       

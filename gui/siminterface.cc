@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.94.4.10 2003/03/29 19:42:52 bdenney Exp $
+// $Id: siminterface.cc,v 1.94.4.11 2003/03/29 19:57:18 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1665,15 +1665,30 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
     {
       // number parameters get dumped as either hex or decimal based upon the 
       // 'base' field of the param
-      bx_param_num_c *num = (bx_param_num_c *) node;
-      int base = num->get_base ();
-      BX_ASSERT (base==10 || base==16);
-      fprintf (m_ascii_fp, "%s=", node->get_name ());
-      if (base==10)
-        fprintf (m_ascii_fp, "%d\n", num->get ());
+      if (node->is_shadow_param())
+        {
+          bx_param_num_c *num = (bx_param_num_c *) node;
+          int base = num->get_base ();
+          BX_ASSERT (base==10 || base==16);
+          fprintf (m_ascii_fp, "%s=", node->get_name ());
+          if (base==10)
+            fprintf (m_ascii_fp, "%d\n", num->get ());
+          else
+            fprintf (m_ascii_fp, "0x%x\n", num->get ());
+          break;
+        }
       else
-        fprintf (m_ascii_fp, "0x%x\n", num->get ());
-      break;
+        {
+          bx_shadow_num_c *num = (bx_shadow_num_c *) node;
+          int base = num->get_base ();
+          BX_ASSERT (base==10 || base==16);
+          fprintf (m_ascii_fp, "%s=", node->get_name ());
+          if (base==10)
+            fprintf (m_ascii_fp, "%d\n", num->get ());
+          else
+            fprintf (m_ascii_fp, "0x%x\n", num->get ());
+          break;
+        }
     }
   case BXT_PARAM_BOOL:
     {
@@ -1686,6 +1701,28 @@ void bx_checkpoint_c::save_param_tree(bx_param_c *node, int level)
     {
       fprintf (m_ascii_fp, "%s=\"%s\"\n", node->get_name(), 
                ((bx_param_string_c*)node)->getptr());
+      break;
+    }
+  case BXT_PARAM_DATA:
+    {
+      if (node->is_shadow_param() == 0)
+        {
+          BX_PANIC(("bx_param_data_c is not implemented!"));
+        }
+      else 
+        {
+          Bit8u *data_p = (Bit8u*) ((bx_shadow_data_c*)node)->get();
+          int data_size = ((bx_shadow_data_c*)node)->get_data_size();
+
+          fprintf (m_ascii_fp, "%s=<data>%ld %d\n", node->get_name(), 
+                   ftell(m_data_fp), data_size);
+          
+          if (fwrite(data_p, sizeof(Bit8u), data_size, m_data_fp) != data_size)
+            {
+              BX_PANIC(("data not written to data file in bx_checkpoint_c::save_param_tree()"));          
+            }
+          
+        }
       break;
     }
   case BXT_LIST:
@@ -1815,6 +1852,12 @@ void bx_checkpoint_c::load_param_tree(bx_param_c *param_tree_p,
         {
           // we dont need to read through this link since it is somewhere
           // else in the tree
+        }
+      // check for data
+      else if (strncmp(value_str, "<data>", 6) == 0)
+        {
+          load_param_data(param_tree_p, param_str, &(value_str[6]), 
+                          qualified_path_str);
         }
       // assume that the value is an decimal string
       else
@@ -2166,6 +2209,8 @@ char* bx_checkpoint_c::read_next_value()
         }
     }
 
+  // set the cursor for right after the value string
+  m_line_buf_cursor = &(m_line_buf_cursor[i+1]);
 
   return line_str;
 }
@@ -2465,4 +2510,117 @@ bx_checkpoint_c::load_param_enum(bx_param_c *parent_p,
       
     }
   return 1;
+}
+
+
+/*---------------------------------------------------------------------------*/
+bx_bool 
+bx_checkpoint_c::load_param_data(bx_param_c *parent_p, 
+                                    char *param_str, 
+                                    char *value_str,
+                                    char *qualified_path_str)
+{
+#if CHKPT_DEBUG
+  for (int i=0; i<level; i++) printf(" ");
+  printf("hex param = %s, value = %s\n", param_str, value_str);
+#endif // #if CHKPT_DEBUG
+
+  bx_param_c *param_p = parent_p->get_by_name(param_str);
+  if (param_p == NULL)
+    {
+      CHKPT_PARAM_NOT_FOUND();
+    }
+  else
+    {
+      CHKPT_ASSERT_INPUT_TYPE(param_p->get_type(), BXT_PARAM_DATA);
+                
+      // convert the hex string to a long int
+      char *str_ptr;
+      long int value = strtol(value_str, &str_ptr, 0);
+      if (*str_ptr != '\0')
+        {
+          BX_PANIC(("fatal error when loading checkpoint. " \
+                   "value not valid with param %s.\n", param_str));
+        }
+
+#if CHKPT_DEBUG
+      for (int i=0; i<level; i++) printf(" ");
+      printf("            %s, put   = %0xlx\n", param_str, value);
+#endif // #if CHKPT_DEBUG
+
+      // actual loading of new value
+      if (param_p->is_shadow_param())
+        {
+          char *size_str = read_next_value();
+          char *str_ptr;
+          long int size = strtol(size_str, &str_ptr, 0);
+          if (*str_ptr != '\0')
+            {
+              BX_PANIC(("fatal error when loading checkpoint. " \
+                        "value not valid with param %s.\n", param_str));
+            }
+
+          Bit8u* new_data_p;
+          if (((bx_shadow_data_c*)param_p)->get_data_size() == size)
+            {
+              new_data_p = (Bit8u*) ((bx_shadow_data_c*)param_p)->get();
+            }
+          else
+            {
+              free(((bx_shadow_data_c*)param_p)->get());
+              new_data_p = (Bit8u*) malloc(size);
+              BX_ASSERT((new_data_p != NULL));
+              ((bx_shadow_data_c*)param_p)->set(new_data_p);
+              ((bx_shadow_data_c*)param_p)->set_data_size(size);
+            }
+          
+          if (fseek(m_data_fp, size, SEEK_SET) < 0)
+            {
+              BX_PANIC(("fatal error when loading checkpoint. " \
+                        "value not valid with param %s.\n", param_str));
+            }
+
+          if (fread(new_data_p, sizeof(Bit8u), size, m_data_fp) != size)
+            {
+              BX_PANIC(("fatal error when loading checkpoint. " \
+                        "value not valid with param %s.\n", param_str));
+            }
+          
+        }
+      else
+        {
+          BX_PANIC(("bx_param_data_c is not implemented!"));          
+        }
+    }
+          
+  return 1;
+}
+
+
+/*---------------------------------------------------------------------------*/
+bx_shadow_data_c::bx_shadow_data_c (bx_param_c *parent,
+                                    char *name,
+                                    char *description,
+                                    void **ptr_to_real_ptr, 
+                                    int data_size)
+  : bx_param_c(parent, name, description)
+{  
+  this->data = ptr_to_real_ptr;
+  this->data_size = data_size;
+  this->set_type(BXT_PARAM_DATA);
+  this->is_shadow = 1;
+}
+
+/*---------------------------------------------------------------------------*/
+void
+bx_shadow_data_c::set (void* new_data_ptr, bx_bool ignore_handler=0)
+{
+  // BJS TODO: implement handlers
+  (*data) = new_data_ptr;
+}
+
+void*
+bx_shadow_data_c::get()
+{
+  return (*data);
 }

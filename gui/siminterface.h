@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.99.4.11 2003/03/29 01:57:09 slechta Exp $
+// $Id: siminterface.h,v 1.99.4.12 2003/03/29 19:57:18 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -115,6 +115,7 @@ typedef enum {
   BXT_PARAM_BOOL,
   BXT_PARAM_ENUM,
   BXT_PARAM_STRING,
+  BXT_PARAM_DATA,
   BXT_LIST
 } bx_objtype;
 
@@ -837,7 +838,7 @@ protected:
     Bit64s *p64bit;  // used by bx_shadow_num_c
     Bit32s *p32bit;  // used by bx_shadow_num_c
     Bit16s *p16bit;  // used by bx_shadow_num_c
-    Bit8s  *p8bit;    // used by bx_shadow_num_c
+    Bit8s  *p8bit;   // used by bx_shadow_num_c
     bx_bool *pbool;  // used by bx_shadow_bool_c
   } val;
   param_event_handler handler;
@@ -930,6 +931,31 @@ public:
   virtual Bit64s get64 ();
   virtual void set (Bit64s val, bx_bool ignore_handler=0);
   virtual void reset ();
+};
+
+
+typedef void* (*shadow_data_handler)(class bx_param_c *, int set, void** val);
+
+class BOCHSAPI bx_shadow_data_c : public bx_param_c
+{
+ private:
+  int data_size;
+  void **data;
+  shadow_data_handler handler;
+
+ public:
+  bx_shadow_data_c (bx_param_c *parent,
+                    char *name,
+                    char *description,
+                    void **ptr_to_real_ptr, 
+                    int data_size);
+
+  void set_handler (shadow_data_handler handler);
+
+  void set_data_size(int size) {data_size = size;};
+  int  get_data_size() {return data_size;};
+  virtual void set (void* new_data_ptr, bx_bool ignore_handler=0);
+  virtual void* get();
 };
 
 class BOCHSAPI bx_param_bool_c : public bx_param_num_c {
@@ -1343,13 +1369,23 @@ void print_tree (bx_param_c *node, int level = 0);
 /*---------------------------------------------------------------------------*/
 // register an number variable in the current bxrs scope
 #define BXRS_NUM(_type, _var)                                                 \
-  BXRS_NUM_D(_type, _var, "")
+  BXRS_NUM_DH(_type, _var, "", NULL)
 
 #define BXRS_NUM_D(_type, _var, _desc)                                        \
-  new bx_shadow_num_c(_bxrs_cur_list_p,                                       \
-                     #_var,                                                   \
-                     _desc,                                                   \
-                     (_type*)(&((*((_bxrs_this_t*)_bxrs_this))._var)));
+  BXRS_NUM_DH(_type, _var, _desc, NULL);
+
+#define BXRS_NUM_H(_type, _var, _handler)                                     \
+  BXRS_NUM_DH(_type, _var, "", _handler);
+
+#define BXRS_NUM_D(_type, _var, _desc)                                        \
+  BXRS_NUM_DH(_type, _var, _desc, NULL);
+
+#define BXRS_NUM_DH(_type, _var, _desc, _handler)                              \
+  (new bx_shadow_num_c(_bxrs_cur_list_p,                                       \
+                     #_var,                                                    \
+                     _desc,                                                    \
+                     (_type*)(&((*((_bxrs_this_t*)_bxrs_this))._var))))->      \
+  set_handler(_handler);
 
 /*---------------------------------------------------------------------------*/
 // register an boolean variable in the current bxrs scope
@@ -1527,7 +1563,7 @@ void print_tree (bx_param_c *node, int level = 0);
 {                                                                             \
   _bxrs_this_t* _bxrs_obj = (_bxrs_this_t*)_bxrs_this;                        \
   BXRS_ARRAY_START_D(_type, _var, _size, _desc);                              \
-  ((_type*)&(( _bxrs_obj )->_var))->                                          \
+  ((_type*)&(( _bxrs_obj )->_var[_itr]))->                                    \
     register_state(/*#_var, _desc,*/ _bxrs_cur_list_p);                       \
   UNUSED(_bxrs_this);                                                         \
   BXRS_ARRAY_END;                                                             \
@@ -1543,16 +1579,16 @@ void print_tree (bx_param_c *node, int level = 0);
 //  BXRS_STRUCT_END;
   
 #define BXRS_UNION_START {
-#define BXRS_UNION_START_D {
+#define BXRS_UNION_START_D BXRS_UNION_START
 #define BXRS_UNION_END }
 /*---------------------------------------------------------------------------*/
 // for registering dynamically created arrays and their size variable
 // NOTE: size variable must be in current bxrs scope
-#define BXRS_DARRAY_NUM(_type, _var, _sizevar)                                \
-  BXRS_DARRAY_NUM_D(_type, _var, _sizetype, _sizevar, "")
-
-#define BXRS_DARRAY_NUM_D(_type, _var, _sizetype, _sizevar, _desc)
-// BJS TODO: implement BXRS_DARRAY_NUM_D
+#define BXRS_DARRAY_NUM(_type, _var_p, _sizetype, _sizevar)                   \
+  BXRS_DARRAY_NUM_D(_type, _var_p, _sizetype, _sizevar, "")
+  
+#define BXRS_DARRAY_NUM_D(_type, _var_p, _sizetype, _sizevar, _desc) ;
+  // BJS TODO: implement BXRS_DARRAY_NUM_D
 
 /*---------------------------------------------------------------------------*/
 // for registering pointer variables that are relative to another pointer
@@ -1563,8 +1599,25 @@ void print_tree (bx_param_c *node, int level = 0);
 // BJS TODO: implement BXRS_RELNUM_D
 
 /*---------------------------------------------------------------------------*/
+#define BXRS_DARRAY(_ptr, _len)                                                    \
+  BXRS_DARRAY_DH(_ptr, _len, "", NULL);
+
+#define BXRS_DARRAY_DH(_ptr, _len, _desc, _handler)                           \
+  (new bx_shadow_data_c(_bxrs_cur_list_p,                                     \
+                     #_ptr,                                                   \
+                     _desc,                                                   \
+                     (void**) &(((*((_bxrs_this_t*)_bxrs_this))._ptr)),       \
+                     _len)); 
+
+
+
+/*---------------------------------------------------------------------------*/
 #define BXRS_UNUSED                                                           \
   UNUSED(_bxrs_this);
+
+#define BXRS_THIS ((_bxrs_this_t*)_bxrs_this)
+
+#define BXRS_THIS_TYPE _bxrs_this_t
 
 /*---------------------------------------------------------------------------*/
 // maximum size of a line in checkpoint ascii file
@@ -1637,6 +1690,10 @@ class bx_checkpoint_c {
                           char *value_str,
                           char *qualified_path_str);
   bx_bool load_param_list(bx_param_c *parent_p, 
+                          char *param_str, 
+                          char *value_str,
+                          char *qualified_path_str);
+  bx_bool load_param_data(bx_param_c *parent_p, 
                           char *param_str, 
                           char *value_str,
                           char *qualified_path_str);

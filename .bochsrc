@@ -9,7 +9,7 @@
 # directory, named BIOS-bochs-yymmdd.  Use the latest one in there.
 #=======================================================================
 #romimage: bios/BIOS-bochs-970717a
-romimage: file=/home/tip/bochs/BIOS-bochs-latest, address=0xf0000
+romimage: file=workbochs/BIOS-bochs-latest, address=0xf0000
 #romimage: file=bios/BIOS-bochs-2-processors, address=0xf0000
 #romimage: file=bios/BIOS-bochs-4-processors, address=0xf0000
 #romimage: file=bios/rombios.bin, address=0xf0000
@@ -24,16 +24,16 @@ romimage: file=/home/tip/bochs/BIOS-bochs-latest, address=0xf0000
 #megs: 256
 #megs: 128
 #megs: 64
-megs: 32
+#megs: 32
 #megs: 16
-#megs: 8
+megs: 8
 
 #=======================================================================
 # VGAROMIMAGE
 # You now need to load a VGA ROM BIOS into C0000.
 #=======================================================================
 #vgaromimage: bios/VGABIOS-lgpl-0.3a
-vgaromimage: /home/tip/bochs/VGABIOS-elpin-2.40
+vgaromimage: workbochs/VGABIOS-elpin-2.40
 
 #=======================================================================
 # FLOPPYA:
@@ -57,7 +57,7 @@ vgaromimage: /home/tip/bochs/VGABIOS-elpin-2.40
 #floppya: 1_44=/dev/fd0H1440, status=inserted
 #floppya: 1_2=../1_2, status=inserted
 #floppya: 1_44=a:, status=inserted             # for win32
-#floppya: 1_44=/home/tip/bochs/a.img, status=inserted
+floppya: 1_44=workbochs/a.img, status=inserted
 #floppyb: 1_44=/home/tip/slechta/smroot075, status=inserted
 #floppya: 1_44=/home/tip/slechta/smboot075, status=inserted
 #floppya: 1_44=/home/tip/slechta/bootE-0.20-r1.img, status=inserted
@@ -88,15 +88,15 @@ vgaromimage: /home/tip/bochs/VGABIOS-elpin-2.40
 #   diskc: file=483M.sample, cyl=1024, heads=15, spt=63
 #=======================================================================
 #diskc: file="/home/tip/bochs/debian-3.0r0.img", cyl=1024, heads=16, spt=63
-diskc: file="/home/tip/bochs/dlx-linux.img", cyl=306, heads=4, spt=17
+#diskc: file="/home/tip/bochs/dlx-linux.img", cyl=306, heads=4, spt=17
 #diskc: file="/home/tip/bochs/debian-2.2r5.img", cyl=306, heads=4, spt=17
-diskd: file="/home/tip/bochs/spec2000.iso", cyl=203, heads=16, spt=63
+#diskd: file="workbochs/spec2000.img", cyl=203, heads=16, spt=63
 #diskc: file="/home/tip/bochs/spec2000.img", cyl=203, heads=16, spt=63
 #diskc: file="/home/tip/bochs/20mb.img", cyl=40, heads=16, spt=63
 #diskc: file="/home/tip/bochs/tiny55mb.img", cyl=111, heads=16, spt=63
 #diskd: file="/home/tip/bochs/tiny55mb-orig.img", cyl=111, heads=16, spt=63
 #diskc: file="/home/tip/bochs/100mb.img", cyl=203, heads=16, spt=63
-#diskc: file="/home/tip/bochs/woody-200mb.img", cyl=406, heads=16, spt=63
+diskc: file="workbochs/woody-200mb.img", cyl=406, heads=16, spt=63
  
 #=======================================================================
 # DISKD:
@@ -104,7 +104,6 @@ diskd: file="/home/tip/bochs/spec2000.iso", cyl=203, heads=16, spt=63
 #
 # NOTE: diskd and cdromd must not be used together!
 #=======================================================================
-#diskd: file="diskd.img", cyl=615, heads=6, spt=17
 
 #=======================================================================
 # CDROM
@@ -121,7 +120,7 @@ diskd: file="/home/tip/bochs/spec2000.iso", cyl=203, heads=16, spt=63
 #=======================================================================
 #cdromd: dev=D:, status=inserted             # for win32
 #cdromd: dev=/dev/cdrom, status=inserted
-#cdromd: dev=/home/tip/bochs/spec2000.iso, status=inserted
+cdromd: dev=worktrace/spec2000.iso, status=inserted
 #cdromd: dev=/home/tip/bochs/gnu.iso, status=inserted
 #cdromd: dev=/home/tip/bochs/bootdisc.iso, status=inserted
 #cdromd: dev=/home/tip/bochs/debian-30r1-i386-binary-1.iso, status=inserted
@@ -258,7 +257,7 @@ parport1: enable=0
 # Examples:
 #   vga_update_interval: 250000
 #=======================================================================
-#vga_update_interval: 300000
+vga_update_interval: 300000
 
 # using for Winstone '98 tests
 #vga_update_interval:  100000
@@ -270,7 +269,7 @@ parport1: enable=0
 # Examples:
 #   keyboard_serial_delay: 200
 #=======================================================================
-#keyboard_serial_delay: 250
+keyboard_serial_delay: 250
 
 #=======================================================================
 # KEYBOARD_PASTE_DELAY:
@@ -287,7 +286,7 @@ parport1: enable=0
 # Examples:
 #   keyboard_paste_delay: 100000
 #=======================================================================
-#keyboard_paste_delay: 100000
+keyboard_paste_delay: 100000
 
 #=======================================================================
 # FLOPPY_COMMAND_DELAY:

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: keyboard.cc,v 1.75.2.2 2003/03/28 09:26:07 slechta Exp $
+// $Id: keyboard.cc,v 1.75.2.3 2003/03/29 19:57:19 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -125,7 +125,7 @@ bx_keyb_c::resetinternals(bx_bool powerup)
   void
 bx_keyb_c::init(void)
 {
-  BX_DEBUG(("Init $Id: keyboard.cc,v 1.75.2.2 2003/03/28 09:26:07 slechta Exp $"));
+  BX_DEBUG(("Init $Id: keyboard.cc,v 1.75.2.3 2003/03/29 19:57:19 slechta Exp $"));
   Bit32u   i;
 
   DEV_register_irq(1, "8042 Keyboard controller");
@@ -349,6 +349,9 @@ bx_keyb_c::register_state(bx_param_c* list_p)
     // Summary: A paste buffer is allocated (new) in the platform-specific gui
     // code, passed to the keyboard model, and is freed (delete[]) when it is no
     // longer needed.
+    BXRS_NUM(Bit32u,pastebuf_len);
+    
+    
     BXRS_DARRAY_NUM_D(Bit8u, pastebuf, Bit32u, pastebuf_len, 
                       "ptr to bytes to be pasted, or NULL if none in progress");
     BXRS_NUM_D (Bit32u ,pastebuf_ptr, "ptr to next byte to be added to hw buffer");
@@ -357,6 +360,8 @@ bx_keyb_c::register_state(bx_param_c* list_p)
   }
   BXRS_END;
 }
+
+
 
 
   void

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.133.2.1 2003/03/29 01:57:08 slechta Exp $
+// $Id: cpu.h,v 1.133.2.2 2003/03/29 19:57:18 slechta Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -732,9 +732,9 @@ typedef struct {
 #     endif
       ldt_t ldt;
     };
-  } u_t;
+  } desc_u_t;
 
-  u_t u;
+  desc_u_t u;
 
 } bx_descriptor_t;
 
@@ -1189,21 +1189,21 @@ typedef struct {
 typedef struct {
   typedef struct{
       Bit32u erx;
-  } dword_t;
+  } gr_dword_t;
   typedef struct {
     typedef struct {
       Bit8u rl;
       Bit8u rh;
-    } byte_t;
+    } gr_byte_t;
     union {
       Bit16u rx;
-      byte_t byte;
+      gr_byte_t byte;
     };
     Bit16u word_filler;
-  } word_t;
+  } gr_word_t;
   union {
-    dword_t dword;
-    word_t word;
+    gr_dword_t dword;
+    gr_word_t word;
   };
   void register_state(bx_param_c *list_p);
 } bx_gen_reg_t;
@@ -1364,12 +1364,12 @@ public: // for now...
 
 union {
 #ifdef BX_BIG_ENDIAN
-  struct dword_t {
+  struct {
     Bit32u rip_upper;
     Bit32u eip;
     } dword;
 #else
-  struct dword_t {
+  struct {
     Bit32u eip;
     Bit32u rip_upper;
     } dword;
@@ -1381,9 +1381,14 @@ union {
 
   bx_gen_reg_t  gen_reg[8];
 
-  union dword_t {
-    Bit32u eip;    // instruction pointer
-    } dword;
+  // BJS TODO: enforce this!
+  typedef struct {
+    union {
+      Bit32u eip;    // instruction pointer
+    };
+  } ip_dword_t;
+  ip_dword_t dword;
+
 #endif
 
 #if BX_CPU_LEVEL > 0
