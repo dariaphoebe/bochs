@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dbg_main.cc,v 1.36.4.1 2002/03/25 08:02:49 bdenney Exp $
+// $Id: dbg_main.cc,v 1.36.4.2 2002/03/25 08:05:06 bdenney Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -2064,7 +2064,7 @@ void bx_dbg_disassemble_current (int which_cpu, int print_time)
 
   if (which_cpu < 0) {
     // iterate over all of them.
-    for (int i=0; i<BX_NUM_SIMULATORS; i++)
+    for (int i=0; i<BX_SMP_PROCESSORS; i++)
       bx_dbg_disassemble_current (i, print_time);
     return;
   }
