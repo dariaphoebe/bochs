@@ -109,6 +109,11 @@ typedef struct bx_fpu_reg_t FPU_REG;
 #define FPU_CW_RC		(0x0C00)  /* rounding control */
 #define FPU_CW_PC		(0x0300)  /* precision control */
 
+#define FPU_RC_RND		(0x0000)  /* rounding control */
+#define FPU_RC_DOWN		(0x0400)
+#define FPU_RC_UP		(0x0800)
+#define FPU_RC_CHOP		(0x0C00)
+
 #define FPU_CW_Precision	(0x0020)  /* loss of precision mask */
 #define FPU_CW_Underflow	(0x0010)  /* underflow mask */
 #define FPU_CW_Overflow		(0x0008)  /* overflow mask */
@@ -290,8 +295,6 @@ BX_CPP_INLINE void i387_structure_t::init()
 extern const floatx80 Const_QNaN;
 extern const floatx80 Const_Z;
 extern const floatx80 Const_1;
-extern const floatx80 Const_2;
-extern const floatx80 Const_HALF;
 extern const floatx80 Const_L2T;
 extern const floatx80 Const_L2E;
 extern const floatx80 Const_PI;
