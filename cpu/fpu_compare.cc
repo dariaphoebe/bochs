@@ -493,7 +493,7 @@ void BX_CPU_C::FUCOMPP(bxInstruction_c *i)
 /* DA C0 */
 void BX_CPU_C::FCMOVB_ST0_STj(bxInstruction_c *i)
 {
-#if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
+#if (BX_CPU_LEVEL >= 6) || (BX_CPU_LEVEL_HACKED >= 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
@@ -519,7 +519,7 @@ void BX_CPU_C::FCMOVB_ST0_STj(bxInstruction_c *i)
 /* DA C8 */
 void BX_CPU_C::FCMOVE_ST0_STj(bxInstruction_c *i)
 {
-#if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
+#if (BX_CPU_LEVEL >= 6) || (BX_CPU_LEVEL_HACKED >= 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
@@ -545,7 +545,7 @@ void BX_CPU_C::FCMOVE_ST0_STj(bxInstruction_c *i)
 /* DA D0 */
 void BX_CPU_C::FCMOVBE_ST0_STj(bxInstruction_c *i)
 {
-#if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
+#if (BX_CPU_LEVEL >= 6) || (BX_CPU_LEVEL_HACKED >= 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
@@ -571,7 +571,7 @@ void BX_CPU_C::FCMOVBE_ST0_STj(bxInstruction_c *i)
 /* DA D8 */
 void BX_CPU_C::FCMOVU_ST0_STj(bxInstruction_c *i)
 {
-#if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
+#if (BX_CPU_LEVEL >= 6) || (BX_CPU_LEVEL_HACKED >= 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
@@ -597,7 +597,7 @@ void BX_CPU_C::FCMOVU_ST0_STj(bxInstruction_c *i)
 /* DB C0 */
 void BX_CPU_C::FCMOVNB_ST0_STj(bxInstruction_c *i)
 {
-#if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
+#if (BX_CPU_LEVEL >= 6) || (BX_CPU_LEVEL_HACKED >= 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
@@ -623,7 +623,7 @@ void BX_CPU_C::FCMOVNB_ST0_STj(bxInstruction_c *i)
 /* DB C8 */
 void BX_CPU_C::FCMOVNE_ST0_STj(bxInstruction_c *i)
 {
-#if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
+#if (BX_CPU_LEVEL >= 6) || (BX_CPU_LEVEL_HACKED >= 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
@@ -649,7 +649,7 @@ void BX_CPU_C::FCMOVNE_ST0_STj(bxInstruction_c *i)
 /* DB D0 */
 void BX_CPU_C::FCMOVNBE_ST0_STj(bxInstruction_c *i)
 {
-#if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
+#if (BX_CPU_LEVEL >= 6) || (BX_CPU_LEVEL_HACKED >= 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);
@@ -675,7 +675,7 @@ void BX_CPU_C::FCMOVNBE_ST0_STj(bxInstruction_c *i)
 /* DB D8 */
 void BX_CPU_C::FCMOVNU_ST0_STj(bxInstruction_c *i)
 {
-#if BX_SUPPORT_FPU && (BX_CPU_LEVEL == 6)
+#if (BX_CPU_LEVEL >= 6) || (BX_CPU_LEVEL_HACKED >= 6)
   BX_CPU_THIS_PTR prepareFPU(i);
 
   int st0_tag = BX_CPU_THIS_PTR the_i387.FPU_gettagi(0);

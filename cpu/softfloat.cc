@@ -2536,12 +2536,11 @@ float_class_t floatx80_class(floatx80 a)
 static floatx80 roundAndPackFloatx80(int roundingPrecision, 
         int zSign, Bit32s zExp, Bit64u zSig0, Bit64u zSig1, float_status_t &status)
 {
-    Bit8u roundingMode;
-    int roundNearestEven, increment, isTiny;
-    Bit64s roundIncrement, roundMask, roundBits;
+    Bit64u roundIncrement, roundMask, roundBits;
+    int increment;
 
-    roundingMode = get_float_rounding_mode(status);
-    roundNearestEven = (roundingMode == float_round_nearest_even);
+    Bit8u roundingMode = get_float_rounding_mode(status);
+    int roundNearestEven = (roundingMode == float_round_nearest_even);
     if (roundingPrecision == 64) {
         roundIncrement = BX_CONST64(0x0000000000000400);
         roundMask = BX_CONST64(0x00000000000007FF);
@@ -2575,7 +2574,7 @@ static floatx80 roundAndPackFloatx80(int roundingPrecision,
             goto overflow;
         }
         if (zExp <= 0) {
-            isTiny =
+            int isTiny =
                    (status.float_detect_tininess == float_tininess_before_rounding)
                 || (zExp < 0)
                 || (zSig0 <= zSig0 + roundIncrement);
@@ -2639,7 +2638,7 @@ static floatx80 roundAndPackFloatx80(int roundingPrecision,
             return packFloatx80(zSign, 0x7FFF, BX_CONST64(0x8000000000000000));
         }
         if (zExp <= 0) {
-            isTiny =
+            int isTiny =
                    (status.float_detect_tininess == float_tininess_before_rounding)
                 || (zExp < 0)
                 || ! increment

@@ -32,6 +32,14 @@
 #define CHECK_PENDING_EXCEPTIONS 1
 
 
+#if BX_SUPPORT_FPU == 0
+void BX_CPU_C::FPU_ESC(bxInstruction_c *i)
+{
+  if (BX_CPU_THIS_PTR cr0.em || BX_CPU_THIS_PTR cr0.ts)
+    exception(BX_NM_EXCEPTION, 0, 0);
+}
+#endif
+
 #if BX_SUPPORT_FPU
 void BX_CPU_C::prepareFPU(bxInstruction_c *i, 
 	bx_bool check_pending_exceptions, bx_bool update_last_instruction)
@@ -44,7 +52,8 @@ void BX_CPU_C::prepareFPU(bxInstruction_c *i,
 
   if (update_last_instruction)
   {
-    BX_CPU_THIS_PTR the_i387.foo = ((Bit32u)(i->b1()) << 8) | (Bit32u)(i->modrm());    BX_CPU_THIS_PTR the_i387.fcs_= BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].selector.value;
+    BX_CPU_THIS_PTR the_i387.foo = ((Bit32u)(i->b1()) << 8) | (Bit32u)(i->modrm());
+    BX_CPU_THIS_PTR the_i387.fcs_= BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].selector.value;
     BX_CPU_THIS_PTR the_i387.fip_= BX_CPU_THIS_PTR prev_eip;
 
     if (! i->modC0()) {
@@ -321,6 +330,18 @@ void BX_CPU_C::FLDCW(bxInstruction_c *i)
   Bit16u cwd;
   read_virtual_word(i->seg(), RMAddr(i), &cwd);
   FPU_CONTROL_WORD = cwd;
+
+  /* check for unmasked exceptions */
+  if (FPU_PARTIAL_STATUS & ~FPU_CONTROL_WORD & FPU_CW_Exceptions_Mask)
+  {
+      /* set the B and ES bits in the status-word */
+      FPU_PARTIAL_STATUS |= FPU_SW_Summary | FPU_SW_Backward;
+  }
+  else
+  {
+      /* clear the B and ES bits in the status-word */
+      FPU_PARTIAL_STATUS &= ~(FPU_SW_Summary | FPU_SW_Backward);
+  }
 #else
   BX_INFO(("FLDCW: required FPU, configure --enable-fpu"));
 #endif
