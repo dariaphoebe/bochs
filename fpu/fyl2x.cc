@@ -60,12 +60,33 @@ static float128 ln_arr[L2_ARR_SIZE] =
     packFloat128(BX_CONST64(0x3ffae1e1e1e1e1e1), BX_CONST64(0xe1e1e1e1e1e1e1e2))  /* 17 */
 };
 
-/* required sqrt(2)/2 < x < sqrt(2) */
 static float128 poly_ln(float128 x1, float_status_t &status)
 {
     float128 x2 = float128_mul(x1, x1, status);
     float128 x4 = float128_mul(x2, x2, status);
     float128 r1, r2;
+
+    //
+    //                     3     5     7     9     11     13     15
+    //        1+u         u     u     u     u     u      u      u
+    // 1/2 ln ---  ~ u + --- + --- + --- + --- + ---- + ---- + ---- =
+    //        1-u         3     5     7     9     11     13     15
+    //
+    //                     2     4     6     8     10     12     14
+    //                    u     u     u     u     u      u      u
+    //       = u * [ 1 + --- + --- + --- + --- + ---- + ---- + ---- ] =
+    //                    3     5     7     9     11     13     15
+    //
+    //           3                          3
+    //          --       4k                --        4k+1
+    //   p(u) = >  C  * u           q(u) = >  C   * u
+    //          --  2k                     --  2k+1
+    //          k=0                        k=0
+    //
+    //          1+u                 2
+    //   1/2 ln --- ~ u * [ p(u) + u * q(u) ]
+    //          1-u
+    //
 
     // r1 = x2*(a_1 + x4*(a_3 + x4*(a_5+x4*a_7)));
     r1 = float128_mul(x4, ln_arr[7], status);
@@ -92,6 +113,7 @@ static float128 poly_ln(float128 x1, float_status_t &status)
         float128_mul(r1, x1, status);
 }
 
+/* required sqrt(2)/2 < x < sqrt(2) */
 static float128 poly_l2(float128 x, float_status_t &status)
 {
     /* using float128 for approximation */
@@ -112,6 +134,31 @@ static float128 poly_l2p1(float128 x, float_status_t &status)
     x = float128_mul(x, float128_ln2inv2, status);
     return x;
 }
+
+// =================================================
+// FYL2X                   Compute y * log (x)
+//                                        2
+// =================================================
+
+//
+// Uses the following identities:
+//
+// 1. ----------------------------------------------------------
+//              ln(x)
+//   log (x) = -------,  ln (x*y) = ln(x) + ln(y)
+//      2       ln(2)
+//
+// 2. ----------------------------------------------------------
+//                1+u             x-1
+//   ln (x) = ln -----, when u = -----
+//                1-u             x+1
+//
+// 3. ----------------------------------------------------------
+//                          3     5     7           2n+1
+//       1+u               u     u     u           u
+//   ln ------- = 2 [ u + --- + --- + --- + ... + ------ + ... ]
+//       1-u               3     5     7           2n+1
+//
 
 floatx80 fyl2x(floatx80 a, floatx80 b, float_status_t &status)
 {
@@ -199,6 +246,31 @@ invalid:
     r = floatx80_add(r, int32_to_floatx80(ExpDiff), status);
     return floatx80_mul(r, b, status);
 }
+
+// =================================================
+// FYL2XP1                 Compute y * log (x + 1)
+//                                        2
+// =================================================
+
+//
+// Uses the following identities:
+//
+// 1. ----------------------------------------------------------
+//              ln(x)
+//   log (x) = -------
+//      2       ln(2)
+//
+// 2. ----------------------------------------------------------
+//                 1+u              x
+//   ln (x)  = ln -----, when u = -----
+//                 1-u             x+2
+//
+// 3. ----------------------------------------------------------
+//                          3     5     7           2n+1
+//       1+u               u     u     u           u
+//   ln ------- = 2 [ u + --- + --- + --- + ... + ------ + ... ]
+//       1-u               3     5     7           2n+1
+//
 
 floatx80 fyl2xp1(floatx80 a, floatx80 b, float_status_t &status)
 {

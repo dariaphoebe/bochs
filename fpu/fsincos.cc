@@ -145,6 +145,26 @@ static float128 poly_sincos(float128 x1, float128 *carr, float_status_t &status)
 /* 0 <= x <= pi/4 */
 BX_CPP_INLINE float128 poly_sin(float128 x, float_status_t &status)
 {
+    //                 3     5     7     9     11     13     15
+    //                x     x     x     x     x      x      x
+    // sin (x) ~ x - --- + --- - --- + --- - ---- + ---- - ---- =
+    //                3!    5!    7!    9!    11!    13!    15!
+    //
+    //                 2     4     6     8     10     12     14
+    //                x     x     x     x     x      x      x
+    //   = x * [ 1 - --- + --- - --- + --- - ---- + ---- - ---- ] =
+    //                3!    5!    7!    9!    11!    13!    15!
+    //
+    //           3                          3
+    //          --       4k                --        4k+1
+    //   p(u) = >  C  * x   > 0     q(u) = >  C   * x     < 0
+    //          --  2k                     --  2k+1
+    //          k=0                        k=0
+    //
+    //                          2
+    //   sin(x) ~ x * [ p(x) + x * q(x) ]
+    //
+
     float128 t = poly_sincos(x, sin_arr, status);
     t = float128_mul(t, x, status);
     return t;
@@ -153,6 +173,21 @@ BX_CPP_INLINE float128 poly_sin(float128 x, float_status_t &status)
 /* 0 <= x <= pi/4 */
 BX_CPP_INLINE float128 poly_cos(float128 x, float_status_t &status)
 {
+    //                 2     4     6     8     10     12     14
+    //                x     x     x     x     x      x      x
+    // cos (x) ~ 1 - --- + --- - --- + --- - ---- + ---- - ----
+    //                2!    4!    6!    8!    10!    12!    14!
+    //
+    //           3                          3
+    //          --       4k                --        4k+1
+    //   p(u) = >  C  * x   > 0     q(u) = >  C   * x     < 0
+    //          --  2k                     --  2k+1
+    //          k=0                        k=0
+    //
+    //                      2
+    //   cos(x) ~ [ p(x) + x * q(x) ]
+    //
+
     return poly_sincos(x, cos_arr, status);
 }
 
@@ -186,6 +221,26 @@ static floatx80 sincos_approximation(int neg, float128 r, Bit64u quotient, float
 
     return result;
 }
+
+// =================================================
+// FSINCOS               Compute sin(x) and cos(x)
+// =================================================
+
+//
+// Uses the following identities:
+// ----------------------------------------------------------
+//
+//  sin(-x) = -sin(x)
+//  cos(-x) =  cos(x)
+//
+//  sin(x+y) = sin(x)*cos(y)+cos(x)*sin(y)
+//  cos(x+y) = sin(x)*sin(y)+cos(x)*cos(y)
+//
+//  sin(x+ pi/2)  =  cos(x)
+//  sin(x+ pi)    = -sin(x)
+//  sin(x+3pi/2)  = -cos(x)
+//  sin(x+2pi)    =  sin(x)
+//
 
 int fsincos(floatx80 a, floatx80 *sin_a, floatx80 *cos_a, float_status_t &status)
 {
@@ -283,6 +338,33 @@ int fcos(floatx80 &a, float_status_t &status)
 {
     return fsincos(a, 0, &a, status);
 }
+
+// =================================================
+// FPTAN                 Compute tan(x)
+// =================================================
+
+//
+// Uses the following identities:
+//
+// 1. ----------------------------------------------------------
+//
+//  sin(-x) = -sin(x)
+//  cos(-x) =  cos(x)
+//
+//  sin(x+y) = sin(x)*cos(y)+cos(x)*sin(y)
+//  cos(x+y) = sin(x)*sin(y)+cos(x)*cos(y)
+//
+//  sin(x+ pi/2)  =  cos(x)
+//  sin(x+ pi)    = -sin(x)
+//  sin(x+3pi/2)  = -cos(x)
+//  sin(x+2pi)    =  sin(x)
+//
+// 2. ----------------------------------------------------------
+//
+//           sin(x)
+//  tan(x) = ------
+//           cos(x)
+//
 
 int ftan(floatx80 &a, float_status_t &status)
 {
