@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.137.2.2 2003/04/29 15:18:57 sshwarts Exp $
+// $Id: cpu.h,v 1.137.2.3 2003/04/29 17:19:00 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -261,7 +261,7 @@
 #define BX_MF_EXCEPTION  16
 #define BX_AC_EXCEPTION  17
 #define BX_MC_EXCEPTION  18
-#define BX_XF_EXCEPTION  19
+#define BX_XM_EXCEPTION  19
 
 /* MSR registers */
 #define BX_MSR_P5_MC_ADDR        0x0000
@@ -2067,7 +2067,7 @@ union {
 
 #if BX_SUPPORT_SSE
   BX_SMF void prepareSSE(void);
-  BX_SMF void SSE_check_exceptions(int);
+  BX_SMF void check_exceptionsSSE(int) BX_CPP_AttrRegparmN(1);
 #endif
 
 #if BX_SUPPORT_3DNOW
@@ -2431,12 +2431,8 @@ union {
 
   BX_SMF void IRET64(bxInstruction_c *);
 
-  //BX_SMF void IN_eAXIb(bxInstruction_c *);
-  //BX_SMF void OUT_IbeAX(bxInstruction_c *);
   BX_SMF void CALL_Aq(bxInstruction_c *);
   BX_SMF void JMP_Jq(bxInstruction_c *);
-  //BX_SMF void IN_eAXDX(bxInstruction_c *);
-  //BX_SMF void OUT_DXeAX(bxInstruction_c *);
 
   BX_SMF void MOV_CqRq(bxInstruction_c *);
   BX_SMF void MOV_DqRq(bxInstruction_c *);

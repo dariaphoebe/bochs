@@ -108,15 +108,38 @@ typedef union bx_xmm_reg_t {
  * FZ 15    Flush-to-Zero for Masked Underflow      0
  */
 
-#define MXCSR_ROUND_CONTROL_MASK 0x00006000
-#define MXCSR_DAZ_MASK           0x00000040
+#define MXCSR_DAZ               0x00000040
+#define MXCSR_EXCEPTIONS        0x0000003F
+#define MXCSR_MASKED_EXCEPTIONS 0x00001F80
+#define MXCSR_ROUNDING_CONTROL  0x00006000
 
-struct bx_mxcsr_t {
-   Bit32u mxcsr;
+struct bx_mxcsr_t 
+{
+  Bit32u mxcsr;
+
+#define IMPLEMENT_MXCSR_ACCESSOR(name, bitmask, bitnum)        \
+  int get_##name () const {                                    \
+    return (mxcsr & (bitmask)) >> (bitnum);                    \
+  }
+
+
+  IMPLEMENT_MXCSR_ACCESSOR(exceptions_masks, MXCSR_MASKED_EXCEPTIONS, 7);
+  IMPLEMENT_MXCSR_ACCESSOR(DAZ, MXCSR_DAZ, 6);
+  IMPLEMENT_MXCSR_ACCESSOR(rounding_mode, MXCSR_ROUNDING_CONTROL, 13);
+
+  void set_exceptions(int status) {
+    mxcsr |= (status & MXCSR_EXCEPTIONS);
+  }
+
 };
 
-#define MXCSR_MASK  0x0000ffbf  /* reset reserved bits */
-#define MXCSR_RESET 0x00001f80  /* reset value of the MXCSR register */
+#define MXCSR_RESET 0x00001F80  /* reset value of the MXCSR register */
+
+#if BX_SUPPORT_DAZ
+#define MXCSR_MASK  0x0000FFFF  /* reset reserved bits */
+#else
+#define MXCSR_MASK  0x0000FFBF  /* reset reserved bits */
+#endif
 
 /* INTEGER SATURATION */
 
