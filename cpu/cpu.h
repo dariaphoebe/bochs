@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.137.2.5 2003/04/30 18:06:28 sshwarts Exp $
+// $Id: cpu.h,v 1.137.2.6 2003/05/02 12:34:50 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -2062,6 +2062,8 @@ union {
 
 #if BX_SUPPORT_MMX || BX_SUPPORT_SSE
   BX_SMF void prepareMMX(void);
+  /* cause transition from FPU to MMX technology state */
+  BX_SMF void prepareFPU2MMX(void);
   BX_SMF void printMmxRegisters(void);
 #endif
 

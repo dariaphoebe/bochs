@@ -102,6 +102,12 @@ void BX_CPU_C::prepareMMX(void)
   if(BX_CPU_THIS_PTR cr0.em)
     exception(BX_UD_EXCEPTION, 0, 0);
 
+  /* cause transition from FPU to MMX technology state */
+  BX_CPU_THIS_PTR prepareFPU2MMX();
+}
+
+void BX_CPU_C::prepareFPU2MMX(void)
+{
   /* check SW_Summary bit for a pending FPU exceptions */
 #define FPU_SW_SUMMARY 0x0080
   if(FPU_PARTIAL_STATUS & FPU_SW_SUMMARY)

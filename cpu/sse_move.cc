@@ -841,12 +841,10 @@ void BX_CPU_C::MOVDQ2Q_PqVRq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
+  BX_CPU_THIS_PTR prepareFPU2MMX();
 
   BxPackedMmxRegister mm;
   MMXUQ(mm) = BX_READ_XMM_REG_LO_QWORD(i->nnn());
-
-  FPU_TWD  = 0;
-  FPU_TOS  = 0;       
 
   BX_WRITE_MMX_REG(i->rm(), mm);
 #else
@@ -860,14 +858,13 @@ void BX_CPU_C::MOVQ2DQ_VdqQq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
+  BX_CPU_THIS_PTR prepareFPU2MMX();
 
   BxPackedXmmRegister op;
   BxPackedMmxRegister mm = BX_READ_MMX_REG(i->nnn());
+
   op.xmm64u(0) = MMXUQ(mm);
   op.xmm64u(1) = 0;
-
-  FPU_TWD  = 0;
-  FPU_TOS  = 0;
 
   BX_WRITE_XMM_REG(i->rm(), op);
 #else

@@ -57,27 +57,62 @@ static softfloat_status_word_t MXCSR_to_softfloat_status_word(bx_mxcsr_t mxcsr)
 
 #endif
 
-
-void BX_CPU_C::CVTSI2SD_VsdEd(bxInstruction_c *i)
-{
-#if BX_SUPPORT_SSE >= 2
-  BX_CPU_THIS_PTR prepareSSE();
-
-  BX_PANIC(("CVTSI2SD_VsdEd: SSE2 instruction still not implemented"));
-#else
-  BX_INFO(("CVTSI2SD_VsdEd: required SSE2, use --enable-sse option"));
-  UndefinedOpcode(i);
-#endif
-}
-
+/* 
+ * Opcode: 66 0F 2A
+ * Convert two 32bit signed integers from MMX/MEM to two double precision FP
+ * Possible floating point exceptions: -
+ */
 void BX_CPU_C::CVTPI2PD_VpdQd(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
+  BX_CPU_THIS_PTR prepareFPU2MMX();
 
-  BX_PANIC(("CVTPI2PD_VpdQd: SSE2 instruction still not implemented"));
+  BxPackedMmxRegister op;
+  BxPackedXmmRegister result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_MMX_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), (Bit64u *) &op);
+  }
+
+  result.xmm64u(0) = int32_to_float64(MMXUD0(op));
+  result.xmm64u(1) = int32_to_float64(MMXUD1(op));
+
+  BX_WRITE_XMM_REG(i->nnn(), result);
 #else
   BX_INFO(("CVTPI2PD_VpdQd: required SSE2, use --enable-sse option"));
+  UndefinedOpcode(i);
+#endif
+}
+
+/* 
+ * Opcode: F2 0F 2A
+ * Convert one 32bit signed integer to one double precision FP
+ * Possible floating point exceptions: -
+ */
+void BX_CPU_C::CVTSI2SD_VsdEd(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SSE >= 2
+  BX_CPU_THIS_PTR prepareSSE();
+  Bit32u op;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_32BIT_REG(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_dword(i->seg(), RMAddr(i), &op);
+  }
+
+  BX_WRITE_XMM_REG_LO_QWORD(i->nnn(), int32_to_float64(op));
+#else
+  BX_INFO(("CVTSI2SD_VsdEd: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
 #endif
 }
@@ -310,12 +345,36 @@ void BX_CPU_C::CVTPD2DQ_VqWpd(bxInstruction_c *i)
 #endif
 }
 
+/* 
+ * Opcode: F3 0F E6
+ * Convert two 32bit signed integers from XMM/MEM to two double precision FP
+ * Possible floating point exceptions: -
+ */
 void BX_CPU_C::CVTDQ2PD_VpdWq(bxInstruction_c *i)
 {
 #if BX_SUPPORT_SSE >= 2
   BX_CPU_THIS_PTR prepareSSE();
 
-  BX_PANIC(("CVTDQ2PD_VpdWq: SSE2 instruction still not implemented"));
+  Bit64u op;
+  Bit64u r0, r1;
+  BxPackedXmmRegister result;
+
+  /* op is a register or memory reference */
+  if (i->modC0()) {
+    op = BX_READ_XMM_REG_LO_QWORD(i->rm());
+  }
+  else {
+    /* pointer, segment address pair */
+    read_virtual_qword(i->seg(), RMAddr(i), &op);
+  }
+
+  r0 = Bit32u(op & 0xFFFFFFFF);
+  r1 = Bit32u(op >> 32);
+
+  result.xmm64u(0) = int32_to_float64(r0);
+  result.xmm64u(1) = int32_to_float64(r1);
+
+  BX_WRITE_XMM_REG(i->nnn(), result);
 #else
   BX_INFO(("CVTDQ2PD_VpdWq: required SSE2, use --enable-sse option"));
   UndefinedOpcode(i);
@@ -373,7 +432,7 @@ void BX_CPU_C::UCOMISD_VsdWsd(bxInstruction_c *i)
 /* 
  * Opcode: 0F 51
  * Square Root packed single precision.
- * Possible exceptions: #I, #D, #P
+ * Possible floating point exceptions: #I, #D, #P
  */
 void BX_CPU_C::SQRTPS_VpsWps(bxInstruction_c *i)
 {
@@ -415,7 +474,7 @@ void BX_CPU_C::SQRTPS_VpsWps(bxInstruction_c *i)
 /* 
  * Opcode: 66 0F 51
  * Square Root packed double precision.
- * Possible exceptions: #I, #D, #P
+ * Possible floating point exceptions: #I, #D, #P
  */
 void BX_CPU_C::SQRTPD_VpdWpd(bxInstruction_c *i)
 {
@@ -453,7 +512,7 @@ void BX_CPU_C::SQRTPD_VpdWpd(bxInstruction_c *i)
 /* 
  * Opcode: F2 0F 51
  * Square Root scalar double precision.
- * Possible exceptions: #I, #D, #P
+ * Possible floating point exceptions: #I, #D, #P
  */
 void BX_CPU_C::SQRTSD_VsdWsd(bxInstruction_c *i)
 {
@@ -487,7 +546,7 @@ void BX_CPU_C::SQRTSD_VsdWsd(bxInstruction_c *i)
 /* 
  * Opcode: F3 0F 51
  * Square Root scalar single precision.
- * Possible exceptions: #I, #D, #P
+ * Possible floating point exceptions: #I, #D, #P
  */
 void BX_CPU_C::SQRTSS_VssWss(bxInstruction_c *i)
 {
@@ -569,7 +628,7 @@ void BX_CPU_C::RCPSS_VssWss(bxInstruction_c *i)
 /* 
  * Opcode: 0F 58
  * Add packed single precision FP numbers from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::ADDPS_VpsWps(bxInstruction_c *i)
 {
@@ -611,7 +670,7 @@ void BX_CPU_C::ADDPS_VpsWps(bxInstruction_c *i)
 /* 
  * Opcode: 66 0F 58
  * Add packed double precision FP numbers from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::ADDPD_VpdWpd(bxInstruction_c *i)
 {
@@ -649,7 +708,7 @@ void BX_CPU_C::ADDPD_VpdWpd(bxInstruction_c *i)
 /* 
  * Opcode: F2 0F 58
  * Add the lower double precision FP number from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::ADDSD_VsdWsd(bxInstruction_c *i)
 {
@@ -683,7 +742,7 @@ void BX_CPU_C::ADDSD_VsdWsd(bxInstruction_c *i)
 /* 
  * Opcode: F3 0F 58
  * Add the lower single precision FP number from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::ADDSS_VssWss(bxInstruction_c *i)
 {
@@ -717,7 +776,7 @@ void BX_CPU_C::ADDSS_VssWss(bxInstruction_c *i)
 /* 
  * Opcode: 0F 59
  * Multiply packed single precision FP numbers from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::MULPS_VpsWps(bxInstruction_c *i)
 {
@@ -759,7 +818,7 @@ void BX_CPU_C::MULPS_VpsWps(bxInstruction_c *i)
 /* 
  * Opcode: 66 0F 59
  * Multiply packed double precision FP numbers from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::MULPD_VpdWpd(bxInstruction_c *i)
 {
@@ -797,7 +856,7 @@ void BX_CPU_C::MULPD_VpdWpd(bxInstruction_c *i)
 /* 
  * Opcode: F2 0F 59
  * Multiply the lower double precision FP number from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::MULSD_VsdWsd(bxInstruction_c *i)
 {
@@ -831,7 +890,7 @@ void BX_CPU_C::MULSD_VsdWsd(bxInstruction_c *i)
 /* 
  * Opcode: F3 0F 59
  * Multiply the lower single precision FP number from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::MULSS_VssWss(bxInstruction_c *i)
 {
@@ -865,7 +924,7 @@ void BX_CPU_C::MULSS_VssWss(bxInstruction_c *i)
 /* 
  * Opcode: 0F 5C
  * Subtract packed single precision FP numbers from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::SUBPS_VpsWps(bxInstruction_c *i)
 {
@@ -907,7 +966,7 @@ void BX_CPU_C::SUBPS_VpsWps(bxInstruction_c *i)
 /* 
  * Opcode: 66 0F 5C
  * Subtract packed double precision FP numbers from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::SUBPD_VpdWpd(bxInstruction_c *i)
 {
@@ -945,7 +1004,7 @@ void BX_CPU_C::SUBPD_VpdWpd(bxInstruction_c *i)
 /* 
  * Opcode: F2 0F 5C
  * Subtract the lower double precision FP number from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::SUBSD_VsdWsd(bxInstruction_c *i)
 {
@@ -979,7 +1038,7 @@ void BX_CPU_C::SUBSD_VsdWsd(bxInstruction_c *i)
 /* 
  * Opcode: F3 0F 5C
  * Subtract the lower single precision FP number from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #O, #U, #P
  */
 void BX_CPU_C::SUBSS_VssWss(bxInstruction_c *i)
 {
@@ -1061,7 +1120,7 @@ void BX_CPU_C::MINSS_VssWss(bxInstruction_c *i)
 /* 
  * Opcode: 0F 5E
  * Divide packed single precision FP numbers from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #Z, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #Z, #O, #U, #P
  */
 void BX_CPU_C::DIVPS_VpsWps(bxInstruction_c *i)
 {
@@ -1103,7 +1162,7 @@ void BX_CPU_C::DIVPS_VpsWps(bxInstruction_c *i)
 /* 
  * Opcode: 66 0F 5E
  * Divide packed double precision FP numbers from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #Z, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #Z, #O, #U, #P
  */
 void BX_CPU_C::DIVPD_VpdWpd(bxInstruction_c *i)
 {
@@ -1141,7 +1200,7 @@ void BX_CPU_C::DIVPD_VpdWpd(bxInstruction_c *i)
 /* 
  * Opcode: F2 0F 5E
  * Divide the lower double precision FP number from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #Z, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #Z, #O, #U, #P
  */
 void BX_CPU_C::DIVSD_VsdWsd(bxInstruction_c *i)
 {
@@ -1175,7 +1234,7 @@ void BX_CPU_C::DIVSD_VsdWsd(bxInstruction_c *i)
 /* 
  * Opcode: F3 0F 5E
  * Divide the lower single precision FP number from XMM2/MEM to XMM1.
- * Possible exceptions: #I, #D, #Z, #O, #U, #P
+ * Possible floating point exceptions: #I, #D, #Z, #O, #U, #P
  */
 void BX_CPU_C::DIVSS_VssWss(bxInstruction_c *i)
 {
