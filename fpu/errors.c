@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------+
  |  errors.c                                                                 |
- |  $Id: errors.c,v 1.18.2.2 2004/03/19 17:43:31 sshwarts Exp $
+ |  $Id: errors.c,v 1.18.2.3 2004/03/19 18:12:51 sshwarts Exp $
  |                                                                           |
  |  The error handling functions for wm-FPU-emu                              |
  |                                                                           |
@@ -18,7 +18,6 @@
  |    other processes using the emulator while swapping is in progress.      |
  +---------------------------------------------------------------------------*/
 
-#include <linux/signal.h>
 #include <stdio.h>
 
 #include "fpu_emu.h"

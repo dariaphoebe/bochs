@@ -63,6 +63,9 @@ typedef struct bx_fpu_reg_t FPU_REG;
 #define BX_FPU_READ_ST0() \
     (BX_CPU_THIS_PTR the_i387.st_space[BX_CPU_THIS_PTR the_i387.tos])
 
+#define BX_FPU_READ_RAW_FPU_REG(i) \
+    (BX_CPU_THIS_PTR the_i387.st_space[(BX_CPU_THIS_PTR the_i387.tos + i) & 0x07])
+
 #include "fpu/tag_w.h"
 
 #if defined(NEED_CPU_REG_SHORTCUTS)

@@ -35,7 +35,6 @@ extern "C" {
 #endif
 
 #include "fpu_emu.h"
-#include "linux/signal.h"
 
 #if !BX_WITH_MACOS
 }
@@ -59,26 +58,26 @@ void BX_CPU_C::print_state_FPU()
   static double sigl_scale_factor = pow(2.0, -63.0);
 
   Bit32u reg;
-  reg = i387.cwd;
+  reg = BX_CPU_THIS_PTR the_i387.cwd;
   fprintf(stderr, "cwd            0x%04x\n", reg);
-  reg = i387.swd;
+  reg = BX_CPU_THIS_PTR the_i387.swd;
   fprintf(stderr, "swd            0x%04x\n", reg);
-  reg = i387.twd;
+  reg = BX_CPU_THIS_PTR the_i387.twd;
   fprintf(stderr, "twd            0x%04x\n", reg);
-  reg = i387.foo;
+  reg = BX_CPU_THIS_PTR the_i387.foo;
   fprintf(stderr, "foo            0x%04x\n", reg);
-  reg = i387.fip & 0xffffffff;
+  reg = BX_CPU_THIS_PTR the_i387.fip & 0xffffffff;
   fprintf(stderr, "fip            0x%08x\n", reg);
-  reg = i387.fcs;
+  reg = BX_CPU_THIS_PTR the_i387.fcs;
   fprintf(stderr, "fcs            0x%04x\n", reg);
-  reg = i387.fdp & 0xffffffff;
+  reg = BX_CPU_THIS_PTR the_i387.fdp & 0xffffffff;
   fprintf(stderr, "fip            0x%08x\n", reg);
-  reg = i387.fds;
+  reg = BX_CPU_THIS_PTR the_i387.fds;
   fprintf(stderr, "fcs            0x%04x\n", reg);
 
   // print stack too
   for (int i=0; i<8; i++) {
-    FPU_REG *fpr = &st(i);
+    FPU_REG *fpr = &BX_FPU_READ_RAW_FPU_REG(i);
     double f1 = pow(2.0, ((0x7fff&fpr->exp) - EXTENDED_Ebias));
     if (fpr->exp & SIGN_Negative) f1 = -f1;
     double f2 = ((double)fpr->sigh * sigh_scale_factor);
