@@ -1,4 +1,4 @@
-$Id: PARAM_TREE.txt,v 1.1.2.6 2003/03/30 04:23:03 bdenney Exp $
+$Id: PARAM_TREE.txt,v 1.1.2.7 2003/03/30 04:30:33 bdenney Exp $
 
 I'm trying to organize the parameters into a tree structure instead of
 a huge flat list.  Once the parameter code is improved, I hope to use
@@ -12,6 +12,18 @@ Bryce Denney and Brian Slechta are working in it.
 
 
 Notes:
+- fix the large number of panics in CPU device registration, when it
+  finds boolean parameters that are not 0 or 1.  It's possible that
+  some things are called bx_bool which really shouldn't be bx_bool,
+  or that they have not been initialized yet.  In Bryce's opinion,
+  anything called bx_bool should always be either 0 or 1.  If any
+  other values are used, it should be declared as Bit32u or something
+  instead.
+
+  There's some potential for finding actual bugs here.  Bryce has spent
+  significant amounts of time tracking platform dependent bugs related
+  to this kind of misuse of boolean vars.  At the moment, bx_bool is
+  defined to Bit32u.  If it's defined to Bit8u, the CPU acts differently...
 - (Brian, ??% DONE) add device registration code for iodev/*
 - (Brian, ??% DONE) add device registration code for cpu/*
 - add device registration code for fpu/*
