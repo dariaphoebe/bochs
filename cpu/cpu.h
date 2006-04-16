@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.279 2006/04/10 19:05:21 sshwarts Exp $
+// $Id: cpu.h,v 1.279.2.1 2006/04/16 17:50:20 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1310,6 +1310,11 @@ public: // for now...
   ~BX_CPU_C();
 #endif
   void initialize(BX_MEM_C *addrspace);
+#if BX_SUPPORT_SAVE_RESTORE
+  void register_state();
+  void before_save_state();
+  void after_restore_state();
+#endif
 
 // <TAG-CLASS-CPU-START>
   // prototypes for CPU instructions...

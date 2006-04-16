@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98 2006/04/16 10:12:31 vruppert Exp $
+// $Id: init.cc,v 1.98.2.1 2006/04/16 17:50:20 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -345,7 +345,8 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
     DEFPARAM_SEG_REG(TR);
     DEFPARAM_GLOBAL_SEG_REG(GDTR, gdtr);
     DEFPARAM_GLOBAL_SEG_REG(IDTR, idtr);
-#undef DEFPARAM_SEGREG
+#undef DEFPARAM_SEG_REG
+#undef DEFPARAM_GLOBAL_SEG_REG
 
 #if BX_SUPPORT_X86_64==0
     param = new bx_shadow_num_c(list, "EFLAGS", "EFLAGS",
@@ -404,6 +405,95 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
   }
 #endif
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void BX_CPU_C::register_state()
+{
+  static bx_bool counter = 0;
+  char cpu_name[10], cpu_title[10];
+  const char *fmt32 = "%08X";
+  Bit32u oldbase = bx_param_num_c::set_default_base(16);
+  const char *oldfmt = bx_param_num_c::set_default_format(fmt32);
+
+  if (counter < BX_MAX_SMP_THREADS_SUPPORTED) {
+    sprintf(cpu_name, "%d", BX_CPU_ID);
+    sprintf(cpu_title, "CPU %d", BX_CPU_ID);
+    bx_list_c *list = new bx_list_c(SIM->get_param("save_restore.cpu"), strdup(cpu_name),
+                                    cpu_title, 60);
+#define DEFPARAM_NORMAL(name,field) \
+    new bx_shadow_num_c(list, #name, #name, &(field))
+
+    DEFPARAM_NORMAL(EAX, EAX);
+    DEFPARAM_NORMAL(EBX, EBX);
+    DEFPARAM_NORMAL(ECX, ECX);
+    DEFPARAM_NORMAL(EDX, EDX);
+/*  DEFPARAM_NORMAL(ESP, ESP);
+    DEFPARAM_NORMAL(EBP, EBP);
+    DEFPARAM_NORMAL(ESI, ESI);
+    DEFPARAM_NORMAL(EDI, EDI);
+    DEFPARAM_NORMAL(EIP, EIP);
+    DEFPARAM_NORMAL(DR0, dr0);
+    DEFPARAM_NORMAL(DR1, dr1);
+    DEFPARAM_NORMAL(DR2, dr2);
+    DEFPARAM_NORMAL(DR3, dr3);
+    DEFPARAM_NORMAL(DR6, dr6);
+    DEFPARAM_NORMAL(DR7, dr7);
+#if BX_SUPPORT_X86_64==0
+#if BX_CPU_LEVEL >= 2
+    DEFPARAM_NORMAL(CR0, cr0.val32);
+    DEFPARAM_NORMAL(CR1, cr1);
+    DEFPARAM_NORMAL(CR2, cr2);
+    DEFPARAM_NORMAL(CR3, cr3);
+#endif
+#if BX_CPU_LEVEL >= 4
+    DEFPARAM_NORMAL(CR4, cr4.registerValue);
+#endif
+#endif  // #if BX_SUPPORT_X86_64==0
+
+#define DEFPARAM_SEG_REG(x) \
+    new bx_shadow_num_c(list, #x, #x, &(sregs[BX_SEG_REG_##x].selector.value))
+#define DEFPARAM_GLOBAL_SEG_REG(name,field) \
+    new bx_shadow_num_c(list, \
+        #name"_base", #name" base", \
+        & BX_CPU_THIS_PTR field.base); \
+    new bx_shadow_num_c(list, \
+        #name"_limit", #name" limit", \
+        & BX_CPU_THIS_PTR field.limit);
+
+    DEFPARAM_SEG_REG(CS);
+    DEFPARAM_SEG_REG(DS);
+    DEFPARAM_SEG_REG(SS);
+    DEFPARAM_SEG_REG(ES);
+    DEFPARAM_SEG_REG(FS);
+    DEFPARAM_SEG_REG(GS);
+    new bx_shadow_num_c(list, "LDTR", "LDTR", &ldtr.selector.value);
+    new bx_shadow_num_c(list, "TR", "TR", &tr.selector.value);
+    DEFPARAM_GLOBAL_SEG_REG(GDTR, gdtr);
+    DEFPARAM_GLOBAL_SEG_REG(IDTR, idtr);
+#undef DEFPARAM_SEG_REG
+#undef DEFPARAM_GLOBAL_SEG_REG
+
+#if BX_SUPPORT_X86_64==0
+    new bx_shadow_num_c(list, "EFLAGS", "EFLAGS",
+        &BX_CPU_THIS_PTR eflags.val32);
+#endif
+*/
+    // restore defaults
+    bx_param_num_c::set_default_base(oldbase);
+    bx_param_num_c::set_default_format(oldfmt);
+
+    counter++;
+  }
+}
+
+void BX_CPU_C::before_save_state()
+{
+}
+
+void BX_CPU_C::after_restore_state()
+{
+}
+#endif
 
 BX_CPU_C::~BX_CPU_C(void)
 {

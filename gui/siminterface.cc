@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143 2006/04/16 10:12:31 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.1 2006/04/16 17:50:20 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -865,7 +865,7 @@ bx_bool bx_real_sim_c::save_state(const char *checkpoint_path)
   int type, ntype = SIM->get_max_log_level();
   FILE *fp;
 
-  DEV_before_save_state();
+  bx_sr_before_save_state();
   sprintf(sr_file, "%s/config", checkpoint_path);
   write_rc(sr_file, 1);
   sprintf(sr_file, "%s/logopts", checkpoint_path);

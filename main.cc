@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.332.2.1 2006/04/16 11:39:23 vruppert Exp $
+// $Id: main.cc,v 1.332.2.2 2006/04/16 17:50:20 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -996,6 +996,9 @@ int bx_init_hardware()
 #if BX_SUPPORT_SMP == 0
   BX_CPU(0)->initialize(BX_MEM(0));
   BX_CPU(0)->sanity_checks();
+#if BX_SUPPORT_SAVE_RESTORE
+  BX_CPU(0)->register_state();
+#endif
   BX_INSTR_INIT(0);
 #else
   bx_cpu_array = new BX_CPU_C_PTR[BX_SMP_PROCESSORS];
@@ -1004,6 +1007,9 @@ int bx_init_hardware()
     BX_CPU(i) = new BX_CPU_C(i);
     BX_CPU(i)->initialize(BX_MEM(0));  // assign local apic id in 'initialize' method
     BX_CPU(i)->sanity_checks();
+#if BX_SUPPORT_SAVE_RESTORE
+    BX_CPU(i)->register_state();
+#endif
     BX_INSTR_INIT(i);
   }
 #endif
@@ -1020,7 +1026,7 @@ int bx_init_hardware()
 #if BX_SUPPORT_SAVE_RESTORE
   if (SIM->get_param_bool(BXPN_RESTORE_FLAG)->get()) {
     SIM->restore_hardware();
-    DEV_after_restore_state();
+    bx_sr_after_restore_state();
   }
 #endif
   bx_gui->init_signal_handlers();
@@ -1041,6 +1047,32 @@ int bx_init_hardware()
 
   return(0);
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_sr_before_save_state(void)
+{
+#if BX_SUPPORT_SMP == 0
+  BX_CPU(0)->before_save_state();
+#else
+  for (unsigned i=0; i<BX_SMP_PROCESSORS; i++) {
+    BX_CPU(i)->before_save_state();
+  }
+#endif
+  DEV_before_save_state();
+}
+
+void bx_sr_after_restore_state(void)
+{
+#if BX_SUPPORT_SMP == 0
+  BX_CPU(0)->after_restore_state();
+#else
+  for (unsigned i=0; i<BX_SMP_PROCESSORS; i++) {
+    BX_CPU(i)->after_restore_state();
+  }
+#endif
+  DEV_after_restore_state();
+}
+#endif
 
 void bx_init_bx_dbg(void)
 {
