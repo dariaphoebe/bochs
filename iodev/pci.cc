@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.cc,v 1.47.2.1 2006/04/16 17:50:20 vruppert Exp $
+// $Id: pci.cc,v 1.47.2.2 2006/04/16 21:04:33 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -151,7 +151,7 @@ bx_pci_bridge_c::reset(unsigned type)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_pci_bridge_c::register_state(void)
 {
-  const char *fmt32 = "%08X";
+  const char *fmt32 = "0x%08x";
   Bit32u oldbase = bx_param_num_c::set_default_base(16);
   const char *oldfmt = bx_param_num_c::set_default_format(fmt32);
 

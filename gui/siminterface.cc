@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.1 2006/04/16 17:50:20 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.2 2006/04/16 21:04:33 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1088,7 +1088,8 @@ void bx_real_sim_c::save_sr_param(FILE *fp, bx_param_c *node, const char *sr_pat
       if (((bx_param_num_c*)node)->get_base() == 10) {
         fprintf(fp, "%d\n", ((bx_param_num_c*)node)->get());
       } else {
-        fprintf(fp, "0x%x\n", ((bx_param_num_c*)node)->get());
+        fprintf(fp, node->get_format(), ((bx_param_num_c*)node)->get());
+        fprintf(fp, "\n");
       }
       break;
     case BXT_PARAM_BOOL:

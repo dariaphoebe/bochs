@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.cc,v 1.35 2006/03/06 19:23:13 sshwarts Exp $
+// $Id: dma.cc,v 1.35.2.1 2006/04/16 21:04:33 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -124,7 +124,7 @@ unsigned bx_dma_c::get_TC(void)
 void bx_dma_c::init(void)
 {
   unsigned c, i, j;
-  BX_DEBUG(("Init $Id: dma.cc,v 1.35 2006/03/06 19:23:13 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: dma.cc,v 1.35.2.1 2006/04/16 21:04:33 vruppert Exp $"));
 
   /* 8237 DMA controller */
 
@@ -191,6 +191,49 @@ void bx_dma_c::reset_controller(unsigned num)
   BX_DMA_THIS s[num].status_reg = 0;
   BX_DMA_THIS s[num].flip_flop = 0;
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_dma_c::register_state(void)
+{
+  unsigned i, c;
+  char name[4];
+  const char *fmt32 = "0x%04x";
+  Bit32u oldbase = bx_param_num_c::set_default_base(16);
+  const char *oldfmt = bx_param_num_c::set_default_format(fmt32);
+
+  BX_DMA_THIS reset(0);
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "dma", "DMA State");
+  for (i=0; i<2; i++) {
+    sprintf(name, "%d", i);
+    bx_list_c *ctrl = new bx_list_c(list, strdup(name), "", 8);
+    new bx_shadow_bool_c(ctrl, "flip_flop", "", &BX_DMA_THIS s[i].flip_flop);
+    new bx_shadow_num_c(ctrl, "status_reg", "", &BX_DMA_THIS s[i].status_reg);
+    new bx_shadow_num_c(ctrl, "command_reg", "", &BX_DMA_THIS s[i].command_reg);
+    new bx_shadow_bool_c(ctrl, "ctrl_disabled", "", &BX_DMA_THIS s[i].ctrl_disabled);
+    for (c=0; c<4; c++) {
+      sprintf(name, "%d", c);
+      bx_list_c *chan = new bx_list_c(ctrl, strdup(name), "", 12);
+      new bx_shadow_bool_c(chan, "DRQ", "", &BX_DMA_THIS s[i].DRQ[c]);
+      new bx_shadow_bool_c(chan, "DACK", "", &BX_DMA_THIS s[i].DACK[c]);
+      new bx_shadow_bool_c(chan, "mask", "", &BX_DMA_THIS s[i].mask[4]);
+      new bx_shadow_num_c(chan, "mode_type", "", &BX_DMA_THIS s[i].chan[c].mode.mode_type);
+      new bx_shadow_num_c(chan, "address_decrement", "", &BX_DMA_THIS s[i].chan[c].mode.address_decrement);
+      new bx_shadow_num_c(chan, "autoinit_enable", "", &BX_DMA_THIS s[i].chan[c].mode.autoinit_enable);
+      new bx_shadow_num_c(chan, "transfer_type", "", &BX_DMA_THIS s[i].chan[c].mode.transfer_type);
+      new bx_shadow_num_c(chan, "base_address", "", &BX_DMA_THIS s[i].chan[c].base_address);
+      new bx_shadow_num_c(chan, "current_address", "", &BX_DMA_THIS s[i].chan[c].current_address);
+      new bx_shadow_num_c(chan, "base_count", "", &BX_DMA_THIS s[i].chan[c].base_count);
+      new bx_shadow_num_c(chan, "current_count", "", &BX_DMA_THIS s[i].chan[c].current_count);
+      new bx_shadow_num_c(chan, "page_reg", "", &BX_DMA_THIS s[i].chan[c].page_reg);
+    }
+  }
+  new bx_shadow_data_c(list, "ext_page", "", &BX_DMA_THIS ext_page_reg[0], 16);
+
+  // restore defaults
+  bx_param_num_c::set_default_base(oldbase);
+  bx_param_num_c::set_default_format(oldfmt);
+}
+#endif
 
 // index to find channel from register number (only [0],[1],[2],[6] used)
 Bit8u channelindex[7] = {2, 3, 1, 0, 0, 0, 0};

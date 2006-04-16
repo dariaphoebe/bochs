@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.1 2006/04/16 17:50:20 vruppert Exp $
+// $Id: init.cc,v 1.98.2.2 2006/04/16 21:04:33 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -411,7 +411,7 @@ void BX_CPU_C::register_state()
 {
   static bx_bool counter = 0;
   char cpu_name[10], cpu_title[10];
-  const char *fmt32 = "%08X";
+  const char *fmt32 = "0x%08x";
   Bit32u oldbase = bx_param_num_c::set_default_base(16);
   const char *oldfmt = bx_param_num_c::set_default_format(fmt32);
 

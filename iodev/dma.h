@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.h,v 1.19 2006/03/07 21:11:16 sshwarts Exp $
+// $Id: dma.h,v 1.19.2.1 2006/04/16 21:04:33 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -47,6 +47,9 @@ public:
   virtual void     raise_HLDA(void);
   virtual void     set_DRQ(unsigned channel, bx_bool val);
   virtual unsigned get_TC(void);
+#if BX_SUPPORT_SAVE_RESTORE
+  virtual void     register_state(void);
+#endif
 
   virtual unsigned registerDMA8Channel(unsigned channel,
     void (* dmaRead)(Bit8u *data_byte),
