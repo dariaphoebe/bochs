@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.332 2006/04/16 09:29:02 vruppert Exp $
+// $Id: main.cc,v 1.332.2.1 2006/04/16 11:39:23 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -1019,8 +1019,8 @@ int bx_init_hardware()
   bx_pc_system.Reset(BX_RESET_HARDWARE);
 #if BX_SUPPORT_SAVE_RESTORE
   if (SIM->get_param_bool(BXPN_RESTORE_FLAG)->get()) {
-//  SIM->restore_hardware();
-//  DEV_after_restore_state();
+    SIM->restore_hardware();
+    DEV_after_restore_state();
   }
 #endif
   bx_gui->init_signal_handlers();
