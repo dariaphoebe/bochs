@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parallel.cc,v 1.28 2006/03/07 21:11:19 sshwarts Exp $
+// $Id: parallel.cc,v 1.28.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -75,7 +75,7 @@ void bx_parallel_c::init(void)
   char name[16], pname[20];
   bx_list_c *base;
 
-  BX_DEBUG(("Init $Id: parallel.cc,v 1.28 2006/03/07 21:11:19 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: parallel.cc,v 1.28.2.1 2006/04/17 09:41:53 vruppert Exp $"));
 
   for (unsigned i=0; i<BX_N_PARALLEL_PORTS; i++) {
     sprintf(pname, "ports.parallel.%d", i+1);
@@ -120,6 +120,14 @@ void bx_parallel_c::init(void)
 void bx_parallel_c::reset(unsigned type)
 {
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_parallel_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "parallel", "Parallel Port State");
+  // TODO
+}
+#endif
 
 void bx_parallel_c::virtual_printer(Bit8u port)
 {

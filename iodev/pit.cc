@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit.cc,v 1.21 2006/01/08 09:45:11 vruppert Exp $
+// $Id: pit.cc,v 1.21.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -223,8 +223,17 @@ bx_pit_c::init( void )
   return(1);
 }
 
-void bx_pit_c::reset(unsigned type) {
+void bx_pit_c::reset(unsigned type)
+{
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_pit_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pit", "8254 PIT State");
+  // TODO
+}
+#endif
 
   // static IO port read callback handler
   // redirects to non-static class handler to avoid virtual functions

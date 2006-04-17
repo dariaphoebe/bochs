@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: busmouse.cc,v 1.3 2006/03/07 21:11:16 sshwarts Exp $
+// $Id: busmouse.cc,v 1.3.2.1 2006/04/17 09:41:52 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -71,7 +71,7 @@ bx_busm_c::~bx_busm_c()
 
 void bx_busm_c::init(void)
 {
-  BX_DEBUG(("Init $Id: busmouse.cc,v 1.3 2006/03/07 21:11:16 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: busmouse.cc,v 1.3.2.1 2006/04/17 09:41:52 vruppert Exp $"));
 
   DEV_register_irq(BUS_MOUSE_IRQ, "Bus Mouse");
 
@@ -112,6 +112,14 @@ void bx_busm_c::init(void)
 void bx_busm_c::reset(unsigned type)
 {
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_busm_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "busmouse", "Busmouse State");
+  // TODO
+}
+#endif
 
 // static IO port read callback handler
 // redirects to non-static class handler to avoid virtual functions

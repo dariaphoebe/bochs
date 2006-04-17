@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci_ide.cc,v 1.22 2006/03/07 21:11:19 sshwarts Exp $
+// $Id: pci_ide.cc,v 1.22.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -110,8 +110,7 @@ void bx_pci_ide_c::init(void)
   BX_PIDE_THIS s.bmdma_addr = 0;
 }
 
-  void
-bx_pci_ide_c::reset(unsigned type)
+void bx_pci_ide_c::reset(unsigned type)
 {
   BX_PIDE_THIS s.pci_conf[0x04] = 0x01;
   BX_PIDE_THIS s.pci_conf[0x06] = 0x80;
@@ -136,8 +135,15 @@ bx_pci_ide_c::reset(unsigned type)
   }
 }
 
-  bx_bool
-bx_pci_ide_c::bmdma_present(void)
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_pci_ide_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci_ide", "PCI IDE Controller State");
+  // TODO
+}
+#endif
+
+bx_bool bx_pci_ide_c::bmdma_present(void)
 {
   return (BX_PIDE_THIS s.bmdma_addr > 0);
 }

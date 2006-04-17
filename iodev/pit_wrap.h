@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit_wrap.h,v 1.22 2006/03/07 21:11:19 sshwarts Exp $
+// $Id: pit_wrap.h,v 1.22.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -52,6 +52,9 @@ public:
   BX_PIT_SMF int init(void);
   BX_PIT_SMF void reset(unsigned type);
   BX_PIT_SMF bx_bool periodic(Bit32u usec_delta);
+#if BX_SUPPORT_SAVE_RESTORE
+  BX_PIT_SMF void register_state(void);
+#endif
 
   Bit16u get_timer(int Timer) {
       return s.timer.get_inlatch(Timer);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.cc,v 1.84 2006/03/08 19:28:36 sshwarts Exp $
+// $Id: ne2k.cc,v 1.84.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -119,6 +119,14 @@ void bx_ne2k_c::reset(unsigned type)
 
   set_irq_level(0);
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_ne2k_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "ne2k", "NE2000 State");
+  // TODO
+}
+#endif
 
 //
 // read_cr/write_cr - utility routines for handling reads/writes to
@@ -1278,7 +1286,7 @@ void bx_ne2k_c::init(void)
   char devname[16];
   bx_list_c *base;
 
-  BX_DEBUG(("Init $Id: ne2k.cc,v 1.84 2006/03/08 19:28:36 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: ne2k.cc,v 1.84.2.1 2006/04/17 09:41:53 vruppert Exp $"));
 
   // Read in values from config interface
   base = (bx_list_c*) SIM->get_param(BXPN_NE2K);

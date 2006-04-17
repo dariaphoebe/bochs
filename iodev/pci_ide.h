@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci_ide.h,v 1.10 2006/03/07 21:11:19 sshwarts Exp $
+// $Id: pci_ide.h,v 1.10.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -45,6 +45,9 @@ public:
   virtual void reset(unsigned type);
   virtual bx_bool bmdma_present(void);
   virtual void bmdma_set_irq(Bit8u channel);
+#if BX_SUPPORT_SAVE_RESTORE
+  virtual void register_state(void);
+#endif
 
   virtual Bit32u pci_read_handler(Bit8u address, unsigned io_len);
   virtual void   pci_write_handler(Bit8u address, Bit32u value, unsigned io_len);

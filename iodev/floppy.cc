@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: floppy.cc,v 1.98 2006/04/05 17:23:51 sshwarts Exp $
+// $Id: floppy.cc,v 1.98.2.1 2006/04/17 09:41:52 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -137,7 +137,7 @@ void bx_floppy_ctrl_c::init(void)
 {
   Bit8u i;
 
-  BX_DEBUG(("Init $Id: floppy.cc,v 1.98 2006/04/05 17:23:51 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: floppy.cc,v 1.98.2.1 2006/04/17 09:41:52 vruppert Exp $"));
   DEV_dma_register_8bit_channel(2, dma_read, dma_write, "Floppy Drive");
   DEV_register_irq(6, "Floppy Drive");
   for (unsigned addr=0x03F2; addr<=0x03F7; addr++) {
@@ -377,6 +377,14 @@ void bx_floppy_ctrl_c::reset(unsigned type)
   DEV_dma_set_drq(FLOPPY_DMA_CHAN, 0);
   enter_idle_phase();
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_floppy_ctrl_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "floppy", "Floppy State");
+  // TODO
+}
+#endif
 
 // static IO port read callback handler
 // redirects to non-static class handler to avoid virtual functions

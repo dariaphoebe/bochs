@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.cc,v 1.47 2006/03/03 20:29:50 vruppert Exp $
+// $Id: sb16.cc,v 1.47.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -317,6 +317,14 @@ void bx_sb16_c::init(void)
 void bx_sb16_c::reset(unsigned type)
 {
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_sb16_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "sb16", "SB16 State");
+  // TODO
+}
+#endif
 
   // the timer functions
 void bx_sb16_c::mpu_timer (void *this_ptr)

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pic.h,v 1.16 2006/03/07 21:11:19 sshwarts Exp $
+// $Id: pic.h,v 1.16.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -56,9 +56,9 @@ typedef struct {
   bx_bool INT;             /* INT request pin of PIC */
   Bit8u IRQ_in;            /* IRQ pins of PIC */
   struct {
-    bx_bool    in_init;
-    bx_bool    requires_4;
-    int        byte_expected;
+    bx_bool in_init;
+    bx_bool requires_4;
+    Bit8u   byte_expected;
   } init;
   bx_bool special_mask;
   bx_bool polled;            /* Set when poll command is issued. */
@@ -78,6 +78,9 @@ public:
   virtual void set_mode(bx_bool ma_sl, Bit8u mode);
   virtual Bit8u IAC(void);
   virtual void show_pic_state(void);
+#if BX_SUPPORT_SAVE_RESTORE
+  virtual void register_state(void);
+#endif
 
 private:
   struct {

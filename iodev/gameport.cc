@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: gameport.cc,v 1.8 2006/04/05 18:49:34 sshwarts Exp $
+// $Id: gameport.cc,v 1.8.2.1 2006/04/17 09:41:52 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -117,6 +117,14 @@ void bx_gameport_c::reset(unsigned type)
 {
   // nothing for now
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_gameport_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "gameport", "Gameport State");
+  // TODO
+}
+#endif
 
 void bx_gameport_c::poll_joydev(void)
 {

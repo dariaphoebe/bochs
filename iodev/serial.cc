@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: serial.cc,v 1.69 2006/03/01 17:14:36 vruppert Exp $
+// $Id: serial.cc,v 1.69.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -358,13 +358,19 @@ bx_serial_c::init(void)
   }
 }
 
-  void
-bx_serial_c::reset(unsigned type)
+void bx_serial_c::reset(unsigned type)
 {
 }
 
-  void
-bx_serial_c::lower_interrupt(Bit8u port)
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_serial_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "serial", "Serial Port State");
+  // TODO
+}
+#endif
+
+void bx_serial_c::lower_interrupt(Bit8u port)
 {
   /* If there are no more ints pending, clear the irq */
   if ((BX_SER_THIS s[port].rx_interrupt == 0) &&

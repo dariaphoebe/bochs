@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.cc,v 1.9 2006/03/07 21:11:19 sshwarts Exp $
+// $Id: pcivga.cc,v 1.9.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003 Mike Nordell
@@ -107,6 +107,14 @@ void bx_pcivga_c::reset(unsigned type)
       BX_PCIVGA_THIS s.pci_conf[reset_vals[i].addr] = reset_vals[i].val;
   }
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_pcivga_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pcivga", "PCI VGA Adapter State");
+  // TODO
+}
+#endif
 
 // pci configuration space read callback handler
 Bit32u bx_pcivga_c::pci_read_handler(Bit8u address, unsigned io_len)

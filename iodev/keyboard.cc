@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: keyboard.cc,v 1.114 2006/04/16 10:12:32 vruppert Exp $
+// $Id: keyboard.cc,v 1.114.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -109,7 +109,7 @@ void bx_keyb_c::resetinternals(bx_bool powerup)
 
 void bx_keyb_c::init(void)
 {
-  BX_DEBUG(("Init $Id: keyboard.cc,v 1.114 2006/04/16 10:12:32 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: keyboard.cc,v 1.114.2.1 2006/04/17 09:41:53 vruppert Exp $"));
   Bit32u   i;
 
   DEV_register_irq(1, "8042 Keyboard controller");
@@ -250,6 +250,14 @@ void bx_keyb_c::reset(unsigned type)
     BX_KEY_THIS stop_paste = 1;
   }
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_keyb_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "keyboard", "Keyboard State");
+  // TODO
+}
+#endif
 
 Bit64s bx_keyb_c::kbd_param_handler(bx_param_c *param, int set, Bit64s val)
 {

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: svga_cirrus.cc,v 1.30 2006/03/07 21:11:19 sshwarts Exp $
+// $Id: svga_cirrus.cc,v 1.30.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2004 Makoto Suzuki (suzu)
@@ -361,8 +361,7 @@ void bx_svga_cirrus_c::svga_init_members()
   BX_CIRRUS_THIS disp_ptr = BX_CIRRUS_THIS vidmem;
 }
 
-void
-bx_svga_cirrus_c::reset(unsigned type)
+void bx_svga_cirrus_c::reset(unsigned type)
 {
   // reset VGA stuffs.
   BX_CIRRUS_THIS bx_vga_c::reset(type);
@@ -372,6 +371,14 @@ bx_svga_cirrus_c::reset(unsigned type)
     BX_CIRRUS_THIS svga_init_members();
   }
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_svga_cirrus_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "svga_cirrus", "Cirrus SVGA State");
+  // TODO
+}
+#endif
 
 void bx_svga_cirrus_c::redraw_area(unsigned x0, unsigned y0, 
                               unsigned width, unsigned height)

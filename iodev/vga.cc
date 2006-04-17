@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.cc,v 1.128 2006/03/07 21:11:20 sshwarts Exp $
+// $Id: vga.cc,v 1.128.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -395,9 +395,15 @@ void bx_vga_c::reset(unsigned type)
   }
 }
 
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_vga_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "vga", "VGA Adapter State");
+  // TODO
+}
+#endif
 
-  void
-bx_vga_c::determine_screen_dimensions(unsigned *piHeight, unsigned *piWidth)
+void bx_vga_c::determine_screen_dimensions(unsigned *piHeight, unsigned *piWidth)
 {
   int ai[0x20];
   int i,h,v;

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.h,v 1.20 2006/03/07 21:11:16 sshwarts Exp $
+// $Id: ioapic.h,v 1.20.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -93,6 +93,9 @@ public:
   void receive_eoi(Bit8u vector);
   void service_ioapic(void);
   virtual bx_apic_type_t get_type() { return APIC_TYPE_IOAPIC; }
+#if BX_SUPPORT_SAVE_RESTORE
+  virtual void register_state(void);
+#endif
 };
 
 #endif

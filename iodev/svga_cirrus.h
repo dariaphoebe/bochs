@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: svga_cirrus.h,v 1.7 2006/03/07 21:11:20 sshwarts Exp $
+// $Id: svga_cirrus.h,v 1.7.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2004 Makoto Suzuki (suzu)
@@ -79,6 +79,9 @@ public:
                                  unsigned *txHeight, unsigned *txWidth);
   virtual void trigger_timer(void *this_ptr);
   virtual Bit8u get_actl_palette_idx(Bit8u index);
+#if BX_SUPPORT_SAVE_RESTORE
+  virtual void register_state(void);
+#endif
 
 #if BX_SUPPORT_PCI && BX_SUPPORT_CLGD54XX_PCI
   virtual Bit32u pci_read_handler(Bit8u address, unsigned io_len);

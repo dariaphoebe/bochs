@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcipnic.cc,v 1.18 2006/03/07 21:11:19 sshwarts Exp $
+// $Id: pcipnic.cc,v 1.18.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  Fen Systems Ltd.
@@ -146,6 +146,14 @@ void bx_pcipnic_c::reset(unsigned type)
   // Deassert IRQ
   set_irq_level(0);
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_pcipnic_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pcipnic", "PCI Pseudo NIC State");
+  // TODO
+}
+#endif
 
 void bx_pcipnic_c::set_irq_level(bx_bool level)
 {

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.cc,v 1.37 2006/03/13 18:55:53 vruppert Exp $
+// $Id: pciusb.cc,v 1.37.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -235,6 +235,14 @@ void bx_pciusb_c::reset(unsigned type)
   init_device(0, SIM->get_param_string(BXPN_USB1_PORT1)->getptr());
   init_device(1, SIM->get_param_string(BXPN_USB1_PORT2)->getptr());
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_pciusb_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pciusb", "PCI USB Controller State");
+  // TODO
+}
+#endif
 
 void bx_pciusb_c::init_device(Bit8u port, char *devname)
 {

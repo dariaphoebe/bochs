@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////
-// $Id: pit_wrap.cc,v 1.61 2006/03/07 21:11:19 sshwarts Exp $
+// $Id: pit_wrap.cc,v 1.61.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -150,6 +150,14 @@ void bx_pit_c::reset(unsigned type)
 {
   BX_PIT_THIS s.timer.reset(type);
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_pit_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pit", "8254 PIT State");
+  // TODO
+}
+#endif
 
 void bx_pit_c::timer_handler(void *this_ptr)
 {

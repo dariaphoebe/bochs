@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.h,v 1.19 2006/03/08 19:28:37 sshwarts Exp $
+// $Id: ne2k.h,v 1.19.2.1 2006/04/17 09:41:53 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -214,6 +214,9 @@ public:
   virtual void init(void);
   virtual void reset(unsigned type);
   virtual void print_info (FILE *file, int page, int reg, int nodups);
+#if BX_SUPPORT_SAVE_RESTORE
+  virtual void   register_state(void);
+#endif
 
 #if BX_SUPPORT_PCI
   virtual Bit32u pci_read_handler(Bit8u address, unsigned io_len);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: floppy.h,v 1.28 2006/03/07 21:11:16 sshwarts Exp $
+// $Id: floppy.h,v 1.28.2.1 2006/04/17 09:41:52 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -60,6 +60,9 @@ public:
   virtual void reset(unsigned type);
   virtual unsigned set_media_status(unsigned drive, unsigned status);
   virtual unsigned get_media_status(unsigned drive);
+#if BX_SUPPORT_SAVE_RESTORE
+  virtual void register_state(void);
+#endif
 
 private:
 

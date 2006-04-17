@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.165 2006/03/26 00:38:58 vruppert Exp $
+// $Id: harddrv.cc,v 1.165.2.1 2006/04/17 09:41:52 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -143,7 +143,7 @@ void bx_hard_drive_c::init(void)
   char  ata_name[20];
   bx_list_c *base;
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.165 2006/03/26 00:38:58 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.165.2.1 2006/04/17 09:41:52 vruppert Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     sprintf(ata_name, "ata.%d.resources", channel);
@@ -604,6 +604,14 @@ void bx_hard_drive_c::reset(unsigned type)
       DEV_pic_lower_irq(BX_HD_THIS channels[channel].irq);
   }
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_hard_drive_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "hard_drive", "Hard Drive State");
+  // TODO
+}
+#endif
 
 void bx_hard_drive_c::iolight_timer_handler(void *this_ptr)
 {

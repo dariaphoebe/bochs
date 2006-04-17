@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.98.2.2 2006/04/16 17:50:20 vruppert Exp $
+// $Id: devices.cc,v 1.98.2.3 2006/04/17 09:41:52 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -105,7 +105,7 @@ void bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.98.2.2 2006/04/16 17:50:20 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.98.2.3 2006/04/17 09:41:52 vruppert Exp $"));
   mem = newmem;
 
   /* set no-default handlers, will be overwritten by the real default handler */
@@ -344,7 +344,6 @@ void bx_devices_c::reset(unsigned type)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_devices_c::register_state()
 {
-  pluginUnmapped->register_state();
 #if BX_SUPPORT_PCI
   if (SIM->get_param_bool(BXPN_I440FX_SUPPORT)->get()) {
     pluginPciBridge->register_state();
@@ -352,18 +351,14 @@ void bx_devices_c::register_state()
   }
 #endif
 #if BX_SUPPORT_APIC
-//ioapic->register_state();
+  ioapic->register_state();
 #endif
-  pluginBiosDevice->register_state();
   pluginCmosDevice->register_state();
   pluginDmaDevice->register_state();
   pluginFloppyDevice->register_state();
   pluginVgaDevice->register_state();
   pluginPicDevice->register_state();
-//pit->register_state();
-#if BX_SUPPORT_IODEBUG
-  iodebug->register_state();
-#endif
+  pit->register_state();
   // now register state of optional plugins
   bx_plugins_register_state();
 }
