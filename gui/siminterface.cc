@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.2 2006/04/16 21:04:33 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.3 2006/04/17 13:38:15 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1086,7 +1086,15 @@ void bx_real_sim_c::save_sr_param(FILE *fp, bx_param_c *node, const char *sr_pat
   switch (node->get_type()) {
     case BXT_PARAM_NUM:
       if (((bx_param_num_c*)node)->get_base() == 10) {
-        fprintf(fp, "%d\n", ((bx_param_num_c*)node)->get());
+        if (((bx_param_num_c*)node)->get_min() >= BX_MIN_BIT64U) {
+          if (((bx_param_num_c*)node)->get_max() > BX_MAX_BIT32U) {
+            fprintf(fp, FMT_LL"u\n", ((bx_param_num_c*)node)->get());
+          } else {
+            fprintf(fp, "%u\n", ((bx_param_num_c*)node)->get());
+          }
+        } else {
+          fprintf(fp, "%d\n", ((bx_param_num_c*)node)->get());
+        }
       } else {
         fprintf(fp, node->get_format(), ((bx_param_num_c*)node)->get());
         fprintf(fp, "\n");
@@ -1318,7 +1326,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     Bit8u lowbit)
 : bx_param_num_c(parent, name, description, NULL, BX_MIN_BIT64S, BX_MAX_BIT64S, *ptr_to_real_val)
 {
-  this->varsize = 16;
+  this->varsize = 64;
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p64bit = ptr_to_real_val;
@@ -1333,7 +1341,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     Bit8u lowbit)
 : bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT64U, BX_MAX_BIT64U, *ptr_to_real_val)
 {
-  this->varsize = 16;
+  this->varsize = 64;
   this->lowbit = lowbit;
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p64bit = (Bit64s*) ptr_to_real_val;

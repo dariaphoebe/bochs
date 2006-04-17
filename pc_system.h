@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pc_system.h,v 1.36 2006/03/14 18:11:22 sshwarts Exp $
+// $Id: pc_system.h,v 1.36.2.1 2006/04/17 13:38:14 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -175,6 +175,9 @@ public:
   void    set_enable_a20(bx_bool value);
   bx_bool get_enable_a20(void);
   void    exit(void);
+#if BX_SUPPORT_SAVE_RESTORE
+  void    register_state(void);
+#endif
 };
 
 #endif

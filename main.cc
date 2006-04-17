@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.332.2.2 2006/04/16 17:50:20 vruppert Exp $
+// $Id: main.cc,v 1.332.2.3 2006/04/17 13:38:14 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -1016,6 +1016,7 @@ int bx_init_hardware()
 
   DEV_init_devices();
 #if BX_SUPPORT_SAVE_RESTORE
+  bx_pc_system.register_state();
   DEV_register_state();
   if (SIM->get_param_bool(BXPN_RESTORE_FLAG)->get()) {
     SIM->restore_logopts();
