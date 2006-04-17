@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// $Id: virt_timer.cc,v 1.27 2006/03/07 21:11:20 sshwarts Exp $
+// $Id: virt_timer.cc,v 1.27.2.1 2006/04/17 16:34:59 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -424,6 +424,14 @@ void bx_virt_timer_c::init(void)
 
   init_done = 1;
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_virt_timer_c::register_state(void)
+{
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "virt_timer", "Virtual Timer State");
+  // TODO
+}
+#endif
 
 void bx_virt_timer_c::timer_handler(void)
 {

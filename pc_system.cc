@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pc_system.cc,v 1.53.2.1 2006/04/17 13:38:14 vruppert Exp $
+// $Id: pc_system.cc,v 1.53.2.2 2006/04/17 16:34:59 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -226,13 +226,14 @@ void bx_pc_system_c::register_state(void)
   bx_list_c *bxtimer;
   char name[4];
 
-  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pc_system", "PC System State", numTimers + 6);
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pc_system", "PC System State", numTimers + 7);
   new bx_shadow_bool_c(list, "enable_a20", "", &enable_a20);
   new bx_shadow_num_c(list, "currCountdown", "", &currCountdown);
   new bx_shadow_num_c(list, "currCountdownPeriod", "", &currCountdownPeriod);
   new bx_shadow_num_c(list, "ticksTotal", "", &bx_pc_system.ticksTotal);
   new bx_shadow_num_c(list, "lastTimeUsec", "", &lastTimeUsec);
   new bx_shadow_num_c(list, "usecSinceLast", "", &usecSinceLast);
+  new bx_shadow_num_c(list, "HRQ", "", &HRQ);
   for (i = 0; i < numTimers; i++) {
     sprintf(name, "%d", i);
     bxtimer = new bx_list_c(list, strdup(name), "");
