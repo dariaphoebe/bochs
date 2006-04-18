@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.cc,v 1.35.2.2 2006/04/17 09:41:52 vruppert Exp $
+// $Id: dma.cc,v 1.35.2.3 2006/04/18 19:43:51 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -124,7 +124,7 @@ unsigned bx_dma_c::get_TC(void)
 void bx_dma_c::init(void)
 {
   unsigned c, i, j;
-  BX_DEBUG(("Init $Id: dma.cc,v 1.35.2.2 2006/04/17 09:41:52 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: dma.cc,v 1.35.2.3 2006/04/18 19:43:51 vruppert Exp $"));
 
   /* 8237 DMA controller */
 
@@ -227,7 +227,11 @@ void bx_dma_c::register_state(void)
       new bx_shadow_num_c(chan, "page_reg", "", &BX_DMA_THIS s[i].chan[c].page_reg);
     }
   }
-  new bx_shadow_data_c(list, "ext_page", "", &BX_DMA_THIS ext_page_reg[0], 16);
+  bx_list_c *extpg = new bx_list_c(list, "ext_page", "", 16);
+  for (i=0; i<16; i++) {
+    sprintf(name, "%d", i);
+    new bx_shadow_num_c(extpg, strdup(name), "", &BX_DMA_THIS ext_page_reg[i]);
+  }
 
   // restore defaults
   bx_param_num_c::set_default_base(oldbase);

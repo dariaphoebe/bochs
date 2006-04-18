@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.cc,v 1.29.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: pci2isa.cc,v 1.29.2.2 2006/04/18 19:43:51 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -149,8 +149,37 @@ void bx_pci2isa_c::reset(unsigned type)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_pci2isa_c::register_state(void)
 {
-  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci2isa", "PCI-to-ISA Bridge State");
-  // TODO
+  unsigned i;
+  char name[4];
+
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci2isa", "PCI-to-ISA Bridge State", 8);
+  new bx_shadow_data_c(list, "pci_conf", "", &BX_P2I_THIS s.pci_conf[0], 256);
+  new bx_shadow_num_c(list, "elcr1", "", &BX_P2I_THIS s.elcr1);
+  new bx_shadow_num_c(list, "elcr2", "", &BX_P2I_THIS s.elcr2);
+  new bx_shadow_num_c(list, "apmc", "", &BX_P2I_THIS s.apmc);
+  new bx_shadow_num_c(list, "apms", "", &BX_P2I_THIS s.apms);
+  new bx_shadow_num_c(list, "pci_reset", "", &BX_P2I_THIS s.pci_reset);
+  bx_list_c *irqr = new bx_list_c(list, "irq_registry", "", 16);
+  for (i=0; i<16; i++) {
+    sprintf(name, "%d", i);
+    new bx_shadow_num_c(irqr, strdup(name), "", &BX_P2I_THIS s.irq_registry[i]);
+  }
+  bx_list_c *irql = new bx_list_c(list, "irq_level", "", 16);
+  for (i=0; i<16; i++) {
+    sprintf(name, "%d", i);
+    new bx_shadow_num_c(irql, strdup(name), "", &BX_P2I_THIS s.irq_level[i]);
+  }
+}
+
+void bx_pci2isa_c::after_restore_state(void)
+{
+  unsigned i;
+
+  for (i=0; i<16; i++) {
+    if (BX_P2I_THIS s.irq_registry[i]) {
+      DEV_register_irq(i, "PIIX3 IRQ routing");
+    }
+  }
 }
 #endif
 

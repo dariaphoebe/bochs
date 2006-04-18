@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.h,v 1.12.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: pci2isa.h,v 1.12.2.2 2006/04/18 19:43:51 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -46,6 +46,7 @@ public:
   virtual void pci_set_irq(Bit8u devfunc, unsigned line, bx_bool level);
 #if BX_SUPPORT_SAVE_RESTORE
   virtual void register_state(void);
+  virtual void after_restore_state(void);
 #endif
 
   virtual Bit32u pci_read_handler(Bit8u address, unsigned io_len);

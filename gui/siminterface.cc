@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.3 2006/04/17 13:38:15 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.4 2006/04/18 19:43:50 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1124,7 +1124,7 @@ void bx_real_sim_c::save_sr_param(FILE *fp, bx_param_c *node, const char *sr_pat
       }
       break;
     case BXT_PARAM_DATA:
-      fprintf(fp, "%s.%s", node->get_parent()->get_name(), node->get_name());
+      fprintf(fp, "%s.%s\n", node->get_parent()->get_name(), node->get_name());
       sprintf(tmpstr, "%s/%s.%s", sr_path, node->get_parent()->get_name(), node->get_name());
       fp2 = fopen(tmpstr, "wb");
       if (fp != NULL) {
