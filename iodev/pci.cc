@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.cc,v 1.47.2.2 2006/04/16 21:04:33 vruppert Exp $
+// $Id: pci.cc,v 1.47.2.3 2006/04/19 17:49:25 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -151,18 +151,10 @@ bx_pci_bridge_c::reset(unsigned type)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_pci_bridge_c::register_state(void)
 {
-  const char *fmt32 = "0x%08x";
-  Bit32u oldbase = bx_param_num_c::set_default_base(16);
-  const char *oldfmt = bx_param_num_c::set_default_format(fmt32);
-
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci_bridge", "PCI Bridge State");
-  new bx_shadow_num_c(list, "confAddr", "", &BX_PCI_THIS s.i440fx.confAddr);
-  new bx_shadow_num_c(list, "confData", "", &BX_PCI_THIS s.i440fx.confData);
+  new bx_shadow_num_c(list, "confAddr", "", &BX_PCI_THIS s.i440fx.confAddr, 16);
+  new bx_shadow_num_c(list, "confData", "", &BX_PCI_THIS s.i440fx.confData, 16);
   new bx_shadow_data_c(list, "pci_conf", "", &BX_PCI_THIS s.i440fx.pci_conf[0], 256);
-
-  // restore defaults
-  bx_param_num_c::set_default_base(oldbase);
-  bx_param_num_c::set_default_format(oldfmt);
 }
 
 void bx_pci_bridge_c::after_restore_state(void)

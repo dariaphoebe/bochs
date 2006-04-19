@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.2 2006/04/16 21:04:33 vruppert Exp $
+// $Id: init.cc,v 1.98.2.3 2006/04/19 17:49:24 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -283,15 +283,12 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
     bx_param_num_c *param;
     char cpu_name[10], cpu_title[10];
     const char *fmt16 = "%04X";
-    const char *fmt32 = "%08X";
-    Bit32u oldbase = bx_param_num_c::set_default_base(16);
-    const char *oldfmt = bx_param_num_c::set_default_format(fmt32);
     sprintf(cpu_name, "%d", BX_CPU_ID);
     sprintf(cpu_title, "CPU %d", BX_CPU_ID);
     bx_list_c *list = new bx_list_c(SIM->get_param(BXPN_WX_CPU_STATE), strdup(cpu_name),
                                     cpu_title, 60);
 #define DEFPARAM_NORMAL(name,field) \
-    new bx_shadow_num_c(list, #name, #name, &(field))
+    new bx_shadow_num_c(list, #name, #name, &(field), 16)
 
       DEFPARAM_NORMAL(EAX, EAX);
       DEFPARAM_NORMAL(EBX, EBX);
@@ -326,14 +323,15 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
     param = new bx_param_num_c(list, \
       #x, #x, "", 0, 0xffff, 0); \
     param->set_handler(cpu_param_handler); \
+    param->set_base(16); \
     param->set_format(fmt16);
 #define DEFPARAM_GLOBAL_SEG_REG(name,field) \
     param = new bx_shadow_num_c(list, \
         #name"_base", #name" base", \
-        & BX_CPU_THIS_PTR field.base); \
+        & BX_CPU_THIS_PTR field.base, 16); \
     param = new bx_shadow_num_c(list, \
         #name"_limit", #name" limit", \
-        & BX_CPU_THIS_PTR field.limit);
+        & BX_CPU_THIS_PTR field.limit, 16);
 
     DEFPARAM_SEG_REG(CS);
     DEFPARAM_SEG_REG(DS);
@@ -380,7 +378,7 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
     param = new bx_shadow_num_c(
             list,
             "IOPL", "IOPL",
-            &eflags.val32,
+            &eflags.val32, 10,
             12, 13);
     param->set_range(0, 3);
 #if BX_SUPPORT_X86_64==0
@@ -397,10 +395,6 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
     DEFPARAM_LAZY_EFLAG(PF);
     DEFPARAM_LAZY_EFLAG(CF);
 
-    // restore defaults
-    bx_param_num_c::set_default_base(oldbase);
-    bx_param_num_c::set_default_format(oldfmt);
-
     counter++;
   }
 #endif
@@ -411,9 +405,6 @@ void BX_CPU_C::register_state()
 {
   static bx_bool counter = 0;
   char cpu_name[10], cpu_title[10];
-  const char *fmt32 = "0x%08x";
-  Bit32u oldbase = bx_param_num_c::set_default_base(16);
-  const char *oldfmt = bx_param_num_c::set_default_format(fmt32);
 
   if (counter < BX_MAX_SMP_THREADS_SUPPORTED) {
     sprintf(cpu_name, "%d", BX_CPU_ID);
@@ -421,7 +412,7 @@ void BX_CPU_C::register_state()
     bx_list_c *list = new bx_list_c(SIM->get_param("save_restore.cpu"), strdup(cpu_name),
                                     cpu_title, 60);
 #define DEFPARAM_NORMAL(name,field) \
-    new bx_shadow_num_c(list, #name, #name, &(field))
+    new bx_shadow_num_c(list, #name, #name, &(field), 16)
 
     DEFPARAM_NORMAL(EAX, EAX);
     DEFPARAM_NORMAL(EBX, EBX);
@@ -451,14 +442,14 @@ void BX_CPU_C::register_state()
 #endif  // #if BX_SUPPORT_X86_64==0
 
 #define DEFPARAM_SEG_REG(x) \
-    new bx_shadow_num_c(list, #x, #x, &(sregs[BX_SEG_REG_##x].selector.value))
+    new bx_shadow_num_c(list, #x, #x, &(sregs[BX_SEG_REG_##x].selector.value), 16)
 #define DEFPARAM_GLOBAL_SEG_REG(name,field) \
     new bx_shadow_num_c(list, \
         #name"_base", #name" base", \
-        & BX_CPU_THIS_PTR field.base); \
+        & BX_CPU_THIS_PTR field.base, 16); \
     new bx_shadow_num_c(list, \
         #name"_limit", #name" limit", \
-        & BX_CPU_THIS_PTR field.limit);
+        & BX_CPU_THIS_PTR field.limit, 16);
 
     DEFPARAM_SEG_REG(CS);
     DEFPARAM_SEG_REG(DS);
@@ -466,8 +457,8 @@ void BX_CPU_C::register_state()
     DEFPARAM_SEG_REG(ES);
     DEFPARAM_SEG_REG(FS);
     DEFPARAM_SEG_REG(GS);
-    new bx_shadow_num_c(list, "LDTR", "LDTR", &ldtr.selector.value);
-    new bx_shadow_num_c(list, "TR", "TR", &tr.selector.value);
+    new bx_shadow_num_c(list, "LDTR", "LDTR", &ldtr.selector.value, 16);
+    new bx_shadow_num_c(list, "TR", "TR", &tr.selector.value, 16);
     DEFPARAM_GLOBAL_SEG_REG(GDTR, gdtr);
     DEFPARAM_GLOBAL_SEG_REG(IDTR, idtr);
 #undef DEFPARAM_SEG_REG
@@ -475,13 +466,9 @@ void BX_CPU_C::register_state()
 
 #if BX_SUPPORT_X86_64==0
     new bx_shadow_num_c(list, "EFLAGS", "EFLAGS",
-        &BX_CPU_THIS_PTR eflags.val32);
+        &BX_CPU_THIS_PTR eflags.val32, 16);
 #endif
 */
-    // restore defaults
-    bx_param_num_c::set_default_base(oldbase);
-    bx_param_num_c::set_default_format(oldfmt);
-
     counter++;
   }
 }

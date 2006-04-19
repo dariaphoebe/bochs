@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci_ide.cc,v 1.22.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: pci_ide.cc,v 1.22.2.2 2006/04/19 17:49:25 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -138,8 +138,31 @@ void bx_pci_ide_c::reset(unsigned type)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_pci_ide_c::register_state(void)
 {
+  unsigned i;
+  char name[4];
+  bx_list_c *ctrl;
+
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci_ide", "PCI IDE Controller State");
-  // TODO
+  new bx_shadow_data_c(list, "pci_conf", "", &BX_PIDE_THIS s.pci_conf[0], 256);
+  for (i=0; i<2; i++) {
+    sprintf(name, "%d", i);
+    ctrl = new bx_list_c(list, strdup(name), "");
+    new bx_shadow_bool_c(ctrl, "cmd_ssbm", "", &BX_PIDE_THIS s.bmdma[i].cmd_ssbm);
+    new bx_shadow_bool_c(ctrl, "cmd_rwcon", "", &BX_PIDE_THIS s.bmdma[i].cmd_rwcon);
+    new bx_shadow_num_c(ctrl, "status", "", &BX_PIDE_THIS s.bmdma[i].status, 16);
+    new bx_shadow_num_c(ctrl, "dtpr", "", &BX_PIDE_THIS s.bmdma[i].dtpr, 16);
+    new bx_shadow_num_c(ctrl, "prd_current", "", &BX_PIDE_THIS s.bmdma[i].prd_current, 16);
+    // TODO: save buffers and pointers
+  }
+}
+
+void bx_pci_ide_c::after_restore_state(void)
+{
+  if (DEV_pci_set_base_io(BX_PIDE_THIS_PTR, read_handler, write_handler,
+                          &BX_PIDE_THIS s.bmdma_addr, &BX_PIDE_THIS s.pci_conf[0x20],
+                          16, &bmdma_iomask[0], "PIIX3 PCI IDE controller")) {
+    BX_INFO(("new BM-DMA address: 0x%04x", BX_PIDE_THIS s.bmdma_addr));
+  }
 }
 #endif
 

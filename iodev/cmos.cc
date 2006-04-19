@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cmos.cc,v 1.53.2.1 2006/04/16 11:39:23 vruppert Exp $
+// $Id: cmos.cc,v 1.53.2.2 2006/04/19 17:49:25 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -139,7 +139,7 @@ bx_cmos_c::~bx_cmos_c(void)
   void
 bx_cmos_c::init(void)
 {
-  BX_DEBUG(("Init $Id: cmos.cc,v 1.53.2.1 2006/04/16 11:39:23 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: cmos.cc,v 1.53.2.2 2006/04/19 17:49:25 vruppert Exp $"));
   // CMOS RAM & RTC
 
   DEV_register_ioread_handler(this, read_handler, 0x0070, "CMOS RAM", 1);
@@ -299,7 +299,7 @@ void bx_cmos_c::save_image(void)
 void bx_cmos_c::register_state(void)
 {
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "cmos", "CMOS State");
-  new bx_shadow_num_c(list, "mem_address", "", &BX_CMOS_THIS s.cmos_mem_address);
+  new bx_shadow_num_c(list, "mem_address", "", &BX_CMOS_THIS s.cmos_mem_address, 16);
   new bx_shadow_data_c(list, "ram", "", &BX_CMOS_THIS s.reg[0], 128);
 }
 

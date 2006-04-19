@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: gameport.cc,v 1.8.2.2 2006/04/18 19:43:51 vruppert Exp $
+// $Id: gameport.cc,v 1.8.2.3 2006/04/19 17:49:25 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -122,7 +122,7 @@ void bx_gameport_c::reset(unsigned type)
 void bx_gameport_c::register_state(void)
 {
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "gameport", "Gameport State");
-  new bx_shadow_num_c(list, "port", "", &BX_GAMEPORT_THIS port);
+  new bx_shadow_num_c(list, "port", "", &BX_GAMEPORT_THIS port, 16);
   new bx_shadow_num_c(list, "delay_x", "", &BX_GAMEPORT_THIS delay_x);
   new bx_shadow_num_c(list, "delay_y", "", &BX_GAMEPORT_THIS delay_y);
   new bx_shadow_bool_c(list, "timer_x", "", &BX_GAMEPORT_THIS timer_x);
