@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci_ide.cc,v 1.22.2.2 2006/04/19 17:49:25 vruppert Exp $
+// $Id: pci_ide.cc,v 1.22.2.3 2006/04/21 11:45:47 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -143,21 +143,36 @@ void bx_pci_ide_c::register_state(void)
   bx_list_c *ctrl;
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci_ide", "PCI IDE Controller State");
-  new bx_shadow_data_c(list, "pci_conf", "", &BX_PIDE_THIS s.pci_conf[0], 256);
+  new bx_shadow_data_c(list, "pci_conf", "", BX_PIDE_THIS s.pci_conf, 256);
+  new bx_shadow_data_c(list, "buffer0", "", BX_PIDE_THIS s.bmdma[0].buffer, 0x20000);
+  new bx_shadow_data_c(list, "buffer1", "", BX_PIDE_THIS s.bmdma[1].buffer, 0x20000);
   for (i=0; i<2; i++) {
     sprintf(name, "%d", i);
-    ctrl = new bx_list_c(list, strdup(name), "");
+    ctrl = new bx_list_c(list, strdup(name), "", 7);
     new bx_shadow_bool_c(ctrl, "cmd_ssbm", "", &BX_PIDE_THIS s.bmdma[i].cmd_ssbm);
     new bx_shadow_bool_c(ctrl, "cmd_rwcon", "", &BX_PIDE_THIS s.bmdma[i].cmd_rwcon);
     new bx_shadow_num_c(ctrl, "status", "", &BX_PIDE_THIS s.bmdma[i].status, 16);
     new bx_shadow_num_c(ctrl, "dtpr", "", &BX_PIDE_THIS s.bmdma[i].dtpr, 16);
     new bx_shadow_num_c(ctrl, "prd_current", "", &BX_PIDE_THIS s.bmdma[i].prd_current, 16);
-    // TODO: save buffers and pointers
+    new bx_shadow_num_c(ctrl, "buffer_top", "", &BX_PIDE_THIS s.bmdma[i].sr_buffer_top, 16);
+    new bx_shadow_num_c(ctrl, "buffer_idx", "", &BX_PIDE_THIS s.bmdma[i].sr_buffer_idx, 16);
   }
+}
+
+void bx_pci_ide_c::before_save_state(void)
+{
+  BX_PIDE_THIS s.bmdma[0].sr_buffer_top = (Bit32u)(BX_PIDE_THIS s.bmdma[0].buffer_top - BX_PIDE_THIS s.bmdma[0].buffer);
+  BX_PIDE_THIS s.bmdma[1].sr_buffer_top = (Bit32u)(BX_PIDE_THIS s.bmdma[1].buffer_top - BX_PIDE_THIS s.bmdma[1].buffer);
+  BX_PIDE_THIS s.bmdma[0].sr_buffer_idx = (Bit32u)(BX_PIDE_THIS s.bmdma[0].buffer_idx - BX_PIDE_THIS s.bmdma[0].buffer);
+  BX_PIDE_THIS s.bmdma[1].sr_buffer_idx = (Bit32u)(BX_PIDE_THIS s.bmdma[1].buffer_idx - BX_PIDE_THIS s.bmdma[1].buffer);
 }
 
 void bx_pci_ide_c::after_restore_state(void)
 {
+  BX_PIDE_THIS s.bmdma[0].buffer_top = BX_PIDE_THIS s.bmdma[0].buffer + BX_PIDE_THIS s.bmdma[0].sr_buffer_top;
+  BX_PIDE_THIS s.bmdma[1].buffer_top = BX_PIDE_THIS s.bmdma[1].buffer + BX_PIDE_THIS s.bmdma[1].sr_buffer_top;
+  BX_PIDE_THIS s.bmdma[0].buffer_idx = BX_PIDE_THIS s.bmdma[0].buffer + BX_PIDE_THIS s.bmdma[0].sr_buffer_idx;
+  BX_PIDE_THIS s.bmdma[1].buffer_idx = BX_PIDE_THIS s.bmdma[1].buffer + BX_PIDE_THIS s.bmdma[1].sr_buffer_idx;
   if (DEV_pci_set_base_io(BX_PIDE_THIS_PTR, read_handler, write_handler,
                           &BX_PIDE_THIS s.bmdma_addr, &BX_PIDE_THIS s.pci_conf[0x20],
                           16, &bmdma_iomask[0], "PIIX3 PCI IDE controller")) {
