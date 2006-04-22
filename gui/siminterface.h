@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.187.2.1 2006/04/19 17:49:24 vruppert Exp $
+// $Id: siminterface.h,v 1.187.2.2 2006/04/22 17:31:40 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -654,6 +654,7 @@ protected:
   param_enable_handler enable_handler;
   int base;
   Bit32u options;
+  bx_bool is_shadow;
 public:
   enum {
     // When a bx_param_num_c is displayed in dialog, USE_SPIN_CONTROL controls
@@ -664,7 +665,8 @@ public:
       char *name,
       char *label,
       char *description,
-      Bit64s min, Bit64s max, Bit64s initial_val);
+      Bit64s min, Bit64s max, Bit64s initial_val,
+      bx_bool is_shadow = 0);
   virtual void reset();
   void set_handler(param_event_handler handler);
   void set_enable_handler(param_enable_handler handler);

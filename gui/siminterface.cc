@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.5 2006/04/19 17:49:24 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.6 2006/04/22 17:31:40 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1206,7 +1206,8 @@ bx_param_num_c::bx_param_num_c(bx_param_c *parent,
     char *name,
     char *label,
     char *description,
-    Bit64s min, Bit64s max, Bit64s initial_val)
+    Bit64s min, Bit64s max, Bit64s initial_val,
+    bx_bool is_shadow)
   : bx_param_c(SIM->gen_param_id(), name, description)
 {
   set_type(BXT_PARAM_NUM);
@@ -1218,10 +1219,13 @@ bx_param_num_c::bx_param_num_c(bx_param_c *parent,
   this->handler = NULL;
   this->enable_handler = NULL;
   this->base = default_base;
+  this->is_shadow = is_shadow;
   // dependent_list must be initialized before the set(),
   // because set calls update_dependents().
   dependent_list = NULL;
-  set(initial_val);
+  if (!is_shadow) {
+    set(initial_val);
+  }
   if (parent) {
     BX_ASSERT(parent->get_type() == BXT_LIST);
     this->parent = (bx_list_c *)parent;
@@ -1325,7 +1329,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, description, NULL, BX_MIN_BIT64S, BX_MAX_BIT64S, *ptr_to_real_val)
+: bx_param_num_c(parent, name, description, NULL, BX_MIN_BIT64S, BX_MAX_BIT64S, *ptr_to_real_val, 1)
 {
   this->varsize = 64;
   this->lowbit = lowbit;
@@ -1345,7 +1349,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT64U, BX_MAX_BIT64U, *ptr_to_real_val)
+: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT64U, BX_MAX_BIT64U, *ptr_to_real_val, 1)
 {
   this->varsize = 64;
   this->lowbit = lowbit;
@@ -1365,7 +1369,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT32S, BX_MAX_BIT32S, *ptr_to_real_val)
+: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT32S, BX_MAX_BIT32S, *ptr_to_real_val, 1)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -1385,7 +1389,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT32U, BX_MAX_BIT32U, *ptr_to_real_val)
+: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT32U, BX_MAX_BIT32U, *ptr_to_real_val, 1)
 {
   this->varsize = 32;
   this->lowbit = lowbit;
@@ -1405,7 +1409,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT16S, BX_MAX_BIT16S, *ptr_to_real_val)
+: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT16S, BX_MAX_BIT16S, *ptr_to_real_val, 1)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -1425,7 +1429,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT16U, BX_MAX_BIT16U, *ptr_to_real_val)
+: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT16U, BX_MAX_BIT16U, *ptr_to_real_val, 1)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -1445,7 +1449,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT8S, BX_MAX_BIT8S, *ptr_to_real_val)
+: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT8S, BX_MAX_BIT8S, *ptr_to_real_val, 1)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -1465,7 +1469,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT8U, BX_MAX_BIT8U, *ptr_to_real_val)
+: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT8U, BX_MAX_BIT8U, *ptr_to_real_val, 1)
 {
   this->varsize = 8;
   this->lowbit = lowbit;
@@ -1499,7 +1503,7 @@ Bit64s bx_shadow_num_c::get64() {
 void bx_shadow_num_c::set(Bit64s newval)
 {
   Bit64u tmp = 0;
-  if ((newval < min || newval > max) && (Bit64u)max != BX_MAX_BIT64U)
+  if (((newval < min) || (newval > max)) && (min != BX_MIN_BIT64S) && ((Bit64u)max != BX_MAX_BIT64U))
     BX_PANIC (("numerical parameter %s was set to " FMT_LL "d, which is out of range " FMT_LL "d to " FMT_LL "d", get_name (), newval, min, max));
   switch (varsize) {
     case 8: 
