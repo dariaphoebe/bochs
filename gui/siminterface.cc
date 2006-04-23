@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.6 2006/04/22 17:31:40 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.7 2006/04/23 12:40:17 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1544,11 +1544,11 @@ bx_param_bool_c::bx_param_bool_c(bx_param_c *parent,
     char *name,
     char *label,
     char *description,
-    Bit64s initial_val)
-  : bx_param_num_c(parent, name, label, description, 0, 1, initial_val)
+    Bit64s initial_val,
+    bx_bool is_shadow)
+  : bx_param_num_c(parent, name, label, description, 0, 1, initial_val, is_shadow)
 {
   set_type(BXT_PARAM_BOOL);
-  set(initial_val);
 }
 
 bx_shadow_bool_c::bx_shadow_bool_c(bx_param_c *parent,
@@ -1556,7 +1556,7 @@ bx_shadow_bool_c::bx_shadow_bool_c(bx_param_c *parent,
       char *label,
       bx_bool *ptr_to_real_val,
       Bit8u bitnum)
-  : bx_param_bool_c(parent, name, label, NULL, (Bit64s) *ptr_to_real_val)
+  : bx_param_bool_c(parent, name, label, NULL, (Bit64s) *ptr_to_real_val, 1)
 {
   val.pbool = ptr_to_real_val;
   this->bitnum = bitnum;

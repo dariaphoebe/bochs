@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.h,v 1.20.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: ioapic.h,v 1.20.2.2 2006/04/23 12:40:18 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -67,7 +67,10 @@ public:
     // keep low 32 bits of value, replace high 32
     hi = val_hi_part;
   }
-  void sprintf_self (char *buf);
+  void sprintf_self(char *buf);
+#if BX_SUPPORT_SAVE_RESTORE
+  void register_state(bx_param_c *parent);
+#endif
 };
 
 class bx_ioapic_c : public bx_generic_apic_c

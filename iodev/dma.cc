@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.cc,v 1.35.2.4 2006/04/19 17:49:25 vruppert Exp $
+// $Id: dma.cc,v 1.35.2.5 2006/04/23 12:40:18 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -124,7 +124,7 @@ unsigned bx_dma_c::get_TC(void)
 void bx_dma_c::init(void)
 {
   unsigned c, i, j;
-  BX_DEBUG(("Init $Id: dma.cc,v 1.35.2.4 2006/04/19 17:49:25 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: dma.cc,v 1.35.2.5 2006/04/23 12:40:18 vruppert Exp $"));
 
   /* 8237 DMA controller */
 
@@ -198,7 +198,6 @@ void bx_dma_c::register_state(void)
   unsigned i, c;
   char name[6];
 
-  BX_DMA_THIS reset(0);
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "dma", "DMA State");
   for (i=0; i<2; i++) {
     sprintf(name, "%d", i);
