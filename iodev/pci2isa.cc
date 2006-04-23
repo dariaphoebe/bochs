@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.cc,v 1.29.2.3 2006/04/19 17:49:25 vruppert Exp $
+// $Id: pci2isa.cc,v 1.29.2.4 2006/04/23 08:46:07 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -213,6 +213,12 @@ void bx_pci2isa_c::pci_unregister_irq(unsigned pirq)
 void bx_pci2isa_c::pci_set_irq(Bit8u devfunc, unsigned line, bx_bool level)
 {
   Bit8u pirq = ((devfunc >> 3) + line - 2) & 0x03;
+#if BX_SUPPORT_APIC
+  // forward this function call to the ioapic too
+  if (DEV_ioapic_present()) {
+    bx_devices.ioapic->set_irq_level(pirq + 16, level);
+  }
+#endif
   Bit8u irq = BX_P2I_THIS s.pci_conf[0x60 + pirq];
   if ((irq < 16) && (((1 << irq) & 0xdef8) > 0)) {
     if (level == 1) {
