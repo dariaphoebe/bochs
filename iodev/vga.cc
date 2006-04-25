@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.cc,v 1.128.2.2 2006/04/25 17:48:02 vruppert Exp $
+// $Id: vga.cc,v 1.128.2.3 2006/04/25 19:02:40 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -511,7 +511,7 @@ void bx_vga_c::register_state(void)
     new bx_shadow_bool_c(vbe, "lfb_enabled", "", &BX_VGA_THIS s.vbe_lfb_enabled);
     new bx_shadow_bool_c(vbe, "get_capabilities", "", &BX_VGA_THIS s.vbe_get_capabilities);
     new bx_shadow_bool_c(vbe, "8bit_dac", "", &BX_VGA_THIS s.vbe_8bit_dac);
-    new bx_shadow_data_c(vbe, "memory", "", BX_VGA_THIS s.vbe_memory, sizeof(BX_VGA_THIS s.vbe_memory));
+    new bx_shadow_data_c(vbe, "memory", "", BX_VGA_THIS s.vbe_memory, VBE_DISPI_TOTAL_VIDEO_MEMORY_BYTES);
   }
 #endif
 }

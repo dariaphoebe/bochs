@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: svga_cirrus.cc,v 1.30.2.2 2006/04/25 17:48:02 vruppert Exp $
+// $Id: svga_cirrus.cc,v 1.30.2.3 2006/04/25 19:02:40 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2004 Makoto Suzuki (suzu)
@@ -376,8 +376,16 @@ void bx_svga_cirrus_c::reset(unsigned type)
 void bx_svga_cirrus_c::register_state(void)
 {
   bx_vga_c::register_state();
-  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "svga_cirrus", "Cirrus SVGA State");
-  // TODO
+  if (BX_CIRRUS_THIS vidmem != NULL) {
+    bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "svga_cirrus", "Cirrus SVGA State");
+    new bx_shadow_data_c(list, "vidmem", "", BX_CIRRUS_THIS vidmem, BX_CIRRUS_THIS memsize);
+    // TODO
+#if BX_SUPPORT_PCI && BX_SUPPORT_CLGD54XX_PCI
+    if (BX_CIRRUS_THIS pci_enabled) {
+      new bx_shadow_data_c(list, "pci_conf", "", BX_CIRRUS_THIS pci_conf, 256);
+    }
+#endif
+  }
 }
 
 void bx_svga_cirrus_c::after_restore_state(void)
@@ -385,6 +393,24 @@ void bx_svga_cirrus_c::after_restore_state(void)
   if ((BX_CIRRUS_THIS sequencer.reg[0x07] & 0x01) == CIRRUS_SR7_BPP_VGA) {
     BX_CIRRUS_THIS bx_vga_c::after_restore_state();
   } else {
+#if BX_SUPPORT_PCI && BX_SUPPORT_CLGD54XX_PCI
+    if (BX_CIRRUS_THIS pci_enabled) {
+      if (DEV_pci_set_base_mem(BX_CIRRUS_THIS_PTR, cirrus_mem_read_handler,
+                               cirrus_mem_write_handler,
+                               &BX_CIRRUS_THIS pci_memaddr,
+                               &BX_CIRRUS_THIS pci_conf[0x10],
+                               CIRRUS_PNPMEM_SIZE)) {
+        BX_INFO(("new pci_memaddr: 0x%04x", BX_CIRRUS_THIS pci_memaddr));
+      }
+      if (DEV_pci_set_base_mem(BX_CIRRUS_THIS_PTR, cirrus_mem_read_handler,
+                               cirrus_mem_write_handler,
+                               &BX_CIRRUS_THIS pci_mmioaddr,
+                               &BX_CIRRUS_THIS pci_conf[0x14],
+                               CIRRUS_PNPMMIO_SIZE)) {
+        BX_INFO(("new pci_mmioaddr = 0x%08x", BX_CIRRUS_THIS pci_mmioaddr));
+      }
+    }
+#endif
     for (unsigned i=0; i<256; i++) {
       bx_gui->palette_change(i, BX_CIRRUS_THIS s.pel.data[i].red<<2,
                              BX_CIRRUS_THIS s.pel.data[i].green<<2,
