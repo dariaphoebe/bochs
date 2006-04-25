@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.332.2.3 2006/04/17 13:38:14 vruppert Exp $
+// $Id: main.cc,v 1.332.2.4 2006/04/25 17:48:01 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -893,6 +893,32 @@ void bx_stop_simulation()
   // the cpu loop will exit very soon after this condition is set.
 }
 
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_sr_before_save_state(void)
+{
+#if BX_SUPPORT_SMP == 0
+  BX_CPU(0)->before_save_state();
+#else
+  for (unsigned i=0; i<BX_SMP_PROCESSORS; i++) {
+    BX_CPU(i)->before_save_state();
+  }
+#endif
+  DEV_before_save_state();
+}
+
+void bx_sr_after_restore_state(void)
+{
+#if BX_SUPPORT_SMP == 0
+  BX_CPU(0)->after_restore_state();
+#else
+  for (unsigned i=0; i<BX_SMP_PROCESSORS; i++) {
+    BX_CPU(i)->after_restore_state();
+  }
+#endif
+  DEV_after_restore_state();
+}
+#endif
+
 int bx_init_hardware()
 {
   // all configuration has been read, now initialize everything.
@@ -1048,32 +1074,6 @@ int bx_init_hardware()
 
   return(0);
 }
-
-#if BX_SUPPORT_SAVE_RESTORE
-void bx_sr_before_save_state(void)
-{
-#if BX_SUPPORT_SMP == 0
-  BX_CPU(0)->before_save_state();
-#else
-  for (unsigned i=0; i<BX_SMP_PROCESSORS; i++) {
-    BX_CPU(i)->before_save_state();
-  }
-#endif
-  DEV_before_save_state();
-}
-
-void bx_sr_after_restore_state(void)
-{
-#if BX_SUPPORT_SMP == 0
-  BX_CPU(0)->after_restore_state();
-#else
-  for (unsigned i=0; i<BX_SMP_PROCESSORS; i++) {
-    BX_CPU(i)->after_restore_state();
-  }
-#endif
-  DEV_after_restore_state();
-}
-#endif
 
 void bx_init_bx_dbg(void)
 {

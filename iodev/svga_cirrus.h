@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: svga_cirrus.h,v 1.7.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: svga_cirrus.h,v 1.7.2.2 2006/04/25 17:48:02 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2004 Makoto Suzuki (suzu)
@@ -81,6 +81,7 @@ public:
   virtual Bit8u get_actl_palette_idx(Bit8u index);
 #if BX_SUPPORT_SAVE_RESTORE
   virtual void register_state(void);
+  virtual void after_restore_state(void);
 #endif
 
 #if BX_SUPPORT_PCI && BX_SUPPORT_CLGD54XX_PCI

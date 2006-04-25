@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: bochs.h,v 1.192.2.1 2006/04/16 17:50:20 vruppert Exp $
+// $Id: bochs.h,v 1.192.2.2 2006/04/25 17:48:01 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -109,7 +109,6 @@ int bx_begin_simulation(int argc, char *argv[]);
 void bx_stop_simulation();
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_sr_before_save_state();
-void bx_sr_after_restore_state();
 #endif
 char *bx_find_bochsrc(void);
 int bx_parse_cmdline(int arg, int argc, char *argv[]);

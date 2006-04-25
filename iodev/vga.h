@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.h,v 1.52.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: vga.h,v 1.52.2.2 2006/04/25 17:48:02 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -144,6 +144,7 @@ public:
   virtual void   dump_status(void);
 #if BX_SUPPORT_SAVE_RESTORE
   virtual void   register_state(void);
+  virtual void   after_restore_state(void);
 #endif
 
 #if BX_SUPPORT_VBE
@@ -275,7 +276,6 @@ protected:
     bx_bool  vga_tile_updated[BX_NUM_X_TILES][BX_NUM_Y_TILES];
     Bit8u vga_memory[256 * 1024];
     Bit8u text_snapshot[128 * 1024]; // current text snapshot
-    Bit8u rgb[3 * 256];
     Bit8u tile[X_TILESIZE * Y_TILESIZE * 4]; /**< Currently allocates the tile as large as needed. */
     Bit16u charmap_address;
     bx_bool x_dotclockdiv2;

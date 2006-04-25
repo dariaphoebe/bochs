@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: svga_cirrus.cc,v 1.30.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: svga_cirrus.cc,v 1.30.2.2 2006/04/25 17:48:02 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2004 Makoto Suzuki (suzu)
@@ -375,8 +375,24 @@ void bx_svga_cirrus_c::reset(unsigned type)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_svga_cirrus_c::register_state(void)
 {
+  bx_vga_c::register_state();
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "svga_cirrus", "Cirrus SVGA State");
   // TODO
+}
+
+void bx_svga_cirrus_c::after_restore_state(void)
+{
+  if ((BX_CIRRUS_THIS sequencer.reg[0x07] & 0x01) == CIRRUS_SR7_BPP_VGA) {
+    BX_CIRRUS_THIS bx_vga_c::after_restore_state();
+  } else {
+    for (unsigned i=0; i<256; i++) {
+      bx_gui->palette_change(i, BX_CIRRUS_THIS s.pel.data[i].red<<2,
+                             BX_CIRRUS_THIS s.pel.data[i].green<<2,
+                             BX_CIRRUS_THIS s.pel.data[i].blue<<2);
+    }
+    BX_CIRRUS_THIS redraw_area(0, 0, BX_CIRRUS_THIS svga_xres, BX_CIRRUS_THIS svga_yres);
+    BX_CIRRUS_THIS svga_update();
+  }
 }
 #endif
 
