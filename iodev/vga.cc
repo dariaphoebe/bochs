@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.cc,v 1.128.2.3 2006/04/25 19:02:40 vruppert Exp $
+// $Id: vga.cc,v 1.128.2.4 2006/04/26 20:53:01 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -534,6 +534,8 @@ void bx_vga_c::after_restore_state(void)
     }
   }
   bx_gui->set_text_charmap(&BX_VGA_THIS s.vga_memory[0x20000 + BX_VGA_THIS s.charmap_address]);
+  old_iWidth = BX_MAX_XRES;
+  old_iHeight = BX_MAX_YRES;
   BX_VGA_THIS redraw_area(0, 0, BX_MAX_XRES, BX_MAX_YRES);
   BX_VGA_THIS update();
   bx_gui->flush();

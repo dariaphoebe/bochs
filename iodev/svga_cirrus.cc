@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: svga_cirrus.cc,v 1.30.2.4 2006/04/26 17:26:20 vruppert Exp $
+// $Id: svga_cirrus.cc,v 1.30.2.5 2006/04/26 20:53:01 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2004 Makoto Suzuki (suzu)
@@ -458,7 +458,7 @@ void bx_svga_cirrus_c::after_restore_state(void)
                              BX_CIRRUS_THIS s.pel.data[i].green<<2,
                              BX_CIRRUS_THIS s.pel.data[i].blue<<2);
     }
-    BX_CIRRUS_THIS redraw_area(0, 0, BX_CIRRUS_THIS svga_xres, BX_CIRRUS_THIS svga_yres);
+    BX_CIRRUS_THIS svga_needs_update_mode = 1;
     BX_CIRRUS_THIS svga_update();
   }
 }

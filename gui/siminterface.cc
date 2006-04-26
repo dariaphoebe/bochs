@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.7 2006/04/23 12:40:17 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.8 2006/04/26 20:53:01 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1507,22 +1507,22 @@ void bx_shadow_num_c::set(Bit64s newval)
     BX_PANIC (("numerical parameter %s was set to " FMT_LL "d, which is out of range " FMT_LL "d to " FMT_LL "d", get_name (), newval, min, max));
   switch (varsize) {
     case 8: 
-      tmp = (*(val.p8bit) >> lowbit) & mask;
+      tmp = *(val.p8bit) & ~(mask << lowbit);
       tmp |= (newval & mask) << lowbit;
       *(val.p8bit) = (Bit8s)tmp;
       break;
     case 16:
-      tmp = (*(val.p16bit) >> lowbit) & mask;
+      tmp = *(val.p16bit) & ~(mask << lowbit);
       tmp |= (newval & mask) << lowbit;
       *(val.p16bit) = (Bit16s)tmp;
       break;
     case 32:
-      tmp = (*(val.p32bit) >> lowbit) & mask;
+      tmp = *(val.p32bit) & ~(mask << lowbit);
       tmp |= (newval & mask) << lowbit;
       *(val.p32bit) = (Bit32s)tmp;
       break;
     case 64:
-      tmp = (*(val.p64bit) >> lowbit) & mask;
+      tmp = *(val.p64bit) & ~(mask << lowbit);
       tmp |= (newval & mask) << lowbit;
       *(val.p64bit) = tmp;
       break;
