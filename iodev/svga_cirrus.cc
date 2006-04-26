@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: svga_cirrus.cc,v 1.30.2.3 2006/04/25 19:02:40 vruppert Exp $
+// $Id: svga_cirrus.cc,v 1.30.2.4 2006/04/26 17:26:20 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2004 Makoto Suzuki (suzu)
@@ -237,16 +237,12 @@ bx_svga_cirrus_c::bx_svga_cirrus_c() : bx_vga_c ()
 {
   put("CLVGA");
   vidmem = NULL;
-  tilemem = NULL;
 }
 
 bx_svga_cirrus_c::~bx_svga_cirrus_c()
 {
   if (vidmem != NULL) {
     delete [] vidmem;
-  }
-  if (tilemem != NULL) {
-    delete [] tilemem;
   }
 }
 
@@ -327,8 +323,6 @@ void bx_svga_cirrus_c::svga_init_members()
   // memory allocation.
   if (BX_CIRRUS_THIS vidmem == NULL)
     BX_CIRRUS_THIS vidmem = new Bit8u[CIRRUS_VIDEO_MEMORY_BYTES];
-  if (BX_CIRRUS_THIS tilemem == NULL)
-    BX_CIRRUS_THIS tilemem = new Bit8u[X_TILESIZE * Y_TILESIZE * 4];
 
   // set some registers.
 
@@ -375,11 +369,59 @@ void bx_svga_cirrus_c::reset(unsigned type)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_svga_cirrus_c::register_state(void)
 {
+  unsigned i;
+  char name[6];
+  bx_list_c *reg;
+
   bx_vga_c::register_state();
   if (BX_CIRRUS_THIS vidmem != NULL) {
-    bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "svga_cirrus", "Cirrus SVGA State");
+    bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "svga_cirrus", "Cirrus SVGA State", 17);
+    bx_list_c *crtc = new bx_list_c(list, "crtc", "");
+    new bx_shadow_num_c(crtc, "index", "", &BX_CIRRUS_THIS crtc.index, 16);
+    reg = new bx_list_c(crtc, "reg", "", CIRRUS_CRTC_MAX+1);
+    for (i=0; i<=CIRRUS_CRTC_MAX; i++) {
+      sprintf(name, "0x%02x", i);
+      new bx_shadow_num_c(reg, strdup(name), "", &BX_CIRRUS_THIS crtc.reg[i], 16);
+    }
+    bx_list_c *sequ = new bx_list_c(list, "sequencer", "");
+    new bx_shadow_num_c(sequ, "index", "", &BX_CIRRUS_THIS sequencer.index, 16);
+    reg = new bx_list_c(sequ, "reg", "", CIRRUS_SEQENCER_MAX+1);
+    for (i=0; i<=CIRRUS_SEQENCER_MAX; i++) {
+      sprintf(name, "0x%02x", i);
+      new bx_shadow_num_c(reg, strdup(name), "", &BX_CIRRUS_THIS sequencer.reg[i], 16);
+    }
+    bx_list_c *ctrl = new bx_list_c(list, "control", "");
+    new bx_shadow_num_c(ctrl, "index", "", &BX_CIRRUS_THIS control.index, 16);
+    reg = new bx_list_c(ctrl, "reg", "", CIRRUS_CONTROL_MAX+1);
+    for (i=0; i<=CIRRUS_CONTROL_MAX; i++) {
+      sprintf(name, "0x%02x", i);
+      new bx_shadow_num_c(reg, strdup(name), "", &BX_CIRRUS_THIS control.reg[i], 16);
+    }
+    new bx_shadow_num_c(ctrl, "shadow_reg0", "", &BX_CIRRUS_THIS control.shadow_reg0, 16);
+    new bx_shadow_num_c(ctrl, "shadow_reg1", "", &BX_CIRRUS_THIS control.shadow_reg1, 16);
+    bx_list_c *hdac = new bx_list_c(list, "hidden_dac", "");
+    new bx_shadow_num_c(hdac, "lockindex", "", &BX_CIRRUS_THIS hidden_dac.lockindex, 16);
+    new bx_shadow_num_c(hdac, "data", "", &BX_CIRRUS_THIS hidden_dac.data, 16);
+    reg = new bx_list_c(hdac, "palette", "", 48);
+    for (i=0; i<48; i++) {
+      sprintf(name, "0x%02x", i);
+      new bx_shadow_num_c(reg, strdup(name), "", &BX_CIRRUS_THIS hidden_dac.palette[i], 16);
+    }
+    new bx_shadow_bool_c(list, "svga_unlock_special", "", &BX_CIRRUS_THIS svga_unlock_special);
+    new bx_shadow_num_c(list, "svga_xres", "", &BX_CIRRUS_THIS svga_xres);
+    new bx_shadow_num_c(list, "svga_yres", "", &BX_CIRRUS_THIS svga_yres);
+    new bx_shadow_num_c(list, "svga_pitch", "", &BX_CIRRUS_THIS svga_pitch);
+    new bx_shadow_num_c(list, "svga_bpp", "", &BX_CIRRUS_THIS svga_bpp);
+    new bx_shadow_num_c(list, "svga_dispbpp", "", &BX_CIRRUS_THIS svga_dispbpp);
+    new bx_shadow_num_c(list, "bank_base0", "", &BX_CIRRUS_THIS bank_base[0], 16);
+    new bx_shadow_num_c(list, "bank_base1", "", &BX_CIRRUS_THIS bank_base[1], 16);
+    new bx_shadow_num_c(list, "bank_limit0", "", &BX_CIRRUS_THIS bank_limit[0], 16);
+    new bx_shadow_num_c(list, "bank_limit1", "", &BX_CIRRUS_THIS bank_limit[1], 16);
+    bx_list_c *cursor = new bx_list_c(list, "hw_cursor", "");
+    new bx_shadow_num_c(cursor, "x", "", &BX_CIRRUS_THIS hw_cursor.x, 16);
+    new bx_shadow_num_c(cursor, "y", "", &BX_CIRRUS_THIS hw_cursor.y, 16);
+    new bx_shadow_num_c(cursor, "size", "", &BX_CIRRUS_THIS hw_cursor.size, 16);
     new bx_shadow_data_c(list, "vidmem", "", BX_CIRRUS_THIS vidmem, BX_CIRRUS_THIS memsize);
-    // TODO
 #if BX_SUPPORT_PCI && BX_SUPPORT_CLGD54XX_PCI
     if (BX_CIRRUS_THIS pci_enabled) {
       new bx_shadow_data_c(list, "pci_conf", "", BX_CIRRUS_THIS pci_conf, 256);
