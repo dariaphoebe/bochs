@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pit82c54.cc,v 1.26 2006/01/08 20:39:08 vruppert Exp $
+// $Id: pit82c54.cc,v 1.26.2.1 2006/04/27 19:45:02 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 /*
@@ -178,12 +178,30 @@ void pit_82C54::init (void) {
   seen_problems=0;
 }
 
-pit_82C54::pit_82C54 (void) {
+pit_82C54::pit_82C54(void)
+{
   init();
 }
 
-void pit_82C54::reset (unsigned type) {
+void pit_82C54::reset(unsigned type)
+{
 }
+
+#if BX_SUPPORT_SAVE_RESTORE
+void pit_82C54::register_state(bx_param_c *parent)
+{
+  unsigned i;
+  char name[4];
+  bx_list_c *tim;
+
+  for (i=0; i<3; i++) {
+    sprintf(name, "%d", i);
+    tim = new bx_list_c(parent, strdup(name), "");
+    new bx_shadow_bool_c(tim, "GATE", "", &counter[i].GATE);
+    // TODO
+  }
+}
+#endif
 
 void  BX_CPP_AttrRegparmN(2)
 pit_82C54::decrement_multiple(counter_type & thisctr, Bit32u cycles) {
