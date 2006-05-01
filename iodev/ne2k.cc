@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.cc,v 1.84.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: ne2k.cc,v 1.84.2.2 2006/05/01 17:43:13 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -123,8 +123,35 @@ void bx_ne2k_c::reset(unsigned type)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_ne2k_c::register_state(void)
 {
+  unsigned i;
+  char name[6];
+
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "ne2k", "NE2000 State");
   // TODO
+  bx_list_c *macaddr = new bx_list_c(list, "macaddr", "", 32);
+  for (i=0; i<32; i++) {
+    sprintf(name, "0x%02x", i);
+    new bx_shadow_num_c(macaddr, strdup(name), "", &BX_NE2K_THIS s.macaddr[i], 16);
+  }
+  new bx_shadow_data_c(list, "mem", "", BX_NE2K_THIS s.mem, BX_NE2K_MEMSIZ);
+  new bx_shadow_bool_c(list, "tx_timer_active", "", &BX_NE2K_THIS s.tx_timer_active);
+#if BX_SUPPORT_PCI
+  new bx_shadow_data_c(list, "pci_conf", "", BX_NE2K_THIS s.pci_conf, 256);
+#endif
+}
+
+void bx_ne2k_c::after_restore_state(void)
+{
+#if BX_SUPPORT_PCI
+  if (BX_NE2K_THIS s.pci_enabled) {
+    if (DEV_pci_set_base_io(BX_NE2K_THIS_PTR, read_handler, write_handler,
+                            &BX_NE2K_THIS s.base_address,
+                            &BX_NE2K_THIS s.pci_conf[0x10],
+                            32, &ne2k_iomask[0], "NE2000 PCI NIC")) {
+      BX_INFO(("new base address: 0x%04x", BX_NE2K_THIS s.base_address));
+    }
+  }
+#endif
 }
 #endif
 
@@ -218,6 +245,7 @@ void bx_ne2k_c::write_cr(Bit32u value)
     bx_pc_system.activate_timer(BX_NE2K_THIS s.tx_timer_index,
 				(64 + 96 + 4*8 + BX_NE2K_THIS s.tx_bytes*8)/10,
 				0); // not continuous
+    BX_NE2K_THIS s.tx_timer_active = 1;
   }
 
   // Linux probes for an interrupt by setting up a remote-DMA read
@@ -1286,7 +1314,7 @@ void bx_ne2k_c::init(void)
   char devname[16];
   bx_list_c *base;
 
-  BX_DEBUG(("Init $Id: ne2k.cc,v 1.84.2.1 2006/04/17 09:41:53 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: ne2k.cc,v 1.84.2.2 2006/05/01 17:43:13 vruppert Exp $"));
 
   // Read in values from config interface
   base = (bx_list_c*) SIM->get_param(BXPN_NE2K);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.h,v 1.19.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: ne2k.h,v 1.19.2.2 2006/05/01 17:43:13 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -190,10 +190,10 @@ typedef struct {
     Bit8u  mem[BX_NE2K_MEMSIZ];  // on-chip packet memory
 
     // ne2k internal state
-    Bit32u base_address;
-    int    base_irq;
-    int    tx_timer_index;
-    int    tx_timer_active;
+    Bit32u  base_address;
+    int     base_irq;
+    int     tx_timer_index;
+    bx_bool tx_timer_active;
 
     // pci stuff
     bx_bool pci_enabled;
@@ -215,7 +215,8 @@ public:
   virtual void reset(unsigned type);
   virtual void print_info (FILE *file, int page, int reg, int nodups);
 #if BX_SUPPORT_SAVE_RESTORE
-  virtual void   register_state(void);
+  virtual void register_state(void);
+  virtual void after_restore_state(void);
 #endif
 
 #if BX_SUPPORT_PCI

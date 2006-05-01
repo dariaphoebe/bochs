@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.8 2006/04/26 20:53:01 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.9 2006/05/01 17:43:12 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -150,7 +150,7 @@ public:
     return (bx_list_c*)get_param("save_restore", NULL);
   }
 private:
-  void save_sr_param(FILE *fp, bx_param_c *node, const char *sr_path);
+  void save_sr_param(FILE *fp, bx_param_c *node, const char *sr_path, int level);
 #endif
 };
 
@@ -894,7 +894,7 @@ bx_bool bx_real_sim_c::save_state(const char *checkpoint_path)
     sprintf(sr_file, "%s/%s", checkpoint_path, sr_list->get(dev)->get_name());
     fp = fopen(sr_file, "w");
     if (fp != NULL) {
-      save_sr_param(fp, sr_list->get(dev), checkpoint_path);
+      save_sr_param(fp, sr_list->get(dev), checkpoint_path, 0);
       fclose(fp);
     }
   }
@@ -988,11 +988,12 @@ bx_bool bx_real_sim_c::restore_logopts()
 bx_bool bx_real_sim_c::restore_hardware()
 {
   char devstate[BX_PATHNAME_LEN], devdata[BX_PATHNAME_LEN];
-  char line[512], buf[512];
+  char line[512], buf[512], pname[80];
   char *ret, *ptr;
   int i, j, p, dev, ndev;
   unsigned int n;
   bx_param_c *param = NULL;
+  bx_list_c *base;
   FILE *fp, *fp2;
 
   bx_list_c *sr_list = get_sr_root();
@@ -1000,6 +1001,7 @@ bx_bool bx_real_sim_c::restore_hardware()
   for (dev=0; dev<ndev; dev++) {
     sprintf(devstate, "%s/%s", get_param_string(BXPN_RESTORE_PATH)->getptr(), sr_list->get(dev)->get_name());
     BX_INFO(("restoring '%s'", devstate));
+    base = sr_list;
     fp = fopen(devstate, "r");
     if (fp != NULL) {
       do {
@@ -1013,8 +1015,17 @@ bx_bool bx_real_sim_c::restore_hardware()
           ptr = strtok(line, " ");
           while (ptr) {
             if (i == 0) {
-              param = get_param(ptr, NULL);
+              if (!strcmp(ptr, "}")) {
+                base = (bx_list_c*)base->get_parent();
+                break;
+              } else {
+                param = get_param(ptr, base);
+              }
             } else if (i == 2) {
+              if (param->get_type() != BXT_LIST) {
+                param->get_param_path(pname, 80);
+                BX_DEBUG(("restoring parameter '%s'", pname));
+              }
               switch (param->get_type()) {
                 case BXT_PARAM_NUM:
                   if ((ptr[0] == '0') && (ptr[1] == 'x')) {
@@ -1054,6 +1065,9 @@ bx_bool bx_real_sim_c::restore_hardware()
                     fclose(fp2);
                   }
                   break;
+                case BXT_LIST:
+                  base = (bx_list_c*)param;
+                  break;
                 default:
                   BX_ERROR(("restore_hardware(): unknown parameter type"));
               }
@@ -1069,20 +1083,19 @@ bx_bool bx_real_sim_c::restore_hardware()
   return 0;
 }
 
-void bx_real_sim_c::save_sr_param(FILE *fp, bx_param_c *node, const char *sr_path)
+void bx_real_sim_c::save_sr_param(FILE *fp, bx_param_c *node, const char *sr_path, int level)
 {
   int i;
   char tmpstr[BX_PATHNAME_LEN], tmpbyte[4];
   FILE *fp2;
 
+  for (i=0; i<level; i++)
+    fprintf(fp, "  ");
   if (node == NULL) {
       BX_ERROR(("NULL pointer"));
       return;
   }
-  if (node->get_type() != BXT_LIST) {
-    node->get_param_path(tmpstr, BX_PATHNAME_LEN);
-    fprintf(fp, "%s = ", tmpstr);
-  }
+  fprintf(fp, "%s = ", node->get_name());
   switch (node->get_type()) {
     case BXT_PARAM_NUM:
       if (((bx_param_num_c*)node)->get_base() == 10) {
@@ -1134,10 +1147,14 @@ void bx_real_sim_c::save_sr_param(FILE *fp, bx_param_c *node, const char *sr_pat
       break;
     case BXT_LIST:
       {
+        fprintf(fp, "{\n");
         bx_list_c *list = (bx_list_c*)node;
         for (i=0; i < list->get_size(); i++) {
-          save_sr_param(fp, list->get(i), sr_path);
+          save_sr_param(fp, list->get(i), sr_path, level+1);
         }
+        for (i=0; i<level; i++)
+          fprintf(fp, "  ");
+        fprintf(fp, "}\n");
         break;
       }
     default:
