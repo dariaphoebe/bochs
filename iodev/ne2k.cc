@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.cc,v 1.84.2.2 2006/05/01 17:43:13 vruppert Exp $
+// $Id: ne2k.cc,v 1.84.2.3 2006/05/03 18:18:46 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -76,48 +76,50 @@ bx_ne2k_c::~bx_ne2k_c()
 //
 void bx_ne2k_c::reset(unsigned type)
 {
-  BX_DEBUG (("reset"));
-  // Zero out registers and memory
-  memset( & BX_NE2K_THIS s.CR,  0, sizeof(BX_NE2K_THIS s.CR) );
-  memset( & BX_NE2K_THIS s.ISR, 0, sizeof(BX_NE2K_THIS s.ISR));
-  memset( & BX_NE2K_THIS s.IMR, 0, sizeof(BX_NE2K_THIS s.IMR));
-  memset( & BX_NE2K_THIS s.DCR, 0, sizeof(BX_NE2K_THIS s.DCR));
-  memset( & BX_NE2K_THIS s.TCR, 0, sizeof(BX_NE2K_THIS s.TCR));
-  memset( & BX_NE2K_THIS s.TSR, 0, sizeof(BX_NE2K_THIS s.TSR));
-  memset( & BX_NE2K_THIS s.RCR, 0, sizeof(BX_NE2K_THIS s.RCR));
-  memset( & BX_NE2K_THIS s.RSR, 0, sizeof(BX_NE2K_THIS s.RSR));
-  BX_NE2K_THIS s.local_dma  = 0;
-  BX_NE2K_THIS s.page_start = 0;
-  BX_NE2K_THIS s.page_stop  = 0;
-  BX_NE2K_THIS s.bound_ptr  = 0;
-  BX_NE2K_THIS s.tx_page_start = 0;
-  BX_NE2K_THIS s.num_coll   = 0;
-  BX_NE2K_THIS s.tx_bytes   = 0;
-  BX_NE2K_THIS s.fifo       = 0;
-  BX_NE2K_THIS s.remote_dma = 0;
-  BX_NE2K_THIS s.remote_start = 0;
-  BX_NE2K_THIS s.remote_bytes = 0;
-  BX_NE2K_THIS s.tallycnt_0 = 0;
-  BX_NE2K_THIS s.tallycnt_1 = 0;
-  BX_NE2K_THIS s.tallycnt_2 = 0;
+  BX_DEBUG(("reset"));
+  if (type == BX_RESET_HARDWARE) {
+    // Zero out registers and memory
+    memset(&BX_NE2K_THIS s.CR,  0, sizeof(BX_NE2K_THIS s.CR));
+    memset(&BX_NE2K_THIS s.IMR, 0, sizeof(BX_NE2K_THIS s.IMR));
+    memset(&BX_NE2K_THIS s.DCR, 0, sizeof(BX_NE2K_THIS s.DCR));
+    memset(&BX_NE2K_THIS s.TCR, 0, sizeof(BX_NE2K_THIS s.TCR));
+    memset(&BX_NE2K_THIS s.TSR, 0, sizeof(BX_NE2K_THIS s.TSR));
+    memset(&BX_NE2K_THIS s.RCR, 0, sizeof(BX_NE2K_THIS s.RCR));
+    memset(&BX_NE2K_THIS s.RSR, 0, sizeof(BX_NE2K_THIS s.RSR));
+    BX_NE2K_THIS s.local_dma  = 0;
+    BX_NE2K_THIS s.page_start = 0;
+    BX_NE2K_THIS s.page_stop  = 0;
+    BX_NE2K_THIS s.bound_ptr  = 0;
+    BX_NE2K_THIS s.tx_page_start = 0;
+    BX_NE2K_THIS s.num_coll   = 0;
+    BX_NE2K_THIS s.tx_bytes   = 0;
+    BX_NE2K_THIS s.fifo       = 0;
+    BX_NE2K_THIS s.remote_dma = 0;
+    BX_NE2K_THIS s.remote_start = 0;
+    BX_NE2K_THIS s.remote_bytes = 0;
+    BX_NE2K_THIS s.tallycnt_0 = 0;
+    BX_NE2K_THIS s.tallycnt_1 = 0;
+    BX_NE2K_THIS s.tallycnt_2 = 0;
 
-  memset( & BX_NE2K_THIS s.physaddr, 0, sizeof(BX_NE2K_THIS s.physaddr));
-  memset( & BX_NE2K_THIS s.mchash, 0, sizeof(BX_NE2K_THIS s.mchash));
-  BX_NE2K_THIS s.curr_page = 0;
+    memset(&BX_NE2K_THIS s.physaddr, 0, sizeof(BX_NE2K_THIS s.physaddr));
+    memset(&BX_NE2K_THIS s.mchash, 0, sizeof(BX_NE2K_THIS s.mchash));
+    BX_NE2K_THIS s.curr_page = 0;
 
-  BX_NE2K_THIS s.rempkt_ptr   = 0;
-  BX_NE2K_THIS s.localpkt_ptr = 0;
-  BX_NE2K_THIS s.address_cnt  = 0;
+    BX_NE2K_THIS s.rempkt_ptr   = 0;
+    BX_NE2K_THIS s.localpkt_ptr = 0;
+    BX_NE2K_THIS s.address_cnt  = 0;
 
-  memset( & BX_NE2K_THIS s.mem, 0, sizeof(BX_NE2K_THIS s.mem));
-  
-  // Set power-up conditions
-  BX_NE2K_THIS s.CR.stop      = 1;
-  BX_NE2K_THIS s.CR.rdma_cmd  = 4;
-  BX_NE2K_THIS s.ISR.reset    = 1;
-  BX_NE2K_THIS s.DCR.longaddr = 1;
+    memset(&BX_NE2K_THIS s.mem, 0, sizeof(BX_NE2K_THIS s.mem));
 
-  set_irq_level(0);
+    // Set power-up conditions
+    BX_NE2K_THIS s.CR.stop      = 1;
+    BX_NE2K_THIS s.CR.rdma_cmd  = 4;
+    BX_NE2K_THIS s.DCR.longaddr = 1;
+
+    set_irq_level(0);
+  }
+  memset(&BX_NE2K_THIS s.ISR, 0, sizeof(BX_NE2K_THIS s.ISR));
+  BX_NE2K_THIS s.ISR.reset = 1;
 }
 
 #if BX_SUPPORT_SAVE_RESTORE
@@ -126,7 +128,30 @@ void bx_ne2k_c::register_state(void)
   unsigned i;
   char name[6];
 
-  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "ne2k", "NE2000 State");
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "ne2k", "NE2000 State", 32);
+  bx_list_c *CR = new bx_list_c(list, "CR", "");
+  new bx_shadow_bool_c(CR, "stop", "", &BX_NE2K_THIS s.CR.stop);
+  new bx_shadow_bool_c(CR, "start", "", &BX_NE2K_THIS s.CR.start);
+  new bx_shadow_bool_c(CR, "tx_packet", "", &BX_NE2K_THIS s.CR.tx_packet);
+  new bx_shadow_num_c(CR, "rdma_cmd", "", &BX_NE2K_THIS s.CR.rdma_cmd);
+  new bx_shadow_num_c(CR, "pgsel", "", &BX_NE2K_THIS s.CR.pgsel);
+  bx_list_c *ISR = new bx_list_c(list, "ISR", "", 8);
+  new bx_shadow_bool_c(ISR, "pkt_rx", "", &BX_NE2K_THIS s.ISR.pkt_rx);
+  new bx_shadow_bool_c(ISR, "pkt_tx", "", &BX_NE2K_THIS s.ISR.pkt_tx);
+  new bx_shadow_bool_c(ISR, "rx_err", "", &BX_NE2K_THIS s.ISR.rx_err);
+  new bx_shadow_bool_c(ISR, "tx_err", "", &BX_NE2K_THIS s.ISR.tx_err);
+  new bx_shadow_bool_c(ISR, "overwrite", "", &BX_NE2K_THIS s.ISR.overwrite);
+  new bx_shadow_bool_c(ISR, "cnt_oflow", "", &BX_NE2K_THIS s.ISR.cnt_oflow);
+  new bx_shadow_bool_c(ISR, "rdma_done", "", &BX_NE2K_THIS s.ISR.rdma_done);
+  new bx_shadow_bool_c(ISR, "reset", "", &BX_NE2K_THIS s.ISR.reset);
+  bx_list_c *IMR = new bx_list_c(list, "IMR", "", 7);
+  new bx_shadow_bool_c(IMR, "rx_inte", "", &BX_NE2K_THIS s.IMR.rx_inte);
+  new bx_shadow_bool_c(IMR, "tx_inte", "", &BX_NE2K_THIS s.IMR.tx_inte);
+  new bx_shadow_bool_c(IMR, "rxerr_inte", "", &BX_NE2K_THIS s.IMR.rxerr_inte);
+  new bx_shadow_bool_c(IMR, "txerr_inte", "", &BX_NE2K_THIS s.IMR.txerr_inte);
+  new bx_shadow_bool_c(IMR, "overw_inte", "", &BX_NE2K_THIS s.IMR.overw_inte);
+  new bx_shadow_bool_c(IMR, "cofl_inte", "", &BX_NE2K_THIS s.IMR.cofl_inte);
+  new bx_shadow_bool_c(IMR, "rdma_inte", "", &BX_NE2K_THIS s.IMR.rdma_inte);
   // TODO
   bx_list_c *macaddr = new bx_list_c(list, "macaddr", "", 32);
   for (i=0; i<32; i++) {
@@ -136,7 +161,9 @@ void bx_ne2k_c::register_state(void)
   new bx_shadow_data_c(list, "mem", "", BX_NE2K_THIS s.mem, BX_NE2K_MEMSIZ);
   new bx_shadow_bool_c(list, "tx_timer_active", "", &BX_NE2K_THIS s.tx_timer_active);
 #if BX_SUPPORT_PCI
-  new bx_shadow_data_c(list, "pci_conf", "", BX_NE2K_THIS s.pci_conf, 256);
+  if (BX_NE2K_THIS s.pci_enabled) {
+    new bx_shadow_data_c(list, "pci_conf", "", BX_NE2K_THIS s.pci_conf, 256);
+  }
 #endif
 }
 
@@ -442,7 +469,7 @@ bx_ne2k_c::asic_write(Bit32u offset, Bit32u value, unsigned io_len)
     break;
 
   case 0xf:  // Reset register
-    theNE2kDevice->reset(BX_RESET_SOFTWARE);
+    // end of reset pulse
     break;
 
   default: // this is invalid, but happens under win95 device detection
@@ -1314,7 +1341,7 @@ void bx_ne2k_c::init(void)
   char devname[16];
   bx_list_c *base;
 
-  BX_DEBUG(("Init $Id: ne2k.cc,v 1.84.2.2 2006/05/01 17:43:13 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: ne2k.cc,v 1.84.2.3 2006/05/03 18:18:46 vruppert Exp $"));
 
   // Read in values from config interface
   base = (bx_list_c*) SIM->get_param(BXPN_NE2K);

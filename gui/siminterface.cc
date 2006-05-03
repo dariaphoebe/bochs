@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.9 2006/05/01 17:43:12 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.10 2006/05/03 18:18:46 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1350,7 +1350,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 {
   this->varsize = 64;
   this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = ((BX_MAX_BIT64S >> (63 - (highbit - lowbit))) << lowbit);
   val.p64bit = ptr_to_real_val;
   if (base == 16) {
     this->base = base;
@@ -1370,7 +1370,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 {
   this->varsize = 64;
   this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = ((BX_MAX_BIT64U >> (63 - (highbit - lowbit))) << lowbit);
   val.p64bit = (Bit64s*) ptr_to_real_val;
   if (base == 16) {
     this->base = base;
@@ -1390,7 +1390,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 {
   this->varsize = 16;
   this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = ((BX_MAX_BIT32S >> (31 - (highbit - lowbit))) << lowbit);
   val.p32bit = ptr_to_real_val;
   if (base == 16) {
     this->base = base;
@@ -1410,7 +1410,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 {
   this->varsize = 32;
   this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = ((BX_MAX_BIT32U >> (31 - (highbit - lowbit))) << lowbit);
   val.p32bit = (Bit32s*) ptr_to_real_val;
   if (base == 16) {
     this->base = base;
@@ -1430,7 +1430,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 {
   this->varsize = 16;
   this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = ((BX_MAX_BIT16S >> (15 - (highbit - lowbit))) << lowbit);
   val.p16bit = ptr_to_real_val;
   if (base == 16) {
     this->base = base;
@@ -1450,7 +1450,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 {
   this->varsize = 16;
   this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = ((BX_MAX_BIT16U >> (15 - (highbit - lowbit))) << lowbit);
   val.p16bit = (Bit16s*) ptr_to_real_val;
   if (base == 16) {
     this->base = base;
@@ -1470,6 +1470,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 {
   this->varsize = 16;
   this->lowbit = lowbit;
+  this->mask = ((BX_MAX_BIT8S >> (7 - (highbit - lowbit))) << lowbit);
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p8bit = ptr_to_real_val;
   if (base == 16) {
@@ -1490,7 +1491,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 {
   this->varsize = 8;
   this->lowbit = lowbit;
-  this->mask = (1 << (highbit - lowbit)) - 1;
+  this->mask = ((BX_MAX_BIT8U >> (7 - (highbit - lowbit))) << lowbit);
   val.p8bit = (Bit8s*) ptr_to_real_val;
   if (base == 16) {
     this->base = base;
