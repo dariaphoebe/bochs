@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcipnic.h,v 1.5.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: pcipnic.h,v 1.5.2.2 2006/05/06 13:46:07 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  Fen Systems Ltd.
@@ -60,7 +60,7 @@ typedef struct {
 } bx_pnic_t;
 
 
-class bx_pcipnic_c : public bx_pci_device_stub_c {
+class bx_pcipnic_c : public bx_ne2k_stub_c, bx_pci_device_stub_c {
 public:
   bx_pcipnic_c();
   virtual ~bx_pcipnic_c();
@@ -68,6 +68,7 @@ public:
   virtual void reset(unsigned type);
 #if BX_SUPPORT_SAVE_RESTORE
   virtual void register_state(void);
+  virtual void after_restore_state(void);
 #endif
 
   virtual Bit32u pci_read_handler(Bit8u address, unsigned io_len);
