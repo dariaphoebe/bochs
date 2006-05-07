@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.h,v 1.24.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: sb16.h,v 1.24.2.2 2006/05/07 17:52:27 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -200,6 +200,7 @@ public:
   virtual void reset(unsigned type);
 #if BX_SUPPORT_SAVE_RESTORE
   virtual void register_state(void);
+  virtual void after_restore_state(void);
 #endif
 
   /* Make writelog available to output functions */
