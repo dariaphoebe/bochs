@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.h,v 1.17.2.1 2006/04/17 09:41:53 vruppert Exp $
+// $Id: pciusb.h,v 1.17.2.2 2006/05/07 07:33:29 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -347,7 +347,8 @@ public:
   virtual bx_bool usb_keyboard_connected();
   virtual bx_bool usb_mouse_connected();
 #if BX_SUPPORT_SAVE_RESTORE
-  virtual void    register_state(void);
+  virtual void register_state(void);
+  virtual void after_restore_state(void);
 #endif
   virtual Bit32u  pci_read_handler(Bit8u address, unsigned io_len);
   virtual void    pci_write_handler(Bit8u address, Bit32u value, unsigned io_len);
