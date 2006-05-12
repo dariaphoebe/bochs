@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.10 2006/05/03 18:18:46 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.11 2006/05/12 17:33:09 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1580,6 +1580,16 @@ bx_shadow_bool_c::bx_shadow_bool_c(bx_param_c *parent,
   this->bitnum = bitnum;
 }
 
+bx_shadow_bool_c::bx_shadow_bool_c(bx_param_c *parent,
+      char *name,
+      bx_bool *ptr_to_real_val,
+      Bit8u bitnum)
+  : bx_param_bool_c(parent, name, NULL, NULL, (Bit64s) *ptr_to_real_val, 1)
+{
+  val.pbool = ptr_to_real_val;
+  this->bitnum = bitnum;
+}
+
 Bit64s bx_shadow_bool_c::get64() {
   if (handler) {
     // the handler can decide what value to return and/or do some side effect
@@ -1774,10 +1784,9 @@ void bx_param_string_c::set_initial_val(char *buf) {
 #if BX_SUPPORT_SAVE_RESTORE
 bx_shadow_data_c::bx_shadow_data_c(bx_param_c *parent,
     char *name,
-    char *description,
     Bit8u *ptr_to_data,
     Bit32u data_size)
-  : bx_param_c(SIM->gen_param_id(), name, description)
+  : bx_param_c(SIM->gen_param_id(), name, "")
 {
   set_type(BXT_PARAM_DATA);
   this->data_ptr = ptr_to_data;
@@ -1794,6 +1803,22 @@ bx_list_c::bx_list_c(bx_param_c *parent, int maxsize)
   : bx_param_c(SIM->gen_param_id(), "list", "")
 {
   set_type(BXT_LIST);
+  this->size = 0;
+  this->maxsize = maxsize;
+  this->list = new bx_param_c*  [maxsize];
+  this->parent = NULL;
+  if (parent) {
+    BX_ASSERT(parent->get_type() == BXT_LIST);
+    this->parent = (bx_list_c *)parent;
+    this->parent->add(this);
+  }
+  init("");
+}
+
+bx_list_c::bx_list_c(bx_param_c *parent, char *name, int maxsize)
+  : bx_param_c(SIM->gen_param_id(), name, "")
+{
+  set_type (BXT_LIST);
   this->size = 0;
   this->maxsize = maxsize;
   this->list = new bx_param_c*  [maxsize];

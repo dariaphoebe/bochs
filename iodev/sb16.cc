@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.cc,v 1.47.2.2 2006/05/07 17:52:27 vruppert Exp $
+// $Id: sb16.cc,v 1.47.2.3 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -323,12 +323,12 @@ void bx_sb16_c::register_state(void)
 {
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "sb16", "SB16 State");
   // TODO
-  new bx_shadow_data_c(list, "csp_reg", "", BX_SB16_THIS csp_reg, 256);
-  bx_list_c *opl = new bx_list_c(list, "opl", "");
+  new bx_shadow_data_c(list, "csp_reg", BX_SB16_THIS csp_reg, 256);
+  bx_list_c *opl = new bx_list_c(list, "opl");
   new bx_shadow_num_c(opl, "mode", "", (Bit8u*)&OPL.mode);
   new bx_shadow_num_c(opl, "timer_running", "", &OPL.timer_running);
   new bx_shadow_num_c(list, "mixer_regindex", "", &MIXER.regindex, 16);
-  new bx_shadow_data_c(list, "mixer_reg", "", MIXER.reg, BX_SB16_MIX_REG);
+  new bx_shadow_data_c(list, "mixer_reg", MIXER.reg, BX_SB16_MIX_REG);
 }
 
 void bx_sb16_c::after_restore_state(void)

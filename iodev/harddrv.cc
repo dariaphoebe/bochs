@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.165.2.2 2006/05/07 17:52:26 vruppert Exp $
+// $Id: harddrv.cc,v 1.165.2.3 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -143,7 +143,7 @@ void bx_hard_drive_c::init(void)
   char  ata_name[20];
   bx_list_c *base;
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.165.2.2 2006/05/07 17:52:26 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.165.2.3 2006/05/12 17:33:10 vruppert Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     sprintf(ata_name, "ata.%d.resources", channel);
@@ -615,11 +615,11 @@ void bx_hard_drive_c::register_state(void)
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "hard_drive", "Hard Drive State");
   for (i=0; i<BX_MAX_ATA_CHANNEL; i++) {
     sprintf(cname, "%d", i);
-    chan = new bx_list_c(list, strdup(cname), "");
+    chan = new bx_list_c(list, strdup(cname));
     for (j=0; j<2; j++) {
       sprintf(dname, "drive%d", i);
-      drive = new bx_list_c(chan, strdup(dname), "");
-      new bx_shadow_data_c(drive, "id_drive", "", (Bit8u*)BX_HD_THIS channels[i].drives[j].id_drive, 512);
+      drive = new bx_list_c(chan, strdup(dname));
+      new bx_shadow_data_c(drive, "id_drive", (Bit8u*)BX_HD_THIS channels[i].drives[j].id_drive, 512);
       // TODO
     }
     new bx_shadow_num_c(chan, "drive_select", "", &BX_HD_THIS channels[i].drive_select);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: misc_mem.cc,v 1.89.2.1 2006/04/16 17:50:20 vruppert Exp $
+// $Id: misc_mem.cc,v 1.89.2.2 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -94,7 +94,7 @@ void BX_MEM_C::init_memory(int memsize)
 {
   int idx;
 
-  BX_DEBUG(("Init $Id: misc_mem.cc,v 1.89.2.1 2006/04/16 17:50:20 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: misc_mem.cc,v 1.89.2.2 2006/05/12 17:33:10 vruppert Exp $"));
   // you can pass 0 if memory has been allocated already through
   // the constructor, or the desired size of memory if it hasn't
 
@@ -131,7 +131,7 @@ void BX_MEM_C::init_memory(int memsize)
 
 #if BX_SUPPORT_SAVE_RESTORE
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "memory", "Memory State");
-  new bx_shadow_data_c(list, "ram", "", &BX_MEM_THIS vector[0], BX_MEM_THIS len);
+  new bx_shadow_data_c(list, "ram", BX_MEM_THIS vector, BX_MEM_THIS len);
 #endif
 }
 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: dma.cc,v 1.35.2.5 2006/04/23 12:40:18 vruppert Exp $
+// $Id: dma.cc,v 1.35.2.6 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -124,7 +124,7 @@ unsigned bx_dma_c::get_TC(void)
 void bx_dma_c::init(void)
 {
   unsigned c, i, j;
-  BX_DEBUG(("Init $Id: dma.cc,v 1.35.2.5 2006/04/23 12:40:18 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: dma.cc,v 1.35.2.6 2006/05/12 17:33:10 vruppert Exp $"));
 
   /* 8237 DMA controller */
 
@@ -201,17 +201,17 @@ void bx_dma_c::register_state(void)
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "dma", "DMA State");
   for (i=0; i<2; i++) {
     sprintf(name, "%d", i);
-    bx_list_c *ctrl = new bx_list_c(list, strdup(name), "", 8);
-    new bx_shadow_bool_c(ctrl, "flip_flop", "", &BX_DMA_THIS s[i].flip_flop);
+    bx_list_c *ctrl = new bx_list_c(list, strdup(name), 8);
+    new bx_shadow_bool_c(ctrl, "flip_flop", &BX_DMA_THIS s[i].flip_flop);
     new bx_shadow_num_c(ctrl, "status_reg", "", &BX_DMA_THIS s[i].status_reg, 16);
     new bx_shadow_num_c(ctrl, "command_reg", "", &BX_DMA_THIS s[i].command_reg, 16);
-    new bx_shadow_bool_c(ctrl, "ctrl_disabled", "", &BX_DMA_THIS s[i].ctrl_disabled);
+    new bx_shadow_bool_c(ctrl, "ctrl_disabled", &BX_DMA_THIS s[i].ctrl_disabled);
     for (c=0; c<4; c++) {
       sprintf(name, "%d", c);
-      bx_list_c *chan = new bx_list_c(ctrl, strdup(name), "", 12);
-      new bx_shadow_bool_c(chan, "DRQ", "", &BX_DMA_THIS s[i].DRQ[c]);
-      new bx_shadow_bool_c(chan, "DACK", "", &BX_DMA_THIS s[i].DACK[c]);
-      new bx_shadow_bool_c(chan, "mask", "", &BX_DMA_THIS s[i].mask[4]);
+      bx_list_c *chan = new bx_list_c(ctrl, strdup(name), 12);
+      new bx_shadow_bool_c(chan, "DRQ", &BX_DMA_THIS s[i].DRQ[c]);
+      new bx_shadow_bool_c(chan, "DACK", &BX_DMA_THIS s[i].DACK[c]);
+      new bx_shadow_bool_c(chan, "mask", &BX_DMA_THIS s[i].mask[4]);
       new bx_shadow_num_c(chan, "mode_type", "", &BX_DMA_THIS s[i].chan[c].mode.mode_type);
       new bx_shadow_num_c(chan, "address_decrement", "", &BX_DMA_THIS s[i].chan[c].mode.address_decrement);
       new bx_shadow_num_c(chan, "autoinit_enable", "", &BX_DMA_THIS s[i].chan[c].mode.autoinit_enable);
@@ -223,7 +223,7 @@ void bx_dma_c::register_state(void)
       new bx_shadow_num_c(chan, "page_reg", "", &BX_DMA_THIS s[i].chan[c].page_reg, 16);
     }
   }
-  bx_list_c *extpg = new bx_list_c(list, "ext_page", "", 16);
+  bx_list_c *extpg = new bx_list_c(list, "ext_page", 16);
   for (i=0; i<16; i++) {
     sprintf(name, "0x%02x", 0x80+i);
     new bx_shadow_num_c(extpg, strdup(name), "", &BX_DMA_THIS ext_page_reg[i], 16);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcipnic.cc,v 1.18.2.2 2006/05/06 13:46:07 vruppert Exp $
+// $Id: pcipnic.cc,v 1.18.2.3 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  Fen Systems Ltd.
@@ -161,14 +161,14 @@ void bx_pcipnic_c::register_state(void)
   new bx_shadow_num_c(list, "rDataCursor", "", &BX_PNIC_THIS s.rDataCursor);
   new bx_shadow_num_c(list, "recvIndex", "", &BX_PNIC_THIS s.recvIndex);
   new bx_shadow_num_c(list, "recvQueueLength", "", &BX_PNIC_THIS s.recvQueueLength);
-  bx_list_c *recvRL = new bx_list_c(list, "recvRingLength", "", PNIC_RECV_RINGS);
+  bx_list_c *recvRL = new bx_list_c(list, "recvRingLength", PNIC_RECV_RINGS);
   for (i=0; i<PNIC_RECV_RINGS; i++) {
     sprintf(name, "%d", i);
     new bx_shadow_num_c(recvRL, strdup(name), "", &BX_PNIC_THIS s.recvRingLength[i]);
   }
-  new bx_shadow_data_c(list, "rData", "", BX_PNIC_THIS s.rData, PNIC_DATA_SIZE);
-  new bx_shadow_data_c(list, "recvRing", "", (Bit8u*)BX_PNIC_THIS s.recvRing, PNIC_RECV_RINGS*PNIC_DATA_SIZE);
-  new bx_shadow_data_c(list, "pci_conf", "", BX_PNIC_THIS s.pci_conf, 256);
+  new bx_shadow_data_c(list, "rData", BX_PNIC_THIS s.rData, PNIC_DATA_SIZE);
+  new bx_shadow_data_c(list, "recvRing", (Bit8u*)BX_PNIC_THIS s.recvRing, PNIC_RECV_RINGS*PNIC_DATA_SIZE);
+  new bx_shadow_data_c(list, "pci_conf", BX_PNIC_THIS s.pci_conf, 256);
 }
 
 void bx_pcipnic_c::after_restore_state(void)

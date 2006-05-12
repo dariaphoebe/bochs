@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.cc,v 1.47.2.3 2006/04/19 17:49:25 vruppert Exp $
+// $Id: pci.cc,v 1.47.2.4 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -154,7 +154,7 @@ void bx_pci_bridge_c::register_state(void)
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci_bridge", "PCI Bridge State");
   new bx_shadow_num_c(list, "confAddr", "", &BX_PCI_THIS s.i440fx.confAddr, 16);
   new bx_shadow_num_c(list, "confData", "", &BX_PCI_THIS s.i440fx.confData, 16);
-  new bx_shadow_data_c(list, "pci_conf", "", &BX_PCI_THIS s.i440fx.pci_conf[0], 256);
+  new bx_shadow_data_c(list, "pci_conf", BX_PCI_THIS s.i440fx.pci_conf, 256);
 }
 
 void bx_pci_bridge_c::after_restore_state(void)

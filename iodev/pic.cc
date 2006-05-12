@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pic.cc,v 1.42.2.2 2006/04/19 17:49:25 vruppert Exp $
+// $Id: pic.cc,v 1.42.2.3 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -129,7 +129,7 @@ void bx_pic_c::register_state(void)
   bx_list_c *ctrl;
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pic", "PIC State");
-  ctrl = new bx_list_c(list, "master", "", 17);
+  ctrl = new bx_list_c(list, "master", 17);
   new bx_shadow_num_c(ctrl, "interrupt_offset", "", &BX_PIC_THIS s.master_pic.interrupt_offset, 16);
   new bx_shadow_num_c(ctrl, "auto_eoi", "", &BX_PIC_THIS s.master_pic.auto_eoi, 16);
   new bx_shadow_num_c(ctrl, "imr", "", &BX_PIC_THIS s.master_pic.imr, 16);
@@ -138,16 +138,16 @@ void bx_pic_c::register_state(void)
   new bx_shadow_num_c(ctrl, "read_reg_select", "", &BX_PIC_THIS s.master_pic.read_reg_select);
   new bx_shadow_num_c(ctrl, "irq", "", &BX_PIC_THIS s.master_pic.irq, 16);
   new bx_shadow_num_c(ctrl, "lowest_priority", "", &BX_PIC_THIS s.master_pic.lowest_priority, 16);
-  new bx_shadow_bool_c(ctrl, "INT", "", &BX_PIC_THIS s.master_pic.INT);
+  new bx_shadow_bool_c(ctrl, "INT", &BX_PIC_THIS s.master_pic.INT);
   new bx_shadow_num_c(ctrl, "IRQ_in", "", &BX_PIC_THIS s.master_pic.IRQ_in, 16);
-  new bx_shadow_bool_c(ctrl, "in_init", "", &BX_PIC_THIS s.master_pic.init.in_init);
-  new bx_shadow_bool_c(ctrl, "requires_4", "", &BX_PIC_THIS s.master_pic.init.requires_4);
+  new bx_shadow_bool_c(ctrl, "in_init", &BX_PIC_THIS s.master_pic.init.in_init);
+  new bx_shadow_bool_c(ctrl, "requires_4", &BX_PIC_THIS s.master_pic.init.requires_4);
   new bx_shadow_num_c(ctrl, "byte_expected", "", &BX_PIC_THIS s.master_pic.init.byte_expected);
-  new bx_shadow_bool_c(ctrl, "special_mask", "", &BX_PIC_THIS s.master_pic.special_mask);
-  new bx_shadow_bool_c(ctrl, "polled", "", &BX_PIC_THIS s.master_pic.polled);
-  new bx_shadow_bool_c(ctrl, "rotate_on_autoeoi", "", &BX_PIC_THIS s.master_pic.rotate_on_autoeoi);
+  new bx_shadow_bool_c(ctrl, "special_mask", &BX_PIC_THIS s.master_pic.special_mask);
+  new bx_shadow_bool_c(ctrl, "polled", &BX_PIC_THIS s.master_pic.polled);
+  new bx_shadow_bool_c(ctrl, "rotate_on_autoeoi", &BX_PIC_THIS s.master_pic.rotate_on_autoeoi);
   new bx_shadow_num_c(ctrl, "edge_level", "", &BX_PIC_THIS s.master_pic.edge_level, 16);
-  ctrl = new bx_list_c(list, "slave", "", 17);
+  ctrl = new bx_list_c(list, "slave", 17);
   new bx_shadow_num_c(ctrl, "interrupt_offset", "", &BX_PIC_THIS s.slave_pic.interrupt_offset, 16);
   new bx_shadow_num_c(ctrl, "auto_eoi", "", &BX_PIC_THIS s.slave_pic.auto_eoi, 16);
   new bx_shadow_num_c(ctrl, "imr", "", &BX_PIC_THIS s.slave_pic.imr, 16);
@@ -156,14 +156,14 @@ void bx_pic_c::register_state(void)
   new bx_shadow_num_c(ctrl, "read_reg_select", "", &BX_PIC_THIS s.slave_pic.read_reg_select);
   new bx_shadow_num_c(ctrl, "irq", "", &BX_PIC_THIS s.slave_pic.irq, 16);
   new bx_shadow_num_c(ctrl, "lowest_priority", "", &BX_PIC_THIS s.slave_pic.lowest_priority, 16);
-  new bx_shadow_bool_c(ctrl, "INT", "", &BX_PIC_THIS s.slave_pic.INT);
+  new bx_shadow_bool_c(ctrl, "INT", &BX_PIC_THIS s.slave_pic.INT);
   new bx_shadow_num_c(ctrl, "IRQ_in", "", &BX_PIC_THIS s.slave_pic.IRQ_in, 16);
-  new bx_shadow_bool_c(ctrl, "in_init", "", &BX_PIC_THIS s.slave_pic.init.in_init);
-  new bx_shadow_bool_c(ctrl, "requires_4", "", &BX_PIC_THIS s.slave_pic.init.requires_4);
+  new bx_shadow_bool_c(ctrl, "in_init", &BX_PIC_THIS s.slave_pic.init.in_init);
+  new bx_shadow_bool_c(ctrl, "requires_4", &BX_PIC_THIS s.slave_pic.init.requires_4);
   new bx_shadow_num_c(ctrl, "byte_expected", "", &BX_PIC_THIS s.slave_pic.init.byte_expected);
-  new bx_shadow_bool_c(ctrl, "special_mask", "", &BX_PIC_THIS s.slave_pic.special_mask);
-  new bx_shadow_bool_c(ctrl, "polled", "", &BX_PIC_THIS s.slave_pic.polled);
-  new bx_shadow_bool_c(ctrl, "rotate_on_autoeoi", "", &BX_PIC_THIS s.slave_pic.rotate_on_autoeoi);
+  new bx_shadow_bool_c(ctrl, "special_mask", &BX_PIC_THIS s.slave_pic.special_mask);
+  new bx_shadow_bool_c(ctrl, "polled", &BX_PIC_THIS s.slave_pic.polled);
+  new bx_shadow_bool_c(ctrl, "rotate_on_autoeoi", &BX_PIC_THIS s.slave_pic.rotate_on_autoeoi);
   new bx_shadow_num_c(ctrl, "edge_level", "", &BX_PIC_THIS s.slave_pic.edge_level, 16);
 }
 #endif

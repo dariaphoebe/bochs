@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: serial.cc,v 1.69.2.2 2006/05/01 15:38:27 vruppert Exp $
+// $Id: serial.cc,v 1.69.2.3 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -372,73 +372,73 @@ void bx_serial_c::register_state(void)
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "serial", "Serial Port State", 9);
   for (i=0; i<BX_N_SERIAL_PORTS; i++) {
     sprintf(name, "%d", i);
-    port = new bx_list_c(list, strdup(name), "", 28);
-    new bx_shadow_bool_c(port, "ls_interrupt", "", &BX_SER_THIS s[i].ls_interrupt);
-    new bx_shadow_bool_c(port, "ms_interrupt", "", &BX_SER_THIS s[i].ms_interrupt);
-    new bx_shadow_bool_c(port, "rx_interrupt", "", &BX_SER_THIS s[i].rx_interrupt);
-    new bx_shadow_bool_c(port, "tx_interrupt", "", &BX_SER_THIS s[i].tx_interrupt);
-    new bx_shadow_bool_c(port, "fifo_interrupt", "", &BX_SER_THIS s[i].fifo_interrupt);
-    new bx_shadow_bool_c(port, "ls_ipending", "", &BX_SER_THIS s[i].ls_ipending);
-    new bx_shadow_bool_c(port, "ms_ipending", "", &BX_SER_THIS s[i].ms_ipending);
-    new bx_shadow_bool_c(port, "rx_ipending", "", &BX_SER_THIS s[i].rx_ipending);
-    new bx_shadow_bool_c(port, "fifo_ipending", "", &BX_SER_THIS s[i].fifo_ipending);
+    port = new bx_list_c(list, strdup(name), 28);
+    new bx_shadow_bool_c(port, "ls_interrupt", &BX_SER_THIS s[i].ls_interrupt);
+    new bx_shadow_bool_c(port, "ms_interrupt", &BX_SER_THIS s[i].ms_interrupt);
+    new bx_shadow_bool_c(port, "rx_interrupt", &BX_SER_THIS s[i].rx_interrupt);
+    new bx_shadow_bool_c(port, "tx_interrupt", &BX_SER_THIS s[i].tx_interrupt);
+    new bx_shadow_bool_c(port, "fifo_interrupt", &BX_SER_THIS s[i].fifo_interrupt);
+    new bx_shadow_bool_c(port, "ls_ipending", &BX_SER_THIS s[i].ls_ipending);
+    new bx_shadow_bool_c(port, "ms_ipending", &BX_SER_THIS s[i].ms_ipending);
+    new bx_shadow_bool_c(port, "rx_ipending", &BX_SER_THIS s[i].rx_ipending);
+    new bx_shadow_bool_c(port, "fifo_ipending", &BX_SER_THIS s[i].fifo_ipending);
     new bx_shadow_num_c(port, "rx_fifo_end", "", &BX_SER_THIS s[i].rx_fifo_end);
     new bx_shadow_num_c(port, "tx_fifo_end", "", &BX_SER_THIS s[i].tx_fifo_end);
     new bx_shadow_num_c(port, "baudrate", "", &BX_SER_THIS s[i].baudrate);
     new bx_shadow_num_c(port, "rx_pollstate", "", &BX_SER_THIS s[i].rx_pollstate);
     new bx_shadow_num_c(port, "rxbuffer", "", &BX_SER_THIS s[i].rxbuffer, 16);
     new bx_shadow_num_c(port, "thrbuffer", "", &BX_SER_THIS s[i].thrbuffer, 16);
-    bx_list_c *int_en = new bx_list_c(port, "int_enable", "");
-    new bx_shadow_bool_c(int_en, "rxdata_enable", "", &BX_SER_THIS s[i].int_enable.rxdata_enable);
-    new bx_shadow_bool_c(int_en, "txhold_enable", "", &BX_SER_THIS s[i].int_enable.txhold_enable);
-    new bx_shadow_bool_c(int_en, "rxlstat_enable", "", &BX_SER_THIS s[i].int_enable.rxlstat_enable);
-    new bx_shadow_bool_c(int_en, "modstat_enable", "", &BX_SER_THIS s[i].int_enable.modstat_enable);
-    bx_list_c *int_id = new bx_list_c(port, "int_ident", "");
-    new bx_shadow_bool_c(int_id, "ipending", "", &BX_SER_THIS s[i].int_ident.ipending);
+    bx_list_c *int_en = new bx_list_c(port, "int_enable");
+    new bx_shadow_bool_c(int_en, "rxdata_enable", &BX_SER_THIS s[i].int_enable.rxdata_enable);
+    new bx_shadow_bool_c(int_en, "txhold_enable", &BX_SER_THIS s[i].int_enable.txhold_enable);
+    new bx_shadow_bool_c(int_en, "rxlstat_enable", &BX_SER_THIS s[i].int_enable.rxlstat_enable);
+    new bx_shadow_bool_c(int_en, "modstat_enable", &BX_SER_THIS s[i].int_enable.modstat_enable);
+    bx_list_c *int_id = new bx_list_c(port, "int_ident");
+    new bx_shadow_bool_c(int_id, "ipending", &BX_SER_THIS s[i].int_ident.ipending);
     new bx_shadow_num_c(int_id, "int_ID", "", &BX_SER_THIS s[i].int_ident.int_ID, 16);
-    bx_list_c *fifo = new bx_list_c(port, "fifo_cntl", "");
-    new bx_shadow_bool_c(fifo, "enable", "", &BX_SER_THIS s[i].fifo_cntl.enable);
+    bx_list_c *fifo = new bx_list_c(port, "fifo_cntl");
+    new bx_shadow_bool_c(fifo, "enable", &BX_SER_THIS s[i].fifo_cntl.enable);
     new bx_shadow_num_c(fifo, "rxtrigger", "", &BX_SER_THIS s[i].fifo_cntl.rxtrigger, 16);
-    bx_list_c *lcntl = new bx_list_c(port, "line_cntl", "", 7);
+    bx_list_c *lcntl = new bx_list_c(port, "line_cntl", 7);
     new bx_shadow_num_c(lcntl, "wordlen_sel", "", &BX_SER_THIS s[i].line_cntl.wordlen_sel, 16);
-    new bx_shadow_bool_c(lcntl, "stopbits", "", &BX_SER_THIS s[i].line_cntl.stopbits);
-    new bx_shadow_bool_c(lcntl, "parity_enable", "", &BX_SER_THIS s[i].line_cntl.parity_enable);
-    new bx_shadow_bool_c(lcntl, "evenparity_sel", "", &BX_SER_THIS s[i].line_cntl.evenparity_sel);
-    new bx_shadow_bool_c(lcntl, "stick_parity", "", &BX_SER_THIS s[i].line_cntl.stick_parity);
-    new bx_shadow_bool_c(lcntl, "break_cntl", "", &BX_SER_THIS s[i].line_cntl.break_cntl);
-    new bx_shadow_bool_c(lcntl, "dlab", "", &BX_SER_THIS s[i].line_cntl.dlab);
-    bx_list_c *mcntl = new bx_list_c(port, "modem_cntl", "");
-    new bx_shadow_bool_c(mcntl, "dtr", "", &BX_SER_THIS s[i].modem_cntl.dtr);
-    new bx_shadow_bool_c(mcntl, "rts", "", &BX_SER_THIS s[i].modem_cntl.rts);
-    new bx_shadow_bool_c(mcntl, "out1", "", &BX_SER_THIS s[i].modem_cntl.out1);
-    new bx_shadow_bool_c(mcntl, "out2", "", &BX_SER_THIS s[i].modem_cntl.out2);
-    new bx_shadow_bool_c(mcntl, "local_loopback", "", &BX_SER_THIS s[i].modem_cntl.local_loopback);
-    bx_list_c *lstatus = new bx_list_c(port, "line_status", "", 8);
-    new bx_shadow_bool_c(lstatus, "rxdata_ready", "", &BX_SER_THIS s[i].line_status.rxdata_ready);
-    new bx_shadow_bool_c(lstatus, "overrun_error", "", &BX_SER_THIS s[i].line_status.overrun_error);
-    new bx_shadow_bool_c(lstatus, "parity_error", "", &BX_SER_THIS s[i].line_status.parity_error);
-    new bx_shadow_bool_c(lstatus, "framing_error", "", &BX_SER_THIS s[i].line_status.framing_error);
-    new bx_shadow_bool_c(lstatus, "break_int", "", &BX_SER_THIS s[i].line_status.break_int);
-    new bx_shadow_bool_c(lstatus, "thr_empty", "", &BX_SER_THIS s[i].line_status.thr_empty);
-    new bx_shadow_bool_c(lstatus, "tsr_empty", "", &BX_SER_THIS s[i].line_status.tsr_empty);
-    new bx_shadow_bool_c(lstatus, "fifo_error", "", &BX_SER_THIS s[i].line_status.fifo_error);
-    bx_list_c *mstatus = new bx_list_c(port, "modem_status", "", 8);
-    new bx_shadow_bool_c(mstatus, "delta_cts", "", &BX_SER_THIS s[i].modem_status.delta_cts);
-    new bx_shadow_bool_c(mstatus, "delta_dsr", "", &BX_SER_THIS s[i].modem_status.delta_dsr);
-    new bx_shadow_bool_c(mstatus, "ri_trailedge", "", &BX_SER_THIS s[i].modem_status.ri_trailedge);
-    new bx_shadow_bool_c(mstatus, "delta_dcd", "", &BX_SER_THIS s[i].modem_status.delta_dcd);
-    new bx_shadow_bool_c(mstatus, "cts", "", &BX_SER_THIS s[i].modem_status.cts);
-    new bx_shadow_bool_c(mstatus, "dsr", "", &BX_SER_THIS s[i].modem_status.dsr);
-    new bx_shadow_bool_c(mstatus, "ri", "", &BX_SER_THIS s[i].modem_status.ri);
-    new bx_shadow_bool_c(mstatus, "dcd", "", &BX_SER_THIS s[i].modem_status.dcd);
+    new bx_shadow_bool_c(lcntl, "stopbits", &BX_SER_THIS s[i].line_cntl.stopbits);
+    new bx_shadow_bool_c(lcntl, "parity_enable", &BX_SER_THIS s[i].line_cntl.parity_enable);
+    new bx_shadow_bool_c(lcntl, "evenparity_sel", &BX_SER_THIS s[i].line_cntl.evenparity_sel);
+    new bx_shadow_bool_c(lcntl, "stick_parity", &BX_SER_THIS s[i].line_cntl.stick_parity);
+    new bx_shadow_bool_c(lcntl, "break_cntl", &BX_SER_THIS s[i].line_cntl.break_cntl);
+    new bx_shadow_bool_c(lcntl, "dlab", &BX_SER_THIS s[i].line_cntl.dlab);
+    bx_list_c *mcntl = new bx_list_c(port, "modem_cntl");
+    new bx_shadow_bool_c(mcntl, "dtr", &BX_SER_THIS s[i].modem_cntl.dtr);
+    new bx_shadow_bool_c(mcntl, "rts", &BX_SER_THIS s[i].modem_cntl.rts);
+    new bx_shadow_bool_c(mcntl, "out1", &BX_SER_THIS s[i].modem_cntl.out1);
+    new bx_shadow_bool_c(mcntl, "out2", &BX_SER_THIS s[i].modem_cntl.out2);
+    new bx_shadow_bool_c(mcntl, "local_loopback", &BX_SER_THIS s[i].modem_cntl.local_loopback);
+    bx_list_c *lstatus = new bx_list_c(port, "line_status", 8);
+    new bx_shadow_bool_c(lstatus, "rxdata_ready", &BX_SER_THIS s[i].line_status.rxdata_ready);
+    new bx_shadow_bool_c(lstatus, "overrun_error", &BX_SER_THIS s[i].line_status.overrun_error);
+    new bx_shadow_bool_c(lstatus, "parity_error", &BX_SER_THIS s[i].line_status.parity_error);
+    new bx_shadow_bool_c(lstatus, "framing_error", &BX_SER_THIS s[i].line_status.framing_error);
+    new bx_shadow_bool_c(lstatus, "break_int", &BX_SER_THIS s[i].line_status.break_int);
+    new bx_shadow_bool_c(lstatus, "thr_empty", &BX_SER_THIS s[i].line_status.thr_empty);
+    new bx_shadow_bool_c(lstatus, "tsr_empty", &BX_SER_THIS s[i].line_status.tsr_empty);
+    new bx_shadow_bool_c(lstatus, "fifo_error", &BX_SER_THIS s[i].line_status.fifo_error);
+    bx_list_c *mstatus = new bx_list_c(port, "modem_status", 8);
+    new bx_shadow_bool_c(mstatus, "delta_cts", &BX_SER_THIS s[i].modem_status.delta_cts);
+    new bx_shadow_bool_c(mstatus, "delta_dsr", &BX_SER_THIS s[i].modem_status.delta_dsr);
+    new bx_shadow_bool_c(mstatus, "ri_trailedge", &BX_SER_THIS s[i].modem_status.ri_trailedge);
+    new bx_shadow_bool_c(mstatus, "delta_dcd", &BX_SER_THIS s[i].modem_status.delta_dcd);
+    new bx_shadow_bool_c(mstatus, "cts", &BX_SER_THIS s[i].modem_status.cts);
+    new bx_shadow_bool_c(mstatus, "dsr", &BX_SER_THIS s[i].modem_status.dsr);
+    new bx_shadow_bool_c(mstatus, "ri", &BX_SER_THIS s[i].modem_status.ri);
+    new bx_shadow_bool_c(mstatus, "dcd", &BX_SER_THIS s[i].modem_status.dcd);
     new bx_shadow_num_c(port, "scratch", "", &BX_SER_THIS s[i].scratch, 16);
     new bx_shadow_num_c(port, "tsrbuffer", "", &BX_SER_THIS s[i].tsrbuffer, 16);
-    bx_list_c *rxfifo = new bx_list_c(port, "rx_fifo", "", 16);
+    bx_list_c *rxfifo = new bx_list_c(port, "rx_fifo", 16);
     for (j=0; j<16; j++) {
       sprintf(name, "0x%02x", j);
       new bx_shadow_num_c(rxfifo, strdup(name), "", &BX_SER_THIS s[i].rx_fifo[j], 16);
     }
-    bx_list_c *txfifo = new bx_list_c(port, "tx_fifo", "", 16);
+    bx_list_c *txfifo = new bx_list_c(port, "tx_fifo", 16);
     for (j=0; j<16; j++) {
       sprintf(name, "0x%02x", j);
       new bx_shadow_num_c(txfifo, strdup(name), "", &BX_SER_THIS s[i].tx_fifo[j], 16);
@@ -450,9 +450,9 @@ void bx_serial_c::register_state(void)
   new bx_shadow_num_c(list, "mouse_delayed_dx", "", &BX_SER_THIS mouse_delayed_dx);
   new bx_shadow_num_c(list, "mouse_delayed_dy", "", &BX_SER_THIS mouse_delayed_dy);
   new bx_shadow_num_c(list, "mouse_delayed_dz", "", &BX_SER_THIS mouse_delayed_dz);
-  bx_list_c *mousebuf = new bx_list_c(list, "mouse_internal_buffer", "");
+  bx_list_c *mousebuf = new bx_list_c(list, "mouse_internal_buffer");
   new bx_shadow_num_c(mousebuf, "num_elements", "", &BX_SER_THIS mouse_internal_buffer.num_elements);
-  bx_list_c *buffer = new bx_list_c(mousebuf, "buffer", "", BX_MOUSE_BUFF_SIZE);
+  bx_list_c *buffer = new bx_list_c(mousebuf, "buffer", BX_MOUSE_BUFF_SIZE);
   for (i=0; i<BX_MOUSE_BUFF_SIZE; i++) {
     sprintf(name, "0x%02x", i);
     new bx_shadow_num_c(buffer, strdup(name), "", &BX_SER_THIS mouse_internal_buffer.buffer[i], 16);

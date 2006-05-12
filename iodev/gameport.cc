@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: gameport.cc,v 1.8.2.3 2006/04/19 17:49:25 vruppert Exp $
+// $Id: gameport.cc,v 1.8.2.4 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  MandrakeSoft S.A.
@@ -125,8 +125,8 @@ void bx_gameport_c::register_state(void)
   new bx_shadow_num_c(list, "port", "", &BX_GAMEPORT_THIS port, 16);
   new bx_shadow_num_c(list, "delay_x", "", &BX_GAMEPORT_THIS delay_x);
   new bx_shadow_num_c(list, "delay_y", "", &BX_GAMEPORT_THIS delay_y);
-  new bx_shadow_bool_c(list, "timer_x", "", &BX_GAMEPORT_THIS timer_x);
-  new bx_shadow_bool_c(list, "timer_y", "", &BX_GAMEPORT_THIS timer_y);
+  new bx_shadow_bool_c(list, "timer_x", &BX_GAMEPORT_THIS timer_x);
+  new bx_shadow_bool_c(list, "timer_y", &BX_GAMEPORT_THIS timer_y);
   new bx_shadow_num_c(list, "write_usec", "", &BX_GAMEPORT_THIS write_usec);
 }
 #endif

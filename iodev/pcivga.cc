@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.cc,v 1.9.2.2 2006/04/18 19:43:51 vruppert Exp $
+// $Id: pcivga.cc,v 1.9.2.3 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003 Mike Nordell
@@ -104,7 +104,7 @@ void bx_pcivga_c::reset(unsigned type)
       { 0x06, 0x00 }, { 0x07, 0x02 }	// status_devsel_medium
   };
   for (unsigned i = 0; i < sizeof(reset_vals) / sizeof(*reset_vals); ++i) {
-      BX_PCIVGA_THIS s.pci_conf[reset_vals[i].addr] = reset_vals[i].val;
+    BX_PCIVGA_THIS s.pci_conf[reset_vals[i].addr] = reset_vals[i].val;
   }
 }
 
@@ -112,7 +112,7 @@ void bx_pcivga_c::reset(unsigned type)
 void bx_pcivga_c::register_state(void)
 {
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pcivga", "PCI VGA Adapter State");
-  new bx_shadow_data_c(list, "pci_conf", "", &BX_PCIVGA_THIS s.pci_conf[0], 256);
+  new bx_shadow_data_c(list, "pci_conf", BX_PCIVGA_THIS s.pci_conf, 256);
 }
 #endif
 

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: busmouse.cc,v 1.3.2.2 2006/05/07 09:50:45 vruppert Exp $
+// $Id: busmouse.cc,v 1.3.2.3 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -71,7 +71,7 @@ bx_busm_c::~bx_busm_c()
 
 void bx_busm_c::init(void)
 {
-  BX_DEBUG(("Init $Id: busmouse.cc,v 1.3.2.2 2006/05/07 09:50:45 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: busmouse.cc,v 1.3.2.3 2006/05/12 17:33:10 vruppert Exp $"));
 
   DEV_register_irq(BUS_MOUSE_IRQ, "Bus Mouse");
 
@@ -124,16 +124,16 @@ void bx_busm_c::register_state(void)
   new bx_shadow_num_c(list, "current_b", "", &BX_BUSM_THIS current_b);
   new bx_shadow_num_c(list, "sig_port_sequ", "", &BX_BUSM_THIS sig_port_sequ, 16);
   new bx_shadow_num_c(list, "control_val", "", &BX_BUSM_THIS control_val, 16);
-  bx_list_c *ctrl = new bx_list_c(list, "control", "", 7);
-  new bx_shadow_bool_c(ctrl, "mode_set", "", &BX_BUSM_THIS control.mode_set);
+  bx_list_c *ctrl = new bx_list_c(list, "control", 7);
+  new bx_shadow_bool_c(ctrl, "mode_set", &BX_BUSM_THIS control.mode_set);
   new bx_shadow_num_c(ctrl, "modeA_select", "", &BX_BUSM_THIS control.modeA_select);
-  new bx_shadow_bool_c(ctrl, "portA_dir", "", &BX_BUSM_THIS control.portA_dir);
-  new bx_shadow_bool_c(ctrl, "portC_upper_dir", "", &BX_BUSM_THIS control.portC_upper_dir);
-  new bx_shadow_bool_c(ctrl, "modeBC_select", "", &BX_BUSM_THIS control.modeBC_select);
-  new bx_shadow_bool_c(ctrl, "portB_dir", "", &BX_BUSM_THIS control.portB_dir);
-  new bx_shadow_bool_c(ctrl, "portC_lower_dir", "", &BX_BUSM_THIS control.portC_lower_dir);
-  new bx_shadow_bool_c(list, "interrupts", "", &BX_BUSM_THIS interrupts);
-  new bx_shadow_bool_c(list, "packet_update", "", &BX_BUSM_THIS packet_update);
+  new bx_shadow_bool_c(ctrl, "portA_dir", &BX_BUSM_THIS control.portA_dir);
+  new bx_shadow_bool_c(ctrl, "portC_upper_dir", &BX_BUSM_THIS control.portC_upper_dir);
+  new bx_shadow_bool_c(ctrl, "modeBC_select", &BX_BUSM_THIS control.modeBC_select);
+  new bx_shadow_bool_c(ctrl, "portB_dir", &BX_BUSM_THIS control.portB_dir);
+  new bx_shadow_bool_c(ctrl, "portC_lower_dir", &BX_BUSM_THIS control.portC_lower_dir);
+  new bx_shadow_bool_c(list, "interrupts", &BX_BUSM_THIS interrupts);
+  new bx_shadow_bool_c(list, "packet_update", &BX_BUSM_THIS packet_update);
   new bx_shadow_num_c(list, "cur_command", "", &BX_BUSM_THIS cur_command, 16);
   new bx_shadow_num_c(list, "command_val", "", &BX_BUSM_THIS command_val, 16);
 }

@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// $Id: virt_timer.cc,v 1.27.2.2 2006/04/23 18:10:57 vruppert Exp $
+// $Id: virt_timer.cc,v 1.27.2.3 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -433,14 +433,14 @@ void bx_virt_timer_c::register_state(void)
   char name[4];
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "virt_timer", "Virtual Timer State", 17);
-  bx_list_c *vtimers = new bx_list_c(list, "timer", "", numTimers);
+  bx_list_c *vtimers = new bx_list_c(list, "timer", numTimers);
   for (i = 0; i < numTimers; i++) {
     sprintf(name, "%d", i);
-    bxtimer = new bx_list_c(vtimers, strdup(name), "");
+    bxtimer = new bx_list_c(vtimers, strdup(name));
     new bx_shadow_num_c(bxtimer, "period", "", &timer[i].period);
     new bx_shadow_num_c(bxtimer, "timeToFire", "", &timer[i].timeToFire);
-    new bx_shadow_bool_c(bxtimer, "active", "", &timer[i].active);
-    new bx_shadow_bool_c(bxtimer, "continuous", "", &timer[i].continuous);
+    new bx_shadow_bool_c(bxtimer, "active", &timer[i].active);
+    new bx_shadow_bool_c(bxtimer, "continuous", &timer[i].continuous);
   }
   new bx_shadow_num_c(list, "current_timers_time", "", &current_timers_time);
   new bx_shadow_num_c(list, "timers_next_event_time", "", &timers_next_event_time);

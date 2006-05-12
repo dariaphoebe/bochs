@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parallel.cc,v 1.28.2.3 2006/04/19 17:49:25 vruppert Exp $
+// $Id: parallel.cc,v 1.28.2.4 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -75,7 +75,7 @@ void bx_parallel_c::init(void)
   char name[16], pname[20];
   bx_list_c *base;
 
-  BX_DEBUG(("Init $Id: parallel.cc,v 1.28.2.3 2006/04/19 17:49:25 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: parallel.cc,v 1.28.2.4 2006/05/12 17:33:10 vruppert Exp $"));
 
   for (unsigned i=0; i<BX_N_PARALLEL_PORTS; i++) {
     sprintf(pname, "ports.parallel.%d", i+1);
@@ -134,18 +134,18 @@ void bx_parallel_c::register_state(void)
     base = (bx_list_c*) SIM->get_param(pname);
     if (SIM->get_param_bool("enabled", base)->get()) {
       sprintf(name, "%d", i);
-      port = new bx_list_c(list, strdup(name), "", 11);
+      port = new bx_list_c(list, strdup(name), 11);
       new bx_shadow_num_c(port, "data", "", &BX_PAR_THIS s[i].data, 16);
-      new bx_shadow_bool_c(port, "slct", "", &BX_PAR_THIS s[i].STATUS.slct);
-      new bx_shadow_bool_c(port, "ack", "", &BX_PAR_THIS s[i].STATUS.ack);
-      new bx_shadow_bool_c(port, "busy", "", &BX_PAR_THIS s[i].STATUS.busy);
-      new bx_shadow_bool_c(port, "strobe", "", &BX_PAR_THIS s[i].CONTROL.strobe);
-      new bx_shadow_bool_c(port, "autofeed", "", &BX_PAR_THIS s[i].CONTROL.autofeed);
-      new bx_shadow_bool_c(port, "init", "", &BX_PAR_THIS s[i].CONTROL.init);
-      new bx_shadow_bool_c(port, "slct_in", "", &BX_PAR_THIS s[i].CONTROL.slct_in);
-      new bx_shadow_bool_c(port, "irq", "", &BX_PAR_THIS s[i].CONTROL.irq);
-      new bx_shadow_bool_c(port, "input", "", &BX_PAR_THIS s[i].CONTROL.input);
-      new bx_shadow_bool_c(port, "initmode", "", &BX_PAR_THIS s[i].initmode);
+      new bx_shadow_bool_c(port, "slct", &BX_PAR_THIS s[i].STATUS.slct);
+      new bx_shadow_bool_c(port, "ack", &BX_PAR_THIS s[i].STATUS.ack);
+      new bx_shadow_bool_c(port, "busy", &BX_PAR_THIS s[i].STATUS.busy);
+      new bx_shadow_bool_c(port, "strobe", &BX_PAR_THIS s[i].CONTROL.strobe);
+      new bx_shadow_bool_c(port, "autofeed", &BX_PAR_THIS s[i].CONTROL.autofeed);
+      new bx_shadow_bool_c(port, "init", &BX_PAR_THIS s[i].CONTROL.init);
+      new bx_shadow_bool_c(port, "slct_in", &BX_PAR_THIS s[i].CONTROL.slct_in);
+      new bx_shadow_bool_c(port, "irq", &BX_PAR_THIS s[i].CONTROL.irq);
+      new bx_shadow_bool_c(port, "input", &BX_PAR_THIS s[i].CONTROL.input);
+      new bx_shadow_bool_c(port, "initmode", &BX_PAR_THIS s[i].initmode);
     }
   }
 }

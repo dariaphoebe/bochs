@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.cc,v 1.28.2.2 2006/04/23 12:40:18 vruppert Exp $
+// $Id: ioapic.cc,v 1.28.2.3 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -260,10 +260,10 @@ void bx_ioapic_c::register_state(void)
   new bx_shadow_num_c(list, "ioregsel", "", &ioregsel, 16);
   new bx_shadow_num_c(list, "intin", "", &intin, 16);
   new bx_shadow_num_c(list, "irr", "", &irr, 16);
-  bx_list_c *table = new bx_list_c(list, "ioredtbl", "", BX_IOAPIC_NUM_PINS);
+  bx_list_c *table = new bx_list_c(list, "ioredtbl", BX_IOAPIC_NUM_PINS);
   for (i=0; i<BX_IOAPIC_NUM_PINS; i++) {
     sprintf(name, "0x%02x", i);
-    entry = new bx_list_c(table, strdup(name), "", 2);
+    entry = new bx_list_c(table, strdup(name), 2);
     ioredtbl[i].register_state(entry);
   }
 }

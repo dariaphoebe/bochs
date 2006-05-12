@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.cc,v 1.84.2.4 2006/05/06 09:36:37 vruppert Exp $
+// $Id: ne2k.cc,v 1.84.2.5 2006/05/12 17:33:10 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -129,65 +129,65 @@ void bx_ne2k_c::register_state(void)
   char name[6];
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "ne2k", "NE2000 State", 31);
-  bx_list_c *CR = new bx_list_c(list, "CR", "");
-  new bx_shadow_bool_c(CR, "stop", "", &BX_NE2K_THIS s.CR.stop);
-  new bx_shadow_bool_c(CR, "start", "", &BX_NE2K_THIS s.CR.start);
-  new bx_shadow_bool_c(CR, "tx_packet", "", &BX_NE2K_THIS s.CR.tx_packet);
+  bx_list_c *CR = new bx_list_c(list, "CR");
+  new bx_shadow_bool_c(CR, "stop", &BX_NE2K_THIS s.CR.stop);
+  new bx_shadow_bool_c(CR, "start", &BX_NE2K_THIS s.CR.start);
+  new bx_shadow_bool_c(CR, "tx_packet", &BX_NE2K_THIS s.CR.tx_packet);
   new bx_shadow_num_c(CR, "rdma_cmd", "", &BX_NE2K_THIS s.CR.rdma_cmd);
   new bx_shadow_num_c(CR, "pgsel", "", &BX_NE2K_THIS s.CR.pgsel);
-  bx_list_c *ISR = new bx_list_c(list, "ISR", "", 8);
-  new bx_shadow_bool_c(ISR, "pkt_rx", "", &BX_NE2K_THIS s.ISR.pkt_rx);
-  new bx_shadow_bool_c(ISR, "pkt_tx", "", &BX_NE2K_THIS s.ISR.pkt_tx);
-  new bx_shadow_bool_c(ISR, "rx_err", "", &BX_NE2K_THIS s.ISR.rx_err);
-  new bx_shadow_bool_c(ISR, "tx_err", "", &BX_NE2K_THIS s.ISR.tx_err);
-  new bx_shadow_bool_c(ISR, "overwrite", "", &BX_NE2K_THIS s.ISR.overwrite);
-  new bx_shadow_bool_c(ISR, "cnt_oflow", "", &BX_NE2K_THIS s.ISR.cnt_oflow);
-  new bx_shadow_bool_c(ISR, "rdma_done", "", &BX_NE2K_THIS s.ISR.rdma_done);
-  new bx_shadow_bool_c(ISR, "reset", "", &BX_NE2K_THIS s.ISR.reset);
-  bx_list_c *IMR = new bx_list_c(list, "IMR", "", 7);
-  new bx_shadow_bool_c(IMR, "rx_inte", "", &BX_NE2K_THIS s.IMR.rx_inte);
-  new bx_shadow_bool_c(IMR, "tx_inte", "", &BX_NE2K_THIS s.IMR.tx_inte);
-  new bx_shadow_bool_c(IMR, "rxerr_inte", "", &BX_NE2K_THIS s.IMR.rxerr_inte);
-  new bx_shadow_bool_c(IMR, "txerr_inte", "", &BX_NE2K_THIS s.IMR.txerr_inte);
-  new bx_shadow_bool_c(IMR, "overw_inte", "", &BX_NE2K_THIS s.IMR.overw_inte);
-  new bx_shadow_bool_c(IMR, "cofl_inte", "", &BX_NE2K_THIS s.IMR.cofl_inte);
-  new bx_shadow_bool_c(IMR, "rdma_inte", "", &BX_NE2K_THIS s.IMR.rdma_inte);
-  bx_list_c *DCR = new bx_list_c(list, "DCR", "");
-  new bx_shadow_bool_c(DCR, "wdsize", "", &BX_NE2K_THIS s.DCR.wdsize);
-  new bx_shadow_bool_c(DCR, "endian", "", &BX_NE2K_THIS s.DCR.endian);
-  new bx_shadow_bool_c(DCR, "longaddr", "", &BX_NE2K_THIS s.DCR.longaddr);
-  new bx_shadow_bool_c(DCR, "loop", "", &BX_NE2K_THIS s.DCR.loop);
-  new bx_shadow_bool_c(DCR, "auto_rx", "", &BX_NE2K_THIS s.DCR.auto_rx);
+  bx_list_c *ISR = new bx_list_c(list, "ISR", 8);
+  new bx_shadow_bool_c(ISR, "pkt_rx", &BX_NE2K_THIS s.ISR.pkt_rx);
+  new bx_shadow_bool_c(ISR, "pkt_tx", &BX_NE2K_THIS s.ISR.pkt_tx);
+  new bx_shadow_bool_c(ISR, "rx_err", &BX_NE2K_THIS s.ISR.rx_err);
+  new bx_shadow_bool_c(ISR, "tx_err", &BX_NE2K_THIS s.ISR.tx_err);
+  new bx_shadow_bool_c(ISR, "overwrite", &BX_NE2K_THIS s.ISR.overwrite);
+  new bx_shadow_bool_c(ISR, "cnt_oflow", &BX_NE2K_THIS s.ISR.cnt_oflow);
+  new bx_shadow_bool_c(ISR, "rdma_done", &BX_NE2K_THIS s.ISR.rdma_done);
+  new bx_shadow_bool_c(ISR, "reset", &BX_NE2K_THIS s.ISR.reset);
+  bx_list_c *IMR = new bx_list_c(list, "IMR", 7);
+  new bx_shadow_bool_c(IMR, "rx_inte", &BX_NE2K_THIS s.IMR.rx_inte);
+  new bx_shadow_bool_c(IMR, "tx_inte", &BX_NE2K_THIS s.IMR.tx_inte);
+  new bx_shadow_bool_c(IMR, "rxerr_inte", &BX_NE2K_THIS s.IMR.rxerr_inte);
+  new bx_shadow_bool_c(IMR, "txerr_inte", &BX_NE2K_THIS s.IMR.txerr_inte);
+  new bx_shadow_bool_c(IMR, "overw_inte", &BX_NE2K_THIS s.IMR.overw_inte);
+  new bx_shadow_bool_c(IMR, "cofl_inte", &BX_NE2K_THIS s.IMR.cofl_inte);
+  new bx_shadow_bool_c(IMR, "rdma_inte", &BX_NE2K_THIS s.IMR.rdma_inte);
+  bx_list_c *DCR = new bx_list_c(list, "DCR");
+  new bx_shadow_bool_c(DCR, "wdsize", &BX_NE2K_THIS s.DCR.wdsize);
+  new bx_shadow_bool_c(DCR, "endian", &BX_NE2K_THIS s.DCR.endian);
+  new bx_shadow_bool_c(DCR, "longaddr", &BX_NE2K_THIS s.DCR.longaddr);
+  new bx_shadow_bool_c(DCR, "loop", &BX_NE2K_THIS s.DCR.loop);
+  new bx_shadow_bool_c(DCR, "auto_rx", &BX_NE2K_THIS s.DCR.auto_rx);
   new bx_shadow_num_c(DCR, "fifo_size", "", &BX_NE2K_THIS s.DCR.fifo_size);
-  bx_list_c *TCR = new bx_list_c(list, "TCR", "");
-  new bx_shadow_bool_c(TCR, "crc_disable", "", &BX_NE2K_THIS s.TCR.crc_disable);
+  bx_list_c *TCR = new bx_list_c(list, "TCR");
+  new bx_shadow_bool_c(TCR, "crc_disable", &BX_NE2K_THIS s.TCR.crc_disable);
   new bx_shadow_num_c(TCR, "loop_cntl", "", &BX_NE2K_THIS s.TCR.loop_cntl);
-  new bx_shadow_bool_c(TCR, "ext_stoptx", "", &BX_NE2K_THIS s.TCR.ext_stoptx);
-  new bx_shadow_bool_c(TCR, "coll_prio", "", &BX_NE2K_THIS s.TCR.coll_prio);
-  bx_list_c *TSR = new bx_list_c(list, "TSR", "", 7);
-  new bx_shadow_bool_c(TSR, "tx_ok", "", &BX_NE2K_THIS s.TSR.tx_ok);
-  new bx_shadow_bool_c(TSR, "collided", "", &BX_NE2K_THIS s.TSR.collided);
-  new bx_shadow_bool_c(TSR, "aborted", "", &BX_NE2K_THIS s.TSR.aborted);
-  new bx_shadow_bool_c(TSR, "no_carrier", "", &BX_NE2K_THIS s.TSR.no_carrier);
-  new bx_shadow_bool_c(TSR, "fifo_ur", "", &BX_NE2K_THIS s.TSR.fifo_ur);
-  new bx_shadow_bool_c(TSR, "cd_hbeat", "", &BX_NE2K_THIS s.TSR.cd_hbeat);
-  new bx_shadow_bool_c(TSR, "ow_coll", "", &BX_NE2K_THIS s.TSR.ow_coll);
-  bx_list_c *RCR = new bx_list_c(list, "RCR", "");
-  new bx_shadow_bool_c(RCR, "errors_ok", "", &BX_NE2K_THIS s.RCR.errors_ok);
-  new bx_shadow_bool_c(RCR, "runts_ok", "", &BX_NE2K_THIS s.RCR.runts_ok);
-  new bx_shadow_bool_c(RCR, "broadcast", "", &BX_NE2K_THIS s.RCR.broadcast);
-  new bx_shadow_bool_c(RCR, "multicast", "", &BX_NE2K_THIS s.RCR.multicast);
-  new bx_shadow_bool_c(RCR, "promisc", "", &BX_NE2K_THIS s.RCR.promisc);
-  new bx_shadow_bool_c(RCR, "monitor", "", &BX_NE2K_THIS s.RCR.monitor);
-  bx_list_c *RSR = new bx_list_c(list, "RSR", "", 8);
-  new bx_shadow_bool_c(RSR, "rx_ok", "", &BX_NE2K_THIS s.RSR.rx_ok);
-  new bx_shadow_bool_c(RSR, "bad_crc", "", &BX_NE2K_THIS s.RSR.bad_crc);
-  new bx_shadow_bool_c(RSR, "bad_falign", "", &BX_NE2K_THIS s.RSR.bad_falign);
-  new bx_shadow_bool_c(RSR, "fifo_or", "", &BX_NE2K_THIS s.RSR.fifo_or);
-  new bx_shadow_bool_c(RSR, "rx_missed", "", &BX_NE2K_THIS s.RSR.rx_missed);
-  new bx_shadow_bool_c(RSR, "rx_mbit", "", &BX_NE2K_THIS s.RSR.rx_mbit);
-  new bx_shadow_bool_c(RSR, "rx_disabled", "", &BX_NE2K_THIS s.RSR.rx_disabled);
-  new bx_shadow_bool_c(RSR, "deferred", "", &BX_NE2K_THIS s.RSR.deferred);
+  new bx_shadow_bool_c(TCR, "ext_stoptx", &BX_NE2K_THIS s.TCR.ext_stoptx);
+  new bx_shadow_bool_c(TCR, "coll_prio", &BX_NE2K_THIS s.TCR.coll_prio);
+  bx_list_c *TSR = new bx_list_c(list, "TSR", 7);
+  new bx_shadow_bool_c(TSR, "tx_ok", &BX_NE2K_THIS s.TSR.tx_ok);
+  new bx_shadow_bool_c(TSR, "collided", &BX_NE2K_THIS s.TSR.collided);
+  new bx_shadow_bool_c(TSR, "aborted", &BX_NE2K_THIS s.TSR.aborted);
+  new bx_shadow_bool_c(TSR, "no_carrier", &BX_NE2K_THIS s.TSR.no_carrier);
+  new bx_shadow_bool_c(TSR, "fifo_ur", &BX_NE2K_THIS s.TSR.fifo_ur);
+  new bx_shadow_bool_c(TSR, "cd_hbeat", &BX_NE2K_THIS s.TSR.cd_hbeat);
+  new bx_shadow_bool_c(TSR, "ow_coll", &BX_NE2K_THIS s.TSR.ow_coll);
+  bx_list_c *RCR = new bx_list_c(list, "RCR");
+  new bx_shadow_bool_c(RCR, "errors_ok", &BX_NE2K_THIS s.RCR.errors_ok);
+  new bx_shadow_bool_c(RCR, "runts_ok", &BX_NE2K_THIS s.RCR.runts_ok);
+  new bx_shadow_bool_c(RCR, "broadcast", &BX_NE2K_THIS s.RCR.broadcast);
+  new bx_shadow_bool_c(RCR, "multicast", &BX_NE2K_THIS s.RCR.multicast);
+  new bx_shadow_bool_c(RCR, "promisc", &BX_NE2K_THIS s.RCR.promisc);
+  new bx_shadow_bool_c(RCR, "monitor", &BX_NE2K_THIS s.RCR.monitor);
+  bx_list_c *RSR = new bx_list_c(list, "RSR", 8);
+  new bx_shadow_bool_c(RSR, "rx_ok", &BX_NE2K_THIS s.RSR.rx_ok);
+  new bx_shadow_bool_c(RSR, "bad_crc", &BX_NE2K_THIS s.RSR.bad_crc);
+  new bx_shadow_bool_c(RSR, "bad_falign", &BX_NE2K_THIS s.RSR.bad_falign);
+  new bx_shadow_bool_c(RSR, "fifo_or", &BX_NE2K_THIS s.RSR.fifo_or);
+  new bx_shadow_bool_c(RSR, "rx_missed", &BX_NE2K_THIS s.RSR.rx_missed);
+  new bx_shadow_bool_c(RSR, "rx_mbit", &BX_NE2K_THIS s.RSR.rx_mbit);
+  new bx_shadow_bool_c(RSR, "rx_disabled", &BX_NE2K_THIS s.RSR.rx_disabled);
+  new bx_shadow_bool_c(RSR, "deferred", &BX_NE2K_THIS s.RSR.deferred);
   new bx_shadow_num_c(list, "local_dma", "", &BX_NE2K_THIS s.local_dma, 16);
   new bx_shadow_num_c(list, "page_start", "", &BX_NE2K_THIS s.page_start, 16);
   new bx_shadow_num_c(list, "page_stop", "", &BX_NE2K_THIS s.page_stop, 16);
@@ -202,13 +202,13 @@ void bx_ne2k_c::register_state(void)
   new bx_shadow_num_c(list, "tallycnt_0", "", &BX_NE2K_THIS s.tallycnt_0, 16);
   new bx_shadow_num_c(list, "tallycnt_1", "", &BX_NE2K_THIS s.tallycnt_1, 16);
   new bx_shadow_num_c(list, "tallycnt_2", "", &BX_NE2K_THIS s.tallycnt_2, 16);
-  bx_list_c *paddr = new bx_list_c(list, "physaddr", "");
+  bx_list_c *paddr = new bx_list_c(list, "physaddr");
   for (i=0; i<6; i++) {
     sprintf(name, "0x%02x", i);
     new bx_shadow_num_c(paddr, strdup(name), "", &BX_NE2K_THIS s.physaddr[i], 16);
   }
   new bx_shadow_num_c(list, "curr_page", "", &BX_NE2K_THIS s.curr_page, 16);
-  bx_list_c *mchash = new bx_list_c(list, "mchash", "", 8);
+  bx_list_c *mchash = new bx_list_c(list, "mchash", 8);
   for (i=0; i<8; i++) {
     sprintf(name, "0x%02x", i);
     new bx_shadow_num_c(mchash, strdup(name), "", &BX_NE2K_THIS s.mchash[i], 16);
@@ -216,11 +216,11 @@ void bx_ne2k_c::register_state(void)
   new bx_shadow_num_c(list, "rempkt_ptr", "", &BX_NE2K_THIS s.rempkt_ptr, 16);
   new bx_shadow_num_c(list, "localpkt_ptr", "", &BX_NE2K_THIS s.localpkt_ptr, 16);
   new bx_shadow_num_c(list, "address_cnt", "", &BX_NE2K_THIS s.address_cnt, 16);
-  new bx_shadow_data_c(list, "mem", "", BX_NE2K_THIS s.mem, BX_NE2K_MEMSIZ);
-  new bx_shadow_bool_c(list, "tx_timer_active", "", &BX_NE2K_THIS s.tx_timer_active);
+  new bx_shadow_data_c(list, "mem", BX_NE2K_THIS s.mem, BX_NE2K_MEMSIZ);
+  new bx_shadow_bool_c(list, "tx_timer_active", &BX_NE2K_THIS s.tx_timer_active);
 #if BX_SUPPORT_PCI
   if (BX_NE2K_THIS s.pci_enabled) {
-    new bx_shadow_data_c(list, "pci_conf", "", BX_NE2K_THIS s.pci_conf, 256);
+    new bx_shadow_data_c(list, "pci_conf", BX_NE2K_THIS s.pci_conf, 256);
   }
 #endif
 }
@@ -1399,7 +1399,7 @@ void bx_ne2k_c::init(void)
   char devname[16];
   bx_list_c *base;
 
-  BX_DEBUG(("Init $Id: ne2k.cc,v 1.84.2.4 2006/05/06 09:36:37 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: ne2k.cc,v 1.84.2.5 2006/05/12 17:33:10 vruppert Exp $"));
 
   // Read in values from config interface
   base = (bx_list_c*) SIM->get_param(BXPN_NE2K);
