@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.h,v 1.24.2.2 2006/05/07 17:52:27 vruppert Exp $
+// $Id: sb16.h,v 1.24.2.3 2006/05/14 06:59:48 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -230,9 +230,9 @@ private:
     int bankmsb[BX_SB16_PATCHTABLESIZE];   // current patch lists
     int program[BX_SB16_PATCHTABLESIZE];
 
-    int outputinit, timer_handle;
-    int current_timer;                         // no. of delta times passed
+    int timer_handle, current_timer;           // no. of delta times passed
     Bit32u last_delta_time;                    // timer value at last command
+    bx_bool outputinit;
   } mpu401;
 
   // the DSP variables
@@ -264,7 +264,7 @@ private:
       Bit16u blocklength, samplerate;
     } dma;
     int timer_handle;   // handle for the DMA timer
-    int outputinit;	// have the output functions been initialized
+    bx_bool outputinit; // have the output functions been initialized
   } dsp;
 
   // the ASP/CSP registers
@@ -307,7 +307,7 @@ private:
   struct bx_sb16_emul_struct {
     bx_sb16_buffer datain, dataout;
     bx_sb16_ins_map remaplist[256];
-    int remaps;
+    Bit16u remaps;
   } emuldata;
 
       /* DMA input and output, 8 and 16 bit */

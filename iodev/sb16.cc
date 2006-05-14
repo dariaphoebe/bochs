@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.cc,v 1.47.2.3 2006/05/12 17:33:10 vruppert Exp $
+// $Id: sb16.cc,v 1.47.2.4 2006/05/14 06:59:47 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -321,14 +321,59 @@ void bx_sb16_c::reset(unsigned type)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_sb16_c::register_state(void)
 {
-  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "sb16", "SB16 State");
+  unsigned i;
+  char name[6];
+  bx_list_c *ins_map, *patch;
+
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "sb16", "SB16 State", 7);
+  bx_list_c *mpu = new bx_list_c(list, "mpu", 8);
+  new bx_shadow_bool_c(mpu, "uartmode", &MPU.uartmode);
+  new bx_shadow_bool_c(mpu, "irqpending", &MPU.irqpending);
+  new bx_shadow_bool_c(mpu, "forceuartmode", &MPU.forceuartmode);
+  new bx_shadow_bool_c(mpu, "singlecommand", &MPU.singlecommand);
+  new bx_shadow_bool_c(mpu, "outputinit", &MPU.outputinit);
+  new bx_shadow_num_c(mpu, "current_timer", "", &MPU.current_timer);
+  new bx_shadow_num_c(mpu, "last_delta_time", "", &MPU.last_delta_time);
+  bx_list_c *patchtbl = new bx_list_c(mpu, "patchtable", BX_SB16_PATCHTABLESIZE);
+  for (i=0; i<BX_SB16_PATCHTABLESIZE; i++) {
+    sprintf(name, "0x%02x", i);
+    patch = new bx_list_c(patchtbl, strdup(name));
+    new bx_shadow_num_c(patch, "banklsb", "", &MPU.banklsb[i]);
+    new bx_shadow_num_c(patch, "bankmsb", "", &MPU.bankmsb[i]);
+    new bx_shadow_num_c(patch, "program", "", &MPU.program[i]);
+  }
+  bx_list_c *dsp = new bx_list_c(list, "dsp", 8);
+  new bx_shadow_num_c(dsp, "resetport", "", &DSP.resetport, 16);
+  new bx_shadow_num_c(dsp, "speaker", "", &DSP.speaker, 16);
+  new bx_shadow_num_c(dsp, "prostereo", "", &DSP.prostereo, 16);
+  new bx_shadow_bool_c(dsp, "irqpending", &DSP.irqpending);
+  new bx_shadow_bool_c(dsp, "midiuartmode", &DSP.midiuartmode);
+  new bx_shadow_num_c(dsp, "testreg", "", &DSP.testreg, 16);
+  bx_list_c *dma = new bx_list_c(dsp, "dma");
   // TODO
+  new bx_shadow_bool_c(dsp, "outputinit", &DSP.outputinit);
   new bx_shadow_data_c(list, "csp_reg", BX_SB16_THIS csp_reg, 256);
   bx_list_c *opl = new bx_list_c(list, "opl");
   new bx_shadow_num_c(opl, "mode", "", (Bit8u*)&OPL.mode);
   new bx_shadow_num_c(opl, "timer_running", "", &OPL.timer_running);
+  new bx_shadow_num_c(opl, "midichannels", "", &OPL.midichannels);
+  new bx_shadow_num_c(opl, "drumchannel", "", &OPL.drumchannel);
+  // TODO
   new bx_shadow_num_c(list, "mixer_regindex", "", &MIXER.regindex, 16);
   new bx_shadow_data_c(list, "mixer_reg", MIXER.reg, BX_SB16_MIX_REG);
+  bx_list_c *emul = new bx_list_c(list, "emul");
+  new bx_shadow_num_c(emul, "remaps", "", &EMUL.remaps);
+  bx_list_c *remap = new bx_list_c(emul, "remaplist", 256);
+  for (i=0; i<EMUL.remaps; i++) {
+    sprintf(name, "0x%02x", i);
+    ins_map = new bx_list_c(remap, strdup(name));
+    new bx_shadow_num_c(ins_map, "oldbankmsb", "", &EMUL.remaplist[i].oldbankmsb);
+    new bx_shadow_num_c(ins_map, "oldbanklsb", "", &EMUL.remaplist[i].oldbanklsb);
+    new bx_shadow_num_c(ins_map, "oldprogch", "", &EMUL.remaplist[i].oldprogch);
+    new bx_shadow_num_c(ins_map, "newbankmsb", "", &EMUL.remaplist[i].newbankmsb);
+    new bx_shadow_num_c(ins_map, "newbanklsb", "", &EMUL.remaplist[i].newbanklsb);
+    new bx_shadow_num_c(ins_map, "newprogch", "", &EMUL.remaplist[i].newprogch);
+  }
 }
 
 void bx_sb16_c::after_restore_state(void)
