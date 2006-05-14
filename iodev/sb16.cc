@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.cc,v 1.47.2.4 2006/05/14 06:59:47 vruppert Exp $
+// $Id: sb16.cc,v 1.47.2.5 2006/05/14 15:04:43 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -321,11 +321,11 @@ void bx_sb16_c::reset(unsigned type)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_sb16_c::register_state(void)
 {
-  unsigned i;
-  char name[6];
-  bx_list_c *ins_map, *patch;
+  unsigned i, j;
+  char name[8];
+  bx_list_c *chip, *ins_map, *item, *patch;
 
-  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "sb16", "SB16 State", 7);
+  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "sb16", "SB16 State", 8);
   bx_list_c *mpu = new bx_list_c(list, "mpu", 8);
   new bx_shadow_bool_c(mpu, "uartmode", &MPU.uartmode);
   new bx_shadow_bool_c(mpu, "irqpending", &MPU.irqpending);
@@ -349,16 +349,79 @@ void bx_sb16_c::register_state(void)
   new bx_shadow_bool_c(dsp, "irqpending", &DSP.irqpending);
   new bx_shadow_bool_c(dsp, "midiuartmode", &DSP.midiuartmode);
   new bx_shadow_num_c(dsp, "testreg", "", &DSP.testreg, 16);
-  bx_list_c *dma = new bx_list_c(dsp, "dma");
-  // TODO
+  bx_list_c *dma = new bx_list_c(dsp, "dma", 16);
+  new bx_shadow_num_c(dma, "mode", "", &DSP.dma.mode);
+  new bx_shadow_num_c(dma, "bits", "", &DSP.dma.bits);
+  new bx_shadow_num_c(dma, "bps", "", &DSP.dma.bps);
+  new bx_shadow_num_c(dma, "format", "", &DSP.dma.format);
+  new bx_shadow_num_c(dma, "timer", "", &DSP.dma.timer);
+  new bx_shadow_bool_c(dma, "fifo", &DSP.dma.fifo);
+  new bx_shadow_bool_c(dma, "output", &DSP.dma.output);
+  new bx_shadow_bool_c(dma, "stereo", &DSP.dma.stereo);
+  new bx_shadow_bool_c(dma, "issigned", &DSP.dma.issigned);
+  new bx_shadow_bool_c(dma, "highspeed", &DSP.dma.highspeed);
+  new bx_shadow_num_c(dma, "count", "", &DSP.dma.count);
+  new bx_shadow_num_c(dma, "chunkindex", "", &DSP.dma.chunkindex);
+  new bx_shadow_num_c(dma, "chunkcount", "", &DSP.dma.chunkcount);
+  new bx_shadow_num_c(dma, "timeconstant", "", &DSP.dma.timeconstant);
+  new bx_shadow_num_c(dma, "blocklength", "", &DSP.dma.blocklength);
+  new bx_shadow_num_c(dma, "samplerate", "", &DSP.dma.samplerate);
   new bx_shadow_bool_c(dsp, "outputinit", &DSP.outputinit);
+  new bx_shadow_data_c(list, "chunk", DSP.dma.chunk, BX_SOUND_OUTPUT_WAVEPACKETSIZE);
   new bx_shadow_data_c(list, "csp_reg", BX_SB16_THIS csp_reg, 256);
-  bx_list_c *opl = new bx_list_c(list, "opl");
+  bx_list_c *opl = new bx_list_c(list, "opl", 8);
   new bx_shadow_num_c(opl, "mode", "", (Bit8u*)&OPL.mode);
   new bx_shadow_num_c(opl, "timer_running", "", &OPL.timer_running);
   new bx_shadow_num_c(opl, "midichannels", "", &OPL.midichannels);
   new bx_shadow_num_c(opl, "drumchannel", "", &OPL.drumchannel);
-  // TODO
+  for (i=0; i<2; i++) {
+    sprintf(name, "chip%d", i+1);
+    chip = new bx_list_c(opl, strdup(name), 11);
+    new bx_shadow_num_c(chip, "index", "", &OPL.index[i]);
+    new bx_shadow_num_c(chip, "wsenable", "", &OPL.wsenable[i]);
+    new bx_shadow_num_c(chip, "timer1", "", &OPL.timer[i*2]);
+    new bx_shadow_num_c(chip, "timer2", "", &OPL.timer[i*2+1]);
+    new bx_shadow_num_c(chip, "timerinit1", "", &OPL.timerinit[i*2]);
+    new bx_shadow_num_c(chip, "timerinit2", "", &OPL.timerinit[i*2+1]);
+    new bx_shadow_num_c(chip, "tmask", "", &OPL.tmask[i]);
+    new bx_shadow_num_c(chip, "tflag", "", &OPL.tflag[i]);
+    new bx_shadow_num_c(chip, "percmode", "", &OPL.percmode[i]);
+    new bx_shadow_num_c(chip, "cyhhnote", "", &OPL.cyhhnote[i]);
+    new bx_shadow_num_c(chip, "cyhhon", "", &OPL.cyhhon[i]);
+  }
+  bx_list_c *oper = new bx_list_c(opl, "oper", BX_SB16_FM_NOP);
+  for (i=0; i<BX_SB16_FM_NOP; i++) {
+    sprintf(name, "%d", i);
+    item = new bx_list_c(oper, strdup(name), BX_SB16_FM_OPB);
+    for (j=0; j<BX_SB16_FM_OPB; j++) {
+      sprintf(name, "%d", j);
+      new bx_shadow_num_c(item, strdup(name), "", &OPL.oper[i][j]);
+    }
+  }
+  bx_list_c *chan = new bx_list_c(opl, "chan", BX_SB16_FM_NCH);
+  for (i=0; i<BX_SB16_FM_NCH; i++) {
+    sprintf(name, "%d", i);
+    item = new bx_list_c(chan, strdup(name), 19);
+    new bx_shadow_num_c(item, "nop", "", &OPL.chan[i].nop);
+    new bx_shadow_num_c(item, "ncarr", "", &OPL.chan[i].ncarr);
+    new bx_shadow_num_c(item, "opnum1", "", &OPL.chan[i].opnum[0]);
+    new bx_shadow_num_c(item, "opnum2", "", &OPL.chan[i].opnum[1]);
+    new bx_shadow_num_c(item, "opnum3", "", &OPL.chan[i].opnum[2]);
+    new bx_shadow_num_c(item, "opnum4", "", &OPL.chan[i].opnum[3]);
+    new bx_shadow_num_c(item, "freq", "", &OPL.chan[i].freq);
+    new bx_shadow_num_c(item, "afreq", "", &OPL.chan[i].afreq);
+    new bx_shadow_bool_c(item, "freqch", &OPL.chan[i].freqch);
+    new bx_shadow_num_c(item, "midichan", "", &OPL.chan[i].midichan);
+    new bx_shadow_bool_c(item, "needprogch", &OPL.chan[i].needprogch);
+    new bx_shadow_num_c(item, "midinote", "", &OPL.chan[i].midinote);
+    new bx_shadow_bool_c(item, "midion", "", &OPL.chan[i].midion);
+    new bx_shadow_num_c(item, "midibend", "", &OPL.chan[i].midibend);
+    new bx_shadow_num_c(item, "outputlevel1", "", &OPL.chan[i].outputlevel[0]);
+    new bx_shadow_num_c(item, "outputlevel2", "", &OPL.chan[i].outputlevel[1]);
+    new bx_shadow_num_c(item, "outputlevel3", "", &OPL.chan[i].outputlevel[2]);
+    new bx_shadow_num_c(item, "outputlevel4", "", &OPL.chan[i].outputlevel[3]);
+    new bx_shadow_num_c(item, "midivol", "", &OPL.chan[i].midivol);
+  }
   new bx_shadow_num_c(list, "mixer_regindex", "", &MIXER.regindex, 16);
   new bx_shadow_data_c(list, "mixer_reg", MIXER.reg, BX_SB16_MIX_REG);
   bx_list_c *emul = new bx_list_c(list, "emul");

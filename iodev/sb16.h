@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.h,v 1.24.2.3 2006/05/14 06:59:48 vruppert Exp $
+// $Id: sb16.h,v 1.24.2.4 2006/05/14 15:04:43 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -254,10 +254,10 @@ private:
       // issigned= 0: unsigned data, 1: signed data
       // highspeed= 0: normal mode, 1: highspeed mode (only SBPro)
       // timer= so many us between data bytes
-      int mode, bits, fifo, output, bps;
-      int stereo, issigned, highspeed, format, timer;
+      int mode, bits, bps, format, timer;
+      bx_bool fifo, output, stereo, issigned, highspeed;
       Bit16u count;     // bytes remaining in this transfer
-      Bit8u *chunk;	// buffers up to BX_SB16_WAVEPACKETSIZE bytes
+      Bit8u *chunk;	// buffers up to BX_SOUND_OUTPUT_WAVEPACKETSIZE bytes
       int chunkindex;	// index into the buffer
       int chunkcount;   // for input: size of the recorded input
       Bit16u timeconstant;
