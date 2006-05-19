@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.5 2006/04/25 17:48:02 vruppert Exp $
+// $Id: init.cc,v 1.98.2.6 2006/05/19 20:20:33 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -417,75 +417,123 @@ void BX_CPU_C::register_state()
     sprintf(cpu_name, "%d", BX_CPU_ID);
     sprintf(cpu_title, "CPU %d", BX_CPU_ID);
     bx_list_c *list = new bx_list_c(SIM->get_param("save_restore.cpu"), strdup(cpu_name),
-                                    cpu_title, 60);
-#define DEFPARAM_NORMAL(name,field) \
-    new bx_shadow_num_c(list, #name, #name, &(field), 16)
+                                    cpu_title, 50);
+#define BXRS_PARAM_SIMPLE(name) \
+    new bx_shadow_num_c(list, #name, "", &(name), 16)
+#define BXRS_PARAM_FIELD(name, field) \
+    new bx_shadow_num_c(list, #name, "", &(field), 16)
 
-    DEFPARAM_NORMAL(EAX, EAX);
-    DEFPARAM_NORMAL(EBX, EBX);
-    DEFPARAM_NORMAL(ECX, ECX);
-    DEFPARAM_NORMAL(EDX, EDX);
-/*  DEFPARAM_NORMAL(ESP, ESP);
-    DEFPARAM_NORMAL(EBP, EBP);
-    DEFPARAM_NORMAL(ESI, ESI);
-    DEFPARAM_NORMAL(EDI, EDI);
-    DEFPARAM_NORMAL(EIP, EIP);
-    DEFPARAM_NORMAL(DR0, dr0);
-    DEFPARAM_NORMAL(DR1, dr1);
-    DEFPARAM_NORMAL(DR2, dr2);
-    DEFPARAM_NORMAL(DR3, dr3);
-    DEFPARAM_NORMAL(DR6, dr6);
-    DEFPARAM_NORMAL(DR7, dr7);
+    BXRS_PARAM_SIMPLE(saved_cpu_version);
+    BXRS_PARAM_SIMPLE(saved_cpuid_std);
+    BXRS_PARAM_SIMPLE(saved_cpuid_ext);
+    BXRS_PARAM_SIMPLE(cpu_mode);
+    BXRS_PARAM_SIMPLE(inhibit_mask);
+    BXRS_PARAM_SIMPLE(EAX);
+    BXRS_PARAM_SIMPLE(EBX);
+    BXRS_PARAM_SIMPLE(ECX);
+    BXRS_PARAM_SIMPLE(EDX);
+    BXRS_PARAM_SIMPLE(ESP);
+    BXRS_PARAM_SIMPLE(EBP);
+    BXRS_PARAM_SIMPLE(ESI);
+    BXRS_PARAM_SIMPLE(EDI);
+    BXRS_PARAM_SIMPLE(EIP);
+    BXRS_PARAM_SIMPLE(dr0);
+    BXRS_PARAM_SIMPLE(dr1);
+    BXRS_PARAM_SIMPLE(dr2);
+    BXRS_PARAM_SIMPLE(dr3);
+    BXRS_PARAM_SIMPLE(dr6);
+    BXRS_PARAM_SIMPLE(dr7);
 #if BX_SUPPORT_X86_64==0
 #if BX_CPU_LEVEL >= 2
-    DEFPARAM_NORMAL(CR0, cr0.val32);
-    DEFPARAM_NORMAL(CR1, cr1);
-    DEFPARAM_NORMAL(CR2, cr2);
-    DEFPARAM_NORMAL(CR3, cr3);
+    BXRS_PARAM_FIELD(CR0, cr0.val32);
+    BXRS_PARAM_SIMPLE(cr1);
+    BXRS_PARAM_SIMPLE(cr2);
+    BXRS_PARAM_SIMPLE(cr3);
 #endif
 #if BX_CPU_LEVEL >= 4
-    DEFPARAM_NORMAL(CR4, cr4.registerValue);
+    BXRS_PARAM_FIELD(CR4, cr4.registerValue);
 #endif
 #endif  // #if BX_SUPPORT_X86_64==0
 
-#define DEFPARAM_SEG_REG(x) \
-    new bx_shadow_num_c(list, #x, #x, &(sregs[BX_SEG_REG_##x].selector.value), 16)
-#define DEFPARAM_GLOBAL_SEG_REG(name,field) \
+#define BXRS_PARAM_SEG_REG(x) \
+    bx_list_c *x = new bx_list_c(list, strdup(#x), 8); \
+    new bx_shadow_num_c(x, \
+        "value", "", &(sregs[BX_SEG_REG_##x].selector.value), 16); \
+    new bx_shadow_num_c(x, \
+        "index", "", &(sregs[BX_SEG_REG_##x].selector.index), 16); \
+    new bx_shadow_num_c(x, \
+        "ti", "", &(sregs[BX_SEG_REG_##x].selector.ti), 16); \
+    new bx_shadow_num_c(x, \
+        "rpl", "", &(sregs[BX_SEG_REG_##x].selector.rpl), 16); \
+    new bx_shadow_num_c(x, \
+        "segment_base", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.base), 16); \
+    new bx_shadow_num_c(x, \
+        "segment_limit", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.limit), 16); \
+    new bx_shadow_bool_c(x, \
+        "segment_g", &(sregs[BX_SEG_REG_##x].cache.u.segment.g)); \
+    new bx_shadow_bool_c(x, \
+        "segment_d_b", &(sregs[BX_SEG_REG_##x].cache.u.segment.d_b));
+#define BXRS_PARAM_GLOBAL_SEG_REG(name,field) \
     new bx_shadow_num_c(list, \
-        #name"_base", #name" base", \
+        #name"_base", "", \
         & BX_CPU_THIS_PTR field.base, 16); \
     new bx_shadow_num_c(list, \
-        #name"_limit", #name" limit", \
+        #name"_limit", "", \
         & BX_CPU_THIS_PTR field.limit, 16);
 
-    DEFPARAM_SEG_REG(CS);
-    DEFPARAM_SEG_REG(DS);
-    DEFPARAM_SEG_REG(SS);
-    DEFPARAM_SEG_REG(ES);
-    DEFPARAM_SEG_REG(FS);
-    DEFPARAM_SEG_REG(GS);
-    new bx_shadow_num_c(list, "LDTR", "LDTR", &ldtr.selector.value, 16);
-    new bx_shadow_num_c(list, "TR", "TR", &tr.selector.value, 16);
-    DEFPARAM_GLOBAL_SEG_REG(GDTR, gdtr);
-    DEFPARAM_GLOBAL_SEG_REG(IDTR, idtr);
-#undef DEFPARAM_SEG_REG
-#undef DEFPARAM_GLOBAL_SEG_REG
+    BXRS_PARAM_SEG_REG(CS);
+    BXRS_PARAM_SEG_REG(DS);
+    BXRS_PARAM_SEG_REG(SS);
+    BXRS_PARAM_SEG_REG(ES);
+    BXRS_PARAM_SEG_REG(FS);
+    BXRS_PARAM_SEG_REG(GS);
+    BXRS_PARAM_GLOBAL_SEG_REG(GDTR, gdtr);
+    BXRS_PARAM_GLOBAL_SEG_REG(IDTR, idtr);
+#define BXRS_PARAM_SEG_REG2(name, field) \
+    bx_list_c *name = new bx_list_c(list, strdup(#name), 8); \
+    new bx_shadow_num_c(name, \
+        "value", "", &(field.selector.value), 16); \
+    new bx_shadow_num_c(name, \
+        "index", "", &(field.selector.index), 16); \
+    new bx_shadow_num_c(name, \
+        "ti", "", &(field.selector.ti), 16); \
+    new bx_shadow_num_c(name, \
+        "rpl", "", &(field.selector.rpl), 16); \
+    new bx_shadow_num_c(name, \
+        "segment_base", "", &(field.cache.u.segment.base), 16); \
+    new bx_shadow_num_c(name, \
+        "segment_limit", "", &(field.cache.u.segment.limit), 16); \
+    new bx_shadow_bool_c(name, \
+        "segment_g", &(field.cache.u.segment.g)); \
+    new bx_shadow_bool_c(name, \
+        "segment_d_b", &(field.cache.u.segment.d_b));
+    BXRS_PARAM_SEG_REG2(LDTR, ldtr);
+    BXRS_PARAM_SEG_REG2(TR, tr);
 
 #if BX_SUPPORT_X86_64==0
     new bx_shadow_num_c(list, "EFLAGS", "EFLAGS",
         &BX_CPU_THIS_PTR eflags.val32, 16);
 #endif
-*/
+
     counter++;
   }
 }
 
 void BX_CPU_C::before_save_state()
 {
+  saved_cpu_version = get_cpu_version_information();
+  saved_cpuid_std = get_std_cpuid_features();
+  saved_cpuid_ext = get_extended_cpuid_features();
 }
 
 void BX_CPU_C::after_restore_state()
 {
+  if ((saved_cpu_version != get_cpu_version_information()) ||
+      (saved_cpuid_std != get_std_cpuid_features()) ||
+      (saved_cpuid_ext != get_extended_cpuid_features())) {
+    BX_PANIC(("save/restore: CPU type mismatch"));
+  }
+  TLB_flush(1);
 }
 #endif
 

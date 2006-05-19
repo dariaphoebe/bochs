@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.279.2.1 2006/04/16 17:50:20 vruppert Exp $
+// $Id: cpu.h,v 1.279.2.2 2006/05/19 20:20:33 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1024,6 +1024,12 @@ public: // for now...
   char name[64];
 
   unsigned bx_cpuid;
+
+#if BX_SUPPORT_SAVE_RESTORE
+  Bit32u saved_cpu_version;
+  Bit32u saved_cpuid_std;
+  Bit32u saved_cpuid_ext;
+#endif
 
   // General register set
   // eax: accumulator
