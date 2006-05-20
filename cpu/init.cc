@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.7 2006/05/20 16:58:51 vruppert Exp $
+// $Id: init.cc,v 1.98.2.8 2006/05/20 19:07:56 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -456,7 +456,7 @@ void BX_CPU_C::register_state()
 #endif  // #if BX_SUPPORT_X86_64==0
 
 #define BXRS_PARAM_SEG_REG(x) \
-    bx_list_c *x = new bx_list_c(list, strdup(#x), 13); \
+    bx_list_c *x = new bx_list_c(list, strdup(#x), 14); \
     new bx_shadow_num_c(x, \
         "value", "", &(sregs[BX_SEG_REG_##x].selector.value), 16); \
     new bx_shadow_num_c(x, \
@@ -479,6 +479,8 @@ void BX_CPU_C::register_state()
         "segment_base", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.base), 16); \
     new bx_shadow_num_c(x, \
         "segment_limit", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.limit), 16); \
+    new bx_shadow_num_c(x, \
+        "segment_limit_scaled", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.limit_scaled), 16); \
     new bx_shadow_bool_c(x, \
         "segment_g", &(sregs[BX_SEG_REG_##x].cache.u.segment.g)); \
     new bx_shadow_bool_c(x, \
@@ -534,8 +536,12 @@ void BX_CPU_C::register_state()
     new bx_shadow_num_c(list, "EFLAGS", "",
         &BX_CPU_THIS_PTR eflags.val32, 16);
 #endif
+    new bx_shadow_bool_c(list, "async_event", (bx_bool*)&async_event);
+    new bx_shadow_bool_c(list, "INTR", (bx_bool*)&INTR);
 #if BX_SUPPORT_APIC
     BXRS_PARAM_FIELD(msr_apicbase, msr.apicbase);
+    bx_list_c *lapic = new bx_list_c(list, "local_apic", 25);
+    local_apic.register_state(lapic);
 #endif
 
     counter++;
