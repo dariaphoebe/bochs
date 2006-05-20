@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.6 2006/05/19 20:20:33 vruppert Exp $
+// $Id: init.cc,v 1.98.2.7 2006/05/20 16:58:51 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -456,7 +456,7 @@ void BX_CPU_C::register_state()
 #endif  // #if BX_SUPPORT_X86_64==0
 
 #define BXRS_PARAM_SEG_REG(x) \
-    bx_list_c *x = new bx_list_c(list, strdup(#x), 8); \
+    bx_list_c *x = new bx_list_c(list, strdup(#x), 13); \
     new bx_shadow_num_c(x, \
         "value", "", &(sregs[BX_SEG_REG_##x].selector.value), 16); \
     new bx_shadow_num_c(x, \
@@ -465,6 +465,16 @@ void BX_CPU_C::register_state()
         "ti", "", &(sregs[BX_SEG_REG_##x].selector.ti), 16); \
     new bx_shadow_num_c(x, \
         "rpl", "", &(sregs[BX_SEG_REG_##x].selector.rpl), 16); \
+    new bx_shadow_num_c(x, \
+        "cache_valid", "", &(sregs[BX_SEG_REG_##x].cache.valid), 16); \
+    new bx_shadow_bool_c(x, \
+        "cache_present", &(sregs[BX_SEG_REG_##x].cache.p)); \
+    new bx_shadow_num_c(x, \
+        "cache_dpl", "", &(sregs[BX_SEG_REG_##x].cache.dpl), 16); \
+    new bx_shadow_bool_c(x, \
+        "cache_segment", &(sregs[BX_SEG_REG_##x].cache.segment)); \
+    new bx_shadow_num_c(x, \
+        "cache_type", "", &(sregs[BX_SEG_REG_##x].cache.type), 16); \
     new bx_shadow_num_c(x, \
         "segment_base", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.base), 16); \
     new bx_shadow_num_c(x, \
@@ -490,7 +500,7 @@ void BX_CPU_C::register_state()
     BXRS_PARAM_GLOBAL_SEG_REG(GDTR, gdtr);
     BXRS_PARAM_GLOBAL_SEG_REG(IDTR, idtr);
 #define BXRS_PARAM_SEG_REG2(name, field) \
-    bx_list_c *name = new bx_list_c(list, strdup(#name), 8); \
+    bx_list_c *name = new bx_list_c(list, strdup(#name), 13); \
     new bx_shadow_num_c(name, \
         "value", "", &(field.selector.value), 16); \
     new bx_shadow_num_c(name, \
@@ -499,6 +509,16 @@ void BX_CPU_C::register_state()
         "ti", "", &(field.selector.ti), 16); \
     new bx_shadow_num_c(name, \
         "rpl", "", &(field.selector.rpl), 16); \
+    new bx_shadow_num_c(name, \
+        "cache_valid", "", &(field.cache.valid), 16); \
+    new bx_shadow_bool_c(name, \
+        "cache_present", &(field.cache.p)); \
+    new bx_shadow_num_c(name, \
+        "cache_dpl", "", &(field.cache.dpl), 16); \
+    new bx_shadow_bool_c(name, \
+        "cache_segment", &(field.cache.segment)); \
+    new bx_shadow_num_c(name, \
+        "cache_type", "", &(field.cache.type), 16); \
     new bx_shadow_num_c(name, \
         "segment_base", "", &(field.cache.u.segment.base), 16); \
     new bx_shadow_num_c(name, \
@@ -511,8 +531,11 @@ void BX_CPU_C::register_state()
     BXRS_PARAM_SEG_REG2(TR, tr);
 
 #if BX_SUPPORT_X86_64==0
-    new bx_shadow_num_c(list, "EFLAGS", "EFLAGS",
+    new bx_shadow_num_c(list, "EFLAGS", "",
         &BX_CPU_THIS_PTR eflags.val32, 16);
+#endif
+#if BX_SUPPORT_APIC
+    BXRS_PARAM_FIELD(msr_apicbase, msr.apicbase);
 #endif
 
     counter++;
@@ -533,6 +556,9 @@ void BX_CPU_C::after_restore_state()
       (saved_cpuid_ext != get_extended_cpuid_features())) {
     BX_PANIC(("save/restore: CPU type mismatch"));
   }
+  SetCR0(cr0.val32);
+  CR3_change(cr3);
+  setEFlags(eflags.val32);
   TLB_flush(1);
 }
 #endif
