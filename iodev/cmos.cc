@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cmos.cc,v 1.53.2.4 2006/05/21 19:35:11 vruppert Exp $
+// $Id: cmos.cc,v 1.53.2.5 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -23,9 +23,6 @@
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-
-
-
 
 
 // Define BX_PLUGGABLE in files that can be compiled into plugins.  For
@@ -139,7 +136,7 @@ bx_cmos_c::~bx_cmos_c(void)
   void
 bx_cmos_c::init(void)
 {
-  BX_DEBUG(("Init $Id: cmos.cc,v 1.53.2.4 2006/05/21 19:35:11 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: cmos.cc,v 1.53.2.5 2006/05/21 21:21:43 sshwarts Exp $"));
   // CMOS RAM & RTC
 
   DEV_register_ioread_handler(this, read_handler, 0x0070, "CMOS RAM", 1);
@@ -302,11 +299,11 @@ void bx_cmos_c::register_state(void)
   char name[6];
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "cmos", "CMOS State");
-  new bx_shadow_num_c(list, "mem_address", "", &BX_CMOS_THIS s.cmos_mem_address, 16);
+  new bx_shadow_num_c(list, "mem_address", "", &BX_CMOS_THIS s.cmos_mem_address, BASE_HEX);
   bx_list_c *ram = new bx_list_c(list, "ram", 128);
   for (i=0; i<128; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(ram, strdup(name), "", &BX_CMOS_THIS s.reg[i], 16);
+    new bx_shadow_num_c(ram, strdup(name), "", &BX_CMOS_THIS s.reg[i], BASE_HEX);
   }
 }
 

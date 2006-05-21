@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ioapic.cc,v 1.28.2.3 2006/05/12 17:33:10 vruppert Exp $
+// $Id: ioapic.cc,v 1.28.2.4 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -65,8 +65,8 @@ void bx_io_redirect_entry_t::sprintf_self(char *buf)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_io_redirect_entry_t::register_state(bx_param_c *parent)
 {
-  new bx_shadow_num_c(parent, "lo", "", &lo, 16);
-  new bx_shadow_num_c(parent, "hi", "", &hi, 16);
+  new bx_shadow_num_c(parent, "lo", "", &lo, BASE_HEX);
+  new bx_shadow_num_c(parent, "hi", "", &hi, BASE_HEX);
 }
 #endif
 
@@ -257,9 +257,9 @@ void bx_ioapic_c::register_state(void)
   bx_list_c *entry;
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "ioapic", "IOAPIC State");
-  new bx_shadow_num_c(list, "ioregsel", "", &ioregsel, 16);
-  new bx_shadow_num_c(list, "intin", "", &intin, 16);
-  new bx_shadow_num_c(list, "irr", "", &irr, 16);
+  new bx_shadow_num_c(list, "ioregsel", "", &ioregsel, BASE_HEX);
+  new bx_shadow_num_c(list, "intin", "", &intin, BASE_HEX);
+  new bx_shadow_num_c(list, "irr", "", &irr, BASE_HEX);
   bx_list_c *table = new bx_list_c(list, "ioredtbl", BX_IOAPIC_NUM_PINS);
   for (i=0; i<BX_IOAPIC_NUM_PINS; i++) {
     sprintf(name, "0x%02x", i);

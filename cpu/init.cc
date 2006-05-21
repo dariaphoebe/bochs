@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.11 2006/05/21 20:59:07 sshwarts Exp $
+// $Id: init.cc,v 1.98.2.12 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -421,9 +421,9 @@ void BX_CPU_C::register_state()
     bx_list_c *list = new bx_list_c(SIM->get_param("save_restore.cpu"), strdup(cpu_name),
                                     cpu_title, 50);
 #define BXRS_PARAM_SIMPLE(name) \
-    new bx_shadow_num_c(list, #name, "", &(name), 16)
+    new bx_shadow_num_c(list, #name, "", &(name), BASE_HEX)
 #define BXRS_PARAM_FIELD(name, field) \
-    new bx_shadow_num_c(list, #name, "", &(field), 16)
+    new bx_shadow_num_c(list, #name, "", &(field), BASE_HEX)
 
     BXRS_PARAM_SIMPLE(saved_cpu_version);
     BXRS_PARAM_SIMPLE(saved_cpuid_std);
@@ -462,23 +462,23 @@ void BX_CPU_C::register_state()
 #define BXRS_PARAM_SEG_REG(x) \
     reg = new bx_list_c(list, strdup(#x), 19); \
     new bx_shadow_num_c(reg, \
-        "value", "", &(sregs[BX_SEG_REG_##x].selector.value), 16); \
+        "value", "", &(sregs[BX_SEG_REG_##x].selector.value), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "index", "", &(sregs[BX_SEG_REG_##x].selector.index), 16); \
+        "index", "", &(sregs[BX_SEG_REG_##x].selector.index), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "ti", "", &(sregs[BX_SEG_REG_##x].selector.ti), 16); \
+        "ti", "", &(sregs[BX_SEG_REG_##x].selector.ti), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "rpl", "", &(sregs[BX_SEG_REG_##x].selector.rpl), 16); \
+        "rpl", "", &(sregs[BX_SEG_REG_##x].selector.rpl), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "cache_valid", "", &(sregs[BX_SEG_REG_##x].cache.valid), 16); \
+        "cache_valid", "", &(sregs[BX_SEG_REG_##x].cache.valid), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "cache_present", &(sregs[BX_SEG_REG_##x].cache.p)); \
     new bx_shadow_num_c(reg, \
-        "cache_dpl", "", &(sregs[BX_SEG_REG_##x].cache.dpl), 16); \
+        "cache_dpl", "", &(sregs[BX_SEG_REG_##x].cache.dpl), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "cache_segment", &(sregs[BX_SEG_REG_##x].cache.segment)); \
     new bx_shadow_num_c(reg, \
-        "cache_type", "", &(sregs[BX_SEG_REG_##x].cache.type), 16); \
+        "cache_type", "", &(sregs[BX_SEG_REG_##x].cache.type), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "segment_executable", &(sregs[BX_SEG_REG_##x].cache.u.segment.executable)); \
     new bx_shadow_bool_c(reg, \
@@ -488,11 +488,11 @@ void BX_CPU_C::register_state()
     new bx_shadow_bool_c(reg, \
         "segment_a", &(sregs[BX_SEG_REG_##x].cache.u.segment.a)); \
     new bx_shadow_num_c(reg, \
-        "segment_base", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.base), 16); \
+        "segment_base", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.base), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "segment_limit", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.limit), 16); \
+        "segment_limit", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.limit), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "segment_limit_scaled", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.limit_scaled), 16); \
+        "segment_limit_scaled", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.limit_scaled), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "segment_g", &(sregs[BX_SEG_REG_##x].cache.u.segment.g)); \
     new bx_shadow_bool_c(reg, \
@@ -502,10 +502,10 @@ void BX_CPU_C::register_state()
 #define BXRS_PARAM_GLOBAL_SEG_REG(name,field) \
     new bx_shadow_num_c(list, \
         #name"_base", "", \
-        & BX_CPU_THIS_PTR field.base, 16); \
+        & BX_CPU_THIS_PTR field.base, BASE_HEX); \
     new bx_shadow_num_c(list, \
         #name"_limit", "", \
-        & BX_CPU_THIS_PTR field.limit, 16);
+        & BX_CPU_THIS_PTR field.limit, BASE_HEX);
 
     BXRS_PARAM_SEG_REG(CS);
     BXRS_PARAM_SEG_REG(DS);
@@ -520,23 +520,23 @@ void BX_CPU_C::register_state()
 #define BXRS_PARAM_SEG_REG2(name, field) \
     reg = new bx_list_c(list, strdup(#name), 19); \
     new bx_shadow_num_c(reg, \
-        "value", "", &(field.selector.value), 16); \
+        "value", "", &(field.selector.value), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "index", "", &(field.selector.index), 16); \
+        "index", "", &(field.selector.index), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "ti", "", &(field.selector.ti), 16); \
+        "ti", "", &(field.selector.ti), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "rpl", "", &(field.selector.rpl), 16); \
+        "rpl", "", &(field.selector.rpl), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "cache_valid", "", &(field.cache.valid), 16); \
+        "cache_valid", "", &(field.cache.valid), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "cache_present", &(field.cache.p)); \
     new bx_shadow_num_c(reg, \
-        "cache_dpl", "", &(field.cache.dpl), 16); \
+        "cache_dpl", "", &(field.cache.dpl), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "cache_segment", &(field.cache.segment)); \
     new bx_shadow_num_c(reg, \
-        "cache_type", "", &(field.cache.type), 16); \
+        "cache_type", "", &(field.cache.type), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "segment_executable", &(field.cache.u.segment.executable)); \
     new bx_shadow_bool_c(reg, \
@@ -546,11 +546,11 @@ void BX_CPU_C::register_state()
     new bx_shadow_bool_c(reg, \
         "segment_a", &(field.cache.u.segment.a)); \
     new bx_shadow_num_c(reg, \
-        "segment_base", "", &(field.cache.u.segment.base), 16); \
+        "segment_base", "", &(field.cache.u.segment.base), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "segment_limit", "", &(field.cache.u.segment.limit), 16); \
+        "segment_limit", "", &(field.cache.u.segment.limit), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "segment_limit_scaled", "", &(field.cache.u.segment.limit_scaled), 16); \
+        "segment_limit_scaled", "", &(field.cache.u.segment.limit_scaled), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "segment_g", &(field.cache.u.segment.g)); \
     new bx_shadow_bool_c(reg, \
@@ -574,22 +574,22 @@ void BX_CPU_C::register_state()
 #endif
 #if BX_SUPPORT_FPU || BX_SUPPORT_MMX
     bx_list_c *fpu = new bx_list_c(list, "fpu", 13);
-    new bx_shadow_num_c(fpu, "cwd", "", &the_i387.cwd, 16);
-    new bx_shadow_num_c(fpu, "swd", "", &the_i387.swd, 16);
-    new bx_shadow_num_c(fpu, "twd", "", &the_i387.twd, 16);
-    new bx_shadow_num_c(fpu, "foo", "", &the_i387.foo, 16);
-    new bx_shadow_num_c(fpu, "fip", "", &the_i387.fip, 16);
-    new bx_shadow_num_c(fpu, "fdp", "", &the_i387.fdp, 16);
-    new bx_shadow_num_c(fpu, "fcs", "", &the_i387.fcs, 16);
-    new bx_shadow_num_c(fpu, "fds", "", &the_i387.fds, 16);
+    new bx_shadow_num_c(fpu, "cwd", "", &the_i387.cwd, BASE_HEX);
+    new bx_shadow_num_c(fpu, "swd", "", &the_i387.swd, BASE_HEX);
+    new bx_shadow_num_c(fpu, "twd", "", &the_i387.twd, BASE_HEX);
+    new bx_shadow_num_c(fpu, "foo", "", &the_i387.foo, BASE_HEX);
+    new bx_shadow_num_c(fpu, "fip", "", &the_i387.fip, BASE_HEX);
+    new bx_shadow_num_c(fpu, "fdp", "", &the_i387.fdp, BASE_HEX);
+    new bx_shadow_num_c(fpu, "fcs", "", &the_i387.fcs, BASE_HEX);
+    new bx_shadow_num_c(fpu, "fds", "", &the_i387.fds, BASE_HEX);
     bx_list_c *st_space = new bx_list_c(fpu, "st_space", 8);
     for (i=0; i<8; i++) {
       sprintf(name, "%d", i);
       reg = new bx_list_c(st_space, strdup(name), 8);
-      new bx_shadow_num_c(reg, "fraction", "", &the_i387.st_space[i].fraction, 16);
-      new bx_shadow_num_c(reg, "exp", "", &the_i387.st_space[i].exp, 16);
+      new bx_shadow_num_c(reg, "fraction", "", &the_i387.st_space[i].fraction, BASE_HEX);
+      new bx_shadow_num_c(reg, "exp", "", &the_i387.st_space[i].exp, BASE_HEX);
     }
-    new bx_shadow_num_c(fpu, "tos", "", &the_i387.tos, 16);
+    new bx_shadow_num_c(fpu, "tos", "", &the_i387.tos, BASE_HEX);
 #endif
 #if BX_SUPPORT_SSE
     // TODO: XMM

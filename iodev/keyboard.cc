@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: keyboard.cc,v 1.114.2.3 2006/05/12 17:33:10 vruppert Exp $
+// $Id: keyboard.cc,v 1.114.2.4 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -109,7 +109,7 @@ void bx_keyb_c::resetinternals(bx_bool powerup)
 
 void bx_keyb_c::init(void)
 {
-  BX_DEBUG(("Init $Id: keyboard.cc,v 1.114.2.3 2006/05/12 17:33:10 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: keyboard.cc,v 1.114.2.4 2006/05/21 21:21:43 sshwarts Exp $"));
   Bit32u   i;
 
   DEV_register_irq(1, "8042 Keyboard controller");
@@ -270,12 +270,12 @@ void bx_keyb_c::register_state(void)
   new bx_shadow_bool_c(ctrl, "aux_clock_enabled", &BX_KEY_THIS s.kbd_controller.aux_clock_enabled);
   new bx_shadow_bool_c(ctrl, "allow_irq1", &BX_KEY_THIS s.kbd_controller.allow_irq1);
   new bx_shadow_bool_c(ctrl, "allow_irq12", &BX_KEY_THIS s.kbd_controller.allow_irq12);
-  new bx_shadow_num_c(ctrl, "kbd_output_buffer", "", &BX_KEY_THIS s.kbd_controller.kbd_output_buffer, 16);
-  new bx_shadow_num_c(ctrl, "aux_output_buffer", "", &BX_KEY_THIS s.kbd_controller.aux_output_buffer, 16);
-  new bx_shadow_num_c(ctrl, "last_comm", "", &BX_KEY_THIS s.kbd_controller.last_comm, 16);
+  new bx_shadow_num_c(ctrl, "kbd_output_buffer", "", &BX_KEY_THIS s.kbd_controller.kbd_output_buffer, BASE_HEX);
+  new bx_shadow_num_c(ctrl, "aux_output_buffer", "", &BX_KEY_THIS s.kbd_controller.aux_output_buffer, BASE_HEX);
+  new bx_shadow_num_c(ctrl, "last_comm", "", &BX_KEY_THIS s.kbd_controller.last_comm, BASE_HEX);
   new bx_shadow_num_c(ctrl, "expecting_port60h", "", &BX_KEY_THIS s.kbd_controller.expecting_port60h);
   new bx_shadow_num_c(ctrl, "expecting_mouse_parameter", "", &BX_KEY_THIS s.kbd_controller.expecting_mouse_parameter);
-  new bx_shadow_num_c(ctrl, "last_mouse_command", "", &BX_KEY_THIS s.kbd_controller.last_mouse_command, 16);
+  new bx_shadow_num_c(ctrl, "last_mouse_command", "", &BX_KEY_THIS s.kbd_controller.last_mouse_command, BASE_HEX);
   new bx_shadow_num_c(ctrl, "timer_pending", "", &BX_KEY_THIS s.kbd_controller.timer_pending);
   new bx_shadow_bool_c(ctrl, "irq1_requested", &BX_KEY_THIS s.kbd_controller.irq1_requested);
   new bx_shadow_bool_c(ctrl, "irq12_requested", &BX_KEY_THIS s.kbd_controller.irq12_requested);
@@ -301,7 +301,7 @@ void bx_keyb_c::register_state(void)
   buffer = new bx_list_c(kbdbuf, "buffer", BX_KBD_ELEMENTS);
   for (i=0; i<BX_KBD_ELEMENTS; i++) {
     sprintf(name, "%d", i);
-    new bx_shadow_num_c(buffer, strdup(name), "", &BX_KEY_THIS s.kbd_internal_buffer.buffer[i], 16);
+    new bx_shadow_num_c(buffer, strdup(name), "", &BX_KEY_THIS s.kbd_internal_buffer.buffer[i], BASE_HEX);
   }
   new bx_shadow_num_c(kbdbuf, "head", "", &BX_KEY_THIS s.kbd_internal_buffer.head);
   new bx_shadow_bool_c(kbdbuf, "expecting_typematic", &BX_KEY_THIS s.kbd_internal_buffer.expecting_typematic);
@@ -315,13 +315,13 @@ void bx_keyb_c::register_state(void)
   buffer = new bx_list_c(mousebuf, "buffer", BX_MOUSE_BUFF_SIZE);
   for (i=0; i<BX_MOUSE_BUFF_SIZE; i++) {
     sprintf(name, "%d", i);
-    new bx_shadow_num_c(buffer, strdup(name), "", &BX_KEY_THIS s.mouse_internal_buffer.buffer[i], 16);
+    new bx_shadow_num_c(buffer, strdup(name), "", &BX_KEY_THIS s.mouse_internal_buffer.buffer[i], BASE_HEX);
   }
   new bx_shadow_num_c(mousebuf, "head", "", &BX_KEY_THIS s.mouse_internal_buffer.head);
   buffer = new bx_list_c(list, "controller_Q", BX_KBD_CONTROLLER_QSIZE);
   for (i=0; i<BX_KBD_CONTROLLER_QSIZE; i++) {
     sprintf(name, "%d", i);
-    new bx_shadow_num_c(buffer, strdup(name), "", &BX_KEY_THIS s.controller_Q[i], 16);
+    new bx_shadow_num_c(buffer, strdup(name), "", &BX_KEY_THIS s.controller_Q[i], BASE_HEX);
   }
   new bx_shadow_num_c(list, "controller_Qsize", "", &BX_KEY_THIS s.controller_Qsize);
   new bx_shadow_num_c(list, "controller_Qsource", "", &BX_KEY_THIS s.controller_Qsource);

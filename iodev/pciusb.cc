@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.cc,v 1.37.2.5 2006/05/21 19:35:11 vruppert Exp $
+// $Id: pciusb.cc,v 1.37.2.6 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -268,9 +268,9 @@ void bx_pciusb_c::register_state(void)
     new bx_shadow_bool_c(usb_en, "on_complete", &BX_USB_THIS hub[i].usb_enable.on_complete);
     new bx_shadow_bool_c(usb_en, "resume", &BX_USB_THIS hub[i].usb_enable.resume);
     new bx_shadow_bool_c(usb_en, "timeout_crc", &BX_USB_THIS hub[i].usb_enable.timeout_crc);
-    new bx_shadow_num_c(hub, "frame_num", "", &BX_USB_THIS hub[i].usb_frame_num.frame_num, 16);
-    new bx_shadow_num_c(hub, "frame_base", "", &BX_USB_THIS hub[i].usb_frame_base.frame_base, 16);
-    new bx_shadow_num_c(hub, "sof_timing", "", &BX_USB_THIS hub[i].usb_sof.sof_timing, 16);
+    new bx_shadow_num_c(hub, "frame_num", "", &BX_USB_THIS hub[i].usb_frame_num.frame_num, BASE_HEX);
+    new bx_shadow_num_c(hub, "frame_base", "", &BX_USB_THIS hub[i].usb_frame_base.frame_base, BASE_HEX);
+    new bx_shadow_num_c(hub, "sof_timing", "", &BX_USB_THIS hub[i].usb_sof.sof_timing, BASE_HEX);
     for (j=0; j<USB_NUM_PORTS; j++) {
       sprintf(portnum, "port%d", j+1);
       port = new bx_list_c(hub, strdup(portnum), 10);
@@ -288,7 +288,7 @@ void bx_pciusb_c::register_state(void)
     bx_list_c *pci_conf = new bx_list_c(hub, "pci_conf", 256);
     for (n=0; n<256; n++) {
       sprintf(name, "0x%02x", n);
-      new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_USB_THIS hub[i].pci_conf[n], 16);
+      new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_USB_THIS hub[i].pci_conf[n], BASE_HEX);
     }
   }
   new bx_shadow_bool_c(list, "busy", &BX_USB_THIS busy);

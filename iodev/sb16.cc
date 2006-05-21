@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.cc,v 1.47.2.5 2006/05/14 15:04:43 vruppert Exp $
+// $Id: sb16.cc,v 1.47.2.6 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -343,12 +343,12 @@ void bx_sb16_c::register_state(void)
     new bx_shadow_num_c(patch, "program", "", &MPU.program[i]);
   }
   bx_list_c *dsp = new bx_list_c(list, "dsp", 8);
-  new bx_shadow_num_c(dsp, "resetport", "", &DSP.resetport, 16);
-  new bx_shadow_num_c(dsp, "speaker", "", &DSP.speaker, 16);
-  new bx_shadow_num_c(dsp, "prostereo", "", &DSP.prostereo, 16);
+  new bx_shadow_num_c(dsp, "resetport", "", &DSP.resetport, BASE_HEX);
+  new bx_shadow_num_c(dsp, "speaker", "", &DSP.speaker, BASE_HEX);
+  new bx_shadow_num_c(dsp, "prostereo", "", &DSP.prostereo, BASE_HEX);
   new bx_shadow_bool_c(dsp, "irqpending", &DSP.irqpending);
   new bx_shadow_bool_c(dsp, "midiuartmode", &DSP.midiuartmode);
-  new bx_shadow_num_c(dsp, "testreg", "", &DSP.testreg, 16);
+  new bx_shadow_num_c(dsp, "testreg", "", &DSP.testreg, BASE_HEX);
   bx_list_c *dma = new bx_list_c(dsp, "dma", 16);
   new bx_shadow_num_c(dma, "mode", "", &DSP.dma.mode);
   new bx_shadow_num_c(dma, "bits", "", &DSP.dma.bits);
@@ -422,7 +422,7 @@ void bx_sb16_c::register_state(void)
     new bx_shadow_num_c(item, "outputlevel4", "", &OPL.chan[i].outputlevel[3]);
     new bx_shadow_num_c(item, "midivol", "", &OPL.chan[i].midivol);
   }
-  new bx_shadow_num_c(list, "mixer_regindex", "", &MIXER.regindex, 16);
+  new bx_shadow_num_c(list, "mixer_regindex", "", &MIXER.regindex, BASE_HEX);
   new bx_shadow_data_c(list, "mixer_reg", MIXER.reg, BX_SB16_MIX_REG);
   bx_list_c *emul = new bx_list_c(list, "emul");
   new bx_shadow_num_c(emul, "remaps", "", &EMUL.remaps);

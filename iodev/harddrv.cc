@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: harddrv.cc,v 1.165.2.4 2006/05/16 18:50:27 vruppert Exp $
+// $Id: harddrv.cc,v 1.165.2.5 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -143,7 +143,7 @@ void bx_hard_drive_c::init(void)
   char  ata_name[20];
   bx_list_c *base;
 
-  BX_DEBUG(("Init $Id: harddrv.cc,v 1.165.2.4 2006/05/16 18:50:27 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: harddrv.cc,v 1.165.2.5 2006/05/21 21:21:43 sshwarts Exp $"));
 
   for (channel=0; channel<BX_MAX_ATA_CHANNEL; channel++) {
     sprintf(ata_name, "ata.%d.resources", channel);
@@ -631,22 +631,22 @@ void bx_hard_drive_c::register_state(void)
       new bx_shadow_bool_c(status, "index_pulse", &BX_CONTROLLER(i, j).status.index_pulse);
       new bx_shadow_num_c(status, "index_pulse_count", "", &BX_CONTROLLER(i, j).status.index_pulse_count);
       new bx_shadow_bool_c(status, "err", &BX_CONTROLLER(i, j).status.err);
-      new bx_shadow_num_c(drive, "error_register", "", &BX_CONTROLLER(i, j).error_register, 16);
-      new bx_shadow_num_c(drive, "head_no", "", &BX_CONTROLLER(i, j).head_no, 16);
-      new bx_shadow_num_c(drive, "sector_count", "", &BX_CONTROLLER(i, j).sector_count, 16);
-      new bx_shadow_num_c(drive, "sector_no", "", &BX_CONTROLLER(i, j).sector_no, 16);
-      new bx_shadow_num_c(drive, "cylinder_no", "", &BX_CONTROLLER(i, j).cylinder_no, 16);
-      new bx_shadow_num_c(drive, "buffer_size", "", &BX_CONTROLLER(i, j).buffer_size, 16);
-      new bx_shadow_num_c(drive, "buffer_index", "", &BX_CONTROLLER(i, j).buffer_index, 16);
-      new bx_shadow_num_c(drive, "drq_index", "", &BX_CONTROLLER(i, j).drq_index, 16);
-      new bx_shadow_num_c(drive, "current_command", "", &BX_CONTROLLER(i, j).current_command, 16);
-      new bx_shadow_num_c(drive, "sectors_per_block", "", &BX_CONTROLLER(i, j).sectors_per_block, 16);
-      new bx_shadow_num_c(drive, "lba_mode", "", &BX_CONTROLLER(i, j).lba_mode, 16);
-      new bx_shadow_num_c(drive, "packet_dma", "", &BX_CONTROLLER(i, j).packet_dma, 16);
+      new bx_shadow_num_c(drive, "error_register", "", &BX_CONTROLLER(i, j).error_register, BASE_HEX);
+      new bx_shadow_num_c(drive, "head_no", "", &BX_CONTROLLER(i, j).head_no, BASE_HEX);
+      new bx_shadow_num_c(drive, "sector_count", "", &BX_CONTROLLER(i, j).sector_count, BASE_HEX);
+      new bx_shadow_num_c(drive, "sector_no", "", &BX_CONTROLLER(i, j).sector_no, BASE_HEX);
+      new bx_shadow_num_c(drive, "cylinder_no", "", &BX_CONTROLLER(i, j).cylinder_no, BASE_HEX);
+      new bx_shadow_num_c(drive, "buffer_size", "", &BX_CONTROLLER(i, j).buffer_size, BASE_HEX);
+      new bx_shadow_num_c(drive, "buffer_index", "", &BX_CONTROLLER(i, j).buffer_index, BASE_HEX);
+      new bx_shadow_num_c(drive, "drq_index", "", &BX_CONTROLLER(i, j).drq_index, BASE_HEX);
+      new bx_shadow_num_c(drive, "current_command", "", &BX_CONTROLLER(i, j).current_command, BASE_HEX);
+      new bx_shadow_num_c(drive, "sectors_per_block", "", &BX_CONTROLLER(i, j).sectors_per_block, BASE_HEX);
+      new bx_shadow_num_c(drive, "lba_mode", "", &BX_CONTROLLER(i, j).lba_mode, BASE_HEX);
+      new bx_shadow_num_c(drive, "packet_dma", "", &BX_CONTROLLER(i, j).packet_dma, BASE_HEX);
       new bx_shadow_bool_c(drive, "control_reset", &BX_CONTROLLER(i, j).control.reset);
       new bx_shadow_bool_c(drive, "control_disable_irq", &BX_CONTROLLER(i, j).control.disable_irq);
-      new bx_shadow_num_c(drive, "reset_in_progress", "", &BX_CONTROLLER(i, j).reset_in_progress, 16);
-      new bx_shadow_num_c(drive, "features", "", &BX_CONTROLLER(i, j).features, 16);
+      new bx_shadow_num_c(drive, "reset_in_progress", "", &BX_CONTROLLER(i, j).reset_in_progress, BASE_HEX);
+      new bx_shadow_num_c(drive, "features", "", &BX_CONTROLLER(i, j).features, BASE_HEX);
       new bx_shadow_bool_c(drive, "cdrom_locked", &BX_HD_THIS channels[i].drives[j].cdrom.locked);
     }
     new bx_shadow_num_c(chan, "drive_select", "", &BX_HD_THIS channels[i].drive_select);

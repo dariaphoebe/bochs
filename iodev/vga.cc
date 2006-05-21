@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.cc,v 1.128.2.5 2006/05/12 17:33:10 vruppert Exp $
+// $Id: vga.cc,v 1.128.2.6 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -411,26 +411,26 @@ void bx_vga_c::register_state(void)
   new bx_shadow_bool_c(misc, "horiz_sync_pol", &BX_VGA_THIS s.misc_output.horiz_sync_pol);
   new bx_shadow_bool_c(misc, "vert_sync_pol", &BX_VGA_THIS s.misc_output.vert_sync_pol);
   bx_list_c *crtc = new bx_list_c(list, "CRTC");
-  new bx_shadow_num_c(crtc, "address", "", &BX_VGA_THIS s.CRTC.address, 16);
+  new bx_shadow_num_c(crtc, "address", "", &BX_VGA_THIS s.CRTC.address, BASE_HEX);
   reg = new bx_list_c(crtc, "reg", 0x19);
   for (i=0; i<=0x18; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(reg, strdup(name), "", &BX_VGA_THIS s.CRTC.reg[i], 16);
+    new bx_shadow_num_c(reg, strdup(name), "", &BX_VGA_THIS s.CRTC.reg[i], BASE_HEX);
   }
   new bx_shadow_bool_c(crtc, "write_protect", &BX_VGA_THIS s.CRTC.write_protect);
   bx_list_c *actl = new bx_list_c(list, "attribute_ctrl", 9);
   new bx_shadow_bool_c(actl, "flip_flop", &BX_VGA_THIS s.attribute_ctrl.flip_flop);
-  new bx_shadow_num_c(actl, "address", "", &BX_VGA_THIS s.attribute_ctrl.address, 16);
+  new bx_shadow_num_c(actl, "address", "", &BX_VGA_THIS s.attribute_ctrl.address, BASE_HEX);
   new bx_shadow_bool_c(actl, "video_enabled", &BX_VGA_THIS s.attribute_ctrl.video_enabled);
   reg = new bx_list_c(actl, "palette_reg", 16);
   for (i=0; i<16; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(reg, strdup(name), "", &BX_VGA_THIS s.attribute_ctrl.palette_reg[i], 16);
+    new bx_shadow_num_c(reg, strdup(name), "", &BX_VGA_THIS s.attribute_ctrl.palette_reg[i], BASE_HEX);
   }
-  new bx_shadow_num_c(actl, "overscan_color", "", &BX_VGA_THIS s.attribute_ctrl.overscan_color, 16);
-  new bx_shadow_num_c(actl, "color_plane_enable", "", &BX_VGA_THIS s.attribute_ctrl.color_plane_enable, 16);
-  new bx_shadow_num_c(actl, "horiz_pel_panning", "", &BX_VGA_THIS s.attribute_ctrl.horiz_pel_panning, 16);
-  new bx_shadow_num_c(actl, "color_select", "", &BX_VGA_THIS s.attribute_ctrl.color_select, 16);
+  new bx_shadow_num_c(actl, "overscan_color", "", &BX_VGA_THIS s.attribute_ctrl.overscan_color, BASE_HEX);
+  new bx_shadow_num_c(actl, "color_plane_enable", "", &BX_VGA_THIS s.attribute_ctrl.color_plane_enable, BASE_HEX);
+  new bx_shadow_num_c(actl, "horiz_pel_panning", "", &BX_VGA_THIS s.attribute_ctrl.horiz_pel_panning, BASE_HEX);
+  new bx_shadow_num_c(actl, "color_select", "", &BX_VGA_THIS s.attribute_ctrl.color_select, BASE_HEX);
   bx_list_c *mode = new bx_list_c(actl, "mode_ctrl", 7);
   new bx_shadow_bool_c(mode, "graphics_alpha", &BX_VGA_THIS s.attribute_ctrl.mode_ctrl.graphics_alpha);
   new bx_shadow_bool_c(mode, "display_type", &BX_VGA_THIS s.attribute_ctrl.mode_ctrl.display_type);
@@ -440,9 +440,9 @@ void bx_vga_c::register_state(void)
   new bx_shadow_bool_c(mode, "pixel_clock_select", &BX_VGA_THIS s.attribute_ctrl.mode_ctrl.pixel_clock_select);
   new bx_shadow_bool_c(mode, "internal_palette_size", &BX_VGA_THIS s.attribute_ctrl.mode_ctrl.internal_palette_size);
   bx_list_c *pel = new bx_list_c(list, "pel");
-  new bx_shadow_num_c(pel, "write_data_register", "", &BX_VGA_THIS s.pel.write_data_register, 16);
+  new bx_shadow_num_c(pel, "write_data_register", "", &BX_VGA_THIS s.pel.write_data_register, BASE_HEX);
   new bx_shadow_num_c(pel, "write_data_cycle", "", &BX_VGA_THIS s.pel.write_data_cycle);
-  new bx_shadow_num_c(pel, "read_data_register", "", &BX_VGA_THIS s.pel.read_data_register, 16);
+  new bx_shadow_num_c(pel, "read_data_register", "", &BX_VGA_THIS s.pel.read_data_register, BASE_HEX);
   new bx_shadow_num_c(pel, "read_data_cycle", "", &BX_VGA_THIS s.pel.read_data_cycle);
   new bx_shadow_num_c(pel, "dac_state", "", &BX_VGA_THIS s.pel.dac_state);
   new bx_shadow_num_c(pel, "mask", "", &BX_VGA_THIS s.pel.mask);

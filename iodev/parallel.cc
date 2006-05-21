@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: parallel.cc,v 1.28.2.4 2006/05/12 17:33:10 vruppert Exp $
+// $Id: parallel.cc,v 1.28.2.5 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -75,7 +75,7 @@ void bx_parallel_c::init(void)
   char name[16], pname[20];
   bx_list_c *base;
 
-  BX_DEBUG(("Init $Id: parallel.cc,v 1.28.2.4 2006/05/12 17:33:10 vruppert Exp $"));
+  BX_DEBUG(("Init $Id: parallel.cc,v 1.28.2.5 2006/05/21 21:21:43 sshwarts Exp $"));
 
   for (unsigned i=0; i<BX_N_PARALLEL_PORTS; i++) {
     sprintf(pname, "ports.parallel.%d", i+1);
@@ -135,7 +135,7 @@ void bx_parallel_c::register_state(void)
     if (SIM->get_param_bool("enabled", base)->get()) {
       sprintf(name, "%d", i);
       port = new bx_list_c(list, strdup(name), 11);
-      new bx_shadow_num_c(port, "data", "", &BX_PAR_THIS s[i].data, 16);
+      new bx_shadow_num_c(port, "data", "", &BX_PAR_THIS s[i].data, BASE_HEX);
       new bx_shadow_bool_c(port, "slct", &BX_PAR_THIS s[i].STATUS.slct);
       new bx_shadow_bool_c(port, "ack", &BX_PAR_THIS s[i].STATUS.ack);
       new bx_shadow_bool_c(port, "busy", &BX_PAR_THIS s[i].STATUS.busy);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcipnic.cc,v 1.18.2.5 2006/05/21 19:35:11 vruppert Exp $
+// $Id: pcipnic.cc,v 1.18.2.6 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  Fen Systems Ltd.
@@ -171,7 +171,7 @@ void bx_pcipnic_c::register_state(void)
   bx_list_c *pci_conf = new bx_list_c(list, "pci_conf", 256);
   for (i=0; i<256; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_PNIC_THIS s.pci_conf[i], 16);
+    new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_PNIC_THIS s.pci_conf[i], BASE_HEX);
   }
 }
 

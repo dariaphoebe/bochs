@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.11 2006/05/12 17:33:09 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.12 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -470,7 +470,7 @@ int n_bochs_start_names = 3;
 
 char *floppy_type_names[] = { "none", "1.2M", "1.44M", "2.88M", "720K", "360K", "160K", "180K", "320K", "auto", NULL };
 int floppy_type_n_sectors[] = { -1, 80*2*15, 80*2*18, 80*2*36, 80*2*9, 40*2*9, 40*1*8, 40*1*9, 40*2*8, -1 };
-int n_floppy_type_names = 10;
+int n_floppy_type_names = BASE_DEC;
 
 char *floppy_status_names[] = { "ejected", "inserted", NULL };
 int n_floppy_status_names = 2;
@@ -1098,7 +1098,7 @@ void bx_real_sim_c::save_sr_param(FILE *fp, bx_param_c *node, const char *sr_pat
   fprintf(fp, "%s = ", node->get_name());
   switch (node->get_type()) {
     case BXT_PARAM_NUM:
-      if (((bx_param_num_c*)node)->get_base() == 10) {
+      if (((bx_param_num_c*)node)->get_base() == BASE_DEC) {
         if (((bx_param_num_c*)node)->get_min() >= BX_MIN_BIT64U) {
           if (((bx_param_num_c*)node)->get_max() > BX_MAX_BIT32U) {
             fprintf(fp, FMT_LL"u\n", ((bx_param_num_c*)node)->get());
@@ -1250,7 +1250,7 @@ bx_param_num_c::bx_param_num_c(bx_param_c *parent,
   }
 }
 
-Bit32u bx_param_num_c::default_base = 10;
+Bit32u bx_param_num_c::default_base = BASE_DEC;
 
 Bit32u bx_param_num_c::set_default_base(Bit32u val) {
   Bit32u old = default_base;
@@ -1352,7 +1352,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = ((BX_MAX_BIT64S >> (63 - (highbit - lowbit))) << lowbit);
   val.p64bit = ptr_to_real_val;
-  if (base == 16) {
+  if (base == BASE_HEX) {
     this->base = base;
     this->text_format = "0x%x";
   }
@@ -1372,7 +1372,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = ((BX_MAX_BIT64U >> (63 - (highbit - lowbit))) << lowbit);
   val.p64bit = (Bit64s*) ptr_to_real_val;
-  if (base == 16) {
+  if (base == BASE_HEX) {
     this->base = base;
     this->text_format = "0x%x";
   }
@@ -1392,7 +1392,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = ((BX_MAX_BIT32S >> (31 - (highbit - lowbit))) << lowbit);
   val.p32bit = ptr_to_real_val;
-  if (base == 16) {
+  if (base == BASE_HEX) {
     this->base = base;
     this->text_format = "0x%08x";
   }
@@ -1412,7 +1412,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = ((BX_MAX_BIT32U >> (31 - (highbit - lowbit))) << lowbit);
   val.p32bit = (Bit32s*) ptr_to_real_val;
-  if (base == 16) {
+  if (base == BASE_HEX) {
     this->base = base;
     this->text_format = "0x%08x";
   }
@@ -1432,7 +1432,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = ((BX_MAX_BIT16S >> (15 - (highbit - lowbit))) << lowbit);
   val.p16bit = ptr_to_real_val;
-  if (base == 16) {
+  if (base == BASE_HEX) {
     this->base = base;
     this->text_format = "0x%04x";
   }
@@ -1452,7 +1452,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = ((BX_MAX_BIT16U >> (15 - (highbit - lowbit))) << lowbit);
   val.p16bit = (Bit16s*) ptr_to_real_val;
-  if (base == 16) {
+  if (base == BASE_HEX) {
     this->base = base;
     this->text_format = "0x%04x";
   }
@@ -1473,7 +1473,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
   this->mask = ((BX_MAX_BIT8S >> (7 - (highbit - lowbit))) << lowbit);
   this->mask = (1 << (highbit - lowbit)) - 1;
   val.p8bit = ptr_to_real_val;
-  if (base == 16) {
+  if (base == BASE_HEX) {
     this->base = base;
     this->text_format = "0x%02x";
   }
@@ -1493,7 +1493,7 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
   this->lowbit = lowbit;
   this->mask = ((BX_MAX_BIT8U >> (7 - (highbit - lowbit))) << lowbit);
   val.p8bit = (Bit8s*) ptr_to_real_val;
-  if (base == 16) {
+  if (base == BASE_HEX) {
     this->base = base;
     this->text_format = "0x%02x";
   }

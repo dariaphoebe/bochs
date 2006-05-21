@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.cc,v 1.47.2.6 2006/05/21 19:35:11 vruppert Exp $
+// $Id: pci.cc,v 1.47.2.7 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -155,12 +155,12 @@ void bx_pci_bridge_c::register_state(void)
   char name[6];
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci_bridge", "PCI Bridge State");
-  new bx_shadow_num_c(list, "confAddr", "", &BX_PCI_THIS s.i440fx.confAddr, 16);
-  new bx_shadow_num_c(list, "confData", "", &BX_PCI_THIS s.i440fx.confData, 16);
+  new bx_shadow_num_c(list, "confAddr", "", &BX_PCI_THIS s.i440fx.confAddr, BASE_HEX);
+  new bx_shadow_num_c(list, "confData", "", &BX_PCI_THIS s.i440fx.confData, BASE_HEX);
   bx_list_c *pci_conf = new bx_list_c(list, "pci_conf", 256);
   for (i=0; i<256; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_PCI_THIS s.i440fx.pci_conf[i], 16);
+    new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_PCI_THIS s.i440fx.pci_conf[i], BASE_HEX);
   }
 }
 

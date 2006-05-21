@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.cc,v 1.29.2.7 2006/05/21 19:35:11 vruppert Exp $
+// $Id: pci2isa.cc,v 1.29.2.8 2006/05/21 21:21:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -156,22 +156,22 @@ void bx_pci2isa_c::register_state(void)
   bx_list_c *pci_conf = new bx_list_c(list, "pci_conf", 256);
   for (i=0; i<256; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_P2I_THIS s.pci_conf[i], 16);
+    new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_P2I_THIS s.pci_conf[i], BASE_HEX);
   }
-  new bx_shadow_num_c(list, "elcr1", "", &BX_P2I_THIS s.elcr1, 16);
-  new bx_shadow_num_c(list, "elcr2", "", &BX_P2I_THIS s.elcr2, 16);
-  new bx_shadow_num_c(list, "apmc", "", &BX_P2I_THIS s.apmc, 16);
-  new bx_shadow_num_c(list, "apms", "", &BX_P2I_THIS s.apms, 16);
-  new bx_shadow_num_c(list, "pci_reset", "", &BX_P2I_THIS s.pci_reset, 16);
+  new bx_shadow_num_c(list, "elcr1", "", &BX_P2I_THIS s.elcr1, BASE_HEX);
+  new bx_shadow_num_c(list, "elcr2", "", &BX_P2I_THIS s.elcr2, BASE_HEX);
+  new bx_shadow_num_c(list, "apmc", "", &BX_P2I_THIS s.apmc, BASE_HEX);
+  new bx_shadow_num_c(list, "apms", "", &BX_P2I_THIS s.apms, BASE_HEX);
+  new bx_shadow_num_c(list, "pci_reset", "", &BX_P2I_THIS s.pci_reset, BASE_HEX);
   bx_list_c *irqr = new bx_list_c(list, "irq_registry", 16);
   for (i=0; i<16; i++) {
     sprintf(name, "%d", i);
-    new bx_shadow_num_c(irqr, strdup(name), "", &BX_P2I_THIS s.irq_registry[i], 16);
+    new bx_shadow_num_c(irqr, strdup(name), "", &BX_P2I_THIS s.irq_registry[i], BASE_HEX);
   }
   bx_list_c *irql = new bx_list_c(list, "irq_level", 16);
   for (i=0; i<16; i++) {
     sprintf(name, "%d", i);
-    new bx_shadow_num_c(irql, strdup(name), "", &BX_P2I_THIS s.irq_level[i], 16);
+    new bx_shadow_num_c(irql, strdup(name), "", &BX_P2I_THIS s.irq_level[i], BASE_HEX);
   }
 }
 
