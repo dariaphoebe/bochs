@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.10 2006/05/21 19:35:11 vruppert Exp $
+// $Id: init.cc,v 1.98.2.11 2006/05/21 20:59:07 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -590,9 +590,6 @@ void BX_CPU_C::register_state()
       new bx_shadow_num_c(reg, "exp", "", &the_i387.st_space[i].exp, 16);
     }
     new bx_shadow_num_c(fpu, "tos", "", &the_i387.tos, 16);
-    new bx_shadow_num_c(fpu, "align1", "", &the_i387.align1, 16);
-    new bx_shadow_num_c(fpu, "align2", "", &the_i387.align2, 16);
-    new bx_shadow_num_c(fpu, "align3", "", &the_i387.align3, 16);
 #endif
 #if BX_SUPPORT_SSE
     // TODO: XMM
