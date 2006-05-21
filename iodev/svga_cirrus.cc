@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: svga_cirrus.cc,v 1.30.2.6 2006/05/12 17:33:10 vruppert Exp $
+// $Id: svga_cirrus.cc,v 1.30.2.7 2006/05/21 18:37:32 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2004 Makoto Suzuki (suzu)
@@ -424,7 +424,11 @@ void bx_svga_cirrus_c::register_state(void)
     new bx_shadow_data_c(list, "vidmem", BX_CIRRUS_THIS vidmem, BX_CIRRUS_THIS memsize);
 #if BX_SUPPORT_PCI && BX_SUPPORT_CLGD54XX_PCI
     if (BX_CIRRUS_THIS pci_enabled) {
-      new bx_shadow_data_c(list, "pci_conf", BX_CIRRUS_THIS pci_conf, 256);
+      bx_list_c *pci_conf = new bx_list_c(list, "pci_conf", 256);
+      for (i=0; i<256; i++) {
+        sprintf(name, "0x%02x", i);
+        new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_CIRRUS_THIS pci_conf[i], 16);
+      }
     }
 #endif
   }

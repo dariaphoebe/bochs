@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcipnic.cc,v 1.18.2.3 2006/05/12 17:33:10 vruppert Exp $
+// $Id: pcipnic.cc,v 1.18.2.4 2006/05/21 18:37:32 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  Fen Systems Ltd.
@@ -168,7 +168,11 @@ void bx_pcipnic_c::register_state(void)
   }
   new bx_shadow_data_c(list, "rData", BX_PNIC_THIS s.rData, PNIC_DATA_SIZE);
   new bx_shadow_data_c(list, "recvRing", (Bit8u*)BX_PNIC_THIS s.recvRing, PNIC_RECV_RINGS*PNIC_DATA_SIZE);
-  new bx_shadow_data_c(list, "pci_conf", BX_PNIC_THIS s.pci_conf, 256);
+  bx_list_c *pci_conf = new bx_list_c(list, "pci_conf", 256);
+  for (i=0; i<256; i++) {
+    sprintf(name, "0x%02x", i);
+    new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_PNIC_THIS s.pci_conf[i], 16);
+  }
 }
 
 void bx_pcipnic_c::after_restore_state(void)

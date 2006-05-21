@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci_ide.cc,v 1.22.2.4 2006/05/12 17:33:10 vruppert Exp $
+// $Id: pci_ide.cc,v 1.22.2.5 2006/05/21 18:37:32 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -143,7 +143,11 @@ void bx_pci_ide_c::register_state(void)
   bx_list_c *ctrl;
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci_ide", "PCI IDE Controller State");
-  new bx_shadow_data_c(list, "pci_conf", BX_PIDE_THIS s.pci_conf, 256);
+  bx_list_c *pci_conf = new bx_list_c(list, "pci_conf", 256);
+  for (i=0; i<256; i++) {
+    sprintf(name, "0x%02x", i);
+    new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_PIDE_THIS s.pci_conf[i], 16);
+  }
   new bx_shadow_data_c(list, "buffer0", BX_PIDE_THIS s.bmdma[0].buffer, 0x20000);
   new bx_shadow_data_c(list, "buffer1", BX_PIDE_THIS s.bmdma[1].buffer, 0x20000);
   for (i=0; i<2; i++) {

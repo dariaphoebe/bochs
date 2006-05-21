@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.cc,v 1.37.2.3 2006/05/12 17:33:10 vruppert Exp $
+// $Id: pciusb.cc,v 1.37.2.4 2006/05/21 18:37:32 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -239,7 +239,7 @@ void bx_pciusb_c::reset(unsigned type)
 #if BX_SUPPORT_SAVE_RESTORE
 void bx_pciusb_c::register_state(void)
 {
-  unsigned i, j;
+  unsigned i, j, n;
   char hubnum[8], portnum[8], name[4];
   bx_list_c *hub, *usb_cmd, *usb_st, *usb_en, *port;
 
@@ -285,7 +285,11 @@ void bx_pciusb_c::register_state(void)
       new bx_shadow_bool_c(port, "connect_changed", &BX_USB_THIS hub[i].usb_port[j].connect_changed);
       new bx_shadow_bool_c(port, "status", &BX_USB_THIS hub[i].usb_port[j].status);
     }
-    new bx_shadow_data_c(hub, "pci_conf", BX_USB_THIS hub[i].pci_conf, 256);
+    bx_list_c *pci_conf = new bx_list_c(hub, "pci_conf", 256);
+    for (n=0; n<256; n++) {
+      sprintf(name, "0x%02x", n);
+      new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_USB_THIS hub[i].pci_conf[n], 16);
+    }
   }
   new bx_shadow_bool_c(list, "busy", &BX_USB_THIS busy);
   new bx_shadow_num_c(list, "global_reset", "", &BX_USB_THIS global_reset);
