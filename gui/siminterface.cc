@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.12 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: siminterface.cc,v 1.143.2.13 2006/05/21 21:30:23 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -470,7 +470,7 @@ int n_bochs_start_names = 3;
 
 char *floppy_type_names[] = { "none", "1.2M", "1.44M", "2.88M", "720K", "360K", "160K", "180K", "320K", "auto", NULL };
 int floppy_type_n_sectors[] = { -1, 80*2*15, 80*2*18, 80*2*36, 80*2*9, 40*2*9, 40*1*8, 40*1*9, 40*2*8, -1 };
-int n_floppy_type_names = BASE_DEC;
+int n_floppy_type_names = 10;
 
 char *floppy_status_names[] = { "ejected", "inserted", NULL };
 int n_floppy_status_names = 2;
@@ -697,12 +697,14 @@ bx_param_c *bx_real_sim_c::get_first_atadevice(Bit32u search_type) {
 #if BX_DEBUGGER
 
 // this can be safely called from either thread.
-void bx_real_sim_c::debug_break() {
+void bx_real_sim_c::debug_break()
+{
   bx_debug_break();
 }
 
 // this should only be called from the sim_thread.
-void bx_real_sim_c::debug_interpret_cmd(char *cmd) {
+void bx_real_sim_c::debug_interpret_cmd(char *cmd)
+{
   if (!is_sim_thread()) {
     fprintf(stderr, "ERROR: debug_interpret_cmd called but not from sim_thread\n");
     return;
@@ -1694,25 +1696,13 @@ bx_param_filename_c::bx_param_filename_c(bx_param_c *parent,
 
 bx_param_string_c::~bx_param_string_c()
 {
-    if ( this->val != NULL )
-    {
-        delete [] this->val;
-        this->val = NULL;
-    }
-    if ( this->initial_val != NULL )
-    {
-        delete [] this->initial_val;
-        this->initial_val = NULL;
-    }
-
-    if ( this->options != NULL )
-    {
-        delete [] this->options;
-        this->options = NULL;
-    }
+  if (this->val != NULL) delete [] this->val;
+  if (this->initial_val != NULL) delete [] this->initial_val;
+  if (this->options != NULL) delete [] this->options;
 }
 
-void bx_param_string_c::reset() {
+void bx_param_string_c::reset()
+{
   strncpy(this->val, this->initial_val, maxsize);
 }
 
@@ -1870,26 +1860,10 @@ bx_list_c::bx_list_c(bx_param_c *parent, char *name, char *title, bx_param_c **i
 
 bx_list_c::~bx_list_c()
 {
-    if (this->list)
-    {
-        delete [] this->list;
-        this->list = NULL;
-    }
-    if ( this->title != NULL)
-    {
-        delete this->title;
-        this->title = NULL;
-    }
-    if (this->options != NULL)
-    {
-        delete this->options;
-        this->options = NULL;
-    }
-    if ( this->choice != NULL )
-    {
-        delete this->choice;
-        this->choice = NULL;
-    }
+  if (this->list) delete [] this->list;
+  if (this->title != NULL) delete this->title;
+  if (this->options != NULL) delete this->options;
+  if (this->choice != NULL) delete this->choice;
 }
 
 void bx_list_c::init(const char *list_title)
