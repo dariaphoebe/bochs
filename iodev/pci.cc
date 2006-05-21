@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci.cc,v 1.47.2.5 2006/05/21 18:37:32 sshwarts Exp $
+// $Id: pci.cc,v 1.47.2.6 2006/05/21 19:35:11 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -152,7 +152,8 @@ bx_pci_bridge_c::reset(unsigned type)
 void bx_pci_bridge_c::register_state(void)
 {
   unsigned i;
-  char name[4];
+  char name[6];
+
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci_bridge", "PCI Bridge State");
   new bx_shadow_num_c(list, "confAddr", "", &BX_PCI_THIS s.i440fx.confAddr, 16);
   new bx_shadow_num_c(list, "confData", "", &BX_PCI_THIS s.i440fx.confData, 16);

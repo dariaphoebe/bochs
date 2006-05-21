@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci2isa.cc,v 1.29.2.6 2006/05/21 18:37:32 sshwarts Exp $
+// $Id: pci2isa.cc,v 1.29.2.7 2006/05/21 19:35:11 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -150,7 +150,7 @@ void bx_pci2isa_c::reset(unsigned type)
 void bx_pci2isa_c::register_state(void)
 {
   unsigned i;
-  char name[4];
+  char name[6];
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci2isa", "PCI-to-ISA Bridge State", 8);
   bx_list_c *pci_conf = new bx_list_c(list, "pci_conf", 256);

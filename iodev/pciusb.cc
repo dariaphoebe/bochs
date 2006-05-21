@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.cc,v 1.37.2.4 2006/05/21 18:37:32 sshwarts Exp $
+// $Id: pciusb.cc,v 1.37.2.5 2006/05/21 19:35:11 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -240,7 +240,7 @@ void bx_pciusb_c::reset(unsigned type)
 void bx_pciusb_c::register_state(void)
 {
   unsigned i, j, n;
-  char hubnum[8], portnum[8], name[4];
+  char hubnum[8], portnum[8], name[6];
   bx_list_c *hub, *usb_cmd, *usb_st, *usb_en, *port;
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pciusb", "PCI USB Controller State", BX_USB_CONFDEV + 15);

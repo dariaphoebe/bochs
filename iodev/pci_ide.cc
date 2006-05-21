@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci_ide.cc,v 1.22.2.5 2006/05/21 18:37:32 sshwarts Exp $
+// $Id: pci_ide.cc,v 1.22.2.6 2006/05/21 19:35:11 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -139,7 +139,7 @@ void bx_pci_ide_c::reset(unsigned type)
 void bx_pci_ide_c::register_state(void)
 {
   unsigned i;
-  char name[4];
+  char name[6];
   bx_list_c *ctrl;
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pci_ide", "PCI IDE Controller State");

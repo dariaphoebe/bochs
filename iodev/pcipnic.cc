@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcipnic.cc,v 1.18.2.4 2006/05/21 18:37:32 sshwarts Exp $
+// $Id: pcipnic.cc,v 1.18.2.5 2006/05/21 19:35:11 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  Fen Systems Ltd.
@@ -151,7 +151,7 @@ void bx_pcipnic_c::reset(unsigned type)
 void bx_pcipnic_c::register_state(void)
 {
   unsigned i;
-  char name[4];
+  char name[6];
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pcipnic", "PCI Pseudo NIC State", 11);
   new bx_shadow_num_c(list, "irqEnabled", "", &BX_PNIC_THIS s.irqEnabled);
