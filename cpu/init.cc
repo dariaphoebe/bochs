@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.8 2006/05/20 19:07:56 vruppert Exp $
+// $Id: init.cc,v 1.98.2.9 2006/05/21 09:32:48 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -437,12 +437,14 @@ void BX_CPU_C::register_state()
     BXRS_PARAM_SIMPLE(ESI);
     BXRS_PARAM_SIMPLE(EDI);
     BXRS_PARAM_SIMPLE(EIP);
+#if BX_CPU_LEVEL >= 3
     BXRS_PARAM_SIMPLE(dr0);
     BXRS_PARAM_SIMPLE(dr1);
     BXRS_PARAM_SIMPLE(dr2);
     BXRS_PARAM_SIMPLE(dr3);
     BXRS_PARAM_SIMPLE(dr6);
     BXRS_PARAM_SIMPLE(dr7);
+#endif
 #if BX_SUPPORT_X86_64==0
 #if BX_CPU_LEVEL >= 2
     BXRS_PARAM_FIELD(CR0, cr0.val32);
@@ -456,7 +458,7 @@ void BX_CPU_C::register_state()
 #endif  // #if BX_SUPPORT_X86_64==0
 
 #define BXRS_PARAM_SEG_REG(x) \
-    bx_list_c *x = new bx_list_c(list, strdup(#x), 14); \
+    bx_list_c *x = new bx_list_c(list, strdup(#x), 19); \
     new bx_shadow_num_c(x, \
         "value", "", &(sregs[BX_SEG_REG_##x].selector.value), 16); \
     new bx_shadow_num_c(x, \
@@ -475,6 +477,14 @@ void BX_CPU_C::register_state()
         "cache_segment", &(sregs[BX_SEG_REG_##x].cache.segment)); \
     new bx_shadow_num_c(x, \
         "cache_type", "", &(sregs[BX_SEG_REG_##x].cache.type), 16); \
+    new bx_shadow_bool_c(x, \
+        "segment_executable", &(sregs[BX_SEG_REG_##x].cache.u.segment.executable)); \
+    new bx_shadow_bool_c(x, \
+        "segment_c_ed", &(sregs[BX_SEG_REG_##x].cache.u.segment.c_ed)); \
+    new bx_shadow_bool_c(x, \
+        "segment_rw", &(sregs[BX_SEG_REG_##x].cache.u.segment.r_w)); \
+    new bx_shadow_bool_c(x, \
+        "segment_a", &(sregs[BX_SEG_REG_##x].cache.u.segment.a)); \
     new bx_shadow_num_c(x, \
         "segment_base", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.base), 16); \
     new bx_shadow_num_c(x, \
@@ -484,7 +494,9 @@ void BX_CPU_C::register_state()
     new bx_shadow_bool_c(x, \
         "segment_g", &(sregs[BX_SEG_REG_##x].cache.u.segment.g)); \
     new bx_shadow_bool_c(x, \
-        "segment_d_b", &(sregs[BX_SEG_REG_##x].cache.u.segment.d_b));
+        "segment_d_b", &(sregs[BX_SEG_REG_##x].cache.u.segment.d_b)); \
+    new bx_shadow_bool_c(x, \
+        "segment_avl", &(sregs[BX_SEG_REG_##x].cache.u.segment.avl));
 #define BXRS_PARAM_GLOBAL_SEG_REG(name,field) \
     new bx_shadow_num_c(list, \
         #name"_base", "", \
@@ -499,10 +511,12 @@ void BX_CPU_C::register_state()
     BXRS_PARAM_SEG_REG(ES);
     BXRS_PARAM_SEG_REG(FS);
     BXRS_PARAM_SEG_REG(GS);
+#if BX_CPU_LEVEL >= 2
     BXRS_PARAM_GLOBAL_SEG_REG(GDTR, gdtr);
     BXRS_PARAM_GLOBAL_SEG_REG(IDTR, idtr);
+#endif
 #define BXRS_PARAM_SEG_REG2(name, field) \
-    bx_list_c *name = new bx_list_c(list, strdup(#name), 13); \
+    bx_list_c *name = new bx_list_c(list, strdup(#name), 19); \
     new bx_shadow_num_c(name, \
         "value", "", &(field.selector.value), 16); \
     new bx_shadow_num_c(name, \
@@ -521,28 +535,52 @@ void BX_CPU_C::register_state()
         "cache_segment", &(field.cache.segment)); \
     new bx_shadow_num_c(name, \
         "cache_type", "", &(field.cache.type), 16); \
+    new bx_shadow_bool_c(name, \
+        "segment_executable", &(field.cache.u.segment.executable)); \
+    new bx_shadow_bool_c(name, \
+        "segment_c_ed", &(field.cache.u.segment.c_ed)); \
+    new bx_shadow_bool_c(name, \
+        "segment_rw", &(field.cache.u.segment.r_w)); \
+    new bx_shadow_bool_c(name, \
+        "segment_a", &(field.cache.u.segment.a)); \
     new bx_shadow_num_c(name, \
         "segment_base", "", &(field.cache.u.segment.base), 16); \
     new bx_shadow_num_c(name, \
         "segment_limit", "", &(field.cache.u.segment.limit), 16); \
+    new bx_shadow_num_c(name, \
+        "segment_limit_scaled", "", &(field.cache.u.segment.limit_scaled), 16); \
     new bx_shadow_bool_c(name, \
         "segment_g", &(field.cache.u.segment.g)); \
     new bx_shadow_bool_c(name, \
-        "segment_d_b", &(field.cache.u.segment.d_b));
+        "segment_d_b", &(field.cache.u.segment.d_b)); \
+    new bx_shadow_bool_c(name, \
+        "segment_avl", &(field.cache.u.segment.avl));
     BXRS_PARAM_SEG_REG2(LDTR, ldtr);
     BXRS_PARAM_SEG_REG2(TR, tr);
 
 #if BX_SUPPORT_X86_64==0
-    new bx_shadow_num_c(list, "EFLAGS", "",
-        &BX_CPU_THIS_PTR eflags.val32, 16);
+    BXRS_PARAM_FIELD(EFLAGS, eflags.val32);
 #endif
     new bx_shadow_bool_c(list, "async_event", (bx_bool*)&async_event);
     new bx_shadow_bool_c(list, "INTR", (bx_bool*)&INTR);
+    BXRS_PARAM_SIMPLE(smbase);
+#if BX_CPU_LEVEL >= 5
 #if BX_SUPPORT_APIC
     BXRS_PARAM_FIELD(msr_apicbase, msr.apicbase);
+#endif
+    BXRS_PARAM_FIELD(msr_tsc_last_reset, msr.tsc_last_reset);
+#endif
+#if BX_SUPPORT_FPU || BX_SUPPORT_MMX
+    // TODO: FPU
+#endif
+#if BX_SUPPORT_SSE
+    // TODO: XMM
+#endif
+#if BX_SUPPORT_APIC
     bx_list_c *lapic = new bx_list_c(list, "local_apic", 25);
     local_apic.register_state(lapic);
 #endif
+    new bx_shadow_bool_c(list, "EXT", &EXT);
 
     counter++;
   }

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.332.2.4 2006/04/25 17:48:01 vruppert Exp $
+// $Id: main.cc,v 1.332.2.5 2006/05/21 09:32:48 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -474,7 +474,7 @@ void print_usage()
     "  -f configfile    specify configuration file\n"
     "  -q               quick start (skip configuration interface)\n"
 #if BX_SUPPORT_SAVE_RESTORE
-    "  -r path          restore Bochs config and log options from path\n"
+    "  -r path          restore the Bochs state from path\n"
 #endif
     "  --help           display this help and exit\n\n"
     "For information on Bochs configuration file arguments, see the\n"
