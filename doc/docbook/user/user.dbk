@@ -1,7 +1,7 @@
 <!--
 ================================================================
 doc/docbook/user/user.dbk
-$Id: user.dbk,v 1.210 2006/04/05 18:49:31 sshwarts Exp $
+$Id: user.dbk,v 1.210.2.1 2006/05/22 17:09:50 vruppert Exp $
 
 This is the top level file for the Bochs Users Manual.
 ================================================================
@@ -986,10 +986,10 @@ available at <ulink url="http://www.cygwin.com">www.cygwin.com</ulink>.
 
 <figure><title>Checking out Bochs in CVS</title>
 <screen>
-  user$ <command>cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/bochs login</command>
-  (Logging in to anonymous@cvs.sourceforge.net)
+  user$ <command>cvs -d:pserver:anonymous@bochs.cvs.sourceforge.net:/cvsroot/bochs login</command>
+  (Logging in to anonymous@bochs.cvs.sourceforge.net)
   CVS password:    <replaceable>(there is no password, just press Enter)</replaceable>
-  user$ <command>cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/bochs checkout bochs</command>
+  user$ <command>cvs -z3 -d:pserver:anonymous@bochs.cvs.sourceforge.net:/cvsroot/bochs checkout bochs</command>
   cvs server: Updating bochs
   U bochs/.bochsrc
   U bochs/.conf.AIX.4.3.1
@@ -3089,16 +3089,18 @@ speed.</para></footnote>.
   <tgroup cols="3" align="left" colsep="1" rowsep="1">
 <thead>
   <row>
+    <entry>Bochs</entry>
     <entry>Speed</entry>
-    <entry>Machine</entry>
+    <entry>Machine/Compiler</entry>
     <entry>Typical IPS</entry>
   </row>
 </thead>
   <tbody>
-<row><entry>2.1Ghz</entry><entry>Athlon XP with Linux 2.6/g++ 3.4 </entry><entry> 12 to 15 million</entry></row>
-<row><entry>1.6Ghz</entry><entry>Intel P4 with Win2000/g++ 3.3 </entry><entry> 5 to  7 million</entry></row>
-<row><entry>650MHz</entry><entry>Athlon K-7 with Linux 2.4.x  </entry><entry> 2 to 2.5 million</entry></row>
-<row><entry>400MHz</entry><entry>Pentium II with Linux 2.0.x  </entry><entry> 1 to 1.8 million</entry></row>
+<row><entry>2.2.6</entry><entry>2.6Ghz</entry><entry>Intel Core 2 Duo with WinXP/g++ 3.4 </entry><entry> 21 to 25 million</entry></row>
+<row><entry>2.2.6</entry><entry>2.1Ghz</entry><entry>Athlon XP with Linux 2.6/g++ 3.4 </entry><entry> 12 to 15 million</entry></row>
+<row><entry>2.0.1</entry><entry>1.6Ghz</entry><entry>Intel P4 with Win2000/g++ 3.3 </entry><entry> 5 to  7 million</entry></row>
+<row><entry>1.4  </entry><entry>650MHz</entry><entry>Athlon K-7 with Linux 2.4.x  </entry><entry> 2 to 2.5 million</entry></row>
+<row><entry>1.4  </entry><entry>400MHz</entry><entry>Pentium II with Linux 2.0.x  </entry><entry> 1 to 1.8 million</entry></row>
 </tbody>
 </tgroup>
 </table>

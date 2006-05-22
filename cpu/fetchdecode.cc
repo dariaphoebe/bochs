@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: fetchdecode.cc,v 1.92 2006/04/06 18:30:03 sshwarts Exp $
+// $Id: fetchdecode.cc,v 1.92.2.1 2006/05/22 17:09:49 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -60,8 +60,6 @@
  *  The XCHG instruction always asserts the LOCK# signal regardless of the
  *  presence or absence of the LOCK prefix.
  */
-
-void BxResolveError(bxInstruction_c *);
 
 static BxExecutePtr_tR BxResolve16Mod0[8] = {
   &BX_CPU_C::Resolve16Mod0Rm0,
@@ -132,7 +130,7 @@ static BxExecutePtr_tR BxResolve32Mod1or2Base[8] = {
 typedef struct BxOpcodeInfo_t {
   Bit16u         Attr;
   BxExecutePtr_t ExecutePtr;
-  struct BxOpcodeInfo_t *AnotherArray;
+  const BxOpcodeInfo_t *AnotherArray;
 } BxOpcodeInfo_t;
 
 
@@ -144,7 +142,7 @@ typedef struct BxOpcodeInfo_t {
 /* Opcode Groups */
 /* ************* */
 
-static BxOpcodeInfo_t BxOpcodeInfoG1EbIb[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG1EbIb[8] = {
   /* 0 */ { BxImmediate_Ib | BxLockable, &BX_CPU_C::ADD_EbIb },
   /* 1 */ { BxImmediate_Ib | BxLockable, &BX_CPU_C::OR_EbIb  },
   /* 2 */ { BxImmediate_Ib | BxLockable, &BX_CPU_C::ADC_EbIb },
@@ -155,7 +153,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG1EbIb[8] = {
   /* 7 */ { BxImmediate_Ib,              &BX_CPU_C::CMP_EbIb }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG1Ew[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG1Ew[8] = {
   // attributes defined in main area
   /* 0 */ { BxSplitMod11b, NULL, opcodesADD_EwIw },
   /* 1 */ { BxLockable, &BX_CPU_C::OR_EwIw },
@@ -167,7 +165,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG1Ew[8] = {
   /* 7 */ { 0,          &BX_CPU_C::CMP_EwIw }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG1Ed[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG1Ed[8] = {
   // attributes defined in main area
   /* 0 */ { BxSplitMod11b, NULL, opcodesADD_EdId },
   /* 1 */ { BxLockable, &BX_CPU_C::OR_EdId },
@@ -179,7 +177,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG1Ed[8] = {
   /* 7 */ { 0,          &BX_CPU_C::CMP_EdId }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG2Eb[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG2Eb[8] = {
   // attributes defined in main area
   /* 0 */ { 0, &BX_CPU_C::ROL_Eb },
   /* 1 */ { 0, &BX_CPU_C::ROR_Eb },
@@ -191,7 +189,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG2Eb[8] = {
   /* 7 */ { 0, &BX_CPU_C::SAR_Eb }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG2Ew[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG2Ew[8] = {
   // attributes defined in main area
   /* 0 */ { 0, &BX_CPU_C::ROL_Ew },
   /* 1 */ { 0, &BX_CPU_C::ROR_Ew },
@@ -203,7 +201,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG2Ew[8] = {
   /* 7 */ { 0, &BX_CPU_C::SAR_Ew }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG2Ed[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG2Ed[8] = {
   // attributes defined in main area
   /* 0 */ { 0, &BX_CPU_C::ROL_Ed },
   /* 1 */ { 0, &BX_CPU_C::ROR_Ed },
@@ -215,7 +213,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG2Ed[8] = {
   /* 7 */ { 0, &BX_CPU_C::SAR_Ed }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG3Eb[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG3Eb[8] = {
   /* 0 */ { BxImmediate_Ib, &BX_CPU_C::TEST_EbIb },
   /* 1 */ { BxImmediate_Ib, &BX_CPU_C::TEST_EbIb },
   /* 2 */ { BxLockable,     &BX_CPU_C::NOT_Eb },
@@ -226,7 +224,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG3Eb[8] = {
   /* 7 */ { 0,              &BX_CPU_C::IDIV_ALEb }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG3Ew[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG3Ew[8] = {
   /* 0 */ { BxImmediate_Iw, &BX_CPU_C::TEST_EwIw },
   /* 1 */ { BxImmediate_Iw, &BX_CPU_C::TEST_EwIw },
   /* 2 */ { BxLockable,     &BX_CPU_C::NOT_Ew },
@@ -237,7 +235,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG3Ew[8] = {
   /* 7 */ { 0,              &BX_CPU_C::IDIV_AXEw }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG3Ed[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG3Ed[8] = {
   /* 0 */ { BxImmediate_Iv, &BX_CPU_C::TEST_EdId },
   /* 1 */ { BxImmediate_Iv, &BX_CPU_C::TEST_EdId },
   /* 2 */ { BxLockable,     &BX_CPU_C::NOT_Ed },
@@ -248,7 +246,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG3Ed[8] = {
   /* 7 */ { 0,              &BX_CPU_C::IDIV_EAXEd }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG4[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG4[8] = {
   /* 0 */ { BxLockable, &BX_CPU_C::INC_Eb },
   /* 1 */ { BxLockable, &BX_CPU_C::DEC_Eb },
   /* 2 */ { 0, &BX_CPU_C::BxError },
@@ -259,7 +257,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG4[8] = {
   /* 7 */ { 0, &BX_CPU_C::BxError }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG5w[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG5w[8] = {
   // attributes defined in main area
   /* 0 */ { BxLockable, &BX_CPU_C::INC_Ew },
   /* 1 */ { BxLockable, &BX_CPU_C::DEC_Ew },
@@ -271,7 +269,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG5w[8] = {
   /* 7 */ { 0, &BX_CPU_C::BxError }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG5d[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG5d[8] = {
   // attributes defined in main area
   /* 0 */ { BxLockable, &BX_CPU_C::INC_Ed },
   /* 1 */ { BxLockable, &BX_CPU_C::DEC_Ed },
@@ -283,7 +281,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG5d[8] = {
   /* 7 */ { 0, &BX_CPU_C::BxError }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG6[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG6[8] = {
   // attributes defined in main area
   /* 0 */ { 0, &BX_CPU_C::SLDT_Ew },
   /* 1 */ { 0, &BX_CPU_C::STR_Ew },
@@ -295,7 +293,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG6[8] = {
   /* 7 */ { 0, &BX_CPU_C::BxError }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG7[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG7[8] = {
   /* 0 */ { 0, &BX_CPU_C::SGDT_Ms },
   /* 1 */ { 0, &BX_CPU_C::SIDT_Ms },
   /* 2 */ { 0, &BX_CPU_C::LGDT_Ms },
@@ -306,7 +304,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG7[8] = {
   /* 7 */ { 0, &BX_CPU_C::INVLPG }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG8EwIb[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG8EwIb[8] = {
   /* 0 */ { 0, &BX_CPU_C::BxError },
   /* 1 */ { 0, &BX_CPU_C::BxError },
   /* 2 */ { 0, &BX_CPU_C::BxError },
@@ -317,7 +315,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG8EwIb[8] = {
   /* 7 */ { BxImmediate_Ib | BxLockable, &BX_CPU_C::BTC_EwIb }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG8EdIb[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG8EdIb[8] = {
   /* 0 */ { 0, &BX_CPU_C::BxError },
   /* 1 */ { 0, &BX_CPU_C::BxError },
   /* 2 */ { 0, &BX_CPU_C::BxError },
@@ -328,7 +326,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG8EdIb[8] = {
   /* 7 */ { BxImmediate_Ib | BxLockable, &BX_CPU_C::BTC_EdIb }
 }; 
 
-static BxOpcodeInfo_t BxOpcodeInfoG9[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG9[8] = {
   /* 0 */ { 0, &BX_CPU_C::BxError },
   /* 1 */ { BxLockable, &BX_CPU_C::CMPXCHG8B },
   /* 2 */ { 0, &BX_CPU_C::BxError },
@@ -339,7 +337,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG9[8] = {
   /* 7 */ { 0, &BX_CPU_C::BxError }
 };
 
-static BxOpcodeInfo_t BxOpcodeInfoG12[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG12[8] = {
   /* 0 */ { 0, &BX_CPU_C::BxError },
   /* 1 */ { 0, &BX_CPU_C::BxError },
   /* 2 */ { BxImmediate_Ib | BxPrefixSSE, NULL, BxOpcodeGroupSSE_G1202 },
@@ -350,7 +348,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG12[8] = {
   /* 7 */ { 0, &BX_CPU_C::BxError }
 };
 
-static BxOpcodeInfo_t BxOpcodeInfoG13[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG13[8] = {
   /* 0 */ { 0, &BX_CPU_C::BxError },
   /* 1 */ { 0, &BX_CPU_C::BxError },
   /* 2 */ { BxImmediate_Ib | BxPrefixSSE, NULL, BxOpcodeGroupSSE_G1302 },
@@ -361,7 +359,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG13[8] = {
   /* 7 */ { 0, &BX_CPU_C::BxError }
 };
 
-static BxOpcodeInfo_t BxOpcodeInfoG14[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG14[8] = {
   /* 0 */ { 0, &BX_CPU_C::BxError },
   /* 1 */ { 0, &BX_CPU_C::BxError },
   /* 2 */ { BxImmediate_Ib | BxPrefixSSE, NULL, BxOpcodeGroupSSE_G1402 },
@@ -372,7 +370,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG14[8] = {
   /* 7 */ { BxImmediate_Ib | BxPrefixSSE, NULL, BxOpcodeGroupSSE_G1407 } 
 };
 
-static BxOpcodeInfo_t BxOpcodeInfoG15[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG15[8] = {
   /* 0 */ { 0, &BX_CPU_C::FXSAVE  },
   /* 1 */ { 0, &BX_CPU_C::FXRSTOR },
   /* 2 */ { 0, &BX_CPU_C::LDMXCSR },
@@ -383,7 +381,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG15[8] = {
   /* 7 */ { 0, &BX_CPU_C::NOP }       /* SFENCE/CFLUSH */
 };
 
-static BxOpcodeInfo_t BxOpcodeInfoG16[8] = {
+static const BxOpcodeInfo_t BxOpcodeInfoG16[8] = {
   /* 0 */ { 0, &BX_CPU_C::PREFETCH },           /* PREFETCH_NTA */
   /* 1 */ { 0, &BX_CPU_C::PREFETCH },           /* PREFETCH_T0  */
   /* 2 */ { 0, &BX_CPU_C::PREFETCH },           /* PREFETCH_T1  */
@@ -400,7 +398,7 @@ static BxOpcodeInfo_t BxOpcodeInfoG16[8] = {
 /* 512 entries for 32bit mode */
 /* ************************** */
 
-static BxOpcodeInfo_t BxOpcodeInfo[512*2] = {
+static const BxOpcodeInfo_t BxOpcodeInfo[512*2] = {
   // 512 entries for 16bit mode
   /* 00 */ { BxAnother | BxLockable, &BX_CPU_C::ADD_EbGb },
   /* 01 */ { BxAnother | BxLockable, &BX_CPU_C::ADD_EwGw },
@@ -511,9 +509,9 @@ static BxOpcodeInfo_t BxOpcodeInfo[512*2] = {
   /* 6A */ { BxImmediate_Ib_SE, &BX_CPU_C::PUSH_Iw },
   /* 6B */ { BxAnother | BxImmediate_Ib_SE, &BX_CPU_C::IMUL_GwEwIw },
   /* 6C */ { BxRepeatable, &BX_CPU_C::INSB_YbDX },
-  /* 6D */ { BxRepeatable, &BX_CPU_C::INSW_YvDX },
+  /* 6D */ { BxRepeatable, &BX_CPU_C::INSW_YwDX },
   /* 6E */ { BxRepeatable, &BX_CPU_C::OUTSB_DXXb },
-  /* 6F */ { BxRepeatable, &BX_CPU_C::OUTSW_DXXv },
+  /* 6F */ { BxRepeatable, &BX_CPU_C::OUTSW_DXXw },
   /* 70 */ { BxImmediate_BrOff8, &BX_CPU_C::JCC_Jw },
   /* 71 */ { BxImmediate_BrOff8, &BX_CPU_C::JCC_Jw },
   /* 72 */ { BxImmediate_BrOff8, &BX_CPU_C::JCC_Jw },
@@ -643,17 +641,17 @@ static BxOpcodeInfo_t BxOpcodeInfo[512*2] = {
   /* E2 */ { BxImmediate_BrOff8, &BX_CPU_C::LOOP_Jb },
   /* E3 */ { BxImmediate_BrOff8, &BX_CPU_C::JCXZ_Jb },
   /* E4 */ { BxImmediate_Ib, &BX_CPU_C::IN_ALIb },
-  /* E5 */ { BxImmediate_Ib, &BX_CPU_C::IN_eAXIb },
+  /* E5 */ { BxImmediate_Ib, &BX_CPU_C::IN_AXIb },
   /* E6 */ { BxImmediate_Ib, &BX_CPU_C::OUT_IbAL },
-  /* E7 */ { BxImmediate_Ib, &BX_CPU_C::OUT_IbeAX },
+  /* E7 */ { BxImmediate_Ib, &BX_CPU_C::OUT_IbAX },
   /* E8 */ { BxImmediate_BrOff16, &BX_CPU_C::CALL_Aw },
   /* E9 */ { BxImmediate_BrOff16, &BX_CPU_C::JMP_Jw },
   /* EA */ { BxImmediate_IvIw, &BX_CPU_C::JMP_Ap },
   /* EB */ { BxImmediate_BrOff8, &BX_CPU_C::JMP_Jw },
   /* EC */ { 0, &BX_CPU_C::IN_ALDX },
-  /* ED */ { 0, &BX_CPU_C::IN_eAXDX },
+  /* ED */ { 0, &BX_CPU_C::IN_AXDX },
   /* EE */ { 0, &BX_CPU_C::OUT_DXAL },
-  /* EF */ { 0, &BX_CPU_C::OUT_DXeAX },
+  /* EF */ { 0, &BX_CPU_C::OUT_DXAX },
   /* F0 */ { BxPrefix | BxAnother, &BX_CPU_C::BxError }, // LOCK
   /* F1 */ { 0, &BX_CPU_C::INT1 },
   /* F2 */ { BxPrefix | BxAnother, &BX_CPU_C::BxError }, // REPNE/REPNZ
@@ -902,14 +900,14 @@ static BxOpcodeInfo_t BxOpcodeInfo[512*2] = {
   /* 0F C5 */ { BxAnother | BxPrefixSSE, NULL, BxOpcodeGroupSSE_0fc5 },
   /* 0F C6 */ { BxAnother | BxPrefixSSE, NULL, BxOpcodeGroupSSE_0fc6 },
   /* 0F C7 */ { BxAnother | BxGroup9, NULL, BxOpcodeInfoG9 },
-  /* 0F C8 */ { 0, &BX_CPU_C::BSWAP_EAX },
-  /* 0F C9 */ { 0, &BX_CPU_C::BSWAP_ECX },
-  /* 0F CA */ { 0, &BX_CPU_C::BSWAP_EDX },
-  /* 0F CB */ { 0, &BX_CPU_C::BSWAP_EBX },
-  /* 0F CC */ { 0, &BX_CPU_C::BSWAP_ESP },
-  /* 0F CD */ { 0, &BX_CPU_C::BSWAP_EBP },
-  /* 0F CE */ { 0, &BX_CPU_C::BSWAP_ESI },
-  /* 0F CF */ { 0, &BX_CPU_C::BSWAP_EDI },
+  /* 0F C8 */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F C9 */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CA */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CB */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CC */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CD */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CE */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CF */ { 0, &BX_CPU_C::BSWAP_ERX },
   /* 0F D0 */ { BxAnother | BxPrefixSSE, NULL, BxOpcodeGroupSSE_0fd0 },
   /* 0F D1 */ { BxAnother | BxPrefixSSE, NULL, BxOpcodeGroupSSE_0fd1 },
   /* 0F D2 */ { BxAnother | BxPrefixSSE, NULL, BxOpcodeGroupSSE_0fd2 },
@@ -1069,9 +1067,9 @@ static BxOpcodeInfo_t BxOpcodeInfo[512*2] = {
   /* 6A */ { BxImmediate_Ib_SE, &BX_CPU_C::PUSH_Id },
   /* 6B */ { BxAnother | BxImmediate_Ib_SE, &BX_CPU_C::IMUL_GdEdId },
   /* 6C */ { BxRepeatable, &BX_CPU_C::INSB_YbDX },
-  /* 6D */ { BxRepeatable, &BX_CPU_C::INSW_YvDX },
+  /* 6D */ { BxRepeatable, &BX_CPU_C::INSW_YdDX },
   /* 6E */ { BxRepeatable, &BX_CPU_C::OUTSB_DXXb },
-  /* 6F */ { BxRepeatable, &BX_CPU_C::OUTSW_DXXv },
+  /* 6F */ { BxRepeatable, &BX_CPU_C::OUTSW_DXXd },
   /* 70 */ { BxImmediate_BrOff8, &BX_CPU_C::JCC_Jd },
   /* 71 */ { BxImmediate_BrOff8, &BX_CPU_C::JCC_Jd },
   /* 72 */ { BxImmediate_BrOff8, &BX_CPU_C::JCC_Jd },
@@ -1201,17 +1199,17 @@ static BxOpcodeInfo_t BxOpcodeInfo[512*2] = {
   /* E2 */ { BxImmediate_BrOff8, &BX_CPU_C::LOOP_Jb },
   /* E3 */ { BxImmediate_BrOff8, &BX_CPU_C::JCXZ_Jb },
   /* E4 */ { BxImmediate_Ib, &BX_CPU_C::IN_ALIb },
-  /* E5 */ { BxImmediate_Ib, &BX_CPU_C::IN_eAXIb },
+  /* E5 */ { BxImmediate_Ib, &BX_CPU_C::IN_EAXIb },
   /* E6 */ { BxImmediate_Ib, &BX_CPU_C::OUT_IbAL },
-  /* E7 */ { BxImmediate_Ib, &BX_CPU_C::OUT_IbeAX },
+  /* E7 */ { BxImmediate_Ib, &BX_CPU_C::OUT_IbEAX },
   /* E8 */ { BxImmediate_BrOff32, &BX_CPU_C::CALL_Ad },
   /* E9 */ { BxImmediate_BrOff32, &BX_CPU_C::JMP_Jd },
   /* EA */ { BxImmediate_IvIw, &BX_CPU_C::JMP_Ap },
   /* EB */ { BxImmediate_BrOff8, &BX_CPU_C::JMP_Jd },
   /* EC */ { 0, &BX_CPU_C::IN_ALDX },
-  /* ED */ { 0, &BX_CPU_C::IN_eAXDX },
+  /* ED */ { 0, &BX_CPU_C::IN_EAXDX },
   /* EE */ { 0, &BX_CPU_C::OUT_DXAL },
-  /* EF */ { 0, &BX_CPU_C::OUT_DXeAX },
+  /* EF */ { 0, &BX_CPU_C::OUT_DXEAX },
   /* F0 */ { BxPrefix | BxAnother, &BX_CPU_C::BxError }, // LOCK:
   /* F1 */ { 0, &BX_CPU_C::INT1 },
   /* F2 */ { BxPrefix | BxAnother, &BX_CPU_C::BxError }, // REPNE/REPNZ
@@ -1460,14 +1458,14 @@ static BxOpcodeInfo_t BxOpcodeInfo[512*2] = {
   /* 0F C5 */ { BxAnother | BxPrefixSSE, NULL, BxOpcodeGroupSSE_0fc5 },
   /* 0F C6 */ { BxAnother | BxPrefixSSE, NULL, BxOpcodeGroupSSE_0fc6 },
   /* 0F C7 */ { BxAnother | BxGroup9, NULL, BxOpcodeInfoG9 },
-  /* 0F C8 */ { 0, &BX_CPU_C::BSWAP_EAX },
-  /* 0F C9 */ { 0, &BX_CPU_C::BSWAP_ECX },
-  /* 0F CA */ { 0, &BX_CPU_C::BSWAP_EDX },
-  /* 0F CB */ { 0, &BX_CPU_C::BSWAP_EBX },
-  /* 0F CC */ { 0, &BX_CPU_C::BSWAP_ESP },
-  /* 0F CD */ { 0, &BX_CPU_C::BSWAP_EBP },
-  /* 0F CE */ { 0, &BX_CPU_C::BSWAP_ESI },
-  /* 0F CF */ { 0, &BX_CPU_C::BSWAP_EDI },
+  /* 0F C8 */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F C9 */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CA */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CB */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CC */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CD */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CE */ { 0, &BX_CPU_C::BSWAP_ERX },
+  /* 0F CF */ { 0, &BX_CPU_C::BSWAP_ERX },
   /* 0F D0 */ { BxAnother | BxPrefixSSE, NULL, BxOpcodeGroupSSE_0fd0 },
   /* 0F D1 */ { BxAnother | BxPrefixSSE, NULL, BxOpcodeGroupSSE_0fd1 },
   /* 0F D2 */ { BxAnother | BxPrefixSSE, NULL, BxOpcodeGroupSSE_0fd2 },
@@ -1527,7 +1525,6 @@ BX_CPU_C::fetchDecode(Bit8u *iptr, bxInstruction_c *instruction, unsigned remain
   unsigned b1, b2, ilen=0, attr, os_32;
   unsigned imm_mode, offset;
   unsigned rm = 0, mod=0, nnn=0;
-  unsigned sse_prefix;
 #if BX_SUPPORT_SSE >= 4
   unsigned b3 = 0;
 #endif
@@ -1535,8 +1532,8 @@ BX_CPU_C::fetchDecode(Bit8u *iptr, bxInstruction_c *instruction, unsigned remain
 #define SSE_PREFIX_NONE 0
 #define SSE_PREFIX_66   1
 #define SSE_PREFIX_F2   2
-#define SSE_PREFIX_F3   4      /* only one SSE prefix could be used */
-  static int sse_prefix_index[8] = { 0, 1, 2, -1, 3, -1, -1, -1 };
+#define SSE_PREFIX_F3   3      /* only one SSE prefix could be used */
+  unsigned sse_prefix = SSE_PREFIX_NONE;
 
   os_32 = is_32 =
     BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.d_b;
@@ -1546,7 +1543,6 @@ BX_CPU_C::fetchDecode(Bit8u *iptr, bxInstruction_c *instruction, unsigned remain
                   /*os32*/   is_32,  /*as32*/ is_32,
                   /*os64*/       0,  /*as64*/     0);
 
-  sse_prefix = SSE_PREFIX_NONE;
   offset = os_32 << 9; // * 512
 
 fetch_b1:
@@ -1560,7 +1556,7 @@ fetch_b1:
       case 0x66: // OpSize
         os_32 = !is_32;
         offset = os_32 << 9;
-        sse_prefix |= SSE_PREFIX_66;
+        if(!sse_prefix) sse_prefix = SSE_PREFIX_66;
         instruction->setOs32B(os_32);
         if (ilen < remain) {
           goto fetch_b1;
@@ -1573,14 +1569,14 @@ fetch_b1:
         }
         return(0);
       case 0xf2: // REPNE/REPNZ
-        sse_prefix |= SSE_PREFIX_F2;
+        if(!sse_prefix) sse_prefix = SSE_PREFIX_F2;
         instruction->setRepUsed(b1 & 3);
         if (ilen < remain) {
           goto fetch_b1;
         }
         return(0);
       case 0xf3: // REP/REPE/REPZ
-        sse_prefix |= SSE_PREFIX_F3;
+        if(!sse_prefix) sse_prefix = SSE_PREFIX_F3;
         instruction->setRepUsed(b1 & 3);
         if (ilen < remain) {
           goto fetch_b1;
@@ -1813,7 +1809,7 @@ get_32bit_displ:
 modrm_done:
 
     // Resolve ExecutePtr and additional opcode Attr
-    BxOpcodeInfo_t *OpcodeInfoPtr = &(BxOpcodeInfo[b1+offset]);
+    const BxOpcodeInfo_t *OpcodeInfoPtr = &(BxOpcodeInfo[b1+offset]);
     while(attr & BxGroupX) 
     {
        Bit32u Group = attr & BxGroupX;
@@ -1835,17 +1831,11 @@ modrm_done:
              break;
 #endif
          case BxPrefixSSE:
-         {
              /* For SSE opcodes, look into another 4 entries table 
                       with the opcode prefixes (NONE, 0x66, 0xF2, 0xF3) */
-             int op = sse_prefix_index[sse_prefix];
-             if (op < 0) {
-                 BX_INFO(("fetchdecode: SSE opcode with two or more prefixes"));
-                 UndefinedOpcode(instruction);
-             }
-             OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[op]);
+             BX_ASSERT(sse_prefix < 4);
+             OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[sse_prefix]);
              break;
-         }
          case BxSplitMod11b:
              /* For high frequency opcodes, two variants of the instruction are
               * implemented; one for the mod=11b case (Reg-Reg), and one for
@@ -2029,10 +2019,4 @@ void BX_CPU_C::BxError(bxInstruction_c *i)
   BX_INFO(("WARNING: Encountered an unknown instruction (signalling illegal instruction)"));
 
   BX_CPU_THIS_PTR UndefinedOpcode(i);
-}
-
-  void  BX_CPP_AttrRegparmN(1)
-BX_CPU_C::BxResolveError(bxInstruction_c *i)
-{
-  BX_PANIC(("BxResolveError: instruction with op1=0x%x", i->b1()));
 }

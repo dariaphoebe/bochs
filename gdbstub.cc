@@ -16,6 +16,7 @@
 #define NEED_CPU_REG_SHORTCUTS 1
 
 #include "bochs.h"
+#include "cpu/cpu.h"
 #include "iodev/iodev.h"
 
 #define LOG_THIS genlog->
@@ -431,7 +432,7 @@ static void debug_loop(void)
                  
                  stub_trace_flag = 0;
                  bx_cpu.ispanic = 0;
-                 bx_cpu.cpu_loop(-1);              
+                 bx_cpu.cpu_loop(0);              
                  if (bx_cpu.ispanic)
                  {
                     last_stop_reason = GDBSTUB_EXECUTION_BREAKPOINT;
@@ -467,7 +468,7 @@ static void debug_loop(void)
                  
                  BX_INFO (("stepping"));
                  stub_trace_flag = 1;
-                 bx_cpu.cpu_loop(-1);
+                 bx_cpu.cpu_loop(0);
                  DEV_vga_refresh();
                  stub_trace_flag = 0;
                  BX_INFO (("stopped with %x", last_stop_reason));
@@ -902,5 +903,5 @@ void bx_gdbstub_init(int argc, char* argv[])
    debug_loop();
 
    /* CPU loop */
-   bx_cpu.cpu_loop(-1);
+   bx_cpu.cpu_loop(0);
 }

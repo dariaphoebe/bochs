@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.12 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: init.cc,v 1.98.2.13 2006/05/22 17:09:49 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -157,33 +157,6 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
 
   // in SMP mode, the prefix of the CPU will be changed to [CPUn] in 
   // bx_local_apic_c::set_id as soon as the apic ID is assigned.
-
-  /* hack for the following fields.  Its easier to decode mod-rm bytes if
-     you can assume there's always a base & index register used.  For
-     modes which don't really use them, point to an empty (zeroed) register.
-   */
-  empty_register = 0;
-
-  // 16bit address mode base register, used for mod-rm decoding
-
-  _16bit_base_reg[0] = &gen_reg[BX_16BIT_REG_BX].word.rx;
-  _16bit_base_reg[1] = &gen_reg[BX_16BIT_REG_BX].word.rx;
-  _16bit_base_reg[2] = &gen_reg[BX_16BIT_REG_BP].word.rx;
-  _16bit_base_reg[3] = &gen_reg[BX_16BIT_REG_BP].word.rx;
-  _16bit_base_reg[4] = (Bit16u*) &empty_register;
-  _16bit_base_reg[5] = (Bit16u*) &empty_register;
-  _16bit_base_reg[6] = &gen_reg[BX_16BIT_REG_BP].word.rx;
-  _16bit_base_reg[7] = &gen_reg[BX_16BIT_REG_BX].word.rx;
-
-  // 16bit address mode index register, used for mod-rm decoding
-  _16bit_index_reg[0] = &gen_reg[BX_16BIT_REG_SI].word.rx;
-  _16bit_index_reg[1] = &gen_reg[BX_16BIT_REG_DI].word.rx;
-  _16bit_index_reg[2] = &gen_reg[BX_16BIT_REG_SI].word.rx;
-  _16bit_index_reg[3] = &gen_reg[BX_16BIT_REG_DI].word.rx;
-  _16bit_index_reg[4] = &gen_reg[BX_16BIT_REG_SI].word.rx;
-  _16bit_index_reg[5] = &gen_reg[BX_16BIT_REG_DI].word.rx;
-  _16bit_index_reg[6] = (Bit16u*) &empty_register;
-  _16bit_index_reg[7] = (Bit16u*) &empty_register;
 
 // <TAG-INIT-CPU-START>
   // for decoding instructions: access to seg reg's via index number
@@ -793,7 +766,7 @@ void BX_CPU_C::reset(unsigned source)
   BX_CPU_THIS_PTR ldtr.cache.p        = 1; /* present */
   BX_CPU_THIS_PTR ldtr.cache.dpl      = 0; /* field not used */
   BX_CPU_THIS_PTR ldtr.cache.segment  = 0; /* system segment */
-  BX_CPU_THIS_PTR ldtr.cache.type     = 2; /* LDT descriptor */
+  BX_CPU_THIS_PTR ldtr.cache.type     = BX_SYS_SEGMENT_LDT;
 
   BX_CPU_THIS_PTR ldtr.cache.u.ldt.base  = 0x00000000;
   BX_CPU_THIS_PTR ldtr.cache.u.ldt.limit =     0xFFFF;
@@ -808,9 +781,14 @@ void BX_CPU_C::reset(unsigned source)
   BX_CPU_THIS_PTR tr.cache.p        = 1; /* present */
   BX_CPU_THIS_PTR tr.cache.dpl      = 0; /* field not used */
   BX_CPU_THIS_PTR tr.cache.segment  = 0; /* system segment */
-  BX_CPU_THIS_PTR tr.cache.type     = 3; /* busy 16-bit TSS */
-  BX_CPU_THIS_PTR tr.cache.u.tss286.base  = 0x00000000;
-  BX_CPU_THIS_PTR tr.cache.u.tss286.limit =     0xFFFF;
+  BX_CPU_THIS_PTR tr.cache.type     = BX_SYS_SEGMENT_BUSY_286_TSS;
+  BX_CPU_THIS_PTR tr.cache.u.tss.base         = 0x00000000;
+  BX_CPU_THIS_PTR tr.cache.u.tss.limit        =     0xFFFF;
+#if BX_CPU_LEVEL >= 3
+  BX_CPU_THIS_PTR tr.cache.u.tss.limit_scaled =     0xFFFF;
+  BX_CPU_THIS_PTR tr.cache.u.tss.avl = 0;
+  BX_CPU_THIS_PTR tr.cache.u.tss.g   = 0;  /* byte granular */
+#endif
 #endif
 
   // DR0 - DR7 (Debug Registers)
@@ -1038,6 +1016,113 @@ void BX_CPU_C::sanity_checks(void)
     BX_PANIC(("data type Bit64u or Bit64u is not of length 8 bytes!"));
 
   BX_DEBUG(("#(%u)all sanity checks passed!", BX_CPU_ID));
+}
+
+void BX_CPU_C::assert_checks(void)
+{
+  // check CPU mode consistency
+#if BX_SUPPORT_X86_64
+  if (BX_CPU_THIS_PTR msr.lma) {
+    if (! BX_CPU_THIS_PTR cr0.pe) {
+      BX_PANIC(("assert_checks: EFER.LMA is set when CR0.PE=0 !"));
+    }
+    if (BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.l) {
+      if (BX_CPU_THIS_PTR cpu_mode != BX_MODE_LONG_64)
+        BX_PANIC(("assert_checks: unconsistent cpu_mode BX_MODE_LONG_64 !"));
+    }
+    else {
+      if (BX_CPU_THIS_PTR cpu_mode != BX_MODE_LONG_COMPAT)
+        BX_PANIC(("assert_checks: unconsistent cpu_mode BX_MODE_LONG_COMPAT !"));
+    }
+  }
+  else 
+#endif
+  {
+    if (BX_CPU_THIS_PTR cr0.pe) {
+      if (BX_CPU_THIS_PTR get_VM()) {
+        if (BX_CPU_THIS_PTR cpu_mode != BX_MODE_IA32_V8086)
+          BX_PANIC(("assert_checks: unconsistent cpu_mode BX_MODE_IA32_V8086 !"));
+      }
+      else {
+        if (BX_CPU_THIS_PTR cpu_mode != BX_MODE_IA32_PROTECTED)
+          BX_PANIC(("assert_checks: unconsistent cpu_mode BX_MODE_IA32_PROTECTED !"));
+      }
+    }
+    else {
+      if (BX_CPU_THIS_PTR cpu_mode != BX_MODE_IA32_REAL)
+        BX_PANIC(("assert_checks: unconsistent cpu_mode BX_MODE_IA32_REAL !"));
+    }
+  }
+
+#if BX_SUPPORT_X86_64
+  // VM should be OFF in long mode
+  if (IsLongMode()) {
+    if (BX_CPU_THIS_PTR get_VM()) BX_PANIC(("assert_checks: VM is set in long mode !"));
+  }
+
+  // CS.L and CS.D_B are mutualy exclusive
+  if (BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.l &&
+      BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.d_b)
+  {
+    BX_PANIC(("assert_checks: CS.l and CS.d_b set together !"));
+  }
+#endif
+
+  // check LDTR type
+  if (BX_CPU_THIS_PTR ldtr.cache.type != BX_SYS_SEGMENT_LDT)
+  {
+    BX_PANIC(("assert_checks: LDTR is not LDT type !"));
+  }
+
+  // check Task Register type
+  switch(BX_CPU_THIS_PTR tr.cache.type)
+  {
+    case BX_SYS_SEGMENT_BUSY_286_TSS:
+    case BX_SYS_SEGMENT_AVAIL_286_TSS:
+#if BX_CPU_LEVEL >= 3
+      if (BX_CPU_THIS_PTR tr.cache.u.tss.g != 0)
+        BX_PANIC(("assert_checks: tss286.g != 0 !"));
+      if (BX_CPU_THIS_PTR tr.cache.u.tss.avl != 0)
+        BX_PANIC(("assert_checks: tss286.avl != 0 !"));
+#endif
+      break;
+    case BX_SYS_SEGMENT_BUSY_386_TSS:
+    case BX_SYS_SEGMENT_AVAIL_386_TSS:
+      break;
+    default:    
+      BX_PANIC(("assert_checks: TR is not TSS type !"));
+  }
+
+  // validate CR0 register
+  if (BX_CPU_THIS_PTR cr0.pe != (BX_CPU_THIS_PTR cr0.val32 & 1))
+    BX_PANIC(("assert_checks: inconsistent CR0.PE !"));
+  if (BX_CPU_THIS_PTR cr0.mp != ((BX_CPU_THIS_PTR cr0.val32 >>  1) & 1))
+    BX_PANIC(("assert_checks: inconsistent CR0.MP !"));
+  if (BX_CPU_THIS_PTR cr0.em != ((BX_CPU_THIS_PTR cr0.val32 >>  2) & 1))
+    BX_PANIC(("assert_checks: inconsistent CR0.EM !"));
+  if (BX_CPU_THIS_PTR cr0.ts != ((BX_CPU_THIS_PTR cr0.val32 >>  3) & 1))
+    BX_PANIC(("assert_checks: inconsistent CR0.TS !"));
+#if BX_CPU_LEVEL >= 4
+  if (BX_CPU_THIS_PTR cr0.ne != ((BX_CPU_THIS_PTR cr0.val32 >>  5) & 1))
+    BX_PANIC(("assert_checks: inconsistent CR0.NE !"));
+  if (BX_CPU_THIS_PTR cr0.wp != ((BX_CPU_THIS_PTR cr0.val32 >> 16) & 1))
+    BX_PANIC(("assert_checks: inconsistent CR0.WP !"));
+  if (BX_CPU_THIS_PTR cr0.am != ((BX_CPU_THIS_PTR cr0.val32 >> 18) & 1))
+    BX_PANIC(("assert_checks: inconsistent CR0.AM !"));
+  if (BX_CPU_THIS_PTR cr0.nw != ((BX_CPU_THIS_PTR cr0.val32 >> 29) & 1))
+    BX_PANIC(("assert_checks: inconsistent CR0.NW !"));
+  if (BX_CPU_THIS_PTR cr0.cd != ((BX_CPU_THIS_PTR cr0.val32 >> 30) & 1))
+    BX_PANIC(("assert_checks: inconsistent CR0.CD !"));
+#endif
+  if (BX_CPU_THIS_PTR cr0.pg != ((BX_CPU_THIS_PTR cr0.val32 >> 31) & 1))
+    BX_PANIC(("assert_checks: inconsistent CR0.PG !"));
+
+  if (BX_CPU_THIS_PTR cr0.pg && ! BX_CPU_THIS_PTR cr0.pe)
+    BX_PANIC(("assert_checks: CR0.PG=1 with CR0.PE=0 !"));
+#if BX_CPU_LEVEL >= 4
+  if (BX_CPU_THIS_PTR cr0.nw && ! BX_CPU_THIS_PTR cr0.cd)
+    BX_PANIC(("assert_checks: CR0.NW=1 with CR0.CD=0 !"));
+#endif
 }
 
 void BX_CPU_C::set_INTR(bx_bool value)

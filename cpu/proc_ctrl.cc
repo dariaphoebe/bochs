@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: proc_ctrl.cc,v 1.146 2006/04/10 19:05:21 sshwarts Exp $
+// $Id: proc_ctrl.cc,v 1.146.2.1 2006/05/22 17:09:49 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -237,16 +237,17 @@ void BX_CPU_C::MOV_DdRd(bxInstruction_c *i)
       break;
 
     case 4: // DR4
-    case 6: // DR6
       // DR4 aliased to DR6 by default.  With Debug Extensions on,
       // access to DR4 causes #UD
 #if BX_CPU_LEVEL >= 4
-      if ((i->nnn() == 4) && (BX_CPU_THIS_PTR cr4.get_DE())) {
-        // Debug extensions on
+      if (BX_CPU_THIS_PTR cr4.get_DE()) {
+        // Debug extensions CR4.DE is ON
         BX_INFO(("MOV_DdRd: access to DR4 causes #UD"));
         UndefinedOpcode(i);
       }
 #endif
+      // Fall through to DR6 case
+    case 6: // DR6
 #if BX_CPU_LEVEL <= 4
       // On 386/486 bit12 is settable
       BX_CPU_THIS_PTR dr6 = (BX_CPU_THIS_PTR dr6 & 0xffff0ff0) |
@@ -259,22 +260,23 @@ void BX_CPU_C::MOV_DdRd(bxInstruction_c *i)
       break;
 
     case 5: // DR5
+      // DR5 aliased to DR7 by default.  With Debug Extensions on,
+      // access to DR5 causes #UD
+#if BX_CPU_LEVEL >= 4
+      if (BX_CPU_THIS_PTR cr4.get_DE()) {
+        // Debug extensions CR4.DE is ON
+        BX_INFO(("MOV_DdRd: access to DR5 causes #UD"));
+        UndefinedOpcode(i);
+      }
+#endif
+      // Fall through to DR7 case
     case 7: // DR7
       // Note: 486+ ignore GE and LE flags.  On the 386, exact
       // data breakpoint matching does not occur unless it is enabled
       // by setting the LE and/or GE flags.
 
-      // DR5 aliased to DR7 by default.  With Debug Extensions on,
-      // access to DR5 causes #UD
-#if BX_CPU_LEVEL >= 4
-      if ((i->nnn() == 5) && (BX_CPU_THIS_PTR cr4.get_DE())) {
-        // Debug extensions (CR4.DE) on
-        BX_INFO(("MOV_DdRd: access to DR5 causes #UD"));
-        UndefinedOpcode(i);
-      }
-#endif
       // Some sanity checks...
-      if ( val_32 & 0x00002000 ) {
+      if (val_32 & 0x00002000) {
         BX_INFO(("MOV_DdRd: GD bit not supported yet"));
         // Note: processor clears GD upon entering debug exception
         // handler, to allow access to the debug registers
@@ -312,13 +314,13 @@ void BX_CPU_C::MOV_DdRd(bxInstruction_c *i)
       // if we have breakpoints enabled then we must check
       // breakpoints condition in cpu loop
       if(BX_CPU_THIS_PTR dr7 & 0xff)
-       BX_CPU_THIS_PTR async_event = 1;
+        BX_CPU_THIS_PTR async_event = 1;
       break;
 
     default:
       BX_PANIC(("MOV_DdRd: control register index out of range"));
       break;
-    }
+  }
 }
 
 void BX_CPU_C::MOV_RdDd(bxInstruction_c *i)
@@ -360,37 +362,39 @@ void BX_CPU_C::MOV_RdDd(bxInstruction_c *i)
       break;
 
     case 4: // DR4
-    case 6: // DR6
       // DR4 aliased to DR6 by default.  With Debug Extensions on,
       // access to DR4 causes #UD
 #if BX_CPU_LEVEL >= 4
-      if ( (i->nnn() == 4) && (BX_CPU_THIS_PTR cr4.get_DE()) ) {
-        // Debug extensions on
+      if (BX_CPU_THIS_PTR cr4.get_DE()) {
+        // Debug extensions CR4.DE is ON
         BX_INFO(("MOV_RdDd: access to DR4 causes #UD"));
         UndefinedOpcode(i);
       }
 #endif
+      // Fall through to DR6 case
+    case 6: // DR6
       val_32 = BX_CPU_THIS_PTR dr6;
       break;
 
     case 5: // DR5
-    case 7: // DR7
       // DR5 aliased to DR7 by default.  With Debug Extensions on,
       // access to DR5 causes #UD
 #if BX_CPU_LEVEL >= 4
-      if ( (i->nnn() == 5) && (BX_CPU_THIS_PTR cr4.get_DE()) ) {
-        // Debug extensions on
+      if (BX_CPU_THIS_PTR cr4.get_DE()) {
+        // Debug extensions CR4.DE is ON
         BX_INFO(("MOV_RdDd: access to DR5 causes #UD"));
         UndefinedOpcode(i);
       }
 #endif
+      // Fall through to DR7 case
+    case 7: // DR7
       val_32 = BX_CPU_THIS_PTR dr7;
       break;
 
     default:
       BX_PANIC(("MOV_RdDd: control register index out of range"));
       val_32 = 0;
-    }
+  }
   BX_WRITE_32BIT_REGZ(i->rm(), val_32);
 }
 
@@ -444,35 +448,36 @@ void BX_CPU_C::MOV_DqRq(bxInstruction_c *i)
       break;
 
     case 4: // DR4
-    case 6: // DR6
       // DR4 aliased to DR6 by default.  With Debug Extensions on,
       // access to DR4 causes #UD
-      if ( (i->nnn() == 4) && (BX_CPU_THIS_PTR cr4.get_DE()) ) {
-        // Debug extensions on
+      if (BX_CPU_THIS_PTR cr4.get_DE()) {
+        // Debug extensions CR4.DE is ON
         BX_INFO(("MOV_DqRq: access to DR4 causes #UD"));
         UndefinedOpcode(i);
       }
+      // Fall through to DR6 case
+    case 6: // DR6
       // On Pentium+, bit12 is always zero
       BX_CPU_THIS_PTR dr6 = (BX_CPU_THIS_PTR dr6 & 0xffff0ff0) |
                             (val_64 & 0x0000e00f);
       break;
 
     case 5: // DR5
+      // DR5 aliased to DR7 by default.  With Debug Extensions on,
+      // access to DR5 causes #UD
+      if (BX_CPU_THIS_PTR cr4.get_DE()) {
+        // Debug extensions CR4.DE is ON
+        BX_INFO(("MOV_DqRq: access to DR5 causes #UD"));
+        UndefinedOpcode(i);
+      }
+      // Fall through to DR7 case
     case 7: // DR7
       // Note: 486+ ignore GE and LE flags.  On the 386, exact
       // data breakpoint matching does not occur unless it is enabled
       // by setting the LE and/or GE flags.
 
-      // DR5 aliased to DR7 by default.  With Debug Extensions on,
-      // access to DR5 causes #UD
-      if ( (i->nnn() == 5) && (BX_CPU_THIS_PTR cr4.get_DE()) ) {
-        // Debug extensions (CR4.DE) on
-        BX_INFO(("MOV_DqRq: access to DR5 causes #UD"));
-        UndefinedOpcode(i);
-      }
-
       // Some sanity checks...
-      if ( val_64 & 0x00002000 ) {
+      if (val_64 & 0x00002000) {
         BX_PANIC(("MOV_DqRq: GD bit not supported yet"));
         // Note: processor clears GD upon entering debug exception
         // handler, to allow access to the debug registers
@@ -513,7 +518,7 @@ void BX_CPU_C::MOV_DqRq(bxInstruction_c *i)
     default:
       BX_PANIC(("MOV_DqRq: control register index out of range"));
       break;
-    }
+  }
 }
 
 void BX_CPU_C::MOV_RqDq(bxInstruction_c *i)
@@ -555,26 +560,28 @@ void BX_CPU_C::MOV_RqDq(bxInstruction_c *i)
       break;
 
     case 4: // DR4
-    case 6: // DR6
       // DR4 aliased to DR6 by default.  With Debug Extensions on,
       // access to DR4 causes #UD
-      if ( (i->nnn() == 4) && (BX_CPU_THIS_PTR cr4.get_DE()) ) {
-        // Debug extensions on
+      if (BX_CPU_THIS_PTR cr4.get_DE()) {
+        // Debug extensions CR4.DE is ON
         BX_INFO(("MOV_RqDq: access to DR4 causes #UD"));
         UndefinedOpcode(i);
       }
+      // Fall through to DR6 case
+    case 6: // DR6
       val_64 = BX_CPU_THIS_PTR dr6;
       break;
 
     case 5: // DR5
-    case 7: // DR7
       // DR5 aliased to DR7 by default.  With Debug Extensions on,
       // access to DR5 causes #UD
-      if ( (i->nnn() == 5) && (BX_CPU_THIS_PTR cr4.get_DE()) ) {
-        // Debug extensions on
+      if (BX_CPU_THIS_PTR cr4.get_DE()) {
+        // Debug extensions CR4.DE is ON
         BX_INFO(("MOV_RqDq: access to DR5 causes #UD"));
         UndefinedOpcode(i);
       }
+      // Fall through to DR7 case
+    case 7: // DR7
       val_64 = BX_CPU_THIS_PTR dr7;
       break;
 
@@ -985,13 +992,13 @@ void BX_CPU_C::LOADALL(bxInstruction_c *i)
   BX_CPU_THIS_PTR tr.cache.segment     = (access & 0x10) >> 4;
   // don't allow busy bit in tr.cache.type, so bit 2 is masked away too.
   BX_CPU_THIS_PTR tr.cache.type        = (access & 0x0d);
-  BX_CPU_THIS_PTR tr.cache.u.tss286.base  = (base_23_16 << 16) | base_15_0;
-  BX_CPU_THIS_PTR tr.cache.u.tss286.limit = limit;
+  BX_CPU_THIS_PTR tr.cache.u.tss.base  = (base_23_16 << 16) | base_15_0;
+  BX_CPU_THIS_PTR tr.cache.u.tss.limit = limit;
 
   if ((BX_CPU_THIS_PTR tr.selector.value & 0xfffc) == 0) {
     BX_CPU_THIS_PTR tr.cache.valid = 0;
   }
-  if (BX_CPU_THIS_PTR tr.cache.u.tss286.limit < 43 ||
+  if (BX_CPU_THIS_PTR tr.cache.u.tss.limit < 43 ||
       BX_CPU_THIS_PTR tr.cache.type != BX_SYS_SEGMENT_AVAIL_286_TSS ||
       BX_CPU_THIS_PTR tr.cache.segment)
   {
@@ -999,13 +1006,13 @@ void BX_CPU_C::LOADALL(bxInstruction_c *i)
   }
   if (BX_CPU_THIS_PTR tr.cache.valid==0)
   {
-    BX_CPU_THIS_PTR tr.selector.value       = 0;
-    BX_CPU_THIS_PTR tr.selector.index       = 0;
-    BX_CPU_THIS_PTR tr.selector.ti          = 0;
-    BX_CPU_THIS_PTR tr.selector.rpl         = 0;
-    BX_CPU_THIS_PTR tr.cache.u.tss286.base  = 0;
-    BX_CPU_THIS_PTR tr.cache.u.tss286.limit = 0;
-    BX_CPU_THIS_PTR tr.cache.p              = 0;
+    BX_CPU_THIS_PTR tr.selector.value    = 0;
+    BX_CPU_THIS_PTR tr.selector.index    = 0;
+    BX_CPU_THIS_PTR tr.selector.ti       = 0;
+    BX_CPU_THIS_PTR tr.selector.rpl      = 0;
+    BX_CPU_THIS_PTR tr.cache.u.tss.base  = 0;
+    BX_CPU_THIS_PTR tr.cache.u.tss.limit = 0;
+    BX_CPU_THIS_PTR tr.cache.p           = 0;
   }
 
   /* FLAGS */
@@ -1448,8 +1455,8 @@ bx_bool BX_CPU_C::SetCR4(Bit32u val_32)
 #endif
 
 #if BX_SUPPORT_X86_64
-  // need to GPF #0 if LME=1 and PAE=0
-  if ((BX_CPU_THIS_PTR msr.lme)
+  // need to GP(0) if LMA=1 and PAE=1->0
+  if ((BX_CPU_THIS_PTR msr.lma)
       && (!(val_32 >> 5) & 1)
       && (BX_CPU_THIS_PTR cr4.get_PAE())) 
   {
@@ -2240,65 +2247,61 @@ void BX_CPU_C::SWAPGS(bxInstruction_c *i)
 #endif
 
 #if BX_X86_DEBUGGER
-Bit32u BX_CPU_C::hwdebug_compare(Bit32u laddr_0, unsigned size,
+Bit32u BX_CPU_C::hwdebug_compare(bx_address laddr_0, unsigned size,
                           unsigned opa, unsigned opb)
 {
   // Support x86 hardware debug facilities (DR0..DR7)
   Bit32u dr7 = BX_CPU_THIS_PTR dr7;
 
   bx_bool ibpoint_found = 0;
-  Bit32u  laddr_n = laddr_0 + (size - 1);
-  Bit32u  dr0, dr1, dr2, dr3;
-  Bit32u  dr0_n, dr1_n, dr2_n, dr3_n;
-  Bit32u  len0, len1, len2, len3;
-  static  unsigned alignment_mask[4] =
-    //    00b=1      01b=2     10b=undef     11b=4
-    { 0xffffffff, 0xfffffffe, 0xffffffff, 0xfffffffc };
-  Bit32u dr0_op, dr1_op, dr2_op, dr3_op;
+  bx_address laddr_n = laddr_0 + (size - 1);
+  static bx_address alignment_mask[4] =
+    // 00b=1  01b=2  10b=undef  11b=4
+    {  0x0,   0x1,   0x0,       0x3   };
 
-  len0 = (dr7>>18) & 3;
-  len1 = (dr7>>22) & 3;
-  len2 = (dr7>>26) & 3;
-  len3 = (dr7>>30) & 3;
+  Bit32u len0 = (dr7>>18) & 3;
+  Bit32u len1 = (dr7>>22) & 3;
+  Bit32u len2 = (dr7>>26) & 3;
+  Bit32u len3 = (dr7>>30) & 3;
 
-  dr0 = BX_CPU_THIS_PTR dr0 & alignment_mask[len0];
-  dr1 = BX_CPU_THIS_PTR dr1 & alignment_mask[len1];
-  dr2 = BX_CPU_THIS_PTR dr2 & alignment_mask[len2];
-  dr3 = BX_CPU_THIS_PTR dr3 & alignment_mask[len3];
+  bx_address dr0 = (BX_CPU_THIS_PTR dr0) & ~(alignment_mask[len0]);
+  bx_address dr1 = (BX_CPU_THIS_PTR dr1) & ~(alignment_mask[len1]);
+  bx_address dr2 = (BX_CPU_THIS_PTR dr2) & ~(alignment_mask[len2]);
+  bx_address dr3 = (BX_CPU_THIS_PTR dr3) & ~(alignment_mask[len3]);
 
-  dr0_n = dr0 + len0;
-  dr1_n = dr1 + len1;
-  dr2_n = dr2 + len2;
-  dr3_n = dr3 + len3;
+  bx_address dr0_n = dr0 + len0;
+  bx_address dr1_n = dr1 + len1;
+  bx_address dr2_n = dr2 + len2;
+  bx_address dr3_n = dr3 + len3;
 
-  dr0_op = (dr7>>16) & 3;
-  dr1_op = (dr7>>20) & 3;
-  dr2_op = (dr7>>24) & 3;
-  dr3_op = (dr7>>28) & 3;
+  Bit32u dr0_op = (dr7>>16) & 3;
+  Bit32u dr1_op = (dr7>>20) & 3;
+  Bit32u dr2_op = (dr7>>24) & 3;
+  Bit32u dr3_op = (dr7>>28) & 3;
 
   // See if this instruction address matches any breakpoints
-  if ( (dr7 & 0x00000003) ) {
-    if ( (dr0_op==opa || dr0_op==opb) &&
+  if ((dr7 & 0x00000003)) {
+    if ((dr0_op==opa || dr0_op==opb) &&
          (laddr_0 <= dr0_n) &&
-         (laddr_n >= dr0) )
+         (laddr_n >= dr0))
       ibpoint_found = 1;
   }
-  if ( (dr7 & 0x0000000c) ) {
-    if ( (dr1_op==opa || dr1_op==opb) &&
+  if ((dr7 & 0x0000000c)) {
+    if ((dr1_op==opa || dr1_op==opb) &&
          (laddr_0 <= dr1_n) &&
-         (laddr_n >= dr1) )
+         (laddr_n >= dr1))
       ibpoint_found = 1;
   }
-  if ( (dr7 & 0x00000030) ) {
-    if ( (dr2_op==opa || dr2_op==opb) &&
+  if ((dr7 & 0x00000030)) {
+    if ((dr2_op==opa || dr2_op==opb) &&
          (laddr_0 <= dr2_n) &&
-         (laddr_n >= dr2) )
+         (laddr_n >= dr2))
       ibpoint_found = 1;
   }
-  if ( (dr7 & 0x000000c0) ) {
-    if ( (dr3_op==opa || dr3_op==opb) &&
+  if ((dr7 & 0x000000c0)) {
+    if ((dr3_op==opa || dr3_op==opb) &&
          (laddr_0 <= dr3_n) &&
-         (laddr_n >= dr3) )
+         (laddr_n >= dr3))
       ibpoint_found = 1;
   }
 
@@ -2311,25 +2314,26 @@ Bit32u BX_CPU_C::hwdebug_compare(Bit32u laddr_0, unsigned size,
   if (ibpoint_found) {
     // dr6_mask is the return value.  These bits represent the bits to
     // be OR'd into DR6 as a result of the debug event.
-    Bit32u  dr6_mask=0;
-    if ( (dr0_op==opa || dr0_op==opb) &&
+    Bit32u dr6_mask=0;
+    if ((dr0_op==opa || dr0_op==opb) &&
          (laddr_0 <= dr0_n) &&
-         (laddr_n >= dr0) )
+         (laddr_n >= dr0))
       dr6_mask |= 0x01;
-    if ( (dr1_op==opa || dr1_op==opb) &&
+    if ((dr1_op==opa || dr1_op==opb) &&
          (laddr_0 <= dr1_n) &&
-         (laddr_n >= dr1) )
+         (laddr_n >= dr1))
       dr6_mask |= 0x02;
-    if ( (dr2_op==opa || dr2_op==opb) &&
+    if ((dr2_op==opa || dr2_op==opb) &&
          (laddr_0 <= dr2_n) &&
-         (laddr_n >= dr2) )
+         (laddr_n >= dr2))
       dr6_mask |= 0x04;
-    if ( (dr3_op==opa || dr3_op==opb) &&
+    if ((dr3_op==opa || dr3_op==opb) &&
          (laddr_0 <= dr3_n) &&
-         (laddr_n >= dr3) )
+         (laddr_n >= dr3))
       dr6_mask |= 0x08;
     return(dr6_mask);
   }
+
   return(0);
 }
 #endif

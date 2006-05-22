@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: icache.h,v 1.13 2006/03/14 18:11:22 sshwarts Exp $
+// $Id: icache.h,v 1.13.2.1 2006/05/22 17:09:49 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -32,10 +32,10 @@
 
 // bit31: 1=CS is 32/64-bit, 0=CS is 16-bit.
 // bit30: 1=Long Mode, 0=not Long Mode.
-// bit29: 1=iCache page, 0=Data.
-const Bit32u ICacheWriteStampInvalid = 0x1fffffff;
-const Bit32u ICacheWriteStampMax     = 0x1fffffff;
-const Bit32u ICacheWriteStampMask    = 0x1fffffff;
+// Combination bit31=1 & bit30=1 is invalid.
+const Bit32u ICacheWriteStampInvalid = 0xffffffff;
+const Bit32u ICacheWriteStampStart   = 0x3fffffff;
+const Bit32u ICacheWriteStampMask    = 0x3fffffff;
 const Bit32u ICacheFetchModeMask     = ~ICacheWriteStampMask;
 
 class bxPageWriteStampTable
@@ -60,7 +60,7 @@ public:
     resetWriteStamps();
   }
 
-  BX_CPP_INLINE Bit32u getPageWriteStamp(Bit32u pAddr) const
+  BX_CPP_INLINE Bit32u getPageWriteStamp(bx_phy_address pAddr) const
   {
     if (pAddr < memSizeInBytes) 
        return pageWriteStampTable[pAddr>>12];
@@ -68,7 +68,7 @@ public:
        return ICacheWriteStampInvalid;
   }
 
-  BX_CPP_INLINE const Bit32u *getPageWriteStampPtr(Bit32u pAddr) const
+  BX_CPP_INLINE const Bit32u *getPageWriteStampPtr(bx_phy_address pAddr) const
   {
     if (pAddr < memSizeInBytes) 
        return &pageWriteStampTable[pAddr>>12];
@@ -76,13 +76,13 @@ public:
        return &ICacheWriteStampInvalid;
   }
 
-  BX_CPP_INLINE void setPageWriteStamp(Bit32u pAddr, Bit32u pageWriteStamp)
+  BX_CPP_INLINE void setPageWriteStamp(bx_phy_address pAddr, Bit32u pageWriteStamp)
   {
     if (pAddr < memSizeInBytes)
        pageWriteStampTable[pAddr>>12] = pageWriteStamp;
   }
 
-  BX_CPP_INLINE void decWriteStamp(Bit32u pAddr)
+  BX_CPP_INLINE void decWriteStamp(bx_phy_address pAddr)
   {
     assert(pAddr < memSizeInBytes);
     // Decrement page write stamp, so iCache entries with older stamps
@@ -91,6 +91,7 @@ public:
   }
 
   BX_CPP_INLINE void resetWriteStamps(void);
+  BX_CPP_INLINE void purgeWriteStamps(void);
 };
 
 BX_CPP_INLINE void bxPageWriteStampTable::resetWriteStamps(void)
@@ -100,16 +101,23 @@ BX_CPP_INLINE void bxPageWriteStampTable::resetWriteStamps(void)
   }
 }
 
+BX_CPP_INLINE void bxPageWriteStampTable::purgeWriteStamps(void)
+{
+  for (Bit32u i=0; i<(memSizeInBytes>>12); i++) {
+    pageWriteStampTable[i] |= ICacheWriteStampMask;
+  }
+}
+
 extern bxPageWriteStampTable pageWriteStampTable;
 
 #define BxICacheEntries (32 * 1024)  // Must be a power of 2.
 
 struct bxICacheEntry_c
 {
-  Bit32u pAddr;       // Physical address of the instruction
-  Bit32u writeStamp;  // Generation ID. Each write to a physical page
-                      // decrements this value
-  bxInstruction_c i;  // The instruction decode information
+  bx_phy_address pAddr; // Physical address of the instruction
+  Bit32u writeStamp;    // Generation ID. Each write to a physical page
+                        // decrements this value
+  bxInstruction_c i;    // The instruction decode information
 };
 
 class BOCHSAPI bxICache_c {
@@ -119,7 +127,7 @@ public:
 public:
   bxICache_c() { flushICacheEntries(); }
 
-  BX_CPP_INLINE unsigned hash(Bit32u pAddr) const
+  BX_CPP_INLINE unsigned hash(bx_phy_address pAddr) const
   {
     // A pretty dumb hash function for now.
     return pAddr & (BxICacheEntries-1);
