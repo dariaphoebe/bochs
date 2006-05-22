@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.332.2.6 2006/05/22 17:09:48 vruppert Exp $
+// $Id: main.cc,v 1.332.2.7 2006/05/22 22:03:01 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -694,17 +694,27 @@ int bx_init_main (int argc, char *argv[])
       if (!SIM->test_for_text_console())
         BX_PANIC(("Unable to start Bochs without a bochsrc.txt and without a text console"));
       else 
-        BX_ERROR (("Switching off quick start, because no configuration file was found."));
+        BX_ERROR(("Switching off quick start, because no configuration file was found."));
     }
     SIM->get_param_enum(BXPN_BOCHS_START)->set(BX_LOAD_START);
   }
 
-  // parse the rest of the command line.  This is done after reading the
-  // configuration file so that the command line arguments can override
-  // the settings from the file.
-  if (bx_parse_cmdline (arg, argc, argv)) {
-    BX_PANIC(("There were errors while parsing the command line"));
-    return -1;
+#if BX_SUPPORT_SAVE_RESTORE
+  if (SIM->get_param_bool(BXPN_RESTORE_FLAG)->get()) {
+    if (arg < argc) {
+      BX_ERROR(("WARNING: bochsrc options are ignored in restore mode!"));
+    }
+  }
+  else
+#endif
+  {
+    // parse the rest of the command line.  This is done after reading the
+    // configuration file so that the command line arguments can override
+    // the settings from the file.
+    if (bx_parse_cmdline(arg, argc, argv)) {
+      BX_PANIC(("There were errors while parsing the command line"));
+      return -1;
+    }
   }
   // initialize plugin system. This must happen before we attempt to
   // load any modules.
