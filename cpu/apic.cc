@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: apic.cc,v 1.83.2.3 2006/05/22 17:09:49 vruppert Exp $
+// $Id: apic.cc,v 1.83.2.4 2006/05/22 21:16:54 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -909,7 +909,6 @@ void bx_local_apic_c::register_state(bx_param_c *parent)
 {
   unsigned i;
   char name[6];
-
   new bx_shadow_num_c(parent, "base_addr", "", &base_addr, BASE_HEX);
   new bx_shadow_num_c(parent, "id", "", &id, BASE_HEX);
   new bx_shadow_num_c(parent, "spurious_vector", "", &spurious_vector, BASE_HEX);
@@ -919,19 +918,13 @@ void bx_local_apic_c::register_state(bx_param_c *parent)
   new bx_shadow_num_c(parent, "log_dest", "", &log_dest, BASE_HEX);
   new bx_shadow_num_c(parent, "dest_format", "", &dest_format, BASE_HEX);
   bx_list_c *ISR = new bx_list_c(parent, "isr", BX_LOCAL_APIC_MAX_INTS);
-  for (i=0; i<BX_LOCAL_APIC_MAX_INTS; i++) {
-    sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(ISR, strdup(name), "", &isr[i], BASE_HEX);
-  }
   bx_list_c *TMR = new bx_list_c(parent, "tmr", BX_LOCAL_APIC_MAX_INTS);
-  for (i=0; i<BX_LOCAL_APIC_MAX_INTS; i++) {
-    sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(TMR, strdup(name), "", &tmr[i], BASE_HEX);
-  }
   bx_list_c *IRR = new bx_list_c(parent, "irr", BX_LOCAL_APIC_MAX_INTS);
   for (i=0; i<BX_LOCAL_APIC_MAX_INTS; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(IRR, strdup(name), "", &irr[i], BASE_HEX);
+    new bx_shadow_num_c(ISR, strdup(name), "", &isr[i]);
+    new bx_shadow_num_c(TMR, strdup(name), "", &tmr[i]);
+    new bx_shadow_num_c(IRR, strdup(name), "", &irr[i]);
   }
   new bx_shadow_num_c(parent, "error_status", "", &error_status, BASE_HEX);
   new bx_shadow_num_c(parent, "shadow_error_status", "", &shadow_error_status, BASE_HEX);
