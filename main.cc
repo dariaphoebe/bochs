@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.332.2.7 2006/05/22 22:03:01 vruppert Exp $
+// $Id: main.cc,v 1.332.2.8 2006/05/23 16:57:12 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -913,7 +913,6 @@ void bx_sr_before_save_state(void)
     BX_CPU(i)->before_save_state();
   }
 #endif
-  DEV_before_save_state();
 }
 
 void bx_sr_after_restore_state(void)

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci_ide.h,v 1.10.2.3 2006/04/21 11:45:47 vruppert Exp $
+// $Id: pci_ide.h,v 1.10.2.4 2006/05/23 16:57:12 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -47,8 +47,8 @@ public:
   virtual void bmdma_set_irq(Bit8u channel);
 #if BX_SUPPORT_SAVE_RESTORE
   virtual void register_state(void);
-  virtual void before_save_state(void);
   virtual void after_restore_state(void);
+  static  Bit64s sr_param_handler(bx_param_c *param, int set, Bit64s val);
 #endif
 
   virtual Bit32u pci_read_handler(Bit8u address, unsigned io_len);
@@ -72,10 +72,6 @@ private:
       Bit8u *buffer;
       Bit8u *buffer_top;
       Bit8u *buffer_idx;
-#if BX_SUPPORT_SAVE_RESTORE
-      Bit32u sr_buffer_top;
-      Bit32u sr_buffer_idx;
-#endif
     } bmdma[2];
   } s;
 

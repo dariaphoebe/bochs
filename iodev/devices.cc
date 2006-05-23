@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: devices.cc,v 1.98.2.9 2006/05/22 21:16:54 sshwarts Exp $
+// $Id: devices.cc,v 1.98.2.10 2006/05/23 16:57:12 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -105,7 +105,7 @@ void bx_devices_c::init(BX_MEM_C *newmem)
 {
   unsigned i;
 
-  BX_DEBUG(("Init $Id: devices.cc,v 1.98.2.9 2006/05/22 21:16:54 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: devices.cc,v 1.98.2.10 2006/05/23 16:57:12 vruppert Exp $"));
   mem = newmem;
 
   /* set no-default handlers, will be overwritten by the real default handler */
@@ -363,11 +363,6 @@ void bx_devices_c::register_state()
   pit->register_state();
   // now register state of optional plugins
   bx_plugins_register_state();
-}
-
-void bx_devices_c::before_save_state()
-{
-  bx_plugins_before_save_state();
 }
 
 void bx_devices_c::after_restore_state()

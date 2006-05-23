@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.13 2006/05/21 21:30:23 sshwarts Exp $
+// $Id: siminterface.cc,v 1.143.2.14 2006/05/23 16:57:12 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1111,7 +1111,11 @@ void bx_real_sim_c::save_sr_param(FILE *fp, bx_param_c *node, const char *sr_pat
           fprintf(fp, "%d\n", ((bx_param_num_c*)node)->get());
         }
       } else {
-        fprintf(fp, node->get_format(), ((bx_param_num_c*)node)->get());
+        if (node->get_format()) {
+          fprintf(fp, node->get_format(), ((bx_param_num_c*)node)->get());
+        } else {
+          fprintf(fp, "0x%x", ((bx_param_num_c*)node)->get());
+        }
         fprintf(fp, "\n");
       }
       break;
