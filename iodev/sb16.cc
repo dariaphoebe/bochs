@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: sb16.cc,v 1.47.2.6 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: sb16.cc,v 1.47.2.7 2006/05/24 18:26:44 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -368,7 +368,11 @@ void bx_sb16_c::register_state(void)
   new bx_shadow_num_c(dma, "samplerate", "", &DSP.dma.samplerate);
   new bx_shadow_bool_c(dsp, "outputinit", &DSP.outputinit);
   new bx_shadow_data_c(list, "chunk", DSP.dma.chunk, BX_SOUND_OUTPUT_WAVEPACKETSIZE);
-  new bx_shadow_data_c(list, "csp_reg", BX_SB16_THIS csp_reg, 256);
+  bx_list_c *csp = new bx_list_c(list, "csp_reg", 256);
+  for (i=0; i<256; i++) {
+    sprintf(name, "0x%02x", i);
+    new bx_shadow_num_c(csp, strdup(name), "", &BX_SB16_THIS csp_reg[i], BASE_HEX);
+  }
   bx_list_c *opl = new bx_list_c(list, "opl", 8);
   new bx_shadow_num_c(opl, "mode", "", (Bit8u*)&OPL.mode);
   new bx_shadow_num_c(opl, "timer_running", "", &OPL.timer_running);
@@ -423,7 +427,11 @@ void bx_sb16_c::register_state(void)
     new bx_shadow_num_c(item, "midivol", "", &OPL.chan[i].midivol);
   }
   new bx_shadow_num_c(list, "mixer_regindex", "", &MIXER.regindex, BASE_HEX);
-  new bx_shadow_data_c(list, "mixer_reg", MIXER.reg, BX_SB16_MIX_REG);
+  bx_list_c *mixer = new bx_list_c(list, "mixer_reg", BX_SB16_MIX_REG);
+  for (i=0; i<BX_SB16_MIX_REG; i++) {
+    sprintf(name, "0x%02x", i);
+    new bx_shadow_num_c(mixer, strdup(name), "", &MIXER.reg[i], BASE_HEX);
+  }
   bx_list_c *emul = new bx_list_c(list, "emul");
   new bx_shadow_num_c(emul, "remaps", "", &EMUL.remaps);
   bx_list_c *remap = new bx_list_c(emul, "remaplist", 256);

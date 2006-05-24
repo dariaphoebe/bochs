@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: svga_cirrus.cc,v 1.30.2.8 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: svga_cirrus.cc,v 1.30.2.9 2006/05/24 18:26:44 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2004 Makoto Suzuki (suzu)
@@ -373,9 +373,8 @@ void bx_svga_cirrus_c::register_state(void)
   char name[6];
   bx_list_c *reg;
 
-  bx_vga_c::register_state();
   if (BX_CIRRUS_THIS vidmem != NULL) {
-    bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "svga_cirrus", "Cirrus SVGA State", 17);
+    bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "svga_cirrus", "Cirrus SVGA State", 18);
     bx_list_c *crtc = new bx_list_c(list, "crtc");
     new bx_shadow_num_c(crtc, "index", "", &BX_CIRRUS_THIS crtc.index, BASE_HEX);
     reg = new bx_list_c(crtc, "reg", CIRRUS_CRTC_MAX+1);
@@ -432,6 +431,7 @@ void bx_svga_cirrus_c::register_state(void)
     }
 #endif
   }
+  bx_vga_c::register_state();
 }
 
 void bx_svga_cirrus_c::after_restore_state(void)

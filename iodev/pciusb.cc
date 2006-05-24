@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.cc,v 1.37.2.6 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: pciusb.cc,v 1.37.2.7 2006/05/24 18:26:44 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -313,7 +313,11 @@ void bx_pciusb_c::register_state(void)
   }
   new bx_shadow_data_c(list, "device_buffer", BX_USB_THIS device_buffer, 65536);
   new bx_shadow_num_c(list, "set_address_stk", "", &BX_USB_THIS set_address_stk);
-  new bx_shadow_data_c(list, "set_address", BX_USB_THIS set_address, 128);
+  bx_list_c *setaddr = new bx_list_c(list, "set_address", 128);
+  for (i=0; i<128; i++) {
+    sprintf(name, "0x%02x", i);
+    new bx_shadow_num_c(setaddr, strdup(name), "", &BX_USB_THIS set_address[i], BASE_HEX);
+  }
 }
 
 void bx_pciusb_c::after_restore_state(void)

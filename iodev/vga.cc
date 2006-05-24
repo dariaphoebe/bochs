@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: vga.cc,v 1.128.2.6 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: vga.cc,v 1.128.2.7 2006/05/24 18:26:44 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -400,9 +400,15 @@ void bx_vga_c::register_state(void)
 {
   unsigned i;
   char name[6];
-  bx_list_c *reg;
+  bx_list_c *parent, *reg;
 
-  bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "vga", "VGA Adapter State", 17);
+  parent = SIM->get_sr_root();
+#if BX_SUPPORT_CLGD54XX
+  if (!strcmp(SIM->get_param_string(BXPN_VGA_EXTENSION)->getptr(), "cirrus")) {
+    parent = (bx_list_c*)SIM->get_param("svga_cirrus", parent);;
+  }
+#endif
+  bx_list_c *list = new bx_list_c(parent, "vga", "VGA Adapter State", 17);
   bx_list_c *misc = new bx_list_c(list, "misc_output");
   new bx_shadow_bool_c(misc, "color_emulation", &BX_VGA_THIS s.misc_output.color_emulation);
   new bx_shadow_bool_c(misc, "enable_ram", &BX_VGA_THIS s.misc_output.enable_ram);
