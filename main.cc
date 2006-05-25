@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: main.cc,v 1.332.2.8 2006/05/23 16:57:12 vruppert Exp $
+// $Id: main.cc,v 1.332.2.9 2006/05/25 08:48:16 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -904,17 +904,6 @@ void bx_stop_simulation()
 }
 
 #if BX_SUPPORT_SAVE_RESTORE
-void bx_sr_before_save_state(void)
-{
-#if BX_SUPPORT_SMP == 0
-  BX_CPU(0)->before_save_state();
-#else
-  for (unsigned i=0; i<BX_SMP_PROCESSORS; i++) {
-    BX_CPU(i)->before_save_state();
-  }
-#endif
-}
-
 void bx_sr_after_restore_state(void)
 {
 #if BX_SUPPORT_SMP == 0

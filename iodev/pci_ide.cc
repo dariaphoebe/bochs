@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci_ide.cc,v 1.22.2.8 2006/05/23 16:57:12 vruppert Exp $
+// $Id: pci_ide.cc,v 1.22.2.9 2006/05/25 08:48:16 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -161,10 +161,10 @@ void bx_pci_ide_c::register_state(void)
     new bx_shadow_num_c(ctrl, "prd_current", "", &BX_PIDE_THIS s.bmdma[i].prd_current, BASE_HEX);
     param = new bx_param_num_c(ctrl, "buffer_top", "", "", 0, BX_MAX_BIT32U, 0);
     param->set_base(BASE_HEX);
-    param->set_handler(BX_PIDE_THIS sr_param_handler);
+    param->set_sr_handler(BX_PIDE_THIS_PTR, BX_PIDE_THIS param_sr_handler);
     param = new bx_param_num_c(ctrl, "buffer_idx", "", "", 0, BX_MAX_BIT32U, 0);
     param->set_base(BASE_HEX);
-    param->set_handler(BX_PIDE_THIS sr_param_handler);
+    param->set_sr_handler(BX_PIDE_THIS_PTR, BX_PIDE_THIS param_sr_handler);
   }
 }
 
@@ -177,16 +177,26 @@ void bx_pci_ide_c::after_restore_state(void)
   }
 }
 
-Bit64s bx_pci_ide_c::sr_param_handler(bx_param_c *param, int set, Bit64s val)
+Bit64s bx_pci_ide_c::param_sr_handler(void *devptr, bx_param_c *param, int set, Bit64s val)
 {
+#if !BX_USE_PIDE_SMF
+  bx_pci_ide_c *class_ptr = (bx_pci_ide_c *) devptr;
+  return class_ptr->save_restore(param, set, val);
+}
+
+Bit64s bx_pci_ide_c::save_restore(bx_param_c *param, int set, Bit64s val)
+{
+#else
+  UNUSED(devptr);
+#endif // !BX_USE_PIDE_SMF
   int chan = atoi(param->get_parent()->get_name());
-  if (set) {
+  if (set) { // restore
     if (!strcmp(param->get_name(), "buffer_top")) {
       BX_PIDE_THIS s.bmdma[chan].buffer_top = BX_PIDE_THIS s.bmdma[chan].buffer + val;
     } else if (!strcmp(param->get_name(), "buffer_idx")) {
       BX_PIDE_THIS s.bmdma[chan].buffer_idx = BX_PIDE_THIS s.bmdma[chan].buffer + val;
     }
-  } else {
+  } else { // save
     if (!strcmp(param->get_name(), "buffer_top")) {
       val = (Bit32u)(BX_PIDE_THIS s.bmdma[chan].buffer_top - BX_PIDE_THIS s.bmdma[chan].buffer);
     } else if (!strcmp(param->get_name(), "buffer_idx")) {

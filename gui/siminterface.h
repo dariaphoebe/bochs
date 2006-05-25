@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.187.2.5 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: siminterface.h,v 1.187.2.6 2006/05/25 08:48:16 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -633,6 +633,9 @@ public:
 };
 
 typedef Bit64s (*param_event_handler)(class bx_param_c *, int set, Bit64s val);
+#if BX_SUPPORT_SAVE_RESTORE
+typedef Bit64s (*param_sr_handler)(void *devptr, class bx_param_c *, int set, Bit64s val);
+#endif
 typedef int (*param_enable_handler)(class bx_param_c *, int en);
 
 class BOCHSAPI bx_param_num_c : public bx_param_c {
@@ -654,6 +657,10 @@ protected:
     bx_bool *pbool;  // used by bx_shadow_bool_c
   } val;
   param_event_handler handler;
+#if BX_SUPPORT_SAVE_RESTORE
+  void *sr_devptr;
+  param_sr_handler sr_handler;
+#endif
   param_enable_handler enable_handler;
   int base;
   Bit32u options;
@@ -672,6 +679,9 @@ public:
       bx_bool is_shadow = 0);
   virtual void reset();
   void set_handler(param_event_handler handler);
+#if BX_SUPPORT_SAVE_RESTORE
+  void set_sr_handler(void *devptr, param_sr_handler handler);
+#endif
   void set_enable_handler(param_enable_handler handler);
   virtual bx_list_c *get_dependent_list() { return dependent_list; }
   void set_dependent_list(bx_list_c *l);

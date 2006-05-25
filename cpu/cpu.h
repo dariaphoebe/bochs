@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.279.2.3 2006/05/22 17:09:49 vruppert Exp $
+// $Id: cpu.h,v 1.279.2.4 2006/05/25 08:48:16 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1015,12 +1015,6 @@ public: // for now...
 
   unsigned bx_cpuid;
 
-#if BX_SUPPORT_SAVE_RESTORE
-  Bit32u saved_cpu_version;
-  Bit32u saved_cpuid_std;
-  Bit32u saved_cpuid_ext;
-#endif
-
   // General register set
   // eax: accumulator
   // ebx: base
@@ -1301,8 +1295,11 @@ public: // for now...
   void initialize(BX_MEM_C *addrspace);
 #if BX_SUPPORT_SAVE_RESTORE
   void register_state();
-  void before_save_state();
   void after_restore_state();
+  static  Bit64s param_sr_handler(void *devptr, bx_param_c *param, int set, Bit64s val);
+#if !BX_USE_CPU_SMF
+  Bit64s save_restore(bx_param_c *param, int set, Bit64s val);
+#endif
 #endif
 
 // <TAG-CLASS-CPU-START>

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.14 2006/05/22 21:16:54 sshwarts Exp $
+// $Id: init.cc,v 1.98.2.15 2006/05/25 08:48:16 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -386,6 +386,7 @@ void BX_CPU_C::register_state()
   static bx_bool counter = 0;
   unsigned i;
   char cpu_name[10], cpu_title[10], name[10];
+  bx_param_num_c *param;
   bx_list_c *reg;
 
   if (counter < BX_MAX_SMP_THREADS_SUPPORTED) {
@@ -393,14 +394,18 @@ void BX_CPU_C::register_state()
     sprintf(cpu_title, "CPU %d", BX_CPU_ID);
     bx_list_c *list = new bx_list_c(SIM->get_param("save_restore.cpu"), strdup(cpu_name),
                                     cpu_title, 50);
+#define BXRS_PARAM_SPECIAL(name) \
+    param = new bx_param_num_c(list, #name, "", "", 0, BX_MAX_BIT32U, 0); \
+    param->set_base(BASE_HEX); \
+    param->set_sr_handler(this, param_sr_handler);
 #define BXRS_PARAM_SIMPLE(name) \
     new bx_shadow_num_c(list, #name, "", &(name), BASE_HEX)
 #define BXRS_PARAM_FIELD(name, field) \
     new bx_shadow_num_c(list, #name, "", &(field), BASE_HEX)
 
-    BXRS_PARAM_SIMPLE(saved_cpu_version);
-    BXRS_PARAM_SIMPLE(saved_cpuid_std);
-    BXRS_PARAM_SIMPLE(saved_cpuid_ext);
+    BXRS_PARAM_SPECIAL(cpu_version);
+    BXRS_PARAM_SPECIAL(cpuid_std);
+    BXRS_PARAM_SPECIAL(cpuid_ext);
     BXRS_PARAM_SIMPLE(cpu_mode);
     BXRS_PARAM_SIMPLE(inhibit_mask);
     BXRS_PARAM_SIMPLE(EAX);
@@ -569,20 +574,49 @@ void BX_CPU_C::register_state()
   }
 }
 
-void BX_CPU_C::before_save_state()
+Bit64s BX_CPU_C::param_sr_handler(void *devptr, bx_param_c *param, int set, Bit64s val)
 {
-  saved_cpu_version = get_cpu_version_information();
-  saved_cpuid_std = get_std_cpuid_features();
-  saved_cpuid_ext = get_extended_cpuid_features();
+#if !BX_USE_CPU_SMF
+  BX_CPU_C *class_ptr = (BX_CPU_C *) devptr;
+  return class_ptr->save_restore(param, set, val);
+}
+
+Bit64s BX_CPU_C::save_restore(bx_param_c *param, int set, Bit64s val)
+{
+#else
+  UNUSED(devptr);
+#endif // !BX_USE_CPU_SMF
+  BX_INFO(("entering save/restore handler: param=%s" , param->get_name()));
+  if (set) { // restore
+    BX_INFO(("entering restore handler"));
+    if (!strcmp(param->get_name(), "cpu_version")) {
+      if (val != get_cpu_version_information()) {
+        BX_PANIC(("save/restore: CPU version mismatch"));
+      }
+    } else if (!strcmp(param->get_name(), "cpuid_std")) {
+      if (val != get_std_cpuid_features()) {
+        BX_PANIC(("save/restore: CPUID mismatch"));
+      }
+    } else if (!strcmp(param->get_name(), "cpuid_ext")) {
+      if (val != get_extended_cpuid_features()) {
+        BX_PANIC(("save/restore: CPUID mismatch"));
+      }
+    }
+  } else { // save
+    BX_INFO(("entering save handler"));
+    if (!strcmp(param->get_name(), "cpu_version")) {
+      val = get_cpu_version_information();
+    } else if (!strcmp(param->get_name(), "cpuid_std")) {
+      val = get_std_cpuid_features();
+    } else if (!strcmp(param->get_name(), "cpuid_ext")) {
+      val = get_extended_cpuid_features();
+    }
+  }
+  return val;
 }
 
 void BX_CPU_C::after_restore_state()
 {
-  if ((saved_cpu_version != get_cpu_version_information()) ||
-      (saved_cpuid_std != get_std_cpuid_features()) ||
-      (saved_cpuid_ext != get_extended_cpuid_features())) {
-    BX_PANIC(("save/restore: CPU type mismatch"));
-  }
   SetCR0(cr0.val32);
   CR3_change(cr3);
   setEFlags(eflags.val32);

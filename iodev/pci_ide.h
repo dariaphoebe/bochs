@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pci_ide.h,v 1.10.2.4 2006/05/23 16:57:12 vruppert Exp $
+// $Id: pci_ide.h,v 1.10.2.5 2006/05/25 08:48:16 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -48,7 +48,10 @@ public:
 #if BX_SUPPORT_SAVE_RESTORE
   virtual void register_state(void);
   virtual void after_restore_state(void);
-  static  Bit64s sr_param_handler(bx_param_c *param, int set, Bit64s val);
+  static  Bit64s param_sr_handler(void *devptr, bx_param_c *param, int set, Bit64s val);
+#if !BX_USE_PIDE_SMF
+  Bit64s save_restore(bx_param_c *param, int set, Bit64s val);
+#endif
 #endif
 
   virtual Bit32u pci_read_handler(Bit8u address, unsigned io_len);

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.14 2006/05/23 16:57:12 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.15 2006/05/25 08:48:16 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -867,7 +867,6 @@ bx_bool bx_real_sim_c::save_state(const char *checkpoint_path)
   int type, ntype = SIM->get_max_log_level();
   FILE *fp;
 
-  bx_sr_before_save_state();
   sprintf(sr_file, "%s/config", checkpoint_path);
   write_rc(sr_file, 1);
   sprintf(sr_file, "%s/logopts", checkpoint_path);
@@ -1240,6 +1239,9 @@ bx_param_num_c::bx_param_num_c(bx_param_c *parent,
   this->initial_val = initial_val;
   this->val.number = initial_val;
   this->handler = NULL;
+#if BX_SUPPORT_SAVE_RESTORE
+  this->sr_handler = NULL;
+#endif
   this->enable_handler = NULL;
   this->base = default_base;
   this->is_shadow = is_shadow;
@@ -1276,6 +1278,14 @@ void bx_param_num_c::set_handler(param_event_handler handler)
   //set (get ());
 }
 
+#if BX_SUPPORT_SAVE_RESTORE
+void bx_param_num_c::set_sr_handler(void *devptr, param_sr_handler handler)
+{
+  this->sr_devptr = devptr; 
+  this->sr_handler = handler; 
+}
+#endif
+
 void bx_param_num_c::set_enable_handler(param_enable_handler handler)
 { 
   this->enable_handler = handler; 
@@ -1288,6 +1298,11 @@ void bx_param_num_c::set_dependent_list(bx_list_c *l) {
 
 Bit64s bx_param_num_c::get64()
 {
+#if BX_SUPPORT_SAVE_RESTORE
+  if (sr_handler) {
+    return (*sr_handler)(sr_devptr, this, 0, val.number);
+  }
+#endif
   if (handler) {
     // the handler can decide what value to return and/or do some side effect
     return (*handler)(this, 0, val.number);
@@ -1307,6 +1322,12 @@ void bx_param_num_c::set(Bit64s newval)
     // just set the value.  This code does not check max/min.
     val.number = newval;
   }
+#if BX_SUPPORT_SAVE_RESTORE
+  if (sr_handler) {
+    val.number = newval;
+    (*sr_handler)(sr_devptr, this, 1, newval);
+  }
+#endif
   if ((val.number < min || val.number > max) && (Bit64u)max != BX_MAX_BIT64U)
     BX_PANIC(("numerical parameter '%s' was set to " FMT_LL "d, which is out of range " FMT_LL "d to " FMT_LL "d", get_name (), val.number, min, max));
   if (dependent_list != NULL) update_dependents();
