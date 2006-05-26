@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.h,v 1.187.2.6 2006/05/25 08:48:16 vruppert Exp $
+// $Id: siminterface.h,v 1.187.2.7 2006/05/26 12:03:55 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // Intro to siminterface by Bryce Denney:
@@ -634,7 +634,7 @@ public:
 
 typedef Bit64s (*param_event_handler)(class bx_param_c *, int set, Bit64s val);
 #if BX_SUPPORT_SAVE_RESTORE
-typedef Bit64s (*param_sr_handler)(void *devptr, class bx_param_c *, int set, Bit64s val);
+typedef Bit64s (*param_sr_handler)(void *devptr, class bx_param_c *, Bit64s val);
 #endif
 typedef int (*param_enable_handler)(class bx_param_c *, int en);
 
@@ -659,7 +659,8 @@ protected:
   param_event_handler handler;
 #if BX_SUPPORT_SAVE_RESTORE
   void *sr_devptr;
-  param_sr_handler sr_handler;
+  param_sr_handler save_handler;
+  param_sr_handler restore_handler;
 #endif
   param_enable_handler enable_handler;
   int base;
@@ -680,7 +681,7 @@ public:
   virtual void reset();
   void set_handler(param_event_handler handler);
 #if BX_SUPPORT_SAVE_RESTORE
-  void set_sr_handler(void *devptr, param_sr_handler handler);
+  void set_sr_handlers(void *devptr, param_sr_handler save, param_sr_handler restore);
 #endif
   void set_enable_handler(param_enable_handler handler);
   virtual bx_list_c *get_dependent_list() { return dependent_list; }

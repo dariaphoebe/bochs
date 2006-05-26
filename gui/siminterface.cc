@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.15 2006/05/25 08:48:16 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.16 2006/05/26 12:03:55 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1240,7 +1240,8 @@ bx_param_num_c::bx_param_num_c(bx_param_c *parent,
   this->val.number = initial_val;
   this->handler = NULL;
 #if BX_SUPPORT_SAVE_RESTORE
-  this->sr_handler = NULL;
+  this->save_handler = NULL;
+  this->restore_handler = NULL;
 #endif
   this->enable_handler = NULL;
   this->base = default_base;
@@ -1279,10 +1280,11 @@ void bx_param_num_c::set_handler(param_event_handler handler)
 }
 
 #if BX_SUPPORT_SAVE_RESTORE
-void bx_param_num_c::set_sr_handler(void *devptr, param_sr_handler handler)
+void bx_param_num_c::set_sr_handlers(void *devptr, param_sr_handler save, param_sr_handler restore)
 {
   this->sr_devptr = devptr; 
-  this->sr_handler = handler; 
+  this->save_handler = save; 
+  this->restore_handler = restore; 
 }
 #endif
 
@@ -1299,8 +1301,8 @@ void bx_param_num_c::set_dependent_list(bx_list_c *l) {
 Bit64s bx_param_num_c::get64()
 {
 #if BX_SUPPORT_SAVE_RESTORE
-  if (sr_handler) {
-    return (*sr_handler)(sr_devptr, this, 0, val.number);
+  if (save_handler) {
+    return (*save_handler)(sr_devptr, this, val.number);
   }
 #endif
   if (handler) {
@@ -1323,9 +1325,9 @@ void bx_param_num_c::set(Bit64s newval)
     val.number = newval;
   }
 #if BX_SUPPORT_SAVE_RESTORE
-  if (sr_handler) {
+  if (restore_handler) {
     val.number = newval;
-    (*sr_handler)(sr_devptr, this, 1, newval);
+    (*restore_handler)(sr_devptr, this, newval);
   }
 #endif
   if ((val.number < min || val.number > max) && (Bit64u)max != BX_MAX_BIT64U)

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: cpu.h,v 1.279.2.4 2006/05/25 08:48:16 vruppert Exp $
+// $Id: cpu.h,v 1.279.2.5 2006/05/26 12:03:55 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -1296,9 +1296,11 @@ public: // for now...
 #if BX_SUPPORT_SAVE_RESTORE
   void register_state();
   void after_restore_state();
-  static  Bit64s param_sr_handler(void *devptr, bx_param_c *param, int set, Bit64s val);
+  static  Bit64s param_save_handler(void *devptr, bx_param_c *param, Bit64s val);
+  static  Bit64s param_restore_handler(void *devptr, bx_param_c *param, Bit64s val);
 #if !BX_USE_CPU_SMF
-  Bit64s save_restore(bx_param_c *param, int set, Bit64s val);
+  Bit64s param_save(bx_param_c *param, Bit64s val);
+  Bit64s param_restore(bx_param_c *param, Bit64s val);
 #endif
 #endif
 
