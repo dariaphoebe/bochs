@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pciusb.cc,v 1.37.2.7 2006/05/24 18:26:44 vruppert Exp $
+// $Id: pciusb.cc,v 1.37.2.8 2006/05/26 22:09:08 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -268,9 +268,9 @@ void bx_pciusb_c::register_state(void)
     new bx_shadow_bool_c(usb_en, "on_complete", &BX_USB_THIS hub[i].usb_enable.on_complete);
     new bx_shadow_bool_c(usb_en, "resume", &BX_USB_THIS hub[i].usb_enable.resume);
     new bx_shadow_bool_c(usb_en, "timeout_crc", &BX_USB_THIS hub[i].usb_enable.timeout_crc);
-    new bx_shadow_num_c(hub, "frame_num", "", &BX_USB_THIS hub[i].usb_frame_num.frame_num, BASE_HEX);
-    new bx_shadow_num_c(hub, "frame_base", "", &BX_USB_THIS hub[i].usb_frame_base.frame_base, BASE_HEX);
-    new bx_shadow_num_c(hub, "sof_timing", "", &BX_USB_THIS hub[i].usb_sof.sof_timing, BASE_HEX);
+    new bx_shadow_num_c(hub, "frame_num", &BX_USB_THIS hub[i].usb_frame_num.frame_num, BASE_HEX);
+    new bx_shadow_num_c(hub, "frame_base", &BX_USB_THIS hub[i].usb_frame_base.frame_base, BASE_HEX);
+    new bx_shadow_num_c(hub, "sof_timing", &BX_USB_THIS hub[i].usb_sof.sof_timing, BASE_HEX);
     for (j=0; j<USB_NUM_PORTS; j++) {
       sprintf(portnum, "port%d", j+1);
       port = new bx_list_c(hub, strdup(portnum), 10);
@@ -288,35 +288,35 @@ void bx_pciusb_c::register_state(void)
     bx_list_c *pci_conf = new bx_list_c(hub, "pci_conf", 256);
     for (n=0; n<256; n++) {
       sprintf(name, "0x%02x", n);
-      new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_USB_THIS hub[i].pci_conf[n], BASE_HEX);
+      new bx_shadow_num_c(pci_conf, strdup(name), &BX_USB_THIS hub[i].pci_conf[n], BASE_HEX);
     }
   }
   new bx_shadow_bool_c(list, "busy", &BX_USB_THIS busy);
-  new bx_shadow_num_c(list, "global_reset", "", &BX_USB_THIS global_reset);
-  new bx_shadow_num_c(list, "mouse_delayed_dx", "", &BX_USB_THIS mouse_delayed_dx);
-  new bx_shadow_num_c(list, "mouse_delayed_dy", "", &BX_USB_THIS mouse_delayed_dy);
-  new bx_shadow_num_c(list, "mouse_delayed_dz", "", &BX_USB_THIS mouse_delayed_dz);
-  new bx_shadow_num_c(list, "button_state", "", &BX_USB_THIS button_state);
-  new bx_shadow_num_c(list, "mouse_x", "", &BX_USB_THIS mouse_x);
-  new bx_shadow_num_c(list, "mouse_y", "", &BX_USB_THIS mouse_y);
-  new bx_shadow_num_c(list, "mouse_z", "", &BX_USB_THIS mouse_z);
-  new bx_shadow_num_c(list, "b_state", "", &BX_USB_THIS b_state);
+  new bx_shadow_num_c(list, "global_reset", &BX_USB_THIS global_reset);
+  new bx_shadow_num_c(list, "mouse_delayed_dx", &BX_USB_THIS mouse_delayed_dx);
+  new bx_shadow_num_c(list, "mouse_delayed_dy", &BX_USB_THIS mouse_delayed_dy);
+  new bx_shadow_num_c(list, "mouse_delayed_dz", &BX_USB_THIS mouse_delayed_dz);
+  new bx_shadow_num_c(list, "button_state", &BX_USB_THIS button_state);
+  new bx_shadow_num_c(list, "mouse_x", &BX_USB_THIS mouse_x);
+  new bx_shadow_num_c(list, "mouse_y", &BX_USB_THIS mouse_y);
+  new bx_shadow_num_c(list, "mouse_z", &BX_USB_THIS mouse_z);
+  new bx_shadow_num_c(list, "b_state", &BX_USB_THIS b_state);
   bx_list_c *svkey = new bx_list_c(list, "saved_key", 8);
   for (i=0; i<8; i++) {
     sprintf(name, "%d", i);
-    new bx_shadow_num_c(svkey, strdup(name), "", &BX_USB_THIS saved_key[i]);
+    new bx_shadow_num_c(svkey, strdup(name), &BX_USB_THIS saved_key[i]);
   }
   bx_list_c *kppkt = new bx_list_c(list, "key_pad_packet", 8);
   for (i=0; i<8; i++) {
     sprintf(name, "%d", i);
-    new bx_shadow_num_c(kppkt, strdup(name), "", &BX_USB_THIS key_pad_packet[i]);
+    new bx_shadow_num_c(kppkt, strdup(name), &BX_USB_THIS key_pad_packet[i]);
   }
   new bx_shadow_data_c(list, "device_buffer", BX_USB_THIS device_buffer, 65536);
-  new bx_shadow_num_c(list, "set_address_stk", "", &BX_USB_THIS set_address_stk);
+  new bx_shadow_num_c(list, "set_address_stk", &BX_USB_THIS set_address_stk);
   bx_list_c *setaddr = new bx_list_c(list, "set_address", 128);
   for (i=0; i<128; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(setaddr, strdup(name), "", &BX_USB_THIS set_address[i], BASE_HEX);
+    new bx_shadow_num_c(setaddr, strdup(name), &BX_USB_THIS set_address[i], BASE_HEX);
   }
 }
 

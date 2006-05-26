@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.17 2006/05/26 13:00:18 sshwarts Exp $
+// $Id: init.cc,v 1.98.2.18 2006/05/26 22:09:08 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -264,7 +264,7 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
     bx_list_c *list = new bx_list_c(SIM->get_param(BXPN_WX_CPU_STATE), strdup(cpu_name),
                                     cpu_title, 60);
 #define DEFPARAM_NORMAL(name,field) \
-    new bx_shadow_num_c(list, #name, #name, &(field))
+    new bx_shadow_num_c(list, #name, &(field))
 
       DEFPARAM_NORMAL(EAX, EAX);
       DEFPARAM_NORMAL(EBX, EBX);
@@ -300,10 +300,10 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
     param->set_format(fmt16);
 #define DEFPARAM_GLOBAL_SEG_REG(name,field) \
     param = new bx_shadow_num_c(list, \
-        #name"_base", #name" base", \
+        #name"_base", \
         & BX_CPU_THIS_PTR field.base); \
     param = new bx_shadow_num_c(list, \
-        #name"_limit", #name" limit", \
+        #name"_limit", \
         & BX_CPU_THIS_PTR field.limit);
 
     DEFPARAM_SEG_REG(CS);
@@ -321,7 +321,7 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
 #undef DEFPARAM_GLOBAL_SEG_REG
 
 #if BX_SUPPORT_X86_64==0
-    param = new bx_shadow_num_c(list, "EFLAGS", "EFLAGS",
+    param = new bx_shadow_num_c(list, "EFLAGS",
         &BX_CPU_THIS_PTR eflags.val32);
 #endif
 
@@ -351,7 +351,7 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
     // IOPL is a special case because it is 2 bits wide.
     param = new bx_shadow_num_c(
             list,
-            "IOPL", "IOPL",
+            "IOPL",
             &eflags.val32, 10,
             12, 13);
     param->set_range(0, 3);
@@ -395,9 +395,9 @@ void BX_CPU_C::register_state()
     param->set_base(BASE_HEX); \
     param->set_sr_handlers(this, param_save_handler, param_restore_handler);
 #define BXRS_PARAM_SIMPLE(name) \
-    new bx_shadow_num_c(list, #name, "", &(name), BASE_HEX)
+    new bx_shadow_num_c(list, #name, &(name), BASE_HEX)
 #define BXRS_PARAM_FIELD(name, field) \
-    new bx_shadow_num_c(list, #name, "", &(field), BASE_HEX)
+    new bx_shadow_num_c(list, #name, &(field), BASE_HEX)
 
   BXRS_PARAM_SPECIAL(cpu_version);
   BXRS_PARAM_SPECIAL(cpuid_std);
@@ -452,23 +452,23 @@ void BX_CPU_C::register_state()
 #define BXRS_PARAM_SEG_REG(x) \
     reg = new bx_list_c(list, strdup(#x), 19); \
     new bx_shadow_num_c(reg, \
-        "value", "", &(sregs[BX_SEG_REG_##x].selector.value), BASE_HEX); \
+        "value", &(sregs[BX_SEG_REG_##x].selector.value), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "index", "", &(sregs[BX_SEG_REG_##x].selector.index), BASE_HEX); \
+        "index", &(sregs[BX_SEG_REG_##x].selector.index), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "ti", "", &(sregs[BX_SEG_REG_##x].selector.ti), BASE_HEX); \
+        "ti", &(sregs[BX_SEG_REG_##x].selector.ti), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "rpl", "", &(sregs[BX_SEG_REG_##x].selector.rpl), BASE_HEX); \
+        "rpl", &(sregs[BX_SEG_REG_##x].selector.rpl), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "cache_valid", "", &(sregs[BX_SEG_REG_##x].cache.valid), BASE_HEX); \
+        "cache_valid", &(sregs[BX_SEG_REG_##x].cache.valid), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "cache_present", &(sregs[BX_SEG_REG_##x].cache.p)); \
     new bx_shadow_num_c(reg, \
-        "cache_dpl", "", &(sregs[BX_SEG_REG_##x].cache.dpl), BASE_HEX); \
+        "cache_dpl", &(sregs[BX_SEG_REG_##x].cache.dpl), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "cache_segment", &(sregs[BX_SEG_REG_##x].cache.segment)); \
     new bx_shadow_num_c(reg, \
-        "cache_type", "", &(sregs[BX_SEG_REG_##x].cache.type), BASE_HEX); \
+        "cache_type", &(sregs[BX_SEG_REG_##x].cache.type), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "segment_executable", &(sregs[BX_SEG_REG_##x].cache.u.segment.executable)); \
     new bx_shadow_bool_c(reg, \
@@ -478,11 +478,11 @@ void BX_CPU_C::register_state()
     new bx_shadow_bool_c(reg, \
         "segment_a", &(sregs[BX_SEG_REG_##x].cache.u.segment.a)); \
     new bx_shadow_num_c(reg, \
-        "segment_base", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.base), BASE_HEX); \
+        "segment_base", &(sregs[BX_SEG_REG_##x].cache.u.segment.base), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "segment_limit", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.limit), BASE_HEX); \
+        "segment_limit", &(sregs[BX_SEG_REG_##x].cache.u.segment.limit), BASE_HEX); \
     new bx_shadow_num_c(reg, \
-        "segment_limit_scaled", "", &(sregs[BX_SEG_REG_##x].cache.u.segment.limit_scaled), BASE_HEX); \
+        "segment_limit_scaled", &(sregs[BX_SEG_REG_##x].cache.u.segment.limit_scaled), BASE_HEX); \
     new bx_shadow_bool_c(reg, \
         "segment_g", &(sregs[BX_SEG_REG_##x].cache.u.segment.g)); \
     new bx_shadow_bool_c(reg, \
@@ -492,10 +492,10 @@ void BX_CPU_C::register_state()
 
 #define BXRS_PARAM_GLOBAL_SEG_REG(name,field) \
     new bx_shadow_num_c(list, \
-        #name"_base", "", \
+        #name"_base", \
         & BX_CPU_THIS_PTR field.base, BASE_HEX); \
     new bx_shadow_num_c(list, \
-        #name"_limit", "", \
+        #name"_limit", \
         & BX_CPU_THIS_PTR field.limit, BASE_HEX);
 
   BXRS_PARAM_SEG_REG(CS);
@@ -510,31 +510,31 @@ void BX_CPU_C::register_state()
 #endif
 
   reg = new bx_list_c (list, "LDTR", 11);
-  new bx_shadow_num_c (reg, "value", "", &ldtr.selector.value, BASE_HEX);
-  new bx_shadow_num_c (reg, "index", "", &ldtr.selector.index, BASE_HEX);
-  new bx_shadow_num_c (reg, "ti", "", &ldtr.selector.ti, BASE_HEX);
-  new bx_shadow_num_c (reg, "rpl", "", &ldtr.selector.rpl, BASE_HEX);
-  new bx_shadow_num_c (reg, "cache_valid", "", &ldtr.cache.valid, BASE_HEX);
+  new bx_shadow_num_c (reg, "value", &ldtr.selector.value, BASE_HEX);
+  new bx_shadow_num_c (reg, "index", &ldtr.selector.index, BASE_HEX);
+  new bx_shadow_num_c (reg, "ti", &ldtr.selector.ti, BASE_HEX);
+  new bx_shadow_num_c (reg, "rpl", &ldtr.selector.rpl, BASE_HEX);
+  new bx_shadow_num_c (reg, "cache_valid", &ldtr.cache.valid, BASE_HEX);
   new bx_shadow_bool_c(reg, "cache_present", &ldtr.cache.p);
-  new bx_shadow_num_c (reg, "cache_dpl", "", &ldtr.cache.dpl, BASE_HEX);
+  new bx_shadow_num_c (reg, "cache_dpl", &ldtr.cache.dpl, BASE_HEX);
   new bx_shadow_bool_c(reg, "cache_segment", &ldtr.cache.segment);
-  new bx_shadow_num_c (reg, "cache_type", "", &ldtr.cache.type, BASE_HEX);
-  new bx_shadow_num_c (reg, "cache_base", "", &ldtr.cache.u.ldt.base, BASE_HEX);
-  new bx_shadow_num_c (reg, "cache_limit", "", &ldtr.cache.u.ldt.limit, BASE_HEX);
+  new bx_shadow_num_c (reg, "cache_type", &ldtr.cache.type, BASE_HEX);
+  new bx_shadow_num_c (reg, "cache_base", &ldtr.cache.u.ldt.base, BASE_HEX);
+  new bx_shadow_num_c (reg, "cache_limit", &ldtr.cache.u.ldt.limit, BASE_HEX);
 
   reg = new bx_list_c (list, "TR", 14);
-  new bx_shadow_num_c (reg, "value", "", &tr.selector.value, BASE_HEX);
-  new bx_shadow_num_c (reg, "index", "", &tr.selector.index, BASE_HEX);
-  new bx_shadow_num_c (reg, "ti", "", &tr.selector.ti, BASE_HEX);
-  new bx_shadow_num_c (reg, "rpl", "", &tr.selector.rpl, BASE_HEX);
-  new bx_shadow_num_c (reg, "cache_valid", "", &tr.cache.valid, BASE_HEX);
+  new bx_shadow_num_c (reg, "value", &tr.selector.value, BASE_HEX);
+  new bx_shadow_num_c (reg, "index", &tr.selector.index, BASE_HEX);
+  new bx_shadow_num_c (reg, "ti", &tr.selector.ti, BASE_HEX);
+  new bx_shadow_num_c (reg, "rpl", &tr.selector.rpl, BASE_HEX);
+  new bx_shadow_num_c (reg, "cache_valid", &tr.cache.valid, BASE_HEX);
   new bx_shadow_bool_c(reg, "cache_present", &tr.cache.p);
-  new bx_shadow_num_c (reg, "cache_dpl", "", &tr.cache.dpl, BASE_HEX);
+  new bx_shadow_num_c (reg, "cache_dpl", &tr.cache.dpl, BASE_HEX);
   new bx_shadow_bool_c(reg, "cache_segment", &tr.cache.segment);
-  new bx_shadow_num_c (reg, "cache_type", "", &tr.cache.type, BASE_HEX);
-  new bx_shadow_num_c (reg, "tss_base", "", &tr.cache.u.tss.base, BASE_HEX);
-  new bx_shadow_num_c (reg, "tss_limit", "", &tr.cache.u.tss.limit, BASE_HEX);
-  new bx_shadow_num_c (reg, "tss_limit_scaled", "", &tr.cache.u.tss.limit_scaled, BASE_HEX);
+  new bx_shadow_num_c (reg, "cache_type", &tr.cache.type, BASE_HEX);
+  new bx_shadow_num_c (reg, "tss_base", &tr.cache.u.tss.base, BASE_HEX);
+  new bx_shadow_num_c (reg, "tss_limit", &tr.cache.u.tss.limit, BASE_HEX);
+  new bx_shadow_num_c (reg, "tss_limit_scaled", &tr.cache.u.tss.limit_scaled, BASE_HEX);
   new bx_shadow_bool_c(reg, "segment_g", &tr.cache.u.tss.g);
   new bx_shadow_bool_c(reg, "segment_avl", &tr.cache.u.tss.avl);
 
@@ -542,43 +542,52 @@ void BX_CPU_C::register_state()
 
   BXRS_PARAM_SIMPLE(smbase);
 #if BX_CPU_LEVEL >= 5
-  bx_list_c *MSR = new bx_list_c(list, "msr");
+  bx_list_c *MSR = new bx_list_c(list, "msr", 12);
 #if BX_SUPPORT_APIC
-  new bx_shadow_num_c(MSR, "apicbase", "", &msr.apicbase, BASE_HEX);
+  new bx_shadow_num_c(MSR, "apicbase", &msr.apicbase, BASE_HEX);
 #endif
 #if BX_SUPPORT_X86_64
-  // TODO
+  // TODO: x86-64 EFER bits
+  new bx_shadow_num_c(MSR, "star", &msr.star, BASE_HEX);
+  new bx_shadow_num_c(MSR, "lstar", &msr.lstar, BASE_HEX);
+  new bx_shadow_num_c(MSR, "cstar", &msr.cstar, BASE_HEX);
+  new bx_shadow_num_c(MSR, "fmask", &msr.fmask, BASE_HEX);
+  new bx_shadow_num_c(MSR, "kernelgsbase", &msr.kernelgsbase, BASE_HEX);
+  new bx_shadow_num_c(MSR, "tsc_aux", &msr.tsc_aux, BASE_HEX);
 #endif
-  // TODO: all other MSRs: EFER, STAR, LSTAR, CSTAR, FMASK, KERNEL_GS_BASE
-  // TSC_AUX, SYSENTER MSRS
-  new bx_shadow_num_c(MSR, "tsc_last_reset", "", &msr.tsc_last_reset, BASE_HEX);
+  new bx_shadow_num_c(MSR, "tsc_last_reset", &msr.tsc_last_reset, BASE_HEX);
+#if BX_SUPPORT_SEP
+  new bx_shadow_num_c(MSR, "sysenter_cs_msr", &msr.sysenter_cs_msr, BASE_HEX);
+  new bx_shadow_num_c(MSR, "sysenter_esp_msr", &msr.sysenter_esp_msr, BASE_HEX);
+  new bx_shadow_num_c(MSR, "sysenter_eip_msr", &msr.sysenter_eip_msr, BASE_HEX);
+#endif
 #endif
 #if BX_SUPPORT_FPU || BX_SUPPORT_MMX
   bx_list_c *fpu = new bx_list_c(list, "fpu", 17);
-  new bx_shadow_num_c(fpu, "cwd", "", &the_i387.cwd, BASE_HEX);
-  new bx_shadow_num_c(fpu, "swd", "", &the_i387.swd, BASE_HEX);
-  new bx_shadow_num_c(fpu, "twd", "", &the_i387.twd, BASE_HEX);
-  new bx_shadow_num_c(fpu, "foo", "", &the_i387.foo, BASE_HEX);
-  new bx_shadow_num_c(fpu, "fip", "", &the_i387.fip, BASE_HEX);
-  new bx_shadow_num_c(fpu, "fdp", "", &the_i387.fdp, BASE_HEX);
-  new bx_shadow_num_c(fpu, "fcs", "", &the_i387.fcs, BASE_HEX);
-  new bx_shadow_num_c(fpu, "fds", "", &the_i387.fds, BASE_HEX);
+  new bx_shadow_num_c(fpu, "cwd", &the_i387.cwd, BASE_HEX);
+  new bx_shadow_num_c(fpu, "swd", &the_i387.swd, BASE_HEX);
+  new bx_shadow_num_c(fpu, "twd", &the_i387.twd, BASE_HEX);
+  new bx_shadow_num_c(fpu, "foo", &the_i387.foo, BASE_HEX);
+  new bx_shadow_num_c(fpu, "fip", &the_i387.fip, BASE_HEX);
+  new bx_shadow_num_c(fpu, "fdp", &the_i387.fdp, BASE_HEX);
+  new bx_shadow_num_c(fpu, "fcs", &the_i387.fcs, BASE_HEX);
+  new bx_shadow_num_c(fpu, "fds", &the_i387.fds, BASE_HEX);
   for (i=0; i<8; i++) {
     sprintf(name, "st%d", i);
     reg = new bx_list_c(fpu, strdup(name), 8);
-    new bx_shadow_num_c(reg, "fraction", "", &the_i387.st_space[i].fraction, BASE_HEX);
-    new bx_shadow_num_c(reg, "exp", "", &the_i387.st_space[i].exp, BASE_HEX);
+    new bx_shadow_num_c(reg, "fraction", &the_i387.st_space[i].fraction, BASE_HEX);
+    new bx_shadow_num_c(reg, "exp", &the_i387.st_space[i].exp, BASE_HEX);
   }
-  new bx_shadow_num_c(fpu, "tos", "", &the_i387.tos, BASE_HEX);
+  new bx_shadow_num_c(fpu, "tos", &the_i387.tos, BASE_HEX);
 #endif
 #if BX_SUPPORT_SSE
   bx_list_c *sse = new bx_list_c(list, "sse", 2*BX_XMM_REGISTERS+1);
-  new bx_shadow_num_c(sse, "mxcsr", "", &mxcsr.mxcsr, BASE_HEX);
+  new bx_shadow_num_c(sse, "mxcsr", &mxcsr.mxcsr, BASE_HEX);
   for (i=0; i<BX_XMM_REGISTERS; i++) {
     sprintf(name, "xmm%02d_hi", i);
-    new bx_shadow_num_c(sse, strdup(name), "", &BX_CPU_THIS_PTR xmm[i].xmm64u(1), BASE_HEX);
+    new bx_shadow_num_c(sse, strdup(name), &BX_CPU_THIS_PTR xmm[i].xmm64u(1), BASE_HEX);
     sprintf(name, "xmm%02d_lo", i);
-    new bx_shadow_num_c(sse, strdup(name), "", &BX_CPU_THIS_PTR xmm[i].xmm64u(0), BASE_HEX);
+    new bx_shadow_num_c(sse, strdup(name), &BX_CPU_THIS_PTR xmm[i].xmm64u(0), BASE_HEX);
   }
 #endif
 #if BX_SUPPORT_APIC

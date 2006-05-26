@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcivga.cc,v 1.9.2.6 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: pcivga.cc,v 1.9.2.7 2006/05/26 22:09:08 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002,2003 Mike Nordell
@@ -118,7 +118,7 @@ void bx_pcivga_c::register_state(void)
   bx_list_c *pci_conf = new bx_list_c(list, "pci_conf", 256);
   for (i=0; i<256; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_PCIVGA_THIS s.pci_conf[i], BASE_HEX);
+    new bx_shadow_num_c(pci_conf, strdup(name), &BX_PCIVGA_THIS s.pci_conf[i], BASE_HEX);
   }
 }
 #endif

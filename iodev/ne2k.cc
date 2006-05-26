@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: ne2k.cc,v 1.84.2.7 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: ne2k.cc,v 1.84.2.8 2006/05/26 22:09:08 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -133,8 +133,8 @@ void bx_ne2k_c::register_state(void)
   new bx_shadow_bool_c(CR, "stop", &BX_NE2K_THIS s.CR.stop);
   new bx_shadow_bool_c(CR, "start", &BX_NE2K_THIS s.CR.start);
   new bx_shadow_bool_c(CR, "tx_packet", &BX_NE2K_THIS s.CR.tx_packet);
-  new bx_shadow_num_c(CR, "rdma_cmd", "", &BX_NE2K_THIS s.CR.rdma_cmd);
-  new bx_shadow_num_c(CR, "pgsel", "", &BX_NE2K_THIS s.CR.pgsel);
+  new bx_shadow_num_c(CR, "rdma_cmd", &BX_NE2K_THIS s.CR.rdma_cmd);
+  new bx_shadow_num_c(CR, "pgsel", &BX_NE2K_THIS s.CR.pgsel);
   bx_list_c *ISR = new bx_list_c(list, "ISR", 8);
   new bx_shadow_bool_c(ISR, "pkt_rx", &BX_NE2K_THIS s.ISR.pkt_rx);
   new bx_shadow_bool_c(ISR, "pkt_tx", &BX_NE2K_THIS s.ISR.pkt_tx);
@@ -158,10 +158,10 @@ void bx_ne2k_c::register_state(void)
   new bx_shadow_bool_c(DCR, "longaddr", &BX_NE2K_THIS s.DCR.longaddr);
   new bx_shadow_bool_c(DCR, "loop", &BX_NE2K_THIS s.DCR.loop);
   new bx_shadow_bool_c(DCR, "auto_rx", &BX_NE2K_THIS s.DCR.auto_rx);
-  new bx_shadow_num_c(DCR, "fifo_size", "", &BX_NE2K_THIS s.DCR.fifo_size);
+  new bx_shadow_num_c(DCR, "fifo_size", &BX_NE2K_THIS s.DCR.fifo_size);
   bx_list_c *TCR = new bx_list_c(list, "TCR");
   new bx_shadow_bool_c(TCR, "crc_disable", &BX_NE2K_THIS s.TCR.crc_disable);
-  new bx_shadow_num_c(TCR, "loop_cntl", "", &BX_NE2K_THIS s.TCR.loop_cntl);
+  new bx_shadow_num_c(TCR, "loop_cntl", &BX_NE2K_THIS s.TCR.loop_cntl);
   new bx_shadow_bool_c(TCR, "ext_stoptx", &BX_NE2K_THIS s.TCR.ext_stoptx);
   new bx_shadow_bool_c(TCR, "coll_prio", &BX_NE2K_THIS s.TCR.coll_prio);
   bx_list_c *TSR = new bx_list_c(list, "TSR", 7);
@@ -188,34 +188,34 @@ void bx_ne2k_c::register_state(void)
   new bx_shadow_bool_c(RSR, "rx_mbit", &BX_NE2K_THIS s.RSR.rx_mbit);
   new bx_shadow_bool_c(RSR, "rx_disabled", &BX_NE2K_THIS s.RSR.rx_disabled);
   new bx_shadow_bool_c(RSR, "deferred", &BX_NE2K_THIS s.RSR.deferred);
-  new bx_shadow_num_c(list, "local_dma", "", &BX_NE2K_THIS s.local_dma, BASE_HEX);
-  new bx_shadow_num_c(list, "page_start", "", &BX_NE2K_THIS s.page_start, BASE_HEX);
-  new bx_shadow_num_c(list, "page_stop", "", &BX_NE2K_THIS s.page_stop, BASE_HEX);
-  new bx_shadow_num_c(list, "bound_ptr", "", &BX_NE2K_THIS s.bound_ptr, BASE_HEX);
-  new bx_shadow_num_c(list, "tx_page_start", "", &BX_NE2K_THIS s.tx_page_start, BASE_HEX);
-  new bx_shadow_num_c(list, "num_coll", "", &BX_NE2K_THIS s.num_coll, BASE_HEX);
-  new bx_shadow_num_c(list, "tx_bytes", "", &BX_NE2K_THIS s.tx_bytes, BASE_HEX);
-  new bx_shadow_num_c(list, "fifo", "", &BX_NE2K_THIS s.fifo, BASE_HEX);
-  new bx_shadow_num_c(list, "remote_dma", "", &BX_NE2K_THIS s.remote_dma, BASE_HEX);
-  new bx_shadow_num_c(list, "remote_start", "", &BX_NE2K_THIS s.remote_start, BASE_HEX);
-  new bx_shadow_num_c(list, "remote_bytes", "", &BX_NE2K_THIS s.remote_bytes, BASE_HEX);
-  new bx_shadow_num_c(list, "tallycnt_0", "", &BX_NE2K_THIS s.tallycnt_0, BASE_HEX);
-  new bx_shadow_num_c(list, "tallycnt_1", "", &BX_NE2K_THIS s.tallycnt_1, BASE_HEX);
-  new bx_shadow_num_c(list, "tallycnt_2", "", &BX_NE2K_THIS s.tallycnt_2, BASE_HEX);
+  new bx_shadow_num_c(list, "local_dma", &BX_NE2K_THIS s.local_dma, BASE_HEX);
+  new bx_shadow_num_c(list, "page_start", &BX_NE2K_THIS s.page_start, BASE_HEX);
+  new bx_shadow_num_c(list, "page_stop", &BX_NE2K_THIS s.page_stop, BASE_HEX);
+  new bx_shadow_num_c(list, "bound_ptr", &BX_NE2K_THIS s.bound_ptr, BASE_HEX);
+  new bx_shadow_num_c(list, "tx_page_start", &BX_NE2K_THIS s.tx_page_start, BASE_HEX);
+  new bx_shadow_num_c(list, "num_coll", &BX_NE2K_THIS s.num_coll, BASE_HEX);
+  new bx_shadow_num_c(list, "tx_bytes", &BX_NE2K_THIS s.tx_bytes, BASE_HEX);
+  new bx_shadow_num_c(list, "fifo", &BX_NE2K_THIS s.fifo, BASE_HEX);
+  new bx_shadow_num_c(list, "remote_dma", &BX_NE2K_THIS s.remote_dma, BASE_HEX);
+  new bx_shadow_num_c(list, "remote_start", &BX_NE2K_THIS s.remote_start, BASE_HEX);
+  new bx_shadow_num_c(list, "remote_bytes", &BX_NE2K_THIS s.remote_bytes, BASE_HEX);
+  new bx_shadow_num_c(list, "tallycnt_0", &BX_NE2K_THIS s.tallycnt_0, BASE_HEX);
+  new bx_shadow_num_c(list, "tallycnt_1", &BX_NE2K_THIS s.tallycnt_1, BASE_HEX);
+  new bx_shadow_num_c(list, "tallycnt_2", &BX_NE2K_THIS s.tallycnt_2, BASE_HEX);
   bx_list_c *paddr = new bx_list_c(list, "physaddr");
   for (i=0; i<6; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(paddr, strdup(name), "", &BX_NE2K_THIS s.physaddr[i], BASE_HEX);
+    new bx_shadow_num_c(paddr, strdup(name), &BX_NE2K_THIS s.physaddr[i], BASE_HEX);
   }
-  new bx_shadow_num_c(list, "curr_page", "", &BX_NE2K_THIS s.curr_page, BASE_HEX);
+  new bx_shadow_num_c(list, "curr_page", &BX_NE2K_THIS s.curr_page, BASE_HEX);
   bx_list_c *mchash = new bx_list_c(list, "mchash", 8);
   for (i=0; i<8; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(mchash, strdup(name), "", &BX_NE2K_THIS s.mchash[i], BASE_HEX);
+    new bx_shadow_num_c(mchash, strdup(name), &BX_NE2K_THIS s.mchash[i], BASE_HEX);
   }
-  new bx_shadow_num_c(list, "rempkt_ptr", "", &BX_NE2K_THIS s.rempkt_ptr, BASE_HEX);
-  new bx_shadow_num_c(list, "localpkt_ptr", "", &BX_NE2K_THIS s.localpkt_ptr, BASE_HEX);
-  new bx_shadow_num_c(list, "address_cnt", "", &BX_NE2K_THIS s.address_cnt, BASE_HEX);
+  new bx_shadow_num_c(list, "rempkt_ptr", &BX_NE2K_THIS s.rempkt_ptr, BASE_HEX);
+  new bx_shadow_num_c(list, "localpkt_ptr", &BX_NE2K_THIS s.localpkt_ptr, BASE_HEX);
+  new bx_shadow_num_c(list, "address_cnt", &BX_NE2K_THIS s.address_cnt, BASE_HEX);
   new bx_shadow_data_c(list, "mem", BX_NE2K_THIS s.mem, BX_NE2K_MEMSIZ);
   new bx_shadow_bool_c(list, "tx_timer_active", &BX_NE2K_THIS s.tx_timer_active);
 #if BX_SUPPORT_PCI
@@ -223,7 +223,7 @@ void bx_ne2k_c::register_state(void)
     bx_list_c *pci_conf = new bx_list_c(list, "pci_conf", 256);
     for (i=0; i<256; i++) {
       sprintf(name, "0x%02x", i);
-      new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_NE2K_THIS s.pci_conf[i], BASE_HEX);
+      new bx_shadow_num_c(pci_conf, strdup(name), &BX_NE2K_THIS s.pci_conf[i], BASE_HEX);
     }
   }
 #endif
@@ -1403,7 +1403,7 @@ void bx_ne2k_c::init(void)
   char devname[16];
   bx_list_c *base;
 
-  BX_DEBUG(("Init $Id: ne2k.cc,v 1.84.2.7 2006/05/21 21:21:43 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: ne2k.cc,v 1.84.2.8 2006/05/26 22:09:08 vruppert Exp $"));
 
   // Read in values from config interface
   base = (bx_list_c*) SIM->get_param(BXPN_NE2K);

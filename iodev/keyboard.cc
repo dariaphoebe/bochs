@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: keyboard.cc,v 1.114.2.4 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: keyboard.cc,v 1.114.2.5 2006/05/26 22:09:08 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -109,7 +109,7 @@ void bx_keyb_c::resetinternals(bx_bool powerup)
 
 void bx_keyb_c::init(void)
 {
-  BX_DEBUG(("Init $Id: keyboard.cc,v 1.114.2.4 2006/05/21 21:21:43 sshwarts Exp $"));
+  BX_DEBUG(("Init $Id: keyboard.cc,v 1.114.2.5 2006/05/26 22:09:08 vruppert Exp $"));
   Bit32u   i;
 
   DEV_register_irq(1, "8042 Keyboard controller");
@@ -196,6 +196,7 @@ void bx_keyb_c::init(void)
 
 #if BX_WITH_WX
   static bx_bool first_time = 1;
+  bx_param_num_c *param;
   if (first_time) {
     first_time = 0;
     // register shadow params (Experimental, not a complete list by far)
@@ -207,9 +208,9 @@ void bx_keyb_c::init(void)
     new bx_shadow_bool_c(list, "irq12_req",
           "Keyboard IRQ12 requested",
           &BX_KEY_THIS s.kbd_controller.irq12_requested);
-    new bx_shadow_num_c(list, "timer_pending",
-          "Keyboard timer pending",
+    param = new bx_shadow_num_c(list, "timer_pending",
           &BX_KEY_THIS s.kbd_controller.timer_pending);
+    param->set_label("Keyboard timer pending");
     new bx_shadow_bool_c(list, "pare",
 	"Keyboard PARE",
 	&BX_KEY_THIS s.kbd_controller.pare);
@@ -270,61 +271,61 @@ void bx_keyb_c::register_state(void)
   new bx_shadow_bool_c(ctrl, "aux_clock_enabled", &BX_KEY_THIS s.kbd_controller.aux_clock_enabled);
   new bx_shadow_bool_c(ctrl, "allow_irq1", &BX_KEY_THIS s.kbd_controller.allow_irq1);
   new bx_shadow_bool_c(ctrl, "allow_irq12", &BX_KEY_THIS s.kbd_controller.allow_irq12);
-  new bx_shadow_num_c(ctrl, "kbd_output_buffer", "", &BX_KEY_THIS s.kbd_controller.kbd_output_buffer, BASE_HEX);
-  new bx_shadow_num_c(ctrl, "aux_output_buffer", "", &BX_KEY_THIS s.kbd_controller.aux_output_buffer, BASE_HEX);
-  new bx_shadow_num_c(ctrl, "last_comm", "", &BX_KEY_THIS s.kbd_controller.last_comm, BASE_HEX);
-  new bx_shadow_num_c(ctrl, "expecting_port60h", "", &BX_KEY_THIS s.kbd_controller.expecting_port60h);
-  new bx_shadow_num_c(ctrl, "expecting_mouse_parameter", "", &BX_KEY_THIS s.kbd_controller.expecting_mouse_parameter);
-  new bx_shadow_num_c(ctrl, "last_mouse_command", "", &BX_KEY_THIS s.kbd_controller.last_mouse_command, BASE_HEX);
-  new bx_shadow_num_c(ctrl, "timer_pending", "", &BX_KEY_THIS s.kbd_controller.timer_pending);
+  new bx_shadow_num_c(ctrl, "kbd_output_buffer", &BX_KEY_THIS s.kbd_controller.kbd_output_buffer, BASE_HEX);
+  new bx_shadow_num_c(ctrl, "aux_output_buffer", &BX_KEY_THIS s.kbd_controller.aux_output_buffer, BASE_HEX);
+  new bx_shadow_num_c(ctrl, "last_comm", &BX_KEY_THIS s.kbd_controller.last_comm, BASE_HEX);
+  new bx_shadow_num_c(ctrl, "expecting_port60h", &BX_KEY_THIS s.kbd_controller.expecting_port60h);
+  new bx_shadow_num_c(ctrl, "expecting_mouse_parameter", &BX_KEY_THIS s.kbd_controller.expecting_mouse_parameter);
+  new bx_shadow_num_c(ctrl, "last_mouse_command", &BX_KEY_THIS s.kbd_controller.last_mouse_command, BASE_HEX);
+  new bx_shadow_num_c(ctrl, "timer_pending", &BX_KEY_THIS s.kbd_controller.timer_pending);
   new bx_shadow_bool_c(ctrl, "irq1_requested", &BX_KEY_THIS s.kbd_controller.irq1_requested);
   new bx_shadow_bool_c(ctrl, "irq12_requested", &BX_KEY_THIS s.kbd_controller.irq12_requested);
   new bx_shadow_bool_c(ctrl, "scancodes_translate", &BX_KEY_THIS s.kbd_controller.scancodes_translate);
   new bx_shadow_bool_c(ctrl, "expecting_scancodes_set", &BX_KEY_THIS s.kbd_controller.expecting_scancodes_set);
-  new bx_shadow_num_c(ctrl, "current_scancodes_set", "", &BX_KEY_THIS s.kbd_controller.current_scancodes_set);
+  new bx_shadow_num_c(ctrl, "current_scancodes_set", &BX_KEY_THIS s.kbd_controller.current_scancodes_set);
   new bx_shadow_bool_c(ctrl, "bat_in_progress", &BX_KEY_THIS s.kbd_controller.bat_in_progress);
   bx_list_c *mouse = new bx_list_c(list, "mouse", 12);
-  new bx_shadow_num_c(mouse, "sample_rate", "", &BX_KEY_THIS s.mouse.sample_rate);
-  new bx_shadow_num_c(mouse, "resolution_cpmm", "", &BX_KEY_THIS s.mouse.resolution_cpmm);
-  new bx_shadow_num_c(mouse, "scaling", "", &BX_KEY_THIS s.mouse.scaling);
-  new bx_shadow_num_c(mouse, "mode", "", &BX_KEY_THIS s.mouse.mode);
-  new bx_shadow_num_c(mouse, "saved_mode", "", &BX_KEY_THIS s.mouse.saved_mode);
+  new bx_shadow_num_c(mouse, "sample_rate", &BX_KEY_THIS s.mouse.sample_rate);
+  new bx_shadow_num_c(mouse, "resolution_cpmm", &BX_KEY_THIS s.mouse.resolution_cpmm);
+  new bx_shadow_num_c(mouse, "scaling", &BX_KEY_THIS s.mouse.scaling);
+  new bx_shadow_num_c(mouse, "mode", &BX_KEY_THIS s.mouse.mode);
+  new bx_shadow_num_c(mouse, "saved_mode", &BX_KEY_THIS s.mouse.saved_mode);
   new bx_shadow_bool_c(mouse, "enable", &BX_KEY_THIS s.mouse.enable);
-  new bx_shadow_num_c(mouse, "button_status", "", &BX_KEY_THIS s.mouse.button_status);
-  new bx_shadow_num_c(mouse, "delayed_dx", "", &BX_KEY_THIS s.mouse.delayed_dx);
-  new bx_shadow_num_c(mouse, "delayed_dy", "", &BX_KEY_THIS s.mouse.delayed_dy);
-  new bx_shadow_num_c(mouse, "delayed_dz", "", &BX_KEY_THIS s.mouse.delayed_dz);
-  new bx_shadow_num_c(mouse, "im_request", "", &BX_KEY_THIS s.mouse.im_request);
+  new bx_shadow_num_c(mouse, "button_status", &BX_KEY_THIS s.mouse.button_status);
+  new bx_shadow_num_c(mouse, "delayed_dx", &BX_KEY_THIS s.mouse.delayed_dx);
+  new bx_shadow_num_c(mouse, "delayed_dy", &BX_KEY_THIS s.mouse.delayed_dy);
+  new bx_shadow_num_c(mouse, "delayed_dz", &BX_KEY_THIS s.mouse.delayed_dz);
+  new bx_shadow_num_c(mouse, "im_request", &BX_KEY_THIS s.mouse.im_request);
   new bx_shadow_bool_c(mouse, "im_mode", &BX_KEY_THIS s.mouse.im_mode);
   bx_list_c *kbdbuf = new bx_list_c(list, "kbd_internal_buffer", 9);
-  new bx_shadow_num_c(kbdbuf, "num_elements", "", &BX_KEY_THIS s.kbd_internal_buffer.num_elements);
+  new bx_shadow_num_c(kbdbuf, "num_elements", &BX_KEY_THIS s.kbd_internal_buffer.num_elements);
   buffer = new bx_list_c(kbdbuf, "buffer", BX_KBD_ELEMENTS);
   for (i=0; i<BX_KBD_ELEMENTS; i++) {
     sprintf(name, "%d", i);
-    new bx_shadow_num_c(buffer, strdup(name), "", &BX_KEY_THIS s.kbd_internal_buffer.buffer[i], BASE_HEX);
+    new bx_shadow_num_c(buffer, strdup(name), &BX_KEY_THIS s.kbd_internal_buffer.buffer[i], BASE_HEX);
   }
-  new bx_shadow_num_c(kbdbuf, "head", "", &BX_KEY_THIS s.kbd_internal_buffer.head);
+  new bx_shadow_num_c(kbdbuf, "head", &BX_KEY_THIS s.kbd_internal_buffer.head);
   new bx_shadow_bool_c(kbdbuf, "expecting_typematic", &BX_KEY_THIS s.kbd_internal_buffer.expecting_typematic);
   new bx_shadow_bool_c(kbdbuf, "expecting_led_write", &BX_KEY_THIS s.kbd_internal_buffer.expecting_led_write);
-  new bx_shadow_num_c(kbdbuf, "delay", "", &BX_KEY_THIS s.kbd_internal_buffer.delay);
-  new bx_shadow_num_c(kbdbuf, "repeat_rate", "", &BX_KEY_THIS s.kbd_internal_buffer.repeat_rate);
-  new bx_shadow_num_c(kbdbuf, "led_status", "", &BX_KEY_THIS s.kbd_internal_buffer.led_status);
+  new bx_shadow_num_c(kbdbuf, "delay", &BX_KEY_THIS s.kbd_internal_buffer.delay);
+  new bx_shadow_num_c(kbdbuf, "repeat_rate", &BX_KEY_THIS s.kbd_internal_buffer.repeat_rate);
+  new bx_shadow_num_c(kbdbuf, "led_status", &BX_KEY_THIS s.kbd_internal_buffer.led_status);
   new bx_shadow_bool_c(kbdbuf, "scanning_enabled", &BX_KEY_THIS s.kbd_internal_buffer.scanning_enabled);
   bx_list_c *mousebuf = new bx_list_c(list, "mouse_internal_buffer");
-  new bx_shadow_num_c(mousebuf, "num_elements", "", &BX_KEY_THIS s.mouse_internal_buffer.num_elements);
+  new bx_shadow_num_c(mousebuf, "num_elements", &BX_KEY_THIS s.mouse_internal_buffer.num_elements);
   buffer = new bx_list_c(mousebuf, "buffer", BX_MOUSE_BUFF_SIZE);
   for (i=0; i<BX_MOUSE_BUFF_SIZE; i++) {
     sprintf(name, "%d", i);
-    new bx_shadow_num_c(buffer, strdup(name), "", &BX_KEY_THIS s.mouse_internal_buffer.buffer[i], BASE_HEX);
+    new bx_shadow_num_c(buffer, strdup(name), &BX_KEY_THIS s.mouse_internal_buffer.buffer[i], BASE_HEX);
   }
-  new bx_shadow_num_c(mousebuf, "head", "", &BX_KEY_THIS s.mouse_internal_buffer.head);
+  new bx_shadow_num_c(mousebuf, "head", &BX_KEY_THIS s.mouse_internal_buffer.head);
   buffer = new bx_list_c(list, "controller_Q", BX_KBD_CONTROLLER_QSIZE);
   for (i=0; i<BX_KBD_CONTROLLER_QSIZE; i++) {
     sprintf(name, "%d", i);
-    new bx_shadow_num_c(buffer, strdup(name), "", &BX_KEY_THIS s.controller_Q[i], BASE_HEX);
+    new bx_shadow_num_c(buffer, strdup(name), &BX_KEY_THIS s.controller_Q[i], BASE_HEX);
   }
-  new bx_shadow_num_c(list, "controller_Qsize", "", &BX_KEY_THIS s.controller_Qsize);
-  new bx_shadow_num_c(list, "controller_Qsource", "", &BX_KEY_THIS s.controller_Qsource);
+  new bx_shadow_num_c(list, "controller_Qsize", &BX_KEY_THIS s.controller_Qsize);
+  new bx_shadow_num_c(list, "controller_Qsource", &BX_KEY_THIS s.controller_Qsource);
 }
 #endif
 

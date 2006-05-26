@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: siminterface.cc,v 1.143.2.16 2006/05/26 12:03:55 vruppert Exp $
+// $Id: siminterface.cc,v 1.143.2.17 2006/05/26 22:09:08 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 // See siminterface.h for description of the siminterface concept.
@@ -1370,12 +1370,11 @@ void bx_param_num_c::set_enabled(int en)
 // Signed 64 bit
 bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     char *name,
-    char *description,
     Bit64s *ptr_to_real_val,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, description, NULL, BX_MIN_BIT64S, BX_MAX_BIT64S, *ptr_to_real_val, 1)
+: bx_param_num_c(parent, name, NULL, NULL, BX_MIN_BIT64S, BX_MAX_BIT64S, *ptr_to_real_val, 1)
 {
   this->varsize = 64;
   this->lowbit = lowbit;
@@ -1390,12 +1389,11 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 // Unsigned 64 bit
 bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     char *name,
-    char *label,
     Bit64u *ptr_to_real_val,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT64U, BX_MAX_BIT64U, *ptr_to_real_val, 1)
+: bx_param_num_c(parent, name, NULL, NULL, BX_MIN_BIT64U, BX_MAX_BIT64U, *ptr_to_real_val, 1)
 {
   this->varsize = 64;
   this->lowbit = lowbit;
@@ -1410,12 +1408,11 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 // Signed 32 bit
 bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     char *name,
-    char *label,
     Bit32s *ptr_to_real_val,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT32S, BX_MAX_BIT32S, *ptr_to_real_val, 1)
+: bx_param_num_c(parent, name, NULL, NULL, BX_MIN_BIT32S, BX_MAX_BIT32S, *ptr_to_real_val, 1)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -1430,12 +1427,11 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 // Unsigned 32 bit
 bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     char *name,
-    char *label,
     Bit32u *ptr_to_real_val,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT32U, BX_MAX_BIT32U, *ptr_to_real_val, 1)
+: bx_param_num_c(parent, name, NULL, NULL, BX_MIN_BIT32U, BX_MAX_BIT32U, *ptr_to_real_val, 1)
 {
   this->varsize = 32;
   this->lowbit = lowbit;
@@ -1450,12 +1446,11 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 // Signed 16 bit
 bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     char *name,
-    char *label,
     Bit16s *ptr_to_real_val,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT16S, BX_MAX_BIT16S, *ptr_to_real_val, 1)
+: bx_param_num_c(parent, name, NULL, NULL, BX_MIN_BIT16S, BX_MAX_BIT16S, *ptr_to_real_val, 1)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -1470,12 +1465,11 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 // Unsigned 16 bit
 bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     char *name,
-    char *label,
     Bit16u *ptr_to_real_val,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT16U, BX_MAX_BIT16U, *ptr_to_real_val, 1)
+: bx_param_num_c(parent, name, NULL, NULL, BX_MIN_BIT16U, BX_MAX_BIT16U, *ptr_to_real_val, 1)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -1490,12 +1484,11 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 // Signed 8 bit
 bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     char *name,
-    char *label,
     Bit8s *ptr_to_real_val,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT8S, BX_MAX_BIT8S, *ptr_to_real_val, 1)
+: bx_param_num_c(parent, name, NULL, NULL, BX_MIN_BIT8S, BX_MAX_BIT8S, *ptr_to_real_val, 1)
 {
   this->varsize = 16;
   this->lowbit = lowbit;
@@ -1511,12 +1504,11 @@ bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
 // Unsigned 8 bit
 bx_shadow_num_c::bx_shadow_num_c(bx_param_c *parent,
     char *name,
-    char *label,
     Bit8u *ptr_to_real_val,
     int base,
     Bit8u highbit,
     Bit8u lowbit)
-: bx_param_num_c(parent, name, label, NULL, BX_MIN_BIT8U, BX_MAX_BIT8U, *ptr_to_real_val, 1)
+: bx_param_num_c(parent, name, NULL, NULL, BX_MIN_BIT8U, BX_MAX_BIT8U, *ptr_to_real_val, 1)
 {
   this->varsize = 8;
   this->lowbit = lowbit;

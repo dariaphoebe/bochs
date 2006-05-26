@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: pcipnic.cc,v 1.18.2.6 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: pcipnic.cc,v 1.18.2.7 2006/05/26 22:09:08 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2003  Fen Systems Ltd.
@@ -154,24 +154,24 @@ void bx_pcipnic_c::register_state(void)
   char name[6];
 
   bx_list_c *list = new bx_list_c(SIM->get_sr_root(), "pcipnic", "PCI Pseudo NIC State", 11);
-  new bx_shadow_num_c(list, "irqEnabled", "", &BX_PNIC_THIS s.irqEnabled);
-  new bx_shadow_num_c(list, "rCmd", "", &BX_PNIC_THIS s.rCmd);
-  new bx_shadow_num_c(list, "rStatus", "", &BX_PNIC_THIS s.rStatus);
-  new bx_shadow_num_c(list, "rLength", "", &BX_PNIC_THIS s.rLength);
-  new bx_shadow_num_c(list, "rDataCursor", "", &BX_PNIC_THIS s.rDataCursor);
-  new bx_shadow_num_c(list, "recvIndex", "", &BX_PNIC_THIS s.recvIndex);
-  new bx_shadow_num_c(list, "recvQueueLength", "", &BX_PNIC_THIS s.recvQueueLength);
+  new bx_shadow_num_c(list, "irqEnabled", &BX_PNIC_THIS s.irqEnabled);
+  new bx_shadow_num_c(list, "rCmd", &BX_PNIC_THIS s.rCmd);
+  new bx_shadow_num_c(list, "rStatus", &BX_PNIC_THIS s.rStatus);
+  new bx_shadow_num_c(list, "rLength", &BX_PNIC_THIS s.rLength);
+  new bx_shadow_num_c(list, "rDataCursor", &BX_PNIC_THIS s.rDataCursor);
+  new bx_shadow_num_c(list, "recvIndex", &BX_PNIC_THIS s.recvIndex);
+  new bx_shadow_num_c(list, "recvQueueLength", &BX_PNIC_THIS s.recvQueueLength);
   bx_list_c *recvRL = new bx_list_c(list, "recvRingLength", PNIC_RECV_RINGS);
   for (i=0; i<PNIC_RECV_RINGS; i++) {
     sprintf(name, "%d", i);
-    new bx_shadow_num_c(recvRL, strdup(name), "", &BX_PNIC_THIS s.recvRingLength[i]);
+    new bx_shadow_num_c(recvRL, strdup(name), &BX_PNIC_THIS s.recvRingLength[i]);
   }
   new bx_shadow_data_c(list, "rData", BX_PNIC_THIS s.rData, PNIC_DATA_SIZE);
   new bx_shadow_data_c(list, "recvRing", (Bit8u*)BX_PNIC_THIS s.recvRing, PNIC_RECV_RINGS*PNIC_DATA_SIZE);
   bx_list_c *pci_conf = new bx_list_c(list, "pci_conf", 256);
   for (i=0; i<256; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(pci_conf, strdup(name), "", &BX_PNIC_THIS s.pci_conf[i], BASE_HEX);
+    new bx_shadow_num_c(pci_conf, strdup(name), &BX_PNIC_THIS s.pci_conf[i], BASE_HEX);
   }
 }
 

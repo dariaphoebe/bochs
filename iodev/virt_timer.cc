@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// $Id: virt_timer.cc,v 1.27.2.3 2006/05/12 17:33:10 vruppert Exp $
+// $Id: virt_timer.cc,v 1.27.2.4 2006/05/26 22:09:09 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2002  MandrakeSoft S.A.
@@ -437,27 +437,27 @@ void bx_virt_timer_c::register_state(void)
   for (i = 0; i < numTimers; i++) {
     sprintf(name, "%d", i);
     bxtimer = new bx_list_c(vtimers, strdup(name));
-    new bx_shadow_num_c(bxtimer, "period", "", &timer[i].period);
-    new bx_shadow_num_c(bxtimer, "timeToFire", "", &timer[i].timeToFire);
+    new bx_shadow_num_c(bxtimer, "period", &timer[i].period);
+    new bx_shadow_num_c(bxtimer, "timeToFire", &timer[i].timeToFire);
     new bx_shadow_bool_c(bxtimer, "active", &timer[i].active);
     new bx_shadow_bool_c(bxtimer, "continuous", &timer[i].continuous);
   }
-  new bx_shadow_num_c(list, "current_timers_time", "", &current_timers_time);
-  new bx_shadow_num_c(list, "timers_next_event_time", "", &timers_next_event_time);
-  new bx_shadow_num_c(list, "last_sequential_time", "", &last_sequential_time);
-  new bx_shadow_num_c(list, "virtual_next_event_time", "", &virtual_next_event_time);
-  new bx_shadow_num_c(list, "current_virtual_time", "", &current_virtual_time);
-  new bx_shadow_num_c(list, "last_real_time", "", &last_real_time);
-  new bx_shadow_num_c(list, "total_real_usec", "", &total_real_usec);
-  new bx_shadow_num_c(list, "last_realtime_delta", "", &last_realtime_delta);
-  new bx_shadow_num_c(list, "last_usec", "", &last_usec);
-  new bx_shadow_num_c(list, "usec_per_second", "", &usec_per_second);
-  new bx_shadow_num_c(list, "stored_delta", "", &stored_delta);
-  new bx_shadow_num_c(list, "last_system_usec", "", &last_system_usec);
-  new bx_shadow_num_c(list, "em_last_realtime", "", &em_last_realtime);
-  new bx_shadow_num_c(list, "total_ticks", "", &total_ticks);
-  new bx_shadow_num_c(list, "last_realtime_ticks", "", &last_realtime_ticks);
-  new bx_shadow_num_c(list, "ticks_per_second", "", &ticks_per_second);
+  new bx_shadow_num_c(list, "current_timers_time", &current_timers_time);
+  new bx_shadow_num_c(list, "timers_next_event_time", &timers_next_event_time);
+  new bx_shadow_num_c(list, "last_sequential_time", &last_sequential_time);
+  new bx_shadow_num_c(list, "virtual_next_event_time", &virtual_next_event_time);
+  new bx_shadow_num_c(list, "current_virtual_time", &current_virtual_time);
+  new bx_shadow_num_c(list, "last_real_time", &last_real_time);
+  new bx_shadow_num_c(list, "total_real_usec", &total_real_usec);
+  new bx_shadow_num_c(list, "last_realtime_delta", &last_realtime_delta);
+  new bx_shadow_num_c(list, "last_usec", &last_usec);
+  new bx_shadow_num_c(list, "usec_per_second", &usec_per_second);
+  new bx_shadow_num_c(list, "stored_delta", &stored_delta);
+  new bx_shadow_num_c(list, "last_system_usec", &last_system_usec);
+  new bx_shadow_num_c(list, "em_last_realtime", &em_last_realtime);
+  new bx_shadow_num_c(list, "total_ticks", &total_ticks);
+  new bx_shadow_num_c(list, "last_realtime_ticks", &last_realtime_ticks);
+  new bx_shadow_num_c(list, "ticks_per_second", &ticks_per_second);
 }
 #endif
 

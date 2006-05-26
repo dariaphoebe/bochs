@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: serial.cc,v 1.69.2.4 2006/05/21 21:21:43 sshwarts Exp $
+// $Id: serial.cc,v 1.69.2.5 2006/05/26 22:09:08 vruppert Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2004  MandrakeSoft S.A.
@@ -382,12 +382,12 @@ void bx_serial_c::register_state(void)
     new bx_shadow_bool_c(port, "ms_ipending", &BX_SER_THIS s[i].ms_ipending);
     new bx_shadow_bool_c(port, "rx_ipending", &BX_SER_THIS s[i].rx_ipending);
     new bx_shadow_bool_c(port, "fifo_ipending", &BX_SER_THIS s[i].fifo_ipending);
-    new bx_shadow_num_c(port, "rx_fifo_end", "", &BX_SER_THIS s[i].rx_fifo_end);
-    new bx_shadow_num_c(port, "tx_fifo_end", "", &BX_SER_THIS s[i].tx_fifo_end);
-    new bx_shadow_num_c(port, "baudrate", "", &BX_SER_THIS s[i].baudrate);
-    new bx_shadow_num_c(port, "rx_pollstate", "", &BX_SER_THIS s[i].rx_pollstate);
-    new bx_shadow_num_c(port, "rxbuffer", "", &BX_SER_THIS s[i].rxbuffer, BASE_HEX);
-    new bx_shadow_num_c(port, "thrbuffer", "", &BX_SER_THIS s[i].thrbuffer, BASE_HEX);
+    new bx_shadow_num_c(port, "rx_fifo_end", &BX_SER_THIS s[i].rx_fifo_end);
+    new bx_shadow_num_c(port, "tx_fifo_end", &BX_SER_THIS s[i].tx_fifo_end);
+    new bx_shadow_num_c(port, "baudrate", &BX_SER_THIS s[i].baudrate);
+    new bx_shadow_num_c(port, "rx_pollstate", &BX_SER_THIS s[i].rx_pollstate);
+    new bx_shadow_num_c(port, "rxbuffer", &BX_SER_THIS s[i].rxbuffer, BASE_HEX);
+    new bx_shadow_num_c(port, "thrbuffer", &BX_SER_THIS s[i].thrbuffer, BASE_HEX);
     bx_list_c *int_en = new bx_list_c(port, "int_enable");
     new bx_shadow_bool_c(int_en, "rxdata_enable", &BX_SER_THIS s[i].int_enable.rxdata_enable);
     new bx_shadow_bool_c(int_en, "txhold_enable", &BX_SER_THIS s[i].int_enable.txhold_enable);
@@ -395,12 +395,12 @@ void bx_serial_c::register_state(void)
     new bx_shadow_bool_c(int_en, "modstat_enable", &BX_SER_THIS s[i].int_enable.modstat_enable);
     bx_list_c *int_id = new bx_list_c(port, "int_ident");
     new bx_shadow_bool_c(int_id, "ipending", &BX_SER_THIS s[i].int_ident.ipending);
-    new bx_shadow_num_c(int_id, "int_ID", "", &BX_SER_THIS s[i].int_ident.int_ID, BASE_HEX);
+    new bx_shadow_num_c(int_id, "int_ID", &BX_SER_THIS s[i].int_ident.int_ID, BASE_HEX);
     bx_list_c *fifo = new bx_list_c(port, "fifo_cntl");
     new bx_shadow_bool_c(fifo, "enable", &BX_SER_THIS s[i].fifo_cntl.enable);
-    new bx_shadow_num_c(fifo, "rxtrigger", "", &BX_SER_THIS s[i].fifo_cntl.rxtrigger, BASE_HEX);
+    new bx_shadow_num_c(fifo, "rxtrigger", &BX_SER_THIS s[i].fifo_cntl.rxtrigger, BASE_HEX);
     bx_list_c *lcntl = new bx_list_c(port, "line_cntl", 7);
-    new bx_shadow_num_c(lcntl, "wordlen_sel", "", &BX_SER_THIS s[i].line_cntl.wordlen_sel, BASE_HEX);
+    new bx_shadow_num_c(lcntl, "wordlen_sel", &BX_SER_THIS s[i].line_cntl.wordlen_sel, BASE_HEX);
     new bx_shadow_bool_c(lcntl, "stopbits", &BX_SER_THIS s[i].line_cntl.stopbits);
     new bx_shadow_bool_c(lcntl, "parity_enable", &BX_SER_THIS s[i].line_cntl.parity_enable);
     new bx_shadow_bool_c(lcntl, "evenparity_sel", &BX_SER_THIS s[i].line_cntl.evenparity_sel);
@@ -431,33 +431,33 @@ void bx_serial_c::register_state(void)
     new bx_shadow_bool_c(mstatus, "dsr", &BX_SER_THIS s[i].modem_status.dsr);
     new bx_shadow_bool_c(mstatus, "ri", &BX_SER_THIS s[i].modem_status.ri);
     new bx_shadow_bool_c(mstatus, "dcd", &BX_SER_THIS s[i].modem_status.dcd);
-    new bx_shadow_num_c(port, "scratch", "", &BX_SER_THIS s[i].scratch, BASE_HEX);
-    new bx_shadow_num_c(port, "tsrbuffer", "", &BX_SER_THIS s[i].tsrbuffer, BASE_HEX);
+    new bx_shadow_num_c(port, "scratch", &BX_SER_THIS s[i].scratch, BASE_HEX);
+    new bx_shadow_num_c(port, "tsrbuffer", &BX_SER_THIS s[i].tsrbuffer, BASE_HEX);
     bx_list_c *rxfifo = new bx_list_c(port, "rx_fifo", 16);
     for (j=0; j<16; j++) {
       sprintf(name, "0x%02x", j);
-      new bx_shadow_num_c(rxfifo, strdup(name), "", &BX_SER_THIS s[i].rx_fifo[j], BASE_HEX);
+      new bx_shadow_num_c(rxfifo, strdup(name), &BX_SER_THIS s[i].rx_fifo[j], BASE_HEX);
     }
     bx_list_c *txfifo = new bx_list_c(port, "tx_fifo", 16);
     for (j=0; j<16; j++) {
       sprintf(name, "0x%02x", j);
-      new bx_shadow_num_c(txfifo, strdup(name), "", &BX_SER_THIS s[i].tx_fifo[j], BASE_HEX);
+      new bx_shadow_num_c(txfifo, strdup(name), &BX_SER_THIS s[i].tx_fifo[j], BASE_HEX);
     }
-    new bx_shadow_num_c(port, "divisor_lsb", "", &BX_SER_THIS s[i].divisor_lsb, BASE_HEX);
-    new bx_shadow_num_c(port, "divisor_msb", "", &BX_SER_THIS s[i].divisor_msb, BASE_HEX);
+    new bx_shadow_num_c(port, "divisor_lsb", &BX_SER_THIS s[i].divisor_lsb, BASE_HEX);
+    new bx_shadow_num_c(port, "divisor_msb", &BX_SER_THIS s[i].divisor_msb, BASE_HEX);
   }
-  new bx_shadow_num_c(list, "detect_mouse", "", &BX_SER_THIS detect_mouse);
-  new bx_shadow_num_c(list, "mouse_delayed_dx", "", &BX_SER_THIS mouse_delayed_dx);
-  new bx_shadow_num_c(list, "mouse_delayed_dy", "", &BX_SER_THIS mouse_delayed_dy);
-  new bx_shadow_num_c(list, "mouse_delayed_dz", "", &BX_SER_THIS mouse_delayed_dz);
+  new bx_shadow_num_c(list, "detect_mouse", &BX_SER_THIS detect_mouse);
+  new bx_shadow_num_c(list, "mouse_delayed_dx", &BX_SER_THIS mouse_delayed_dx);
+  new bx_shadow_num_c(list, "mouse_delayed_dy", &BX_SER_THIS mouse_delayed_dy);
+  new bx_shadow_num_c(list, "mouse_delayed_dz", &BX_SER_THIS mouse_delayed_dz);
   bx_list_c *mousebuf = new bx_list_c(list, "mouse_internal_buffer");
-  new bx_shadow_num_c(mousebuf, "num_elements", "", &BX_SER_THIS mouse_internal_buffer.num_elements);
+  new bx_shadow_num_c(mousebuf, "num_elements", &BX_SER_THIS mouse_internal_buffer.num_elements);
   bx_list_c *buffer = new bx_list_c(mousebuf, "buffer", BX_MOUSE_BUFF_SIZE);
   for (i=0; i<BX_MOUSE_BUFF_SIZE; i++) {
     sprintf(name, "0x%02x", i);
-    new bx_shadow_num_c(buffer, strdup(name), "", &BX_SER_THIS mouse_internal_buffer.buffer[i], BASE_HEX);
+    new bx_shadow_num_c(buffer, strdup(name), &BX_SER_THIS mouse_internal_buffer.buffer[i], BASE_HEX);
   }
-  new bx_shadow_num_c(mousebuf, "head", "", &BX_SER_THIS mouse_internal_buffer.head);
+  new bx_shadow_num_c(mousebuf, "head", &BX_SER_THIS mouse_internal_buffer.head);
 }
 #endif
 
