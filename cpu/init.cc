@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: init.cc,v 1.98.2.16 2006/05/26 12:03:55 vruppert Exp $
+// $Id: init.cc,v 1.98.2.17 2006/05/26 13:00:18 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -282,12 +282,10 @@ void BX_CPU_C::initialize(BX_MEM_C *addrspace)
       DEFPARAM_NORMAL(DR6, dr6);
       DEFPARAM_NORMAL(DR7, dr7);
 #if BX_SUPPORT_X86_64==0
-#if BX_CPU_LEVEL >= 2
       DEFPARAM_NORMAL(CR0, cr0.val32);
       DEFPARAM_NORMAL(CR1, cr1);
       DEFPARAM_NORMAL(CR2, cr2);
       DEFPARAM_NORMAL(CR3, cr3);
-#endif
 #if BX_CPU_LEVEL >= 4
       DEFPARAM_NORMAL(CR4, cr4.registerValue);
 #endif
@@ -443,17 +441,13 @@ void BX_CPU_C::register_state()
   BXRS_PARAM_SIMPLE(dr6);
   BXRS_PARAM_SIMPLE(dr7);
 #endif
-#if BX_SUPPORT_X86_64==0
-#if BX_CPU_LEVEL >= 2
-  BXRS_PARAM_FIELD(CR0, cr0.val32);
+  BXRS_PARAM_FIELD (cr0, cr0.val32);
   BXRS_PARAM_SIMPLE(cr1);
   BXRS_PARAM_SIMPLE(cr2);
   BXRS_PARAM_SIMPLE(cr3);
-#endif
 #if BX_CPU_LEVEL >= 4
-  BXRS_PARAM_FIELD(CR4, cr4.registerValue);
+  BXRS_PARAM_FIELD(cr4, cr4.registerValue);
 #endif
-#endif  // #if BX_SUPPORT_X86_64==0
 
 #define BXRS_PARAM_SEG_REG(x) \
     reg = new bx_list_c(list, strdup(#x), 19); \
@@ -555,6 +549,8 @@ void BX_CPU_C::register_state()
 #if BX_SUPPORT_X86_64
   // TODO
 #endif
+  // TODO: all other MSRs: EFER, STAR, LSTAR, CSTAR, FMASK, KERNEL_GS_BASE
+  // TSC_AUX, SYSENTER MSRS
   new bx_shadow_num_c(MSR, "tsc_last_reset", "", &msr.tsc_last_reset, BASE_HEX);
 #endif
 #if BX_SUPPORT_FPU || BX_SUPPORT_MMX
@@ -654,13 +650,14 @@ void BX_CPU_C::after_restore_state()
   CR3_change(cr3);
   setEFlags(eflags.val32);
   TLB_flush(1);
+  assert_checks();
 }
 #endif
 
 BX_CPU_C::~BX_CPU_C(void)
 {
   BX_INSTR_SHUTDOWN(BX_CPU_ID);
-  BX_DEBUG(( "Exit."));
+  BX_DEBUG(("Exit."));
 }
 
 void BX_CPU_C::reset(unsigned source)
