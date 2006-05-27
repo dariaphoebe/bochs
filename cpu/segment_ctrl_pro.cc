@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: segment_ctrl_pro.cc,v 1.58.2.2 2006/05/27 11:32:23 sshwarts Exp $
+// $Id: segment_ctrl_pro.cc,v 1.58.2.3 2006/05/27 13:51:43 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -338,7 +338,7 @@ BX_CPU_C::ar_byte(const bx_descriptor_t *d)
   }
 }
 
-  void BX_CPP_AttrRegparmN(1)
+  void BX_CPP_AttrRegparmN(2)
 BX_CPU_C::set_ar_byte(bx_descriptor_t *d, Bit8u ar_byte)
 {
   d->p        = (ar_byte >> 7) & 0x01;
