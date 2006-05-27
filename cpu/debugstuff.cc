@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
-// $Id: debugstuff.cc,v 1.65.2.1 2006/05/22 17:09:49 vruppert Exp $
+// $Id: debugstuff.cc,v 1.65.2.2 2006/05/27 13:48:41 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
 //
 //  Copyright (C) 2001  MandrakeSoft S.A.
@@ -778,7 +778,7 @@ bx_bool BX_CPU_C::dbg_set_cpu(bx_dbg_cpu_t *cpu)
   BX_CPU_THIS_PTR tr.cache.dpl               = (cpu->tr.des_h >> 13) & 0x03;
   BX_CPU_THIS_PTR tr.cache.segment           = (cpu->tr.des_h >> 12) & 0x01;
   BX_CPU_THIS_PTR tr.cache.type              = type;
-  if (type == BX_SYS_SEGMENT_AVAIL_286_TSS)
+  if (type == BX_SYS_SEGMENT_AVAIL_286_TSS) {
     BX_CPU_THIS_PTR tr.cache.u.tss.base   = (cpu->tr.des_l >> 16);
     BX_CPU_THIS_PTR tr.cache.u.tss.base  |= (cpu->tr.des_h & 0xff) << 16;
     BX_CPU_THIS_PTR tr.cache.u.tss.limit  = (cpu->tr.des_l & 0xffff);
