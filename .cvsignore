@@ -1,7 +1,10 @@
 Makefile
 bochs
+bochs.exe
 bximage
+bximage.exe
 bxcommit
+bxcommit.exe
 bxversion.h
 config.h
 config.log
@@ -12,3 +15,4 @@ config.cache
 parport.out
 ltdlconf.h
 libtool
+.bochs.out
