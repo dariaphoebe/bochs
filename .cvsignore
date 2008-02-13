@@ -6,6 +6,7 @@ bximage.exe
 bxcommit
 bxcommit.exe
 bxversion.h
+bxversion.rc
 config.h
 config.log
 config.status
