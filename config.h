@@ -901,7 +901,7 @@ typedef
 #endif
 
 // this enables the lowlevel stuff below if one of the NICs is present
-#define BX_NETWORKING 0
+#define BX_NETWORKING 1
 
 #define BX_ETH_NULL_LOGGING 0
 #define BX_ETH_FBSD_LOGGING 0
@@ -923,13 +923,13 @@ typedef
 #endif
 
 // this enables Ethertap packet mover; determined by configure script
-#define HAVE_ETHERTAP 0
+//#undef HAVE_ETHERTAP
 
 // this enables TUN/TAP packet mover; determined by configure script
-#define HAVE_TUNTAP 0
+//#undef HAVE_TUNTAP
 
 // this enables VDE packet mover; determined by configure script
-#define HAVE_VDE 0
+//#undef HAVE_VDE
 
 
 // I/O Interface to debug

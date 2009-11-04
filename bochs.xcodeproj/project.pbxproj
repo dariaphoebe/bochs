@@ -479,6 +479,7 @@
 		5BB539350EB2174800BBF48C /* textconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = textconfig.h; sourceTree = "<group>"; };
 		5BB539F90EB2216000BBF48C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BF64446910A22DA000EE2301 /* bpf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bpf.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -727,6 +728,7 @@
 				5BB537BE0EB212BF00BBF48C /* aspi-win32.h */,
 				5BB537BF0EB212BF00BBF48C /* biosdev.cc */,
 				5BB537C00EB212BF00BBF48C /* biosdev.h */,
+				BF64446910A22DA000EE2301 /* bpf.h */,
 				5BB537C10EB212BF00BBF48C /* busmouse.cc */,
 				5BB537C20EB212BF00BBF48C /* busmouse.h */,
 				5BB537C30EB212BF00BBF48C /* cdrom.cc */,
