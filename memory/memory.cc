@@ -26,8 +26,8 @@
 
 
 #include "bochs.h"
-#include "cpu/cpu.h"
-#include "iodev/iodev.h"
+#include "../cpu/cpu.h"
+#include "../iodev/iodev.h"
 #define LOG_THIS BX_MEM_THIS
 
 #if BX_PROVIDE_CPU_MEMORY

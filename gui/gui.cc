@@ -28,22 +28,22 @@
 #include <signal.h>
 #include "bochs.h"
 #include "iodev.h"
-#include "gui/bitmaps/floppya.h"
-#include "gui/bitmaps/floppyb.h"
-#include "gui/bitmaps/mouse.h"
-#include "gui/bitmaps/reset.h"
-#include "gui/bitmaps/power.h"
-#include "gui/bitmaps/snapshot.h"
-#include "gui/bitmaps/copy.h"
-#include "gui/bitmaps/paste.h"
-#include "gui/bitmaps/configbutton.h"
-#include "gui/bitmaps/cdromd.h"
-#include "gui/bitmaps/userbutton.h"
+#include "../gui/bitmaps/floppya.h"
+#include "../gui/bitmaps/floppyb.h"
+#include "../gui/bitmaps/mouse.h"
+#include "../gui/bitmaps/reset.h"
+#include "../gui/bitmaps/power.h"
+#include "../gui/bitmaps/snapshot.h"
+#include "../gui/bitmaps/copy.h"
+#include "../gui/bitmaps/paste.h"
+#include "../gui/bitmaps/configbutton.h"
+#include "../gui/bitmaps/cdromd.h"
+#include "../gui/bitmaps/userbutton.h"
 #if BX_SUPPORT_SAVE_RESTORE
 #include "gui/bitmaps/saverestore.h"
 #endif
 
-#if BX_WITH_MACOS
+#if BX_WITH_MACOS && 0
 #  include <Disks.h>
 #endif
 
@@ -260,7 +260,7 @@ void bx_gui_c::update_drive_status_buttons(void)
   if (BX_GUI_THIS floppyA_status)
     replace_bitmap(BX_GUI_THIS floppyA_hbar_id, BX_GUI_THIS floppyA_bmap_id);
   else {
-#if BX_WITH_MACOS
+#if BX_WITH_MACOS && 0
     // If we are using the Mac floppy driver, eject the disk
     // from the floppy drive.  This doesn't work in MacOS X.
     if (!strcmp(SIM->get_param_string(BXPN_FLOPPYA_PATH)->getptr(), SuperDrive))
@@ -271,7 +271,7 @@ void bx_gui_c::update_drive_status_buttons(void)
   if (BX_GUI_THIS floppyB_status)
     replace_bitmap(BX_GUI_THIS floppyB_hbar_id, BX_GUI_THIS floppyB_bmap_id);
   else {
-#if BX_WITH_MACOS
+#if BX_WITH_MACOS && 0
     // If we are using the Mac floppy driver, eject the disk
     // from the floppy drive.  This doesn't work in MacOS X.
     if (!strcmp(SIM->get_param_string(BXPN_FLOPPYB_PATH)->getptr(), SuperDrive))
@@ -810,7 +810,7 @@ void bx_gui_c::graphics_tile_update_in_place(unsigned x0, unsigned y0,
 void bx_gui_c::show_ips(Bit32u ips_count)
 {
 #if BX_SHOW_IPS
-  BX_INFO(("ips = %u", ips_count));
+  //BX_INFO(("ips = %u", ips_count));
 #endif
 }
 

@@ -547,56 +547,56 @@ private:
 #ifndef NO_DEVICE_INCLUDES
 
 #if BX_SUPPORT_PCI
-#include "iodev/pci.h"
-#include "iodev/pci2isa.h"
-#include "iodev/pci_ide.h"
+#include "pci.h"
+#include "pci2isa.h"
+#include "pci_ide.h"
 #if BX_SUPPORT_ACPI
-#include "iodev/acpi.h"
+#include "acpi.h"
 #endif
 #if BX_SUPPORT_PCIVGA
-#include "iodev/pcivga.h"
+#include "pcivga.h"
 #endif
 #if BX_SUPPORT_PCIDEV
-#include "iodev/pcidev.h"
+#include "pcidev.h"
 #endif
 #if BX_SUPPORT_PCIUSB
-#include "iodev/pciusb.h"
+#include "pciusb.h"
 #endif
 #endif
-#include "iodev/vga.h"
+#include "vga.h"
 #if BX_SUPPORT_APIC
-#  include "iodev/ioapic.h"
+#  include "ioapic.h"
 #endif
-#include "iodev/biosdev.h"
-#include "iodev/cmos.h"
-#include "iodev/dma.h"
-#include "iodev/floppy.h"
-#include "iodev/harddrv.h"
+#include "biosdev.h"
+#include "cmos.h"
+#include "dma.h"
+#include "floppy.h"
+#include "harddrv.h"
 #if BX_SUPPORT_IODEBUG
-#   include "iodev/iodebug.h"
+#   include "iodebug.h"
 #endif
-#include "iodev/keyboard.h"
+#include "keyboard.h"
 #if BX_SUPPORT_BUSMOUSE
-#   include "iodev/busmouse.h"
+#   include "busmouse.h"
 #endif
-#include "iodev/parallel.h"
-#include "iodev/pic.h"
-#include "iodev/pit.h"
-#include "iodev/pit_wrap.h"
-#include "iodev/virt_timer.h"
-#include "iodev/serial.h"
+#include "parallel.h"
+#include "pic.h"
+#include "pit.h"
+#include "pit_wrap.h"
+#include "virt_timer.h"
+#include "serial.h"
 #if BX_SUPPORT_SB16
-#  include "iodev/sb16.h"
+#  include "sb16.h"
 #endif
-#include "iodev/unmapped.h"
-#include "iodev/ne2k.h"
+#include "unmapped.h"
+#include "ne2k.h"
 #if BX_SUPPORT_PCIPNIC
-#include "iodev/pcipnic.h"
+#include "pcipnic.h"
 #endif
-#include "iodev/guest2host.h"
-#include "iodev/slowdown_timer.h"
-#include "iodev/extfpuirq.h"
-#include "iodev/gameport.h"
+#include "guest2host.h"
+#include "slowdown_timer.h"
+#include "extfpuirq.h"
+#include "gameport.h"
 
 #endif /* NO_DEVICE_INCLUDES */
 

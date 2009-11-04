@@ -133,7 +133,7 @@ public:
   static void init_signal_handlers();
 
 
-protected:
+//protected:
   // And these are defined and used privately in gui.cc
   static Bit32s make_text_snapshot (char **snapshot, Bit32u *length);
   static void floppyA_handler(void);

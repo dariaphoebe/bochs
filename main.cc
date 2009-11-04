@@ -456,8 +456,22 @@ int WINAPI WinMain(
 #if !defined(__WXMSW__)
 // normal main function, presently in for all cases except for
 // wxWidgets under win32.
-int main (int argc, char *argv[])
+int bochs_main (const char* configString)
 {
+
+//#ifndef DEBUGFULL
+//char* newargs[] = {"bochs", "-q", "-f", "/Applications/bochs.app/win95.ini"};
+
+//char* newargs[] = {"bochs", "-q", "-f", "/var/mobile/Library/Bochs/os.ini"};
+
+//#else
+//char* newargs[] = {"bochs", "-q", "-f", "/Users/wert/tmp/win95.ini"};
+char* newargs[] = {"bochs", "-q", "-f", (char*)configString};
+//#endif
+
+char** argv = newargs;
+int argc = 4;
+	
   bx_startup_flags.argc = argc;
   bx_startup_flags.argv = argv;
 #if BX_WITH_SDL && defined(WIN32)
@@ -781,7 +795,7 @@ bx_bool load_and_init_display_lib()
   if (!strcmp(gui_name, "carbon")) 
     PLUG_load_plugin (carbon, PLUGTYPE_OPTIONAL);
 #endif
-#if BX_WITH_MACOS
+#if BX_WITH_MACOS && 0
   if (!strcmp(gui_name, "macos")) 
     PLUG_load_plugin (macintosh, PLUGTYPE_OPTIONAL);
 #endif

@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////
 // $Id: extdb.cc,v 1.21 2006/06/25 21:44:46 sshwarts Exp $
 /////////////////////////////////////////////////////////////////////////
-
+/*
 #include "bochs.h"
 #ifdef WIN32
 // windows.h included in bochs.h
@@ -10,7 +10,7 @@
 #endif
 
 #include "cpu.h"
-#include "iodev/iodev.h"
+#include "../iodev/iodev.h"
 #include "extdb.h"
 
 TRegs regs;
@@ -119,6 +119,7 @@ void trap_debugger(bx_bool callnow)
 {
   regs.debug_state = debug_step;
   if (callnow) {
-    bx_external_debugger(BX_CPU_THIS);
+//    bx_external_debugger(BX_CPU_THIS);
   }
 }
+ */

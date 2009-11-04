@@ -28,8 +28,9 @@
  * Slimmed down version used to compile against a CPU simulator
  * rather than a kernel (ported by Kevin Lawton)
  * ------------------------------------------------------------ */
+#if BX_SUPPORT_FPU
 
-#include <cpu/i387.h>
+#include "../cpu/i387.h"
 
 int FPU_tagof(const floatx80 &reg)
 {
@@ -58,3 +59,4 @@ int FPU_tagof(const floatx80 &reg)
 
    return FPU_Tag_Valid;
 }
+#endif

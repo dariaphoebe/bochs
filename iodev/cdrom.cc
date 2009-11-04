@@ -248,6 +248,7 @@ typedef struct _CDROM_TOC_SESSION_DATA {
 #endif
 
 #include <stdio.h>
+#undef __APPLE__
 
 #ifdef __APPLE__
 static kern_return_t FindEjectableCDMedia( io_iterator_t *mediaIterator,

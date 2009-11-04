@@ -23,8 +23,10 @@
 
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
-#include "cpu/cpu.h"
+#include "../cpu/cpu.h"
 #define LOG_THIS BX_CPU_THIS_PTR
+
+#if BX_SUPPORT_FPU
 
 extern float_status_t FPU_pre_exception_handling(Bit16u control_word);
 
@@ -676,3 +678,4 @@ void BX_CPU_C::FISTTP64(bxInstruction_c *i)
   UndefinedOpcode(i);
 #endif
 }
+#endif

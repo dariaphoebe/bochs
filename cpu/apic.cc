@@ -28,7 +28,7 @@
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
 #include "cpu.h"
-#include "iodev/iodev.h"
+#include "../iodev/iodev.h"
 
 #if BX_SUPPORT_APIC
 

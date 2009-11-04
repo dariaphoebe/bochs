@@ -24,7 +24,7 @@
 
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
-#include "cpu/cpu.h"
+#include "../cpu/cpu.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
 
@@ -53,8 +53,6 @@ BX_CPP_INLINE floatx80 FPU_round_const(const floatx80 &a, int adj)
   result.fraction += adj;
   return result;
 }
-
-#endif
 
 void BX_CPU_C::FLDL2T(bxInstruction_c *i)
 {
@@ -200,3 +198,5 @@ void BX_CPU_C::FLDZ(bxInstruction_c *i)
   BX_INFO(("FLDZ: required FPU, configure --enable-fpu"));
 #endif
 }
+
+#endif

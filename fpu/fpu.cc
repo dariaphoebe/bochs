@@ -24,10 +24,10 @@
 
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
-#include "cpu/cpu.h"
+#include "../cpu/cpu.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-#include "iodev/iodev.h"
+#include "../iodev/iodev.h"
 
 #define UPDATE_LAST_OPCODE       1
 #define CHECK_PENDING_EXCEPTIONS 1
@@ -307,7 +307,6 @@ int BX_CPU_C::fpu_load_environment(bxInstruction_c *i)
 
     return offset;
 }
-#endif
 
 /* D9 /5 */
 void BX_CPU_C::FLDCW(bxInstruction_c *i)
@@ -539,4 +538,5 @@ void BX_CPU_C::print_state_FPU()
           f, fp.exp & 0xffff, fp.fraction >> 32, fp.fraction & 0xffffffff);
   }
 }
+#endif
 #endif

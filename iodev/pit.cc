@@ -219,7 +219,7 @@ int bx_pit_c::init(void)
   return(1);
 }
 
-int bx_pit_c::exit(void)
+void bx_pit_c::exit(void)
 {
 }
 

@@ -30,6 +30,10 @@
 // C++ header files.  Because bochs.h and the files that it includes has 
 // structure and class definitions, it cannot be called from C code.
 // 
+#pragma warning(disable: 4996)
+#pragma warning(disable: 4146)
+#pragma warning(disable: 4244)
+
 
 #ifndef BX_BOCHS_H
 #  define BX_BOCHS_H 1
@@ -62,10 +66,10 @@ extern "C" {
 #if BX_WITH_MACOS
 #define Float32 KLUDGE_Float32
 #define Float64 KLUDGE_Float64
-#  include <types.h>
+#  include <sys/types.h>
 #undef Float32
 #undef Float64
-#  include <stat.h>
+#  include <sys/stat.h>
 #  include <cstdio>
 #  include <unistd.h>
 #elif BX_WITH_CARBON
@@ -507,7 +511,7 @@ void bx_center_print (FILE *file, char *line, int maxwidth);
 
 int bx_init_hardware ();
 
-#include "instrument.h"
+#include "instrument/stubs/instrument.h"
 
 // These are some convenience macros which abstract out accesses between
 // a variable in native byte ordering to/from guest (x86) memory, which is

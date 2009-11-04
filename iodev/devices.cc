@@ -179,10 +179,10 @@ void bx_devices_c::init(BX_MEM_C *newmem)
     PLUG_load_plugin(busmouse, PLUGTYPE_OPTIONAL);
   }
 #endif
-  if (is_serial_enabled())
-    PLUG_load_plugin(serial, PLUGTYPE_OPTIONAL);
-  if (is_parallel_enabled()) 
-    PLUG_load_plugin(parallel, PLUGTYPE_OPTIONAL);
+ // if (is_serial_enabled())
+ //   PLUG_load_plugin(serial, PLUGTYPE_OPTIONAL);
+ // if (is_parallel_enabled()) 
+ //   PLUG_load_plugin(parallel, PLUGTYPE_OPTIONAL);
   PLUG_load_plugin(extfpuirq, PLUGTYPE_OPTIONAL);
 #if BX_SUPPORT_GAMEPORT
   PLUG_load_plugin(gameport, PLUGTYPE_OPTIONAL);

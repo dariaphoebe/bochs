@@ -261,7 +261,7 @@ int bx_mkstemp(char *tpl)
 // Missing library functions, implemented for MacOS only
 //////////////////////////////////////////////////////////////////////
 
-#if BX_WITH_MACOS
+#if BX_WITH_MACOS && 0
 // these functions are part of MacBochs.  They are not intended to be
 // portable!
 #include <Devices.h>
