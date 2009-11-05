@@ -89,16 +89,20 @@ extern "C" {
 #include "cdrom_beos.h"
 #define BX_CD_FRAMESIZE 2048
 
-#elif (defined(__NetBSD__) || defined(__NetBSD_kernel__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__))
+#elif (defined(__NetBSD__) || defined(__NetBSD_kernel__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__)) || defined(__APPLE__)
 // OpenBSD pre version 2.7 may require extern "C" { } structure around
 // all the includes, because the i386 sys/disklabel.h contains code which
 // c++ considers invalid.
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/file.h>
+#ifdef BX_HAVE_SYS_CDIO_H
 #include <sys/cdio.h>
+#endif
 #include <sys/ioctl.h>
+#ifdef BX_HAVE_SYS_DISKLABEL_H
 #include <sys/disklabel.h>
+#endif
 // ntohl(x) et al have been moved out of sys/param.h in FreeBSD 5
 #include <netinet/in.h>
 
@@ -248,6 +252,7 @@ typedef struct _CDROM_TOC_SESSION_DATA {
 #endif
 
 #include <stdio.h>
+#undef __APPLE__
 
 #ifdef __APPLE__
 static kern_return_t FindEjectableCDMedia(io_iterator_t *mediaIterator,

@@ -491,7 +491,7 @@ extern bx_bool bx_gui_sighandler;
 
 void bx_center_print(FILE *file, const char *line, unsigned maxwidth);
 
-#include "instrument.h"
+#include "instrument/stubs/instrument.h"
 
 // These are some convenience macros which abstract out accesses between
 // a variable in native byte ordering to/from guest (x86) memory, which is

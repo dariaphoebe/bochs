@@ -245,10 +245,12 @@ void bx_devices_c::init(BX_MEM_C *newmem)
 #endif
   if (is_harddrv_enabled())
     PLUG_load_plugin(harddrv, PLUGTYPE_OPTIONAL);
+#if 0
   if (is_serial_enabled())
     PLUG_load_plugin(serial, PLUGTYPE_OPTIONAL);
   if (is_parallel_enabled())
     PLUG_load_plugin(parallel, PLUGTYPE_OPTIONAL);
+#endif
 
 #if BX_SUPPORT_PCI
   if (SIM->get_param_bool(BXPN_I440FX_SUPPORT)->get()) {

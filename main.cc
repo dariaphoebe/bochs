@@ -468,8 +468,12 @@ int WINAPI WinMain(
 #if !defined(__WXMSW__)
 // normal main function, presently in for all cases except for
 // wxWidgets under win32.
-int CDECL main(int argc, char *argv[])
+int bochs_main (const char* configString)
 {
+  char* newargs[] = {"bochs", "-q", "-f", (char*)configString};
+  char** argv = newargs;
+  int argc = 4;
+
   bx_startup_flags.argc = argc;
   bx_startup_flags.argv = argv;
 #if BX_WITH_SDL && defined(WIN32)

@@ -68,7 +68,8 @@ extern "C" {
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <net/if.h>
-#include <net/bpf.h>
+#include "bpf.h"
+#include <sys/sysctl.h>
 #include <errno.h>
 };
 
@@ -158,12 +159,19 @@ bx_fbsd_pktmover_c::bx_fbsd_pktmover_c(const char *netif,
   struct bpf_version bv;
   struct bpf_program bp;
   u_int v;
+  int state = 1;
 
   this->netdev = dev;
   BX_INFO(("freebsd network driver"));
   memcpy(fbsd_macaddr, macaddr, 6);
 
   do {
+    if(sysctlbyname("net.inet.ip.forwarding", NULL, NULL, &state, sizeof(state)) == -1)
+      {
+	BX_DEBUG(("Error setting ip forwarding (%s)\n", strerror(errno)));
+	return;
+      }
+    state = 0;
     (void)sprintf(device, "/dev/bpf%d", n++);
     this->bpf_fd = open(device, O_RDWR);
     BX_DEBUG(("tried %s, returned %d (%s)",device,this->bpf_fd,strerror(errno)));
