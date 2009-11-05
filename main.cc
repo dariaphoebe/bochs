@@ -795,7 +795,7 @@ bx_bool load_and_init_display_lib()
   if (!strcmp(gui_name, "carbon")) 
     PLUG_load_plugin (carbon, PLUGTYPE_OPTIONAL);
 #endif
-#if BX_WITH_MACOS && 0
+#if BX_WITH_MACOS
   if (!strcmp(gui_name, "macos")) 
     PLUG_load_plugin (macintosh, PLUGTYPE_OPTIONAL);
 #endif

@@ -1078,7 +1078,7 @@ void bx_floppy_ctrl_c::floppy_xfer(Bit8u drive, Bit32u offset, Bit8u *buffer,
     BX_INFO(("direction=%s", (direction==FROM_FLOPPY)? "from" : "to"));
   }
 
-#if BX_WITH_MACOS && 0
+#if BX_WITH_MACOS
   if (strcmp(SIM->get_param_string(BXPN_FLOPPYA_PATH)->getptr(), SuperDrive))
 #endif
   {
@@ -1093,7 +1093,7 @@ void bx_floppy_ctrl_c::floppy_xfer(Bit8u drive, Bit32u offset, Bit8u *buffer,
   }
 
   if (direction == FROM_FLOPPY) {
-#if BX_WITH_MACOS && 0
+#if BX_WITH_MACOS
     if (!strcmp(SIM->get_param_string(BXPN_FLOPPYA_PATH)->getptr(), SuperDrive))
       ret = fd_read((char *) buffer, offset, bytes);
     else
@@ -1138,7 +1138,7 @@ void bx_floppy_ctrl_c::floppy_xfer(Bit8u drive, Bit32u offset, Bit8u *buffer,
 
   else { // TO_FLOPPY
     BX_ASSERT (!BX_FD_THIS s.media[drive].write_protected);
-#if BX_WITH_MACOS && 0
+#if BX_WITH_MACOS
     if (!strcmp(SIM->get_param_string(BXPN_FLOPPYA_PATH)->getptr(), SuperDrive))
       ret = fd_write((char *) buffer, offset, bytes);
     else
@@ -1653,7 +1653,7 @@ bx_bool bx_floppy_ctrl_c::evaluate_media(Bit8u devtype, Bit8u type, char *path, 
     }
   }
 
-#if BX_WITH_MACOS && 0
+#if BX_WITH_MACOS
   if (!strcmp(SIM->get_param_string(BXPN_FLOPPYA_PATH)->getptr(), SuperDrive))
     ret = fd_stat(&stat_buf);
   else

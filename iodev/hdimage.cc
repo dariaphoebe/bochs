@@ -34,7 +34,7 @@
 #include "iodev.h"
 #include "hdimage.h"
 
-#if 1//BX_HAVE_SYS_MMAN_H
+#if BX_HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
 

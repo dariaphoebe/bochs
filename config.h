@@ -191,8 +191,8 @@
 #else
 #define BX_HAVE_REALTIME_USEC (BX_HAVE_GETTIMEOFDAY)
 #endif
-#define BX_HAVE_MKSTEMP 0
-#define BX_HAVE_SYS_MMAN_H 0
+#define BX_HAVE_MKSTEMP 1
+#define BX_HAVE_SYS_MMAN_H 1
 #define BX_HAVE_XPM_H 0
 #define BX_HAVE_TIMELOCAL 0
 #define BX_HAVE_GMTIME 0
@@ -365,7 +365,7 @@
 #define BX_WITH_X11 0
 #define BX_WITH_BEOS 0
 #define BX_WITH_WIN32 0
-#define BX_WITH_MACOS 1
+#define BX_WITH_MACOS 0
 #define BX_WITH_CARBON 0
 #define BX_WITH_NOGUI 1
 #define BX_WITH_TERM 0

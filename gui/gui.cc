@@ -43,7 +43,7 @@
 #include "gui/bitmaps/saverestore.h"
 #endif
 
-#if BX_WITH_MACOS && 0
+#if BX_WITH_MACOS
 #  include <Disks.h>
 #endif
 
@@ -260,7 +260,7 @@ void bx_gui_c::update_drive_status_buttons(void)
   if (BX_GUI_THIS floppyA_status)
     replace_bitmap(BX_GUI_THIS floppyA_hbar_id, BX_GUI_THIS floppyA_bmap_id);
   else {
-#if BX_WITH_MACOS && 0
+#if BX_WITH_MACOS
     // If we are using the Mac floppy driver, eject the disk
     // from the floppy drive.  This doesn't work in MacOS X.
     if (!strcmp(SIM->get_param_string(BXPN_FLOPPYA_PATH)->getptr(), SuperDrive))
@@ -271,7 +271,7 @@ void bx_gui_c::update_drive_status_buttons(void)
   if (BX_GUI_THIS floppyB_status)
     replace_bitmap(BX_GUI_THIS floppyB_hbar_id, BX_GUI_THIS floppyB_bmap_id);
   else {
-#if BX_WITH_MACOS && 0
+#if BX_WITH_MACOS
     // If we are using the Mac floppy driver, eject the disk
     // from the floppy drive.  This doesn't work in MacOS X.
     if (!strcmp(SIM->get_param_string(BXPN_FLOPPYB_PATH)->getptr(), SuperDrive))
