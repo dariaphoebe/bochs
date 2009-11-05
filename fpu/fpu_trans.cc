@@ -26,7 +26,6 @@
 #include "bochs.h"
 #include "../cpu/cpu.h"
 #define LOG_THIS BX_CPU_THIS_PTR
-#if BX_SUPPORT_FPU
 
 #include "softfloatx80.h"
 #include "softfloat-specialize.h"
@@ -473,4 +472,3 @@ void BX_CPU_C::FCOS(bxInstruction_c *i)
   BX_INFO(("FCOS: required FPU, configure --enable-fpu"));
 #endif
 }
-#endif

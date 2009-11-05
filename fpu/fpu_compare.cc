@@ -25,10 +25,10 @@
 #include "bochs.h"
 #include "../cpu/cpu.h"
 #define LOG_THIS BX_CPU_THIS_PTR
-#if BX_SUPPORT_FPU
+
 extern float_status_t FPU_pre_exception_handling(Bit16u control_word);
 
-
+#if BX_SUPPORT_FPU
 
 #include "softfloatx80.h"
 
@@ -76,7 +76,7 @@ void BX_CPU_C::write_eflags_fpu_compare(int float_relation)
       BX_PANIC(("write_eflags: unknown floating point compare relation"));
   }
 }
-
+#endif
 
 void BX_CPU_C::FCOM_STi(bxInstruction_c *i)
 {
@@ -628,4 +628,3 @@ void BX_CPU_C::FXAM(bxInstruction_c *i)
   BX_INFO(("FXAM: required FPU, configure --enable-fpu"));
 #endif
 }
-#endif

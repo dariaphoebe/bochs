@@ -66,10 +66,10 @@ extern "C" {
 #if BX_WITH_MACOS
 #define Float32 KLUDGE_Float32
 #define Float64 KLUDGE_Float64
-#  include <sys/types.h>
+#  include <types.h>
 #undef Float32
 #undef Float64
-#  include <sys/stat.h>
+#  include <stat.h>
 #  include <cstdio>
 #  include <unistd.h>
 #elif BX_WITH_CARBON

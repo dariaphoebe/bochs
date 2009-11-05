@@ -60,7 +60,7 @@ float_status_t FPU_pre_exception_handling(Bit16u control_word)
 
   return status;
 }
-
+#endif
 
 void BX_CPU_C::FADD_ST0_STj(bxInstruction_c *i)
 {
@@ -1269,5 +1269,3 @@ void BX_CPU_C::FRNDINT(bxInstruction_c *i)
   BX_INFO(("FRNDINT: required FPU, configure --enable-fpu"));
 #endif
 }
-
-#endif

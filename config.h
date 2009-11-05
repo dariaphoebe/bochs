@@ -109,7 +109,7 @@
 // When you're done, reset BX_SHOW_IPS to 0, do a
 // 'make all-clean', then 'make' again.
 
-#define BX_SHOW_IPS         1
+#define BX_SHOW_IPS         0
 
 
 #if (BX_SHOW_IPS) && (defined(__MINGW32__) || defined(_MSC_VER))

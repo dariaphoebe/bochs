@@ -505,9 +505,7 @@ void logfunctions::ask(int level, const char *prefix, const char *fmt, va_list a
       // do something highly illegal that should kill the process.
       // Hey, this is fun!
       {
-		  *(char*)0 = 0;
-        //char *crashptr = (char *)0; 
-		//char c = *crashptr;
+	char *crashptr = (char *)0; char c = *crashptr;
       }
       fprintf(stderr, "Sorry, I couldn't find your abort() function.  Exiting.");
       exit(0);

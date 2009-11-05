@@ -37,7 +37,6 @@
 		5BB535DA0EB209B400BBF48C /* data_xfer8.cc in Sources */ = {isa = PBXBuildFile; fileRef = 5BB535840EB209B400BBF48C /* data_xfer8.cc */; };
 		5BB535DB0EB209B400BBF48C /* debugstuff.cc in Sources */ = {isa = PBXBuildFile; fileRef = 5BB535850EB209B400BBF48C /* debugstuff.cc */; };
 		5BB535DC0EB209B400BBF48C /* exception.cc in Sources */ = {isa = PBXBuildFile; fileRef = 5BB535870EB209B400BBF48C /* exception.cc */; };
-		5BB535DD0EB209B400BBF48C /* extdb.cc in Sources */ = {isa = PBXBuildFile; fileRef = 5BB535880EB209B400BBF48C /* extdb.cc */; };
 		5BB535DE0EB209B400BBF48C /* fetchdecode.cc in Sources */ = {isa = PBXBuildFile; fileRef = 5BB5358A0EB209B400BBF48C /* fetchdecode.cc */; };
 		5BB535DF0EB209B400BBF48C /* fetchdecode64.cc in Sources */ = {isa = PBXBuildFile; fileRef = 5BB5358C0EB209B400BBF48C /* fetchdecode64.cc */; };
 		5BB535E00EB209B400BBF48C /* flag_ctrl.cc in Sources */ = {isa = PBXBuildFile; fileRef = 5BB5358D0EB209B400BBF48C /* flag_ctrl.cc */; };
@@ -221,7 +220,6 @@
 		5BB535850EB209B400BBF48C /* debugstuff.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cc.cc; path = debugstuff.cc; sourceTree = "<group>"; };
 		5BB535860EB209B400BBF48C /* descriptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = descriptor.h; sourceTree = "<group>"; };
 		5BB535870EB209B400BBF48C /* exception.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cc.cc; path = exception.cc; sourceTree = "<group>"; };
-		5BB535880EB209B400BBF48C /* extdb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cc.cc; path = extdb.cc; sourceTree = "<group>"; };
 		5BB535890EB209B400BBF48C /* extdb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = extdb.h; sourceTree = "<group>"; };
 		5BB5358A0EB209B400BBF48C /* fetchdecode.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cc.cc; path = fetchdecode.cc; sourceTree = "<group>"; };
 		5BB5358B0EB209B400BBF48C /* fetchdecode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fetchdecode.h; sourceTree = "<group>"; };
@@ -626,7 +624,6 @@
 				5BB535850EB209B400BBF48C /* debugstuff.cc */,
 				5BB535860EB209B400BBF48C /* descriptor.h */,
 				5BB535870EB209B400BBF48C /* exception.cc */,
-				5BB535880EB209B400BBF48C /* extdb.cc */,
 				5BB535890EB209B400BBF48C /* extdb.h */,
 				5BB5358A0EB209B400BBF48C /* fetchdecode.cc */,
 				5BB5358B0EB209B400BBF48C /* fetchdecode.h */,
@@ -1013,7 +1010,6 @@
 				5BB535DA0EB209B400BBF48C /* data_xfer8.cc in Sources */,
 				5BB535DB0EB209B400BBF48C /* debugstuff.cc in Sources */,
 				5BB535DC0EB209B400BBF48C /* exception.cc in Sources */,
-				5BB535DD0EB209B400BBF48C /* extdb.cc in Sources */,
 				5BB535DE0EB209B400BBF48C /* fetchdecode.cc in Sources */,
 				5BB535DF0EB209B400BBF48C /* fetchdecode64.cc in Sources */,
 				5BB535E00EB209B400BBF48C /* flag_ctrl.cc in Sources */,

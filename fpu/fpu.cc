@@ -307,6 +307,7 @@ int BX_CPU_C::fpu_load_environment(bxInstruction_c *i)
 
     return offset;
 }
+#endif
 
 /* D9 /5 */
 void BX_CPU_C::FLDCW(bxInstruction_c *i)
@@ -538,5 +539,4 @@ void BX_CPU_C::print_state_FPU()
           f, fp.exp & 0xffff, fp.fraction >> 32, fp.fraction & 0xffffffff);
   }
 }
-#endif
 #endif
