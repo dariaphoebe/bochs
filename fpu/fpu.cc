@@ -24,10 +24,10 @@
 
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
-#include "../cpu/cpu.h"
+#include "cpu/cpu.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-#include "../iodev/iodev.h"
+#include "iodev/iodev.h"
 
 #define UPDATE_LAST_OPCODE       1
 #define CHECK_PENDING_EXCEPTIONS 1

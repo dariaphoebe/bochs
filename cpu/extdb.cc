@@ -10,7 +10,7 @@
 #endif
 
 #include "cpu.h"
-#include "../iodev/iodev.h"
+#include "iodev/iodev.h"
 #include "extdb.h"
 
 TRegs regs;

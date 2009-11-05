@@ -38,7 +38,7 @@
 #if BX_WITH_RFB
 
 #include "icon_bochs.h"
-#include "../font/vga.bitmap.h"
+#include "font/vga.bitmap.h"
 #if BX_WITH_SDL && !BX_PLUGINS
 extern unsigned char sdl_font8x8[256][8];
 #else

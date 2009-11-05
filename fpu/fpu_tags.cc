@@ -29,7 +29,7 @@
  * rather than a kernel (ported by Kevin Lawton)
  * ------------------------------------------------------------ */
 
-#include "../cpu/i387.h"
+#include <cpu/i387.h>
 
 int FPU_tagof(const floatx80 &reg)
 {

@@ -26,7 +26,7 @@
 
 #if BX_SUPPORT_FPU
 
-#include "../fpu/softfloat.h"
+#include "fpu/softfloat.h"
 
 #define BX_FPU_REG(index) \
     (BX_CPU_THIS_PTR the_i387.st_space[index])
@@ -38,9 +38,9 @@
 #define FPU_TOS                (BX_CPU_THIS_PTR the_i387.tos)
 #endif
 
-#include "../fpu/tag_w.h"
-#include "../fpu/status_w.h"
-#include "../fpu/control_w.h"
+#include "fpu/tag_w.h"
+#include "fpu/status_w.h"
+#include "fpu/control_w.h"
 
 extern int FPU_tagof(const floatx80 &reg);
 

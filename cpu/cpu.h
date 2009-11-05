@@ -31,11 +31,11 @@
 
 #include <setjmp.h>
 
-#include "lazy_flags.h"
-#include "hostasm.h"
+#include "cpu/lazy_flags.h"
+#include "cpu/hostasm.h"
 
 #if BX_DISASM
-#  include "../disasm/disasm.h"
+#  include "disasm/disasm.h"
 #endif
 
 // <TAG-DEFINES-DECODE-START>
@@ -1010,8 +1010,8 @@ class BX_MEM_C;
 #endif
 
 #if BX_SUPPORT_FPU
-#include "i387.h"
-#include "xmm.h"
+#include "cpu/i387.h"
+#include "cpu/xmm.h"
 #endif
 
 class BOCHSAPI BX_CPU_C : public logfunctions {

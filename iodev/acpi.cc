@@ -29,7 +29,7 @@
 #define BX_PLUGGABLE
 
 #include "bochs.h"
-#include "../cpu/cpu.h"
+#include "cpu/cpu.h"
 #include "iodev.h"
 #if BX_SUPPORT_PCI && BX_SUPPORT_ACPI
 

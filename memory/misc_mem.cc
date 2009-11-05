@@ -27,8 +27,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
 #include "bochs.h"
-#include "../cpu/cpu.h"
-#include "../iodev/iodev.h"
+#include "cpu/cpu.h"
+#include "iodev/iodev.h"
 #define LOG_THIS BX_MEM(0)->
 
 #if BX_PROVIDE_CPU_MEMORY

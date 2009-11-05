@@ -3,7 +3,7 @@
 /////////////////////////////////////////////////////////////////////////
 
 #include "bochs.h"
-#include "../cpu/cpu.h"
+#include "cpu/cpu.h"
 #include "iodev.h"
 #if BX_SUPPORT_IODEBUG
 

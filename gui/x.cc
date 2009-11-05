@@ -53,7 +53,7 @@ extern "C" {
 #include "icon_bochs.h"
 #endif
 
-#include "../font/vga.bitmap.h"
+#include "font/vga.bitmap.h"
 
 class bx_x_gui_c : public bx_gui_c {
 public:

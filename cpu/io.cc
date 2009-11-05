@@ -30,7 +30,7 @@
 #include "cpu.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
-#include "../iodev/iodev.h"
+#include "iodev/iodev.h"
 
 #if BX_SUPPORT_X86_64==0
 // Make life easier for merging cpu64 and cpu32 code.
