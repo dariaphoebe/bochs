@@ -378,7 +378,7 @@
 #define SIZEOF_UNSIGNED_SHORT 2
 #define SIZEOF_UNSIGNED_INT 4
 #define SIZEOF_UNSIGNED_LONG 4
-#define SIZEOF_UNSIGNED_LONG_LONG 4
+#define SIZEOF_UNSIGNED_LONG_LONG 8
 #define SIZEOF_INT_P 4
 
 #define BX_64BIT_CONSTANTS_USE_LL 1
@@ -949,13 +949,13 @@ typedef
 #endif
 
 // this enables Ethertap packet mover; determined by configure script
-#define HAVE_ETHERTAP 0
+//#undef HAVE_ETHERTAP
 
 // this enables TUN/TAP packet mover; determined by configure script
-#define HAVE_TUNTAP 0
+//#undef HAVE_TUNTAP
 
 // this enables VDE packet mover; determined by configure script
-#define HAVE_VDE 0
+//#undef HAVE_VDE
 
 
 // I/O Interface to debug
